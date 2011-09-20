@@ -1,5 +1,6 @@
 try:
     import numpy
+    #import numpy.matrix
 except ImportError:
     raise ImportError("Could not find numpy package. If a Jama.jar was not found, this package tries for numpy instead")
 except:
@@ -29,7 +30,7 @@ class Matrix(object):
             self.m =  numpy.mat(numpy.zeros( (args[0],args[1]) ), 'float')
         elif len(args)==1:
             m = args[0]
-            if type(m)==numpy.core.defmatrix.matrix:
+            if isinstance(m, numpy.matrix): #core.defmatrix.matrix:
                 self.m=m
             else:
                 self.m = numpy.mat(m, 'float')

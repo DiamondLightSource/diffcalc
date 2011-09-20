@@ -36,8 +36,8 @@ class TestSimulatedCrystalCounter(unittest.TestCase):
         self.scc = SimulatedCrystalCounter('det', self.diff, fourc(), self.wl, self.eq)
         
     def testInit(self):
-        self.assertEquals(self.scc.getInputNames(), ['det_count'])
-        self.assertEquals(self.scc.getExtraNames(), [])
+        self.assertEquals(list(self.scc.getInputNames()), ['det_count'])
+        self.assertEquals(list(self.scc.getExtraNames()), [])
         self.assertEquals(self.scc.chiMissmount, 0.)
         self.assertEquals(self.scc.phiMissmount, 0.)
 
