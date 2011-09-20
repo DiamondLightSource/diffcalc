@@ -16,6 +16,8 @@ TODEG=180/pi
 transformC = TransformCInRadians()
 
 
+PREFER_POSITIVE_CHI_SOLUTIONS = True
+
 def vliegAnglesToHkl(pos, energy, UBMatrix):
     """
     (h, k, l) = anglesToHkl(pos, energy) -- Returns hkl indices from pos object in radians.
@@ -98,7 +100,7 @@ class VliegHklCalculator(HklCalculatorBase):
         
         if self._getMode().group in ("fourc","fivecFixedGamma","fivecFixedAlpha"):
             return self._hklToAnglesFourAndFiveCirclesModes(h, k, l, energy)
-        elif self._getMode().group is "zaxis":
+        elif self._getMode().group == "zaxis":
             return self._hklToAnglesZaxisModes(h, k, l, energy)
         else:
             raise RuntimeError("The current mode (%s) has an unrecognised group: %s." % (self._getMode().name, self._getMode().group) )
@@ -146,7 +148,7 @@ class VliegHklCalculator(HklCalculatorBase):
         # (psi will be None in fixed phi mode)
 
         # Ensure that by default omega is between -90 and 90, by possibly transforming the sample angles
-        if self._getMode().name is not '4cPhi': # don't want to move phi!
+        if self._getMode().name != '4cPhi': # not in fixed-phi mode
             if pos.omega<-pi/2 or pos.omega>pi/2:
                 pos = transformC.transform(pos)
 
@@ -727,24 +729,43 @@ def _findOmegaAndChiToRotateHchiIntoQalpha(h_chi, q_alpha):
         raise ValueError(str(e) + ":\nProblem in fixed-phi calculation for:\nh_chi: " + str(h_chi.array) + " q_alpha: " + str(q_alpha.array))
                 
     # 2. Choose values of chi and omega that are solutions to equations 1 and 2:
-    
+    solutions = []
     # a) Check the chi1 solutions
+    print "_findOmegaAndChiToRotateHchiIntoQalpha:"
     if ne(eq1omega11, eq2omega11) or ne(eq1omega11, eq2omega12):
-        return eq1omega11, chi1
-    elif ne(eq1omega12, eq2omega11) or ne(eq1omega12, eq2omega12):
-        return eq1omega12, chi1
+#        print "1: eq1omega11, chi1 = ", eq1omega11, chi1
+        solutions.append((eq1omega11, chi1))
+    if ne(eq1omega12, eq2omega11) or ne(eq1omega12, eq2omega12):
+#        print "2: eq1omega12, chi1 = ", eq1omega12, chi1
+        solutions.append((eq1omega12, chi1))
     # b) Check the chi2 solutions
-    elif ne(eq1omega21, eq2omega21) or ne(eq1omega21, eq2omega22):
-        return eq1omega21, chi2
-    elif ne(eq1omega22, eq2omega21) or ne(eq1omega22, eq2omega22):
-        return eq1omega22, chi2
-    # Failed
-    else:
+    if ne(eq1omega21, eq2omega21) or ne(eq1omega21, eq2omega22):
+#        print "3: eq1omega21, chi2 = ", eq1omega21, chi2
+        solutions.append((eq1omega21, chi2))
+    if ne(eq1omega22, eq2omega21) or ne(eq1omega22, eq2omega22):
+#        print "4: eq1omega22, chi2 = ", eq1omega22, chi2
+        solutions.append((eq1omega22, chi2))
+#    print solutions
+#    print "*"
+    
+    if len(solutions) == 0:
         e = "h_chi: " + str(h_chi.array) + " q_alpha: " + str(q_alpha.array)
         e = e + '\n' + "chi1:%4f eq1omega11:%4f eq1omega12:%4f eq2omega11:%4f eq2omega12:%4f" %(chi1*TODEG, eq1omega11*TODEG, eq1omega12*TODEG, eq2omega11*TODEG, eq2omega12*TODEG)
         e = e + '\n' + "chi2:%4f eq1omega21:%4f eq1omega22:%4f eq2omega21:%4f eq2omega22:%4f" %(chi2*TODEG, eq1omega21*TODEG, eq1omega22*TODEG, eq2omega21*TODEG, eq2omega22*TODEG)
         raise Exception("Could not find simultaneous solution for this fixed phi mode problem\n"+e)
     
+    if not PREFER_POSITIVE_CHI_SOLUTIONS:
+        return solutions[0]
     
-    ####################################
+    positive_chi_solutions = [sol for sol in solutions if sol[1] > 0]
     
+    if len(positive_chi_solutions) == 0:
+        print "WARNING: A +ve chi solution was requested, but none were found."
+        print "         Returning a -ve one. Try the mapper"
+        return solutions[0]
+    
+    if len(positive_chi_solutions) >= 1:
+        print "INFO: Multiple +ve chi solutions were found [(omega, chi) ...] = " + str(positive_chi_solutions)
+        print "      Returning the first"
+    
+    return positive_chi_solutions[0]
