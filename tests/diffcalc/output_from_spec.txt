@@ -1,0 +1,1325 @@
+
+SIXC.1> com ************ spec_sixc_b16_270608 ************
+
+Mon Jul 28 12:18:45 2008.  ************ spec_sixc_b16_270608 ************.
+
+SIXC.1> LAMBDA=12.39842/10
+
+SIXC.1> setlat 3.8401 3.8401 5.43072 90 90 90
+(UB recalculated from orientation reflections and lattice.)
+
+SIXC.1> 
+SIXC.1> mv mu 5;mv del 22.79;mv gam 0;mv th 1.552;mv chi 22.4;mv phi 14.255;
+
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> or0 1 0 1.0628
+(UB recalculated from orientation reflections and lattice.)
+
+SIXC.1> mv mu 5;mv del 22.79;mv gam 0;mv th 4.575;mv chi 24.275;mv phi 101.32;
+
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> or1 0 1 1.0628
+(UB recalculated from orientation reflections and lattice.)
+
+SIXC.1> g_sect=0
+
+SIXC.1> dofile("sixc_test_scenario_guts.mac")
+
+SIXC.2> Reading file "/mntdirect/_bliss/users/walton/sixc_test_scenario_guts.mac" (level 2).
+
+SIXC.2> 
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-0a : fixed omega = 0 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-0a : fixed omega = 0 ***.
+
+SIXC.2> setmode 0
+Now using Omega fixed (four circle, Mu = Gamma = 0) mode.
+
+SIXC.2> mv mu 0;mv gam 0; OMEGA=0
+
+SIXC.2> 
+SIXC.2> 
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 27.352179, 0.000000, 13.676090, 37.774500, 53.965500)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580230, 0.000000, 9.290115, -2.403500, 3.589000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580230, 0.000000, 9.290115, 0.516000, 93.567000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 26.394192, 0.000000, 13.197096, -1.334500, 48.602000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-0b : fixed omega = 15 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-0b : fixed omega = 15 ***.
+
+SIXC.2> setmode 0
+Still using Omega fixed (four circle, Mu = Gamma = 0) mode.
+
+SIXC.2> mv mu 0;mv gam 0; OMEGA=15
+
+SIXC.2> 
+SIXC.2> 
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 27.352179, 0.000000, 28.676090, 39.358000, 34.852000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580230, 0.000000, 24.290115, -2.488500, -11.424500)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580230, 0.000000, 24.290115, 0.534000, 78.566500)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 26.394192, 0.000000, 28.197096, -1.381500, 33.598000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-1a : fixed phi = 0 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-1a : fixed phi = 0 ***.
+
+SIXC.2> setmode 1
+Now using Phi fixed (four circle, Mu = Gamma = 0) mode.
+
+SIXC.2> mv mu 0;mv gam 0;
+
+SIXC.2> 
+SIXC.2> 
+SIXC.2> mv phi 0
+
+SIXC.2> 
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 27.352179, 0.000000, 53.407372, 52.798000, 0.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580230, 0.000000, 12.875851, -2.408500, 0.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580230, 0.000000, 102.894431, -8.236000, 0.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 26.394192, 0.000000, 61.781587, -2.017500, 0.000000)
+
+SIXC.2> 
+
+SIXC.2> 
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-1b : fixed phi = 15 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-1b : fixed phi = 15 ***.
+
+SIXC.2> setmode 1
+Still using Phi fixed (four circle, Mu = Gamma = 0) mode.
+
+SIXC.2> mv mu 0;mv gam 0;
+
+SIXC.2> 
+SIXC.2> 
+SIXC.2> mv phi 15
+
+SIXC.2> 
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 27.352179, 0.000000, 43.481806, 44.905500, 15.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580230, 0.000000, -2.110812, -2.452000, 15.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580230, 0.000000, 87.845869, 2.601500, 15.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 26.394192, 0.000000, 46.788887, -1.602000, 15.000000)
+
+SIXC.2> 
+
+SIXC.2> com ****** azimuth fixed ******
+
+Mon Jul 28 12:18:45 2008.  ****** azimuth fixed ******.
+
+SIXC.2> com *** sixc-3a : azimuth fixed (mu,gamma fixed), sigma=0, tau=0, azimuth = 90 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-3a : azimuth fixed (mu,gamma fixed), sigma=0, tau=0, azimuth = 90 ***.
+
+SIXC.2> setmode 3
+Now using Azimuth, Mu and Gamma fixed mode.
+
+SIXC.2> sigtau 0 0
+
+SIXC.2> 
+SIXC.2> AZIMUTH=90
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 27.352000, 0.000000, 10.067000, 37.863000, 58.533000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580000, 0.000000, -158.591000, 2.458500, 171.459000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580000, 0.000000, -68.591000, 2.458500, 171.459000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 26.394000, 0.000000, -109.684000, 2.458500, 171.459000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-3b : azimuth fixed (mu,gamma fixed), sigma=0, tau=0, azimuth = 37 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-3b : azimuth fixed (mu,gamma fixed), sigma=0, tau=0, azimuth = 37 ***.
+
+SIXC.2> setmode 3
+Still using Azimuth, Mu and Gamma fixed mode.
+
+SIXC.2> sigtau 0 0
+
+SIXC.2> 
+SIXC.2> AZIMUTH=37
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 27.352000, 0.000000, -33.187500, 63.623500, 121.365000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580000, 0.000000, -83.698500, 53.553500, 95.365500)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580000, 0.000000, -80.083000, 55.405500, -176.788500)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 26.394000, 0.000000, -78.430500, 55.076000, 139.534000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-3c : azimuth fixed (mu,gamma fixed), sigma=-1.35, tau=-106, azimuth = 90 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-3c : azimuth fixed (mu,gamma fixed), sigma=-1.35, tau=-106, azimuth = 90 ***.
+
+SIXC.2> setmode 3
+Still using Azimuth, Mu and Gamma fixed mode.
+
+SIXC.2> sigtau -1.35 -106
+
+SIXC.2> 
+SIXC.2> AZIMUTH=90
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 27.352000, 0.000000, 10.067000, 37.863000, 58.533000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580000, 0.000000, -158.591000, 2.458500, 171.459000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580000, 0.000000, -68.591000, 2.458500, 171.459000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 26.394000, 0.000000, -109.684000, 2.458500, 171.459000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-3d : azimuth fixed (mu,gamma fixed),  sigma=-1.35, tau=-106, azimuth = 37 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-3d : azimuth fixed (mu,gamma fixed), sigma=-1.35, tau=-106, azimuth = 37 ***.
+
+SIXC.2> setmode 3
+Still using Azimuth, Mu and Gamma fixed mode.
+
+SIXC.2> sigtau -1.35 -106
+
+SIXC.2> 
+SIXC.2> AZIMUTH=37
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 27.352000, 0.000000, -33.187500, 63.623500, 121.365000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580000, 0.000000, -83.698500, 53.553500, 95.365500)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580000, 0.000000, -80.083000, 55.405500, -176.788500)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 26.394000, 0.000000, -78.430500, 55.076000, 139.534000)
+
+SIXC.2> 
+
+SIXC.2> com ****** z axiz, fixed azimuth ******
+
+Mon Jul 28 12:18:45 2008.  ****** z axiz, fixed azimuth ******.
+
+SIXC.2> com *** sixc-12a : z axis, azimuth=90 (Bin=Bout), chi, phi = -sigma, -tau, = 0,0 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-12a : z axis, azimuth=90 (Bin=Bout), chi, phi = -sigma, -tau, = 0,0 ***.
+
+SIXC.2> setmode 12
+Now using Z-Axis with Azimuth fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau 0 0
+
+SIXC.2> 
+SIXC.2> mv chi 0
+
+SIXC.2> 
+SIXC.2> mv phi 0
+
+SIXC.2> 
+SIXC.2> AZIMUTH=90
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(8.534000, 21.453500, 8.534000, 64.692000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580000, 0.000000, 12.879000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580000, 0.000000, 102.857500, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 26.394000, 0.000000, 61.799000, 0.000000, 0.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-12b : z axis, azimuth=90 (Bin=Bout), chi, phi = -sigma, -tau, = -1.35 -106 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-12b : z axis, azimuth=90 (Bin=Bout), chi, phi = -sigma, -tau, = -1.35 -106 ***.
+
+SIXC.2> setmode 12
+Still using Z-Axis with Azimuth fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau -1.35 -106
+
+SIXC.2> 
+SIXC.2> mv chi 1.35
+
+SIXC.2> 
+SIXC.2> mv phi 106
+
+SIXC.2> 
+SIXC.2> AZIMUTH=90
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(8.534000, 21.453500, 8.534000, -40.500000, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580000, 0.000000, -93.173000, 1.350000, 106.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 18.580000, 0.000000, -3.143500, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 26.394000, 0.000000, -44.234500, 1.350000, 106.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-12c : z axis, azimuth=35 (Bin=Bout), chi, phi = -sigma, -tau, = 0,0 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-12c : z axis, azimuth=35 (Bin=Bout), chi, phi = -sigma, -tau, = 0,0 ***.
+
+SIXC.2> setmode 12
+Still using Z-Axis with Azimuth fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau 0 0
+
+SIXC.2> 
+SIXC.2> mv chi 0
+
+SIXC.2> 
+SIXC.2> mv phi 0
+
+SIXC.2> 
+SIXC.2> AZIMUTH=35
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-28.114500, 21.297500, 50.177000, 104.777500, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-53.940500, 31.835500, 53.940500, 19.506500, 0.000000, 0.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-53.940500, 31.835500, 53.940500, 109.485000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-52.894000, 44.472500, 52.894000, 70.838500, 0.000000, 0.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-12d : z axis, azimuth=35 (Bin=Bout), chi, phi = -sigma, -tau, = -1.35 -106 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-12d : z axis, azimuth=35 (Bin=Bout), chi, phi = -sigma, -tau, = -1.35 -106 ***.
+
+SIXC.2> setmode 12
+Still using Z-Axis with Azimuth fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau -1.35 -106
+
+SIXC.2> 
+SIXC.2> mv chi 1.35
+
+SIXC.2> 
+SIXC.2> mv phi 106
+
+SIXC.2> 
+SIXC.2> AZIMUTH=35
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-28.114500, 21.297500, 50.177000, -0.415000, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-53.940500, 31.835500, 53.940500, -86.545500, 1.350000, 106.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-53.940500, 31.835500, 53.940500, 3.484000, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-52.894000, 44.472500, 52.894000, -35.195500, 1.350000, 106.000000)
+
+SIXC.2> 
+
+SIXC.2> com ***** z axis, fixed alpha/Bin beta/Bout*****
+
+Mon Jul 28 12:18:45 2008.  ***** z axis, fixed alpha/Bin beta/Bout*****.
+
+SIXC.2> com *** sixc-13a : z axis, alpha=10 (Bin=10), chi, phi = -sigma, -tau, = 0,0 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-13a : z axis, alpha=10 (Bin=10), chi, phi = -sigma, -tau, = 0,0 ***.
+
+SIXC.2> setmode 13
+Now using Z-Axis with Alpha fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau 0 0
+
+SIXC.2> 
+SIXC.2> mv chi 0
+
+SIXC.2> 
+SIXC.2> mv phi 0
+
+SIXC.2> 
+SIXC.2> ALPHA=10
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(10.000000, 21.456000, 7.073500, 63.534000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(10.000000, 18.869500, -10.000000, 13.023500, 0.000000, 0.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(10.000000, 18.869500, -10.000000, 103.002000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(10.000000, 26.809000, -10.000000, 62.006500, 0.000000, 0.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-13b : z axis, alpha=10  chi, phi = -sigma, -tau, = -1.35, -106 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-13b : z axis, alpha=10 chi, phi = -sigma, -tau, = -1.35, -106 ***.
+
+SIXC.2> setmode 13
+Still using Z-Axis with Alpha fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau -1.35 -106
+
+SIXC.2> 
+SIXC.2> mv chi 1.35
+
+SIXC.2> 
+SIXC.2> mv phi 106
+
+SIXC.2> 
+SIXC.2> ALPHA=10
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(10.000000, 21.456000, 7.073500, -41.658000, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(10.000000, 18.869500, -10.000000, -93.028500, 1.350000, 106.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(10.000000, 18.869500, -10.000000, -2.999000, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(10.000000, 26.809000, -10.000000, -44.027000, 1.350000, 106.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-14a : z axis, beta=11 (Bout=11), chi, phi = -sigma, -tau, = 0,0 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-14a : z axis, beta=11 (Bout=11), chi, phi = -sigma, -tau, = 0,0 ***.
+
+SIXC.2> setmode 14
+Now using Z-Axis with Beta fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau 0 0
+
+SIXC.2> 
+SIXC.2> mv chi 0
+
+SIXC.2> 
+SIXC.2> mv phi 0
+
+SIXC.2> 
+SIXC.2> BETA=11
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(6.084000, 21.461000, 11.000000, 66.644500, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-11.000000, 18.931000, 11.000000, 13.054500, 0.000000, 0.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-11.000000, 18.931000, 11.000000, 103.033000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-11.000000, 26.897500, 11.000000, 62.051000, 0.000000, 0.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-14b : z axis, beta=11  chi, phi = -sigma, -tau, = -1.35, -106 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-14b : z axis, beta=11 chi, phi = -sigma, -tau, = -1.35, -106 ***.
+
+SIXC.2> setmode 14
+Still using Z-Axis with Beta fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau -1.35 -106
+
+SIXC.2> 
+SIXC.2> mv chi 1.35
+
+SIXC.2> 
+SIXC.2> mv phi 106
+
+SIXC.2> 
+SIXC.2> BETA=11
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(6.084000, 21.461000, 11.000000, -38.547500, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-11.000000, 18.931000, 11.000000, -92.997500, 1.350000, 106.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-11.000000, 18.931000, 11.000000, -2.968000, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-11.000000, 26.897500, 11.000000, -43.983000, 1.350000, 106.000000)
+
+SIXC.2> 
+
+SIXC.2> 
+
+SIXC.1> com ***************  cubic from bliss tutorial ************
+
+Mon Jul 28 12:18:45 2008.  *************** cubic from bliss tutorial ************.
+
+SIXC.1> com *******************************************************
+
+Mon Jul 28 12:18:45 2008.  *******************************************************.
+
+SIXC.1> com *******************************************************
+
+Mon Jul 28 12:18:45 2008.  *******************************************************.
+
+SIXC.1> com *******************************************************
+
+Mon Jul 28 12:18:45 2008.  *******************************************************.
+
+SIXC.1> setmode 0
+Now using Omega fixed (four circle, Mu = Gamma = 0) mode.
+
+SIXC.1> LAMBDA=1.54
+
+SIXC.1> setlat 1.54 1.54 1.54 90 90 90
+(UB recalculated from orientation reflections and lattice.)
+
+SIXC.1> 
+SIXC.1> mv mu 0; mv del 60;mv gam 0;mv th 30;mv chi 0 ;mv phi 0;
+
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> or0 1 0 0 ;
+(UB recalculated from orientation reflections and lattice.)
+
+SIXC.1> mv mu 0; mv del 60;mv gam 0;mv th 30;mv chi 0 ;mv phi -90;
+
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> 
+SIXC.1> or1 0 1 0;
+(UB recalculated from orientation reflections and lattice.)
+
+SIXC.1> g_sect=0
+
+SIXC.1> dofile("sixc_test_scenario_guts.mac")
+
+SIXC.2> Reading file "/mntdirect/_bliss/users/walton/sixc_test_scenario_guts.mac" (level 2).
+
+SIXC.2> 
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-0a : fixed omega = 0 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-0a : fixed omega = 0 ***.
+
+SIXC.2> setmode 0
+Still using Omega fixed (four circle, Mu = Gamma = 0) mode.
+
+SIXC.2> mv mu 0;mv gam 0; OMEGA=0
+
+SIXC.2> 
+SIXC.2> 
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 119.669750, 0.000000, 59.834875, -48.747500, -52.125000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 30.000000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 30.000000, 0.000000, -90.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 90.000000, 0.000000, 45.000000, 0.000000, -45.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-0b : fixed omega = 15 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-0b : fixed omega = 15 ***.
+
+SIXC.2> setmode 0
+Still using Omega fixed (four circle, Mu = Gamma = 0) mode.
+
+SIXC.2> mv mu 0;mv gam 0; OMEGA=15
+
+SIXC.2> 
+SIXC.2> 
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 119.669750, 0.000000, 74.834875, -51.108000, -75.236500)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 45.000000, 0.000000, -15.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 45.000000, 0.000000, -105.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 90.000000, 0.000000, 60.000000, 0.000000, -60.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-1a : fixed phi = 0 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-1a : fixed phi = 0 ***.
+
+SIXC.2> setmode 1
+Now using Phi fixed (four circle, Mu = Gamma = 0) mode.
+
+SIXC.2> mv mu 0;mv gam 0;
+
+SIXC.2> 
+SIXC.2> 
+SIXC.2> mv phi 0
+
+SIXC.2> 
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 119.669750, 0.000000, 28.470190, -61.699000, 0.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 30.000000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, -60.000000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 90.000000, 0.000000, 0.000000, 0.000000, 0.000000)
+
+SIXC.2> 
+
+SIXC.2> 
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-1b : fixed phi = 15 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-1b : fixed phi = 15 ***.
+
+SIXC.2> setmode 1
+Still using Phi fixed (four circle, Mu = Gamma = 0) mode.
+
+SIXC.2> mv mu 0;mv gam 0;
+
+SIXC.2> 
+SIXC.2> 
+SIXC.2> mv phi 15
+
+SIXC.2> 
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 119.669750, 0.000000, 22.424215, -71.174000, 15.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 15.000000, 0.000000, 15.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, -75.000000, 0.000000, 15.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 90.000000, 0.000000, -15.000000, 0.000000, 15.000000)
+
+SIXC.2> 
+
+SIXC.2> com ****** azimuth fixed ******
+
+Mon Jul 28 12:18:45 2008.  ****** azimuth fixed ******.
+
+SIXC.2> com *** sixc-3a : azimuth fixed (mu,gamma fixed), sigma=0, tau=0, azimuth = 90 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-3a : azimuth fixed (mu,gamma fixed), sigma=0, tau=0, azimuth = 90 ***.
+
+SIXC.2> setmode 3
+Now using Azimuth, Mu and Gamma fixed mode.
+
+SIXC.2> sigtau 0 0
+
+SIXC.2> 
+SIXC.2> AZIMUTH=90
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 119.670000, 0.000000, -120.165000, 131.252500, -52.125000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 90.000000, 180.000000, -120.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 90.000000, 180.000000, 150.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 90.000000, 0.000000, 90.000000, 180.000000, 180.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-3b : azimuth fixed (mu,gamma fixed), sigma=0, tau=0, azimuth = 37 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-3b : azimuth fixed (mu,gamma fixed), sigma=0, tau=0, azimuth = 37 ***.
+
+SIXC.2> setmode 3
+Still using Azimuth, Mu and Gamma fixed mode.
+
+SIXC.2> sigtau 0 0
+
+SIXC.2> 
+SIXC.2> AZIMUTH=37
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 119.670000, 0.000000, -155.174500, 113.380000, -112.592000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 120.000000, 127.000000, -90.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 120.000000, 127.000000, 180.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 90.000000, 0.000000, 135.000000, 127.000000, -135.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-3c : azimuth fixed (mu,gamma fixed), sigma=-1.35, tau=-106, azimuth = 90 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-3c : azimuth fixed (mu,gamma fixed), sigma=-1.35, tau=-106, azimuth = 90 ***.
+
+SIXC.2> setmode 3
+Still using Azimuth, Mu and Gamma fixed mode.
+
+SIXC.2> sigtau -1.35 -106
+
+SIXC.2> 
+SIXC.2> AZIMUTH=90
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 119.670000, 0.000000, -120.165000, 131.252500, -52.125000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 90.000000, 180.000000, -120.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 90.000000, 180.000000, 150.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 90.000000, 0.000000, 90.000000, 180.000000, 180.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-3d : azimuth fixed (mu,gamma fixed),  sigma=-1.35, tau=-106, azimuth = 37 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-3d : azimuth fixed (mu,gamma fixed), sigma=-1.35, tau=-106, azimuth = 37 ***.
+
+SIXC.2> setmode 3
+Still using Azimuth, Mu and Gamma fixed mode.
+
+SIXC.2> sigtau -1.35 -106
+
+SIXC.2> 
+SIXC.2> AZIMUTH=37
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 119.670000, 0.000000, -155.174500, 113.380000, -112.592000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 120.000000, 127.000000, -90.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 120.000000, 127.000000, 180.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 90.000000, 0.000000, 135.000000, 127.000000, -135.000000)
+
+SIXC.2> 
+
+SIXC.2> com ****** z axiz, fixed azimuth ******
+
+Mon Jul 28 12:18:45 2008.  ****** z axiz, fixed azimuth ******.
+
+SIXC.2> com *** sixc-12a : z axis, azimuth=90 (Bin=Bout), chi, phi = -sigma, -tau, = 0,0 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-12a : z axis, azimuth=90 (Bin=Bout), chi, phi = -sigma, -tau, = 0,0 ***.
+
+SIXC.2> setmode 12
+Now using Z-Axis with Azimuth fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau 0 0
+
+SIXC.2> 
+SIXC.2> mv chi 0
+
+SIXC.2> 
+SIXC.2> mv phi 0
+
+SIXC.2> 
+SIXC.2> AZIMUTH=90
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(40.541500, 97.212000, 40.541500, -3.519000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 30.000000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, -60.000000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 90.000000, 0.000000, 0.000000, 0.000000, 0.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-12b : z axis, azimuth=90 (Bin=Bout), chi, phi = -sigma, -tau, = -1.35 -106 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-12b : z axis, azimuth=90 (Bin=Bout), chi, phi = -sigma, -tau, = -1.35 -106 ***.
+
+SIXC.2> setmode 12
+Still using Z-Axis with Azimuth fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau -1.35 -106
+
+SIXC.2> 
+SIXC.2> mv chi 1.35
+
+SIXC.2> 
+SIXC.2> mv phi 106
+
+SIXC.2> 
+SIXC.2> AZIMUTH=90
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(40.541500, 97.212000, 40.541500, -110.073500, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, -75.996000, 1.350000, 106.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, -166.004000, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 90.000000, 0.000000, -105.993500, 1.350000, 106.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-12c : z axis, azimuth=35 (Bin=Bout), chi, phi = -sigma, -tau, = 0,0 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-12c : z axis, azimuth=35 (Bin=Bout), chi, phi = -sigma, -tau, = 0,0 ***.
+
+SIXC.2> setmode 12
+Still using Z-Axis with Azimuth fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau 0 0
+
+SIXC.2> 
+SIXC.2> mv chi 0
+
+SIXC.2> 
+SIXC.2> mv phi 0
+
+SIXC.2> 
+SIXC.2> AZIMUTH=35
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(22.246000, 113.979000, 67.133500, 19.731500, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-45.186500, 90.375500, 45.186500, 45.188000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-45.186500, 90.375500, 45.186500, -44.812000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-35.396500, 120.325000, 35.396500, 15.162500, 0.000000, 0.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-12d : z axis, azimuth=35 (Bin=Bout), chi, phi = -sigma, -tau, = -1.35 -106 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-12d : z axis, azimuth=35 (Bin=Bout), chi, phi = -sigma, -tau, = -1.35 -106 ***.
+
+SIXC.2> setmode 12
+Still using Z-Axis with Azimuth fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau -1.35 -106
+
+SIXC.2> 
+SIXC.2> mv chi 1.35
+
+SIXC.2> 
+SIXC.2> mv phi 106
+
+SIXC.2> 
+SIXC.2> AZIMUTH=35
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(22.246000, 113.979000, 67.133500, -86.822500, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-45.186500, 90.375500, 45.186500, -60.808000, 1.350000, 106.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-45.186500, 90.375500, 45.186500, -150.816500, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-35.396500, 120.325000, 35.396500, -90.831000, 1.350000, 106.000000)
+
+SIXC.2> 
+
+SIXC.2> com ***** z axis, fixed alpha/Bin beta/Bout*****
+
+Mon Jul 28 12:18:45 2008.  ***** z axis, fixed alpha/Bin beta/Bout*****.
+
+SIXC.2> com *** sixc-13a : z axis, alpha=10 (Bin=10), chi, phi = -sigma, -tau, = 0,0 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-13a : z axis, alpha=10 (Bin=10), chi, phi = -sigma, -tau, = 0,0 ***.
+
+SIXC.2> setmode 13
+Now using Z-Axis with Alpha fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau 0 0
+
+SIXC.2> 
+SIXC.2> mv chi 0
+
+SIXC.2> 
+SIXC.2> mv phi 0
+
+SIXC.2> 
+SIXC.2> ALPHA=10
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 30.000000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(10.000000, 61.023500, -10.000000, 30.511500, 0.000000, 0.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(10.000000, 61.023500, -10.000000, -59.488500, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(10.000000, 91.781500, -10.000000, 0.891000, 0.000000, 0.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-13b : z axis, alpha=10  chi, phi = -sigma, -tau, = -1.35, -106 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-13b : z axis, alpha=10 chi, phi = -sigma, -tau, = -1.35, -106 ***.
+
+SIXC.2> setmode 13
+Still using Z-Axis with Alpha fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau -1.35 -106
+
+SIXC.2> 
+SIXC.2> mv chi 1.35
+
+SIXC.2> 
+SIXC.2> mv phi 106
+
+SIXC.2> 
+SIXC.2> ALPHA=10
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 30.000000, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(10.000000, 61.023500, -10.000000, -75.484000, 1.350000, 106.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(10.000000, 61.023500, -10.000000, -165.492500, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(10.000000, 91.781500, -10.000000, -105.102500, 1.350000, 106.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-14a : z axis, beta=11 (Bout=11), chi, phi = -sigma, -tau, = 0,0 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-14a : z axis, beta=11 (Bout=11), chi, phi = -sigma, -tau, = 0,0 ***.
+
+SIXC.2> setmode 14
+Now using Z-Axis with Beta fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau 0 0
+
+SIXC.2> 
+SIXC.2> mv chi 0
+
+SIXC.2> 
+SIXC.2> mv phi 0
+
+SIXC.2> 
+SIXC.2> BETA=11
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 30.000000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-11.000000, 61.242000, 11.000000, 30.621000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-11.000000, 61.242000, 11.000000, -59.379000, 0.000000, 0.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-11.000000, 92.165500, 11.000000, 1.082500, 0.000000, 0.000000)
+
+SIXC.2> 
+
+SIXC.2> com *** sixc-14b : z axis, beta=11  chi, phi = -sigma, -tau, = -1.35, -106 ***
+
+Mon Jul 28 12:18:45 2008.  *** sixc-14b : z axis, beta=11 chi, phi = -sigma, -tau, = -1.35, -106 ***.
+
+SIXC.2> setmode 14
+Still using Z-Axis with Beta fixed and Chi, Phi set to -Sigma, -Tau mode.
+
+SIXC.2> sigtau -1.35 -106
+
+SIXC.2> 
+SIXC.2> mv chi 1.35
+
+SIXC.2> 
+SIXC.2> mv phi 106
+
+SIXC.2> 
+SIXC.2> BETA=11
+
+SIXC.2> calcshow 0.7 0.9 1.3
+hkl = (0.700000, 0.900000, 1.300000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(0.000000, 60.000000, 0.000000, 30.000000, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 0 0
+hkl = (1.000000, 0.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-11.000000, 61.242000, 11.000000, -75.374500, 1.350000, 106.000000)
+
+SIXC.2> calcshow 0 1 0
+hkl = (0.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-11.000000, 61.242000, 11.000000, -165.383000, 1.350000, 106.000000)
+
+SIXC.2> calcshow 1 1 0
+hkl = (1.000000, 1.000000, 0.000000)
+(alpha, delta, gamma, omega, chi, phi) = 
+(-11.000000, 92.165500, 11.000000, -104.910500, 1.350000, 106.000000)
+
+SIXC.2> 
+
+SIXC.2> 
+
+SIXC.1> off("output")

@@ -1,0 +1,5 @@
+dad_alpha_frame	rotation	pv["DIFFSIM:FIVEC:ALPHA.RBV"]
+dad_delta_frame	rotation	pv["DIFFSIM:FIVEC:DELTA.RBV"]
+dad_omega_frame	rotation	pv["DIFFSIM:FIVEC:OMEGA.RBV"]
+dad_chi_frame	rotation	pv["DIFFSIM:FIVEC:CHI.RBV"]
+dad_phi_frame	rotation	pv["DIFFSIM:FIVEC:PHI.RBV"]

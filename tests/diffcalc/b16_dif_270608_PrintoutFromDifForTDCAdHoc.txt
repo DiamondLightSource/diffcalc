@@ -1,0 +1,671 @@
+#!Go to lattice menu to set lattice parameters
+#lattice
+#a1     3.840100
+#a2     3.840100
+#a3     5.430720
+#a4    90.000000
+#a5    90.000000
+#a6    90.000000
+#compute return
+#!Go to fixed parameter menu to set parameters
+#fixed
+#alpha     0
+#gamma     0.000000
+#incoming     0
+#outgoing     0
+#h_crystal     0.000000
+#k_crystal     0.000000
+#l_crystal     1.000000
+#wave     5.067085
+#mirror 1
+#return
+#!Go to circle limits menu
+#limits
+#alpha   -2.1430   27.8570
+#delta   -2.3070  125.0000
+#gamma  -50.0000   50.0000
+#omega -185.0000   30.0000
+#chi    -14.0000   14.0000
+#phi   -400.0000  400.0000
+#return
+#!Go to orientation menu to set parameters
+#orient
+#sigma    -1.350000 # zeroed for some
+#tau  -106.000000 #zeroed for some
+#surfhkl -4.86513e-03 1.67605e-04 8.64299e-01 #zeroed for some
+
+#input
+#orient 1   1.000   0.000   1.0628
+#      5.000    22.790     0.000     1.552    22.400    14.255
+#orient 2   0.000   1.000   1.0628
+#      5.000    22.790     0.000     4.575    24.275   101.320
+
+
+#DIF.ORIENT>li
+#                      0.997161 -0.062217  0.042420
+#                U =   0.062542  0.998022 -0.006371
+#                     -0.041940  0.009006  0.999080
+#
+#sigma =     0.0000
+#tau   =     0.0000
+#Surface normal in hkl frame = (0.000e+00,0.000e+00,1.000e+00)
+#DIF.FIX>li
+#alpha      =     0.0000
+#gamma      =     0.0000
+#beta_in    =     8.0000
+#beta_out   =     1.0000
+#wavevector =     5.0671  <=>  lambda = 1.2400
+#mirror     =    +1
+#h_crystal  =     0.0000
+#k_crystal  =     0.0000
+#l_crystal  =     1.0000
+#DIF.MODE>li
+#Incidence angle equals outgoing angle
+#Alpha and gamma fixed
+
+{1}
+
+#DIF>cal .7 .9 1.3
+#DEBUGFILE = difbug.txt*** SURFMODE = 1
+#<<< entering angcal.do_hkl_to_angles >>>
+# -> h,k,l = 0.700000 0.900000 1.300000
+# -> alpha_fix = 0.000000
+# -> gamma_fix = 0.000000
+# -> difmode = 3
+# -> BETMODE = 3
+#<- beta_in = 0.145358
+#<-delta_comp = 0.477448
+#<- h_phi_norm:
+#        0.464987                0.639188                0.612557
+# - q_alpha_norm:
+#        0.971641                -0.236463               0.000000
+# -> a =
+#        0.464987                0.639188                0.612557
+# -> b =
+#        0.971641                -0.236463               0.000000
+# <- coxi = 0.300656
+# <- xi = 1.265416
+# - r0_matrix:
+#        0.316787                0.797295                0.513776
+#        -0.664730               0.573015                -0.479361
+#        -0.676594               -0.189667               0.711510
+# -> a =
+#        0.971641                -0.236463               0.000000
+# -> b =
+#        1.000000                0.000000                0.000000
+# <- coxi = 0.971641
+# <- xi = 0.238724
+# - t_matrix:
+#        0.971641                -0.236463               0.000000
+#        0.236463                0.971641                0.000000
+#        0.000000                0.000000                1.000000
+# - surf_norm_phi:
+#        0.000000                -0.000000               1.000000
+# - surf_psi:
+#        0.612557                -0.344278               0.711510
+# - v21=-0.236463 - v22=0.971641 - v23=0.000000 - a=-0.334514 - b=0.691332 - c=0.
+#000000
+# psi=0.450660←[0;1;33;44mWARNING, chi outside limits←[0;1;37;44m
+#       h       k       l    alpha    delta    gamma    omega      chi      phi
+#   0.700   0.900   1.300   0.0000  27.3557   0.0000  13.6779  37.7746  53.9654
+#
+#                          beta_in beta_out      rho      eta twotheta
+#                           8.3284   8.3284  36.5258   0.1117  27.3557
+
+
+{2}
+#DIF.FIX>al
+#Rotary table angle (if fixed): 5
+#DIF.FIX>re
+#DIF>calc .7 .9 1.3
+#DEBUGFILE = difbug.txt*** SURFMODE = 1
+#<<< entering angcal.do_hkl_to_angles >>>
+# -> h,k,l = 0.700000 0.900000 1.300000
+# -> alpha_fix = 0.087266
+# -> gamma_fix = 0.000000
+# -> difmode = 3
+# -> BETMODE = 3
+#<- beta_in = 0.145358
+#<-delta_comp = 0.470011
+#<- h_phi_norm:
+#        0.464987                0.639188                0.612557
+# - q_alpha_norm:
+#        0.957647                -0.221243               0.184291
+# -> a =
+#        0.464987                0.639188                0.612557
+# -> b =
+#        0.957647                -0.221243               0.184291
+# <- coxi = 0.416766
+# <- xi = 1.140911
+# - r0_matrix:
+#        0.462060                0.804557                0.373079
+#        -0.625426               0.593875                -0.506117
+#        -0.628763               0.000523                0.777597
+# -> a =
+#        0.957647                -0.221243               0.184291
+# -> b =
+#        1.000000                0.000000                0.000000
+# <- coxi = 0.957647
+# <- xi = 0.292079
+# - t_matrix:
+#        0.957647                -0.221243               0.184291
+#        0.221243                0.974996                0.020828
+#        -0.184291               0.020828                0.982651
+# - surf_norm_phi:
+#        0.000000                -0.000000               1.000000
+# - surf_psi:
+#        0.612557                -0.394726               0.684811
+# - v21=-0.236463 - v22=0.969471 - v23=-0.064895 - a=-0.427116 - b=0.638288 - c=0
+#.000000
+# psi=0.589726←[0;1;33;44mWARNING, chi outside limits←[0;1;37;44m
+#       h       k       l    alpha    delta    gamma    omega      chi      phi
+#   0.700   0.900   1.300   5.0000  26.9296   0.0000   8.4916  27.2563  59.5855
+#
+#                          beta_in beta_out      rho      eta twotheta
+#                           8.3284   8.3284  26.9332   0.1117  27.3557
+{3}
+
+#DIF>cal .7 .9 1.3
+#DEBUGFILE = difbug.txt*** SURFMODE = 1
+#<<< entering angcal.do_hkl_to_angles >>>
+# -> h,k,l = 0.700000 0.900000 1.300000
+# -> alpha_fix = 0.087266
+# -> gamma_fix = 0.174533
+# -> difmode = 3
+# -> BETMODE = 3
+#<- beta_in = 0.145358
+#<-delta_comp = 0.400814
+#<- h_phi_norm:
+#        0.464987                0.639188                0.612557
+# - q_alpha_norm:
+#        0.812475                -0.189119               0.551469
+# -> a =
+#        0.464987                0.639188                0.612557
+# -> b =
+#        0.812475                -0.189119               0.551469
+# <- coxi = 0.594714
+# <- xi = 0.933886
+# - r0_matrix:
+#        0.732257                0.678116                0.062920
+#        -0.536408               0.631214                -0.560210
+#        -0.419603               0.376467                0.825958
+# -> a =
+#        0.812475                -0.189119               0.551469
+# -> b =
+#        1.000000                0.000000                0.000000
+# <- coxi = 0.812475
+# <- xi = 0.622411
+# - t_matrix:
+#        0.812475                -0.189119               0.551469
+#        0.189119                0.980267                0.057542
+#        -0.551469               0.057542                0.832208
+# - surf_norm_phi:
+#        0.000000                -0.000000               1.000000
+# - surf_psi:
+#        0.612557                -0.489729               0.620435
+# - v21=-0.236463 - v22=0.971522 - v23=-0.015209 - a=-0.485218 - b=0.595318 - c=0
+#.000000
+# psi=0.683855       h       k       l    alpha    delta    gamma    omega      c
+#hi      phi
+#   0.700   0.900   1.300   5.0000  22.9649  10.0000-137.7796  -4.9721 203.0655
+#
+#                          beta_in beta_out      rho      eta twotheta
+#                           8.3284   8.3284   3.6800   0.1117  27.3557
+
+{4}
+#DIF>fi
+#DIF.FIX>li
+#alpha      =     5.0000
+#gamma      =    10.0000
+#beta_in    =     4.0000
+#beta_out   =     1.0000
+#wavevector =     5.0671  <=>  lambda = 1.2400
+#mirror     =    +1
+#h_crystal  =     0.0000
+#k_crystal  =     0.0000
+#l_crystal  =     1.0000
+#DIF.FIX>re
+#DIF>mo
+#DIF.MODE>li
+#Fixed angle of incidence
+#Alpha and gamma fixed
+
+#DIF>calc .7 .9 1.3
+#DEBUGFILE = difbug.txt*** SURFMODE = 1
+#<<< entering angcal.do_hkl_to_angles >>>
+# -> h,k,l = 0.700000 0.900000 1.300000
+# -> alpha_fix = 0.087266
+# -> gamma_fix = 0.174533
+# -> difmode = 3
+# -> BETMODE = 123
+#<- beta_in = 0.069813
+#<-delta_comp = 0.400814
+#<- h_phi_norm:
+#        0.464987                0.639188                0.612557
+# - q_alpha_norm:
+#        0.812475                -0.189119               0.551469
+# -> a =
+#        0.464987                0.639188                0.612557
+# -> b =
+#        0.812475                -0.189119               0.551469
+# <- coxi = 0.594714
+# <- xi = 0.933886
+# - r0_matrix:
+#        0.732257                0.678116                0.062920
+#        -0.536408               0.631214                -0.560210
+#        -0.419603               0.376467                0.825958
+# -> a =
+#        0.812475                -0.189119               0.551469
+# -> b =
+#        1.000000                0.000000                0.000000
+# <- coxi = 0.812475
+# <- xi = 0.622411
+# - t_matrix:
+#        0.812475                -0.189119               0.551469
+#        0.189119                0.980267                0.057542
+#        -0.551469               0.057542                0.832208
+# - surf_norm_phi:
+#        0.000000                -0.000000               1.000000
+# - surf_psi:
+#        0.612557                -0.489729               0.620435
+# - v21=-0.236463 - v22=0.971522 - v23=-0.015209 - a=-0.485218 - b=0.595318 - c=0
+#.075090
+# psi=0.781784       h       k       l    alpha    delta    gamma    omega      c
+#hi      phi
+#   0.700   0.900   1.300   5.0000  22.9649  10.0000 -11.8850   4.7799  80.4416
+#
+#                          beta_in beta_out      rho      eta twotheta
+#                           4.0000  12.7054   4.6772   0.1866  27.3557
+
+{5}
+DIF>or
+DIF.ORIENT>li
+                      0.997161 -0.062217  0.042420
+                U =   0.062542  0.998022 -0.006371
+                     -0.041940  0.009006  0.999080
+
+sigma =    -1.3500
+tau   =  -106.0000
+Surface normal in hkl frame = (0.000e+00,0.000e+00,0.000e+00)
+DIF.ORIENT>fi
+←[0;1;33;44mERROR, command "fi" not recognized←[0;1;37;44m
+DIF.ORIENT>re
+DIF>fi
+DIF.FIX>li
+alpha      =     5.0000
+gamma      =    10.0000
+beta_in    =     4.0000
+beta_out   =     1.0000
+wavevector =     5.0671  <=>  lambda = 1.2400
+mirror     =    +1
+h_crystal  =     0.0000
+k_crystal  =     0.0000
+l_crystal  =     1.0000
+
+Incidence angle equals outgoing angle
+Alpha and gamma fixed
+DIF.MODE>re
+DIF>calc .7 .9 1.3
+DEBUGFILE = difbug.txt*** SURFMODE = 1
+<<< entering angcal.do_hkl_to_angles >>>
+ -> h,k,l = 0.700000 0.900000 1.300000
+ -> alpha_fix = 0.087266
+ -> gamma_fix = 0.174533
+ -> difmode = 3
+ -> BETMODE = 3
+<- beta_in = 0.142580
+<-delta_comp = 0.400814
+<- h_phi_norm:
+        0.464987                0.639188                0.612557
+ - q_alpha_norm:
+        0.812475                -0.189119               0.551469
+ -> a =
+        0.464987                0.639188                0.612557
+ -> b =
+        0.812475                -0.189119               0.551469
+ <- coxi = 0.594714
+ <- xi = 0.933886
+ - r0_matrix:
+        0.732257                0.678116                0.062920
+        -0.536408               0.631214                -0.560210
+        -0.419603               0.376467                0.825958
+ -> a =
+        0.812475                -0.189119               0.551469
+ -> b =
+        1.000000                0.000000                0.000000
+ <- coxi = 0.812475
+ <- xi = 0.622411
+ - t_matrix:
+        0.812475                -0.189119               0.551469
+        0.189119                0.980267                0.057542
+        -0.551469               0.057542                0.832208
+ - surf_norm_phi:
+        0.006494                -0.022647               0.999722
+ - surf_psi:
+        0.600931                -0.509673               0.615724
+ - v21=-0.236463 - v22=0.971522 - v23=-0.015209 - a=-0.504523 - b=0.590437 - c=0
+.000000
+ psi=0.707095       h       k       l    alpha    delta    gamma    omega      c
+hi      phi
+   0.700   0.900   1.300   5.0000  22.9649  10.0000  30.6586   4.5295  35.4036
+
+                          beta_in beta_out      rho      eta twotheta
+                           8.1693   8.1693   2.8586   0.1294  27.3557
+
+{6}
+Fixed angle of incidence
+Alpha and gamma fixed
+DIF.MODE>re
+DIF>calc .7 .9 1.3
+DEBUGFILE = difbug.txt*** SURFMODE = 1
+<<< entering angcal.do_hkl_to_angles >>>
+ -> h,k,l = 0.700000 0.900000 1.300000
+ -> alpha_fix = 0.087266
+ -> gamma_fix = 0.174533
+ -> difmode = 3
+ -> BETMODE = 123
+<- beta_in = 0.104720
+<-delta_comp = 0.400814
+<- h_phi_norm:
+        0.464987                0.639188                0.612557
+ - q_alpha_norm:
+        0.812475                -0.189119               0.551469
+ -> a =
+        0.464987                0.639188                0.612557
+ -> b =
+        0.812475                -0.189119               0.551469
+ <- coxi = 0.594714
+ <- xi = 0.933886
+ - r0_matrix:
+        0.732257                0.678116                0.062920
+        -0.536408               0.631214                -0.560210
+        -0.419603               0.376467                0.825958
+ -> a =
+        0.812475                -0.189119               0.551469
+ -> b =
+        1.000000                0.000000                0.000000
+ <- coxi = 0.812475
+ <- xi = 0.622411
+ - t_matrix:
+        0.812475                -0.189119               0.551469
+        0.189119                0.980267                0.057542
+        -0.551469               0.057542                0.832208
+ - surf_norm_phi:
+        0.006494                -0.022647               0.999722
+ - surf_psi:
+        0.600931                -0.509673               0.615724
+ - v21=-0.236463 - v22=0.971522 - v23=-0.015209 - a=-0.504523 - b=0.590437 - c=0
+.037569
+ psi=0.755489       h       k       l    alpha    delta    gamma    omega      c
+hi      phi
+   0.700   0.900   1.300   5.0000  22.9649  10.0000   2.2388   4.3898  65.4395
+
+                          beta_in beta_out      rho      eta twotheta
+                           6.0000  10.3504   3.3267   0.1664  27.3557
+
+{7}
+DIF.FIX>re
+DIF>calc .7 .9 1.3
+DEBUGFILE = difbug.txt*** SURFMODE = 1
+<<< entering angcal.do_hkl_to_angles >>>
+ -> h,k,l = 0.700000 0.900000 1.300000
+ -> alpha_fix = 0.087266
+ -> gamma_fix = 0.174533
+ -> difmode = 3
+ -> BETMODE = 2
+<- beta_in = 0.163048
+<-delta_comp = 0.400814
+<- h_phi_norm:
+        0.464987                0.639188                0.612557
+ - q_alpha_norm:
+        0.812475                -0.189119               0.551469
+ -> a =
+        0.464987                0.639188                0.612557
+ -> b =
+        0.812475                -0.189119               0.551469
+ <- coxi = 0.594714
+ <- xi = 0.933886
+ - r0_matrix:
+        0.732257                0.678116                0.062920
+        -0.536408               0.631214                -0.560210
+        -0.419603               0.376467                0.825958
+ -> a =
+        0.812475                -0.189119               0.551469
+ -> b =
+        1.000000                0.000000                0.000000
+ <- coxi = 0.812475
+ <- xi = 0.622411
+ - t_matrix:
+        0.812475                -0.189119               0.551469
+        0.189119                0.980267                0.057542
+        -0.551469               0.057542                0.832208
+ - surf_norm_phi:
+        0.006494                -0.022647               0.999722
+ - surf_psi:
+        0.600931                -0.509673               0.615724
+ - v21=-0.236463 - v22=0.971522 - v23=-0.015209 - a=-0.504523 - b=0.590437 - c=-
+0.020228
+ psi=0.681046       h       k       l    alpha    delta    gamma    omega      c
+hi      phi
+   0.700   0.900   1.300   5.0000  22.9649  10.0000  43.4628   5.0387  21.7292
+
+                          beta_in beta_out      rho      eta twotheta
+                           9.3419   7.0000   2.6310   0.1095  27.3557
+                           
+{8}
+
+                           8.1693   8.1693   0.0000   0.1294  27.3557
+DIF>mo
+DIF.MODE>li
+Incidence angle equals outgoing angle
+Out-of-plane angle (gamma) fixed
+Surface normal horizontal
+DIF.MODE>re
+DIF>fi
+DIF.FIX>li
+alpha      =     5.0000
+gamma      =    10.0000
+beta_in    =     8.0000
+beta_out   =     1.0000
+wavevector =     5.0671  <=>  lambda = 1.2400
+mirror     =    +1
+h_crystal  =     0.0000
+k_crystal  =     0.0000
+l_crystal  =     1.0000
+DIF.FIX>re
+DIF>or
+DIF.ORIENT>li
+                      0.997161 -0.062217  0.042420
+                U =   0.062542  0.998022 -0.006371
+                     -0.041940  0.009006  0.999080
+
+sigma =    -1.3500
+tau   =  -106.0000
+Surface normal in hkl frame = (0.000e+00,0.000e+00,0.000e+00)
+                           
+-> h,k,l = 0.700000 0.900000 1.300000
+-> alpha_fix = 0.087266
+-> gamma_fix = 0.174533
+-> difmode = 2
+-> BETMODE = 3
+- beta_in = 0.142580
+-> a =
+       0.006494                -0.022647               0.999722
+-> b =
+       0.000000                -0.142098               0.989853
+<- coxi = 0.992796
+<- xi = 0.120106
+-delta_comp = 0.386317
+- h_phi_norm:
+       0.464987                0.639188                0.612557
+- q_alpha_norm:
+       0.784595                -0.173246               0.595312
+-> a =
+       0.464987                0.639188                0.612557
+-> b =
+       0.784595                -0.173246               0.595312
+<- coxi = 0.618753
+<- xi = 0.903642
+- r0_matrix:
+       0.765049                0.643327                0.028814
+       -0.520794               0.644410                -0.559919
+       -0.378779               0.413359                0.828046
+-> a =
+       0.784595                -0.173246               0.595312
+-> b =
+       1.000000                0.000000                0.000000
+<- coxi = 0.784595
+<- xi = 0.668754
+- t_matrix:
+       0.784595                -0.173246               0.595312
+       0.173246                0.983182                0.057792
+       -0.595312               0.057792                0.801413
+- surf_norm_phi:
+       0.006494                -0.022647               0.999722
+- surf_psi:
+       0.600931                -0.517538               0.609128
+- v21=-0.236463 - v22=0.971207 - v23=-0.029010 - a=-0.520308 - b=0.576575 - c=-
+.000000
+psi=0.734145       h       k       l    alpha    delta    gamma    omega      c
+i      phi
+  0.700   0.900   1.300   6.1937  22.1343  10.0000  46.9523   1.5102  18.8112
+
+                         beta_in beta_out      rho      eta twotheta
+                          8.1693   8.1693   0.0000   0.1294  27.3557
+
+{9}
+DIF>mo
+DIF.MODE>li
+Incidence angle equals outgoing angle
+Rotary table (alpha) fixed
+Surface normal horizontal
+DIF.MODE>re
+DIF>fi
+DIF.FIX>li
+alpha      =     5.0000
+gamma      =    10.0000
+beta_in    =     8.0000
+beta_out   =     1.0000
+wavevector =     5.0671  <=>  lambda = 1.2400
+mirror     =    +1
+h_crystal  =     0.0000
+k_crystal  =     0.0000
+l_crystal  =     1.0000
+
+-> h,k,l = 0.700000 0.900000 1.300000
+-> alpha_fix = 0.087266
+-> gamma_fix = 0.174533
+-> difmode = 123
+-> BETMODE = 3
+- beta_in = 0.142580
+-> a =
+       0.006494                -0.022647               0.999722
+-> b =
+       0.000000                -0.142098               0.989853
+<- coxi = 0.992796
+<- xi = 0.120106
+-delta_comp = 0.387782
+- h_phi_norm:
+       0.464987                0.639188                0.612557
+- q_alpha_norm:
+       0.784595                -0.185610               0.591574
+-> a =
+       0.464987                0.639188                0.612557
+-> b =
+       0.784595                -0.185610               0.591574
+<- coxi = 0.608560
+<- xi = 0.916552
+- r0_matrix:
+       0.758937                0.650653                0.025810
+       -0.524967               0.634822                -0.566931
+       -0.385260               0.416716                0.823361
+-> a =
+       0.784595                -0.185610               0.591574
+-> b =
+       1.000000                0.000000                0.000000
+<- coxi = 0.784595
+<- xi = 0.668754
+- t_matrix:
+       0.784595                -0.185610               0.591574
+       0.185610                0.980695                0.061528
+       -0.591574               0.061528                0.803900
+- surf_norm_phi:
+       0.006494                -0.022647               0.999722
+- surf_psi:
+       0.600931                -0.520396               0.606688
+- v21=-0.236463 - v22=0.971601 - v23=-0.008771 - a=-0.510938 - b=0.584895 - c=0
+000000
+psi=0.718011       h       k       l    alpha    delta    gamma    omega      c
+i      phi
+  0.700   0.900   1.300   5.0000  22.2183  11.1054  65.8276   2.5180  -0.0749
+
+                         beta_in beta_out      rho      eta twotheta
+                          8.1693   8.1693  -0.0000   0.1294  27.3557
+                          
+{10}
+DIF.MODE>Zaxis
+DIF.MODE>li
+Incidence angle equals outgoing angle
+Z-axis mode
+Surface normal horizontal
+DIF.MODE>re
+DIF>fi
+DIF.FIX>li
+alpha      =     5.0000
+gamma      =    10.0000
+beta_in    =     8.0000
+beta_out   =     1.0000
+wavevector =     5.0671  <=>  lambda = 1.2400
+mirror     =    +1
+h_crystal  =     0.0000
+k_crystal  =     0.0000
+l_crystal  =     1.0000
+DIF>calc .7 .9 1.3
+DEBUGFILE = difbug.txt*** SURFMODE = 1
+<<< entering angcal.do_hkl_to_angles >>>
+ -> h,k,l = 0.700000 0.900000 1.300000
+ -> alpha_fix = 0.087266
+ -> gamma_fix = 0.174533
+ -> difmode = 4
+ -> BETMODE = 3<-delta_comp = 0.384244
+       h       k       l    alpha    delta    gamma    omega      chi      phi
+   0.700   0.900   1.300   8.1693  22.0156   8.1693 -40.2188   1.3500 106.0000
+
+                          beta_in beta_out      rho      eta twotheta
+                           8.1693   8.1693  -0.0000   0.1294  27.3557
+
+{11}
+DIF>mo
+DIF.MODE>in
+DIF.MODE>re
+DIF>calc .7 .9 1.3
+DEBUGFILE = difbug.txt*** SURFMODE = 1
+<<< entering angcal.do_hkl_to_angles >>>
+ -> h,k,l = 0.700000 0.900000 1.300000
+ -> alpha_fix = 0.087266
+ -> gamma_fix = 0.000000
+ -> difmode = 4
+ -> BETMODE = 123<-delta_comp = 0.384245
+       h       k       l    alpha    delta    gamma    omega      chi      phi
+   0.700   0.900   1.300   8.0000  22.0156   8.3386 -40.0939   1.3500 106.0000
+
+                          beta_in beta_out      rho      eta twotheta
+                           8.0000   8.3386  -0.0000   0.1322  27.3557
+                           
+{12}
+DIF>mo
+DIF.MODE>out
+DIF.MODE>re
+DIF>calc .7 .9 1.3
+DEBUGFILE = difbug.txt*** SURFMODE = 1
+<<< entering angcal.do_hkl_to_angles >>>
+ -> h,k,l = 0.700000 0.900000 1.300000
+ -> alpha_fix = 0.087266
+ -> gamma_fix = 0.000000
+ -> difmode = 4
+ -> BETMODE = 2<-delta_comp = 0.385708
+       h       k       l    alpha    delta    gamma    omega      chi      phi
+   0.700   0.900   1.300  15.4706  22.0994   1.0000 -45.5521   1.3500 106.0000
+
+                          beta_in beta_out      rho      eta twotheta
+                          15.4706   1.0000  -0.0000   0.0079  27.3557

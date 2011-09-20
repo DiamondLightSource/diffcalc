@@ -1,0 +1,71 @@
+Creating a UB Matrix
+There are three euler modes:
+
+=bisecting: eta and delta are fixed, phi and chi are not fixed.
+=fixed phi: phi and 2theta are fixed, eta and chi are not fixed.
+=fixed psi: Not used for creating a UB matrix .
+First creat a reflection file to store the reflections data using:
+
+reffile('name')
+
+Set the crystal lattice:
+
+latt([a]) assumes cubic
+latt([a,b]) assumes tetragonal
+latt([a,b,c]) assumes orthorhombic
+latt([a,b,c,gam]) assumes monclinic/hexagonal gam different from 90.
+latt([a,b,c,alp,bet,gam])
+
+Use:
+
+c2th([h k l])
+
+to calculate the 2 theta position for the hkl for example:
+
+c2th([0 0 2])
+
+Then use the following to move the diffractometer to the correct positions:
+
+pos delta c2th([0 0 2]) eta c2th([0 0 2])/2
+
+You can now scan eta, chi, and delta to optomise the peak intensity using the following scans for example:
+
+scancn eta 0.01 40 w 0.2 t 1
+
+scancn chi 0.01 40 w 0.2 t 1
+
+scancn delta 0.01 40 w 0.2 t 1
+
+A few iterations may be required.
+
+Now that you have the first reflection it can be stored using the following command:
+
+saveref('reflable',[h k l])
+
+saveref('Ti1',[0 0 2]) for the above example.
+
+Then create a dummy UB matrix using a dummy non-parallel hkl plane eg:
+
+ubm('Ti1',[2 0 0])
+
+Useing the following command to calculate the direction of the second reflection:
+
+hkl_calc([0 2 2])
+
+If the calculated positions can be safely achieved then type:
+
+pos hkl [0 2 2]
+
+Find the second reflection by scanning phi, once the reflection is found save the second reflection using:
+
+saveref('Ti2',[0 2 2]) for example.
+
+Now create a real UB-Matrix using:
+
+ubm('Ti1','Ti2')
+
+You can now drive in recriprocal space.
+
+To change the lattice parameters according the found Bragg peaks
+
+latt([latt()[0]*2/l()]) (cubic only)

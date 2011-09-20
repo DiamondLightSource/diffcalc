@@ -1,0 +1,6 @@
+dad_alpha_frame	rotation	pv["DIFFSIM:SIXC:ALPHA.RBV"]
+dad_delta_frame	rotation	pv["DIFFSIM:SIXC:DELTA.RBV"]
+dad_gamma_frame	rotation	pv["DIFFSIM:SIXC:GAMMA.RBV"]
+dad_omega_frame	rotation	pv["DIFFSIM:SIXC:OMEGA.RBV"]
+dad_chi_frame	rotation	pv["DIFFSIM:SIXC:CHI.RBV"]
+dad_phi_frame	rotation	pv["DIFFSIM:SIXC:PHI.RBV"]
