@@ -5,7 +5,7 @@ class HardwareMonitorPlugin:
     
     _name = "BaseHarwdareMonitor"
     
-    def __init__(self, diffractometerAngleNames, defaultCuts = {}, energyScannableMultiplierToGetKeV=1):
+    def __init__(self, diffractometerAngleNames, defaultCuts={}, energyScannableMultiplierToGetKeV=1):
         
         self._diffractometerAngleNames = diffractometerAngleNames
         self._upperLimitDict = {}
@@ -27,7 +27,7 @@ class HardwareMonitorPlugin:
     def getWavelength(self):
         """wavelength = getWavelength() -- returns wavelength in Angstroms
         """
-        return 12.39842/self.getEnergy()    
+        return 12.39842 / self.getEnergy()    
     
     def getEnergy(self):
         """energy = getEnergy() -- returns energy in kEv  """
@@ -38,7 +38,7 @@ class HardwareMonitorPlugin:
         return 'base'
 
     def __str__(self):
-        toReturn = self._name +":\n"
+        toReturn = self._name + ":\n"
         toReturn += "  energy : " + str(self.getEnergy()) + " keV\n"
         toReturn += "  wavelength : " + str(self.getWavelength()) + " Angstrom\n"
         for name, pos in zip(self._diffractometerAngleNames, self.getPosition()):
@@ -104,7 +104,7 @@ class HardwareMonitorPlugin:
     
     def reprSectorLimitsAndCuts(self, name=None):
         if name is None:
-            s='Cuts and Sector-limits:\n'
+            s = 'Cuts and Sector-limits:\n'
             for name in self.getPhysicalAngleNames():
                 s += self.reprSectorLimitsAndCuts(name) + '\n'
             return s + "  Note: When auto sector/transforms are used, cuts are applied before checking limits." 
@@ -155,9 +155,9 @@ class HardwareMonitorPlugin:
             if cutAngle is None:
                 cutArray.append(pos)
             else:
-                if cutAngle == 0 and (abs(pos-360)<SMALL) or (abs(pos+360)<SMALL) or (abs(pos)<SMALL):
+                if cutAngle == 0 and (abs(pos - 360) < SMALL) or (abs(pos + 360) < SMALL) or (abs(pos) < SMALL):
                     pos = 0.
-                if pos < (cutAngle-SMALL):
+                if pos < (cutAngle - SMALL):
                     cutArray.append(pos + 360.)
                 elif pos >= cutAngle + 360. + SMALL:
                     cutArray.append(pos - 360.)

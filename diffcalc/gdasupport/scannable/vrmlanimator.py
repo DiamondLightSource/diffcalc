@@ -2,7 +2,7 @@ from gda.device.scannable import DottedAccessScannableMotionBase
 import time
 import threading
 import socket
-PORT=4567
+PORT = 4567
 
 #import scannable.vrmlModelDriver
 #reload(scannable.vrmlModelDriver);from scannable.vrmlModelDriver import VrmlModelDriver, LinearProfile, MoveThread;fc=VrmlModelDriver('fc',['alpha','delta','omega', 'chi','phi'], speed=30, host='diamrl5104')
@@ -16,7 +16,7 @@ PORT=4567
 def connect_to_socket(host, port):
     print "Connecting to %s on port %d" % (host, port)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-    sock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.connect((host, port)) 
     print "Connected"
     socketfile = sock.makefile('rw', 0)
@@ -30,15 +30,15 @@ class LinearProfile(object):
         self.v = float(v)
         self.start = startList
         self.end = endList
-        self.t_accel=t_accel
+        self.t_accel = t_accel
         
-        distances = [e-s for e,s in zip(self.end, self.start)]
+        distances = [e - s for e, s in zip(self.end, self.start)]
         max_distance = max([abs(d) for d in distances])
-        if max_distance==0:
-            self.delta_time=0
+        if max_distance == 0:
+            self.delta_time = 0
         else:
-            self.delta_time = abs(max_distance/self.v)
-            self.speeds = [d/self.delta_time for d in distances]
+            self.delta_time = abs(max_distance / self.v)
+            self.speeds = [d / self.delta_time for d in distances]
         self.start_time = time.time()
         
     def getPosition(self):
@@ -46,11 +46,11 @@ class LinearProfile(object):
             return self.start
         if not self.isMoving():
             return self.end
-        t = abs(float(time.time()-self.start_time))
+        t = abs(float(time.time() - self.start_time))
         if t > self.delta_time:
             # we are in the deceleration phase (i.e paused for now)
             return self.end
-        return [s+v*t for s, v in zip(self.start, self.speeds)]
+        return [s + v * t for s, v in zip(self.start, self.speeds)]
             
     def isMoving(self):
         return time.time() < self.start_time + self.delta_time + self.t_accel  
@@ -72,9 +72,9 @@ class MoveThread(threading.Thread):
 
     def update(self):
         pos = self.profile.getPosition()
-        d = dict(zip(map(str,self.axisNames), pos))
+        d = dict(zip(map(str, self.axisNames), pos))
         if self.socketfile:
-            self.socketfile.write(`d`+'\n')
+            self.socketfile.write(`d` + '\n')
 
 
 class VrmlModelDriver(DottedAccessScannableMotionBase):
@@ -83,9 +83,9 @@ class VrmlModelDriver(DottedAccessScannableMotionBase):
         self.name = name
         self.inputNames = list(axes_names)
         self.extraNames = []
-        self.outputFormat = [format]*len(self.inputNames)
+        self.outputFormat = [format] * len(self.inputNames)
         self.completeInstantiation()
-        self.__last_target= [0.] * len(self.inputNames)
+        self.__last_target = [0.] * len(self.inputNames)
         self.verbose = False
         self.move_thread = None
         self.speed = speed
@@ -96,7 +96,7 @@ class VrmlModelDriver(DottedAccessScannableMotionBase):
             try:
                 self.connect()
             except socket.error:
-                print "Failed to connect to %s:%s"%(self.host,`PORT`)
+                print "Failed to connect to %s:%s" % (self.host, `PORT`)
                 print "Connect with: %s.connect()" % self.name
                 
     def connect(self):
@@ -104,12 +104,12 @@ class VrmlModelDriver(DottedAccessScannableMotionBase):
         self.rawAsynchronousMoveTo(self.__last_target)
         
     def isBusy(self):
-        if self.move_thread==None:
+        if self.move_thread == None:
             return False
         return self.move_thread.profile.isMoving()
     
     def rawGetPosition(self):
-        if self.move_thread==None:
+        if self.move_thread == None:
             return self.__last_target
         else:
             return self.move_thread.profile.getPosition()

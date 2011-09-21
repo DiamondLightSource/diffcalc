@@ -15,13 +15,13 @@ class GdaLikeScannable(object):
     def __repr__(self):
         pos = self.getPosition()
         formattedValues = self.formatPositionFields(pos)
-        if len(tuple(self.getInputNames()) + tuple(self.getExtraNames()))>1:
+        if len(tuple(self.getInputNames()) + tuple(self.getExtraNames())) > 1:
             result = self.getName() + ': '
         else:
             result = ''
         for name, val in zip(tuple(self.getInputNames()) + tuple(self.getExtraNames()), formattedValues):
             result += name + ': ' + val
-        return '< ' +result + ' >'
+        return '< ' + result + ' >'
 ###
 
     def formatPositionFields(self, pos):
@@ -32,17 +32,17 @@ class GdaLikeScannable(object):
         
         # Sanity check
         if len(pos) != len(self.getOutputFormat()):
-            raise Exception("In scannable '%s':number of position fields differs from number format strings specified"%self.getName())
+            raise Exception("In scannable '%s':number of position fields differs from number format strings specified" % self.getName())
         
         result = []
         for field, format in zip(pos, self.getOutputFormat()):
-            if field==None:
+            if field == None:
                 result.append('???')
             else:
-                s = (format%field)
+                s = (format % field)
 ##                if width!=None:
 ##                s = s.ljust(width)
-                result.append( s )
+                result.append(s)
         
         return result    
 
@@ -74,8 +74,8 @@ class GdaLikeScannable(object):
     def getOutputFormat(self):
         return self.__formats    
     def setOutputFormat(self, value):
-        if type(value) not in (tuple,list):
-            raise TypeError("%s.setOutputFormat() expects tuple or list; not %s"%(self.getName(), str(type(value))) )
+        if type(value) not in (tuple, list):
+            raise TypeError("%s.setOutputFormat() expects tuple or list; not %s" % (self.getName(), str(type(value))))
         self.__formats = value
 
     def __call__(self, newpos=None):

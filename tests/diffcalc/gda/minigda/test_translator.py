@@ -1,7 +1,6 @@
-from diffcalc.gdasupport.minigda.translator import TranslatorAliasedCommandsOnly
-from diffcalc.gdasupport.minigda.translator import  TranslatorException
+from diffcalc.gdasupport.minigda.translator import TranslatorException, \
+    TranslatorAliasedCommandsOnly
 import unittest
-
 
 
 class TestTranslator(unittest.TestCase):
@@ -24,20 +23,20 @@ class TestTranslator(unittest.TestCase):
         
     def testWithAlias(self):
         tran = self.tran.translate
-        self.assertEqual(tran( "scan a 1 2 3" ), "scan(a,1,2,3)")
-        self.assertEqual(tran( "scan a 1 2 3 # 123" ), "scan(a,1,2,3)# 123")
-        self.assertEqual(tran( "pos" ), "pos()")
+        self.assertEqual(tran("scan a 1 2 3"), "scan(a,1,2,3)")
+        self.assertEqual(tran("scan a 1 2 3 # 123"), "scan(a,1,2,3)# 123")
+        self.assertEqual(tran("pos"), "pos()")
         
     def testWithAliasAndNegativeArgs(self):
         tran = self.tran.translate
         print ">>>>"
-        self.assertEqual(tran( "scan a -1 2 -3" ), "scan(a,-1,2,-3)")
-        self.assertEqual(tran( "scan a 1 -2 3 # -123" ), "scan(a,1,-2,3)# -123")
+        self.assertEqual(tran("scan a -1 2 -3"), "scan(a,-1,2,-3)")
+        self.assertEqual(tran("scan a 1 -2 3 # -123"), "scan(a,1,-2,3)# -123")
         print "<<<<"
         
     def testWithAliasAndVectorArguements(self):
         tran = self.tran.translate
-        self.assertEqual(tran( "scan a 1 2 3 b [2.1 , 2.2] c" ), "scan(a,1,2,3,b,[2.1,2.2],c)")
+        self.assertEqual(tran("scan a 1 2 3 b [2.1 , 2.2] c"), "scan(a,1,2,3,b,[2.1,2.2],c)")
         
     def testWithNonAliasedCallOfAliasedFunction(self):
         tran = self.tran.translate

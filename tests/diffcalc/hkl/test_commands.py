@@ -8,8 +8,8 @@ import diffcalc.utils # @UnusedImport to overide raw_input
 import unittest
 
 try:
-    from gdascripts.pd.dummy_pds import DummyPD #@UnresolvedImport
-except:
+    from gdascripts.pd.dummy_pds import DummyPD #@UnusedImport
+except ImportError:
     from diffcalc.gdasupport.minigda.scannable.dummy import DummyPD
 
    

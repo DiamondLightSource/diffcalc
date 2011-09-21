@@ -4,7 +4,7 @@ from diffcalc.gdasupport.minigda.translator import Translator
 from diffcalc.gdasupport.minigda.translator import TranslatorException
 from diffcalc.gdasupport.minigda.translator import TranslatorAliasedCommandsOnly
 from diffcalc.gdasupport.minigda.scannable.scannable import Scannable
-import diffcalc.utils
+import diffcalc.utils #@UnusedImport
 print "WARNING: minigda.terminal is not well tested"
 
 
@@ -30,11 +30,11 @@ class Terminal(object):
                 cmd = raw_input('gda>>>')
             except EOFError:
                 break
-            if cmd in('quit','exit'):
+            if cmd in('quit', 'exit'):
                     print "42"
                     break
             if self.recordFile:
-                self.recordFile.write(cmd+"\n")
+                self.recordFile.write(cmd + "\n")
             self.processInput(cmd)
     
     def startRecording(self, recordPath):
@@ -42,8 +42,8 @@ class Terminal(object):
         diffcalc.utils.RECORDFILE = self.recordFile
 
     
-    def evalInMain(self,cmd):
-        return eval(cmd,self.mainNamepaceDict)
+    def evalInMain(self, cmd):
+        return eval(cmd, self.mainNamepaceDict)
     
     def execInMain(self, cmd):
         try:
@@ -55,7 +55,7 @@ class Terminal(object):
             print "## Translator sent: '%s' ##" % cmd
             return True
     
-    def generateErrorReport(self,exc_info):
+    def generateErrorReport(self, exc_info):
         try:
             # Works in jython from jython code
             result = exc_info[2].dumpStack() + str(exc_info[0]) + ': ' + str(exc_info[1])
@@ -63,7 +63,7 @@ class Terminal(object):
             try:
                 # Works in python
                 import traceback
-                ls = traceback.format_exception(exc_info[0],exc_info[1],exc_info[2])
+                ls = traceback.format_exception(exc_info[0], exc_info[1], exc_info[2])
                 result = ""
                 for st in ls:
                     result += st
@@ -89,14 +89,14 @@ class Terminal(object):
                     print "ERROR: No script with abosolute or relative path '%s' could be opened." % path
                     print "\n" + usage
                     return
-        print "Running scipt '%s' ..."% path
+        print "Running scipt '%s' ..." % path
         # Process file
         for n, line in enumerate(f):
             line = line.strip()
             print ">>>" + line
             res = self.processInput(line)
             if res is not None:
-                print "\nERROR: processing line %d of file %s: '%s'" % (n,path, line)
+                print "\nERROR: processing line %d of file %s: '%s'" % (n, path, line)
                 break
         f.close()
         
@@ -111,7 +111,7 @@ class TerminalAliasedCommandsOnly(Terminal):
         # If this refers to a scannable, just print it.
         if self.mainNamepaceDict.has_key(cmd):
             obj = self.mainNamepaceDict[cmd]
-            if isinstance(obj,Scannable):
+            if isinstance(obj, Scannable):
                 print str(obj)
                 return
         

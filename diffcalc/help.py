@@ -16,16 +16,16 @@ class HelpList:
     
     def append(self, docLine):
         command, argstr, helpstr = splitDocLine(docLine)
-        self.usageList.append( self.Usage(command, argstr, helpstr) )
+        self.usageList.append(self.Usage(command, argstr, helpstr))
         if not self.usageByCommand.has_key(command):
-            self.usageByCommand[command] = [len(self.usageList)-1]
+            self.usageByCommand[command] = [len(self.usageList) - 1]
         else:
-            self.usageByCommand[command].append(len(self.usageList)-1)
+            self.usageByCommand[command].append(len(self.usageList) - 1)
         
     def _getUsageStringByIndex(self, index):
         usage = self.usageList[index]
-        if usage.helpstr=='':
-            return "\n" + usage.command.rjust(14) + "\n" + ("-"*len(usage.command)).rjust(14)+"\n"
+        if usage.helpstr == '':
+            return "\n" + usage.command.rjust(14) + "\n" + ("-"*len(usage.command)).rjust(14) + "\n"
         else:
             result = usage.command.rjust(14) + "  " + usage.argstr
             result = result.ljust(35) + "- "
@@ -46,7 +46,7 @@ class HelpList:
         try:
             for index in self.usageByCommand[name]:
                 usage = self.usageList[index]
-                if usage.argstr =='':
+                if usage.argstr == '':
                     return None
                 result += usage.command + " " + usage.argstr + " --- " + usage.helpstr + "\n"
             return result.strip()      
@@ -81,9 +81,9 @@ class UsageHandler(object):
         except TypeError, e:
             # NOTE: TypeErrors resulting from bugs in the core code will be erroneously caught here!
             if RAISE_EXCEPTIONS_FOR_ALL_ERRORS:
-                print "-"*80
+                print "-" * 80
                 print self.command.__doc__
-                print "-"*80        
+                print "-" * 80        
                 raise e
             else:
                 print self.command.__doc__

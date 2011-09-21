@@ -6,7 +6,7 @@ class Pos(object):
         self.mainNamepaceDict = mainNamepaceDict
     
     def __call__(self, *posargs):
-        if len(posargs)==0:
+        if len(posargs) == 0:
             
             #scannables = filter(lambda obj:isinstance(obj, Scannable), self.mainNamepaceDict.values())
             keys = self.mainNamepaceDict.keys()
@@ -51,7 +51,7 @@ class Pos(object):
         if pos is None:
             return result + "---"
         # Single field scannable:
-        if len(fieldNames)==1:
+        if len(fieldNames) == 1:
             result += "%s" % scannable.formatPositionFields(pos)[0]
         # Multi field scannable:
         else:

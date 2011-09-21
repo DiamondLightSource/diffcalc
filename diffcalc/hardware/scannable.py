@@ -1,12 +1,11 @@
-from diffcalc.utils import DiffcalcException
-from diffcalc.utils import Position
 from diffcalc.hardware.plugin import HardwareMonitorPlugin
+from diffcalc.utils import DiffcalcException
 
 class ScannableHardwareMonitorPlugin(HardwareMonitorPlugin):
 	
 	_name = "DummyHarwdareMonitor"
 
-	def __init__(self, diffractometerScannable, energyScannable, energyScannableMultiplierToGetKeV = 1):
+	def __init__(self, diffractometerScannable, energyScannable, energyScannableMultiplierToGetKeV=1):
 		HardwareMonitorPlugin.__init__(self, diffractometerScannable.getInputNames())
 		self.diffhw = diffractometerScannable
 		self.energyhw = energyScannable
@@ -30,7 +29,7 @@ class ScannableHardwareMonitorPlugin(HardwareMonitorPlugin):
 	def getWavelength(self):
 		"""wavelength = getWavelength() -- returns wavelength in Angstroms   """
 		energy = self.getEnergy()
-		return 12.39842/energy
+		return 12.39842 / energy
 	
 	def getDiffHardwareName(self):
 		return self.diffhw.getName()

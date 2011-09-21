@@ -1,5 +1,6 @@
 class MockMotor:
-    def __init__(self, name = 'mock'):
+    
+    def __init__(self, name='mock'):
         self.pos = 0.0
         self.busy = False
         self.name = name
@@ -7,7 +8,7 @@ class MockMotor:
     def getName(self):
         return self.name
         
-    def asynchronousMoveTo(self,pos):
+    def asynchronousMoveTo(self, pos):
         self.busy = True
         self.pos = float(pos)
         

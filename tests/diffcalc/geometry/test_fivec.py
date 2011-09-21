@@ -2,24 +2,24 @@ try:
     from Jama import Matrix
 except ImportError:
     from diffcalc.npadaptor import Matrix
-import unittest
 from diffcalc.geometry.fivec import fivec
 from diffcalc.utils import Position
+import unittest
 
 class TestFiveCirclePlugin(unittest.TestCase):
     
     def setUp(self):
-        self.geometry=fivec()
+        self.geometry = fivec()
     
     def testGetName(self):
         self.assertEqual(self.geometry.getName(), "fivec")
 
     def testPhysicalAnglesToInternalPosition(self):
-        self.assert_( Position(1,2,0,4,5,6)==self.geometry.physicalAnglesToInternalPosition((1,2,4,5,6)) )
+        self.assert_(Position(1, 2, 0, 4, 5, 6) == self.geometry.physicalAnglesToInternalPosition((1, 2, 4, 5, 6)))
     
     def testInternalPositionToPhysicalAngles(self):
-        result = self.geometry.internalPositionToPhysicalAngles( Position(1,2,0,4,5,6) )
-        self.assert_(Matrix([[1,2,4,5,6]]).minus(Matrix([list(result)])).normF()<0.001)
+        result = self.geometry.internalPositionToPhysicalAngles(Position(1, 2, 0, 4, 5, 6))
+        self.assert_(Matrix([[1, 2, 4, 5, 6]]).minus(Matrix([list(result)])).normF() < 0.001)
         
 #    def testPhysicalAnglesToInternalWrongInput(self):
 #        pos = (1,2,3,4,5)

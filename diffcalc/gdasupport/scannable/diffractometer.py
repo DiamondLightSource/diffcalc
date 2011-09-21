@@ -19,7 +19,7 @@ class DiffractometerScannableGroup(PseudoDevice):
     as a field and can be set or cleared to null at will without effecting the core calculation code.
     """
     
-    def __init__(self , name , diffcalcObject, scannableGroup, slaveScannableDriver = None):
+    def __init__(self , name , diffcalcObject, scannableGroup, slaveScannableDriver=None):
         # if motorList is None, will create a dummy __group
         self.__diffcalc = diffcalcObject
         self.__group = scannableGroup
@@ -31,7 +31,7 @@ class DiffractometerScannableGroup(PseudoDevice):
     def setDiffcalcObject(self, diffcalcObject):
         self.__diffcalc = diffcalcObject
     
-    def asynchronousMoveTo(self,position):
+    def asynchronousMoveTo(self, position):
         self.__group.asynchronousMoveTo(position)
         if self.slaveScannableDriver is not None:
             self.slaveScannableDriver.triggerAsynchronousMove(position)
@@ -46,7 +46,7 @@ class DiffractometerScannableGroup(PseudoDevice):
             return self.__group.isBusy() or self.slaveScannableDriver.isBusy() 
     
     def simulateMoveTo(self, pos):
-        if len(pos)!=len(self.getInputNames()): raise ValueError('Wrong number of inputs')
+        if len(pos) != len(self.getInputNames()): raise ValueError('Wrong number of inputs')
         try:
             (hkl, params) = self.__diffcalc._anglesToHkl(pos)
         except Exception, e:

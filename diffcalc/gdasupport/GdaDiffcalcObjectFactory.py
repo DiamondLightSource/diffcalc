@@ -12,6 +12,7 @@ from diffcalc.gdasupport.scannable.parameter import DiffractionCalculatorParamet
 from diffcalc.gdasupport.scannable.base import ScannableGroup
 from diffcalc.gdasupport.scannable.diffractometer import DiffractometerScannableGroup
 from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter
+
 import time
 try:
     from gdascripts.pd.dummy_pds import DummyPD

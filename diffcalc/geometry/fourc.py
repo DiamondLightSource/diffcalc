@@ -1,5 +1,5 @@
-from plugin import DiffractometerGeometryPlugin
 from diffcalc.utils import Position
+from plugin import DiffractometerGeometryPlugin
 
 class fourc(DiffractometerGeometryPlugin):
     """This five-circle diffractometer geometry is for diffractometers with the same
@@ -12,12 +12,12 @@ class fourc(DiffractometerGeometryPlugin):
                     supportedModeGroupList = ('fourc'), 
                     fixedParameterDict = {'gamma':0.0, 'alpha':0.0}, 
                     gammaLocation = 'arm'
-                    )
+        )
 
     def physicalAnglesToInternalPosition(self, physicalAngles):
         """ (a,d,g,o,c,p) = physicalAnglesToInternal(a,d,g,o,c,p)
         """
-        assert (len(physicalAngles)==4), "Wrong length of input list"
+        assert (len(physicalAngles) == 4), "Wrong length of input list"
         # 
         physicalAngles = tuple(physicalAngles)
         angles = (0.0, physicalAngles[0], 0.0) + physicalAngles[1:]
@@ -28,3 +28,4 @@ class fourc(DiffractometerGeometryPlugin):
         """
         sixAngles = internalPosition.totuple()
         return sixAngles[1:2] + sixAngles[3:]
+

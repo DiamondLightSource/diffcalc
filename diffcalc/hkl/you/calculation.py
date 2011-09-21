@@ -1,53 +1,49 @@
-from math import pi, sin, cos, tan, acos, atan2, asin, sqrt, atan
-
-from diffcalc.utils import DiffcalcException, bound, dot3, cross3, calcMU,\
-    calcPHI, Position, angle_between_vectors
-from diffcalc.utils import createYouMatrices
 from diffcalc.hkl.calcbase import HklCalculatorBase
 from diffcalc.hkl.you.constraints import ConstraintManager
+from diffcalc.utils import DiffcalcException, bound, cross3, calcMU, calcPHI, \
+    Position, angle_between_vectors, createYouMatrices
+from math import pi, sin, cos, tan, acos, atan2, asin, sqrt, atan
+
 try:
     from Jama import Matrix
 except ImportError:
     from diffcalc.npadaptor import Matrix
 
-I = Matrix.identity(3,3)
+I = Matrix.identity(3, 3)
 
 SMALL = 1e-8
-TORAD=pi/180
-TODEG=180/pi
+TORAD = pi / 180
+TODEG = 180 / pi
 
 def is_small(x):
     return abs(x) < SMALL
 
 def sign(x):
-    return 1 if x>0 else -1
-
-
-
+    return 1 if x > 0 else -1
 
 def _calc_N(Q, n):
     """Return N as described by Equation 31"""
-    Q = Q.times(1/Q.normF())
-    n = n.times(1/n.normF())
+    Q = Q.times(1 / Q.normF())
+    n = n.times(1 / n.normF())
     if is_small(angle_between_vectors(Q, n)):
         raise ValueError(
 "Q and n are parallel and cannot be used to create an orthonormal matrix")
     QxnxQ = cross3(Q, cross3(n, Q)) # order independent given this symmetry
     Qxn = cross3(Q, n)
-    QxnxQ = QxnxQ.times(1/QxnxQ.normF())
-    Qxn = Qxn.times(1/Qxn.normF())
-    return Matrix([[Q.get(0,0), QxnxQ.get(0,0), Qxn.get(0,0)],
-                   [Q.get(1,0), QxnxQ.get(1,0), Qxn.get(1,0)],
-                   [Q.get(2,0), QxnxQ.get(2,0), Qxn.get(2,0)]])
+    QxnxQ = QxnxQ.times(1 / QxnxQ.normF())
+    Qxn = Qxn.times(1 / Qxn.normF())
+    return Matrix([[Q.get(0, 0), QxnxQ.get(0, 0), Qxn.get(0, 0)],
+                   [Q.get(1, 0), QxnxQ.get(1, 0), Qxn.get(1, 0)],
+                   [Q.get(2, 0), QxnxQ.get(2, 0), Qxn.get(2, 0)]])
 
 def _calc_angle_between_naz_and_qaz(theta, alpha, tau):
     # Equation 30:
-    top = cos(tau) - sin(alpha)*sin(theta)
-    bottom = cos(alpha)*cos(theta)
+    top = cos(tau) - sin(alpha) * sin(theta)
+    bottom = cos(alpha) * cos(theta)
     if is_small(bottom):
         raise Exception(
 "Either cos(alpha) or cos(theta) are too small. This should have been caught by now")
-    return acos(bound(top/bottom))    
+    return acos(bound(top / bottom))    
 
 def youAnglesToHkl(pos, energy, UBMatrix):
     """Calculate miller indices from position in radians."""
@@ -58,7 +54,7 @@ def youAnglesToHkl(pos, energy, UBMatrix):
     
     [MU, DELTA, NU, ETA, CHI, PHI] = createYouMatrices(*pos.totuple())
     # Equation 12: Compute the momentum transfer vector in the lab  frame
-    q_lab = ((NU.times(DELTA)).minus(I)).times(Matrix([[0],[2*pi/wavelength],[0]]))
+    q_lab = ((NU.times(DELTA)).minus(I)).times(Matrix([[0], [2 * pi / wavelength], [0]]))
     # Transform this into the reciprocal lattice frame. 
     hkl = UBMatrix.inverse().times(PHI.inverse()).times(CHI.inverse()).times(
           ETA.inverse()).times(MU.inverse()).times(q_lab)
@@ -68,14 +64,14 @@ def youAnglesToHkl(pos, energy, UBMatrix):
 
 class YouHklCalculator(HklCalculatorBase): 
     
-    def __init__(self,  ubcalc, geometry, hardware,
-                  raiseExceptionsIfAnglesDoNotMapBackToHkl = False):
-        HklCalculatorBase.__init__(self, ubcalc, geometry, hardware, 
+    def __init__(self, ubcalc, geometry, hardware,
+                  raiseExceptionsIfAnglesDoNotMapBackToHkl=False):
+        HklCalculatorBase.__init__(self, ubcalc, geometry, hardware,
                                    raiseExceptionsIfAnglesDoNotMapBackToHkl)
         
         self.constraints = ConstraintManager()
         
-        self.n_phi = Matrix([[0],[0],[1]])
+        self.n_phi = Matrix([[0], [0], [1]])
         """Reference vector in phi frame. Must be of length 1."""
         
         self.choose_chi_from_0_to_pi = False # default is -pi/2<chi<pi/2
@@ -106,11 +102,11 @@ class YouHklCalculator(HklCalculatorBase):
                                            delta, nu, eta, chi, phi)
         Z = MU.times(ETA).times(CHI).times(PHI)
         n_lab = Z.times(self.n_phi)
-        alpha = asin(bound((-n_lab.get(1,0))))
-        naz = atan2(n_lab.get(0,0), n_lab.get(2,0))
+        alpha = asin(bound((-n_lab.get(1, 0))))
+        naz = atan2(n_lab.get(0, 0), n_lab.get(2, 0))
         
         #Equation 23:
-        cos_tau = cos(alpha) * cos(theta) * cos(naz-qaz) + \
+        cos_tau = cos(alpha) * cos(theta) * cos(naz - qaz) + \
                   sin(alpha) * sin(theta)
         tau = acos(bound(cos_tau))
         
@@ -146,7 +142,7 @@ reference plane""")
                 'naz': naz, 'tau': tau, 'psi': psi, 'beta': beta}
         
 
-    def _hklToAngles(self,h ,k ,l, energy):
+    def _hklToAngles(self, h , k , l, energy):
         """(pos, virtualAngles) = hklToAngles(h, k, l, energy) --- with Position object 
         pos and the virtual angles returned in degrees. Some modes may not calculate
         all virtual angles.
@@ -196,8 +192,8 @@ reference plane""")
             qaz = naz - naz_qaz_angle
             if (qaz < -SMALL) or (qaz >= pi):
                 qaz = naz + naz_qaz_angle
-            nu = atan2(sin(2*theta)*cos(qaz), cos(2*theta))
-            delta = atan2(sin(qaz)*sin(nu), cos(qaz))
+            nu = atan2(sin(2 * theta) * cos(qaz), cos(2 * theta))
+            delta = atan2(sin(qaz) * sin(nu), cos(qaz))
             
         else:
             # No detector contraint is given 
@@ -213,10 +209,10 @@ reference plane""")
         elif len(samp_constraints) == 1:
             # JUST ONE SAMPLE ANGLE GIVEN
             sample_name, sample_value = samp_constraints.items()[0]
-            q_lab = Matrix([[cos(theta)*sin(qaz)],
+            q_lab = Matrix([[cos(theta) * sin(qaz)],
                             [-sin(theta)],
-                            [cos(theta)*cos(qaz)]]) # Equation 18
-            n_lab = Matrix([[cos(alpha)*sin(naz)],[],[]])
+                            [cos(theta) * cos(qaz)]]) # Equation 18
+            n_lab = Matrix([[cos(alpha) * sin(naz)], [], []])
             # Check this is true and get it
             
             sample_name, sample_value = self.constraints.sample
@@ -245,9 +241,9 @@ reference plane""")
         q_length = h_phi.normF()        
         if q_length == 0:
             raise DiffcalcException("Reflection is unreachable as |Q| is 0")
-        wavevector = 2*pi/wavelength
+        wavevector = 2 * pi / wavelength
         try:
-            theta = asin(q_length / (2*wavevector))
+            theta = asin(q_length / (2 * wavevector))
         except ValueError:
             raise DiffcalcException("Reflection is unreachable as |Q| is too long")
         return theta
@@ -268,14 +264,14 @@ reference plane""" % name)
         if name == 'psi':
             psi = value
             # Equation 26 for alpha
-            sin_alpha = cos(tau)*sin(theta) - cos(theta)*sin(tau)*cos(psi)
-            if abs(sin_alpha) > 1+SMALL:
+            sin_alpha = cos(tau) * sin(theta) - cos(theta) * sin(tau) * cos(psi)
+            if abs(sin_alpha) > 1 + SMALL:
                 raise DiffcalcException(
                  "No reflection can be reached where psi = %.4f." % psi)
             alpha = asin(bound(sin_alpha))
             # Equation 27 for beta
-            sin_beta = cos(tau)*sin(theta) + cos(theta)*sin(tau)*cos(psi)
-            if abs(sin_beta) > 1+SMALL:
+            sin_beta = cos(tau) * sin(theta) + cos(theta) * sin(tau) * cos(psi)
+            if abs(sin_beta) > 1 + SMALL:
                 raise DiffcalcException(
                  "No reflection can be reached where psi = %.4f." % psi)
             beta = asin(bound(sin_beta))
@@ -285,19 +281,19 @@ reference plane""" % name)
         elif name == 'alpha':
             # Equation 24
             alpha = value
-            sin_beta = 2*sin(theta)*cos(tau) - sin(alpha)
+            sin_beta = 2 * sin(theta) * cos(tau) - sin(alpha)
             beta = asin(sin_beta)
         elif name == 'beta':
             # Equation 24
             beta = value
-            sin_alpha = 2*sin(theta)*cos(tau) - sin(beta)
-            if abs(sin_alpha) > 1+SMALL:
+            sin_alpha = 2 * sin(theta) * cos(tau) - sin(beta)
+            if abs(sin_alpha) > 1 + SMALL:
                 raise DiffcalcException(
                  "No reflection can be reached where beta = %.4f." % beta)
             alpha = asin(sin_alpha)
         
         if name != 'psi':
-            cos_psi = (cos(tau)*sin(theta) - sin(alpha)) / (sin(tau)*cos(theta))
+            cos_psi = (cos(tau) * sin(theta) - sin(alpha)) / (sin(tau) * cos(theta))
             psi = acos(bound(cos_psi))
             
         return psi, alpha, beta
@@ -309,7 +305,7 @@ reference plane""" % name)
         if name == 'delta':
             delta = value
             # Equation 17 and 18 (x components are equal)
-            sin_2theta = sin(2*theta)
+            sin_2theta = sin(2 * theta)
             if is_small(sin_2theta):
                 raise DiffcalcException(
 """No meaningful scattering vector (Q) can be found when theta=%.4f.
@@ -321,38 +317,38 @@ reference plane""" % name)
 #            cos_delta = cos(2*theta) / cos(nu)#<--fails when nu = 90 
 #            delta = acos(bound(cos_delta))
 #            tan
-            sin_2theta = sin(2*theta)
+            sin_2theta = sin(2 * theta)
             if is_small(sin_2theta):
                 raise DiffcalcException(
 """No meaningful scattering vector (Q) can be found when theta=%.4f.
 (sin(2theta) is too small.)""" % theta)
-            cos_qaz = tan(nu) / tan(2*theta)
+            cos_qaz = tan(nu) / tan(2 * theta)
             if abs(cos_qaz) > 1 + SMALL:
                 raise DiffcalcException(
-"The specified nu=%.4f is greater than the 2theta (%.4f)" % (nu,theta))
+"The specified nu=%.4f is greater than the 2theta (%.4f)" % (nu, theta))
             qaz = acos(bound(cos_qaz));
             
         elif name == 'qaz':
             qaz = value
         
         else:
-            raise ValueError(name +
+            raise ValueError(name + 
               " is not an explicit detector angle (naz cannot be handled here)")
         
         if name != 'nu':
             # TODO: does this calculation of nu suffer the same problems as
             #       that of delta below
-            nu = atan2(sin(2*theta)*cos(qaz), cos(2*theta))
+            nu = atan2(sin(2 * theta) * cos(qaz), cos(2 * theta))
         
         if name != 'delta':
             print "qaz: ", qaz
             print "nu: ", nu
-            cos_qaz =  cos(qaz)
+            cos_qaz = cos(qaz)
             if not is_small(cos_qaz): # TODO: could we switch methods at 45 deg
-                delta = atan2(sin(qaz)*sin(nu), cos_qaz)
+                delta = atan2(sin(qaz) * sin(nu), cos_qaz)
             else:
                 # qaz is close to 90 (a common place for it!
-                delta = sign(qaz) * acos(bound(cos(2*theta) / cos(nu)))
+                delta = sign(qaz) * acos(bound(cos(2 * theta) / cos(nu)))
         
         return delta, nu, qaz
     
@@ -362,7 +358,7 @@ reference plane""" % name)
             
     
     def _calc_remaining_sample_angles_given_one(self, name, value, Q_lab, n_lab,
-                                                Q_phi,  n_phi):
+                                                Q_phi, n_phi):
         """Return phi, chi, eta and mu, given one of these (from section 5.3)."""
         
         #TODO: Check this whole code for special cases!!!!
@@ -379,13 +375,13 @@ reference plane""" % name)
             if self.choose_chi_from_0_to_pi:
                 chi = acos(V[2][2]) # 0 < chi < pi
             else:
-                chi = atan2(sqrt(V[2][0]**2+V[2][1]**2), V[2][2]) # -pi/2<chi< pi/2
+                chi = atan2(sqrt(V[2][0] ** 2 + V[2][1] ** 2), V[2][2]) # -pi/2<chi< pi/2
                 
         elif name == 'phi': # Equation 37
             phi = value
             PHI = calcPHI(phi)
             V = N_lab.times(N_phi.inverse()).times(PHI.inverse()).array
-            eta = atan2(V[0][1], sqrt(V[1][1]**2+V[2][1]**2))
+            eta = atan2(V[0][1], sqrt(V[1][1] ** 2 + V[2][1] ** 2))
             mu = atan2(V[2][1], V[1][1])
             if self.choose_chi_from_0_to_pi:
                 try:
@@ -429,16 +425,16 @@ specified in equation 40.""")
             # test_calcvlieg.test_constrain_eta_0_wasfailing. The atan2 function
             # could be used (in this case) if the sign of top and bottom were
             # flipped.
-            top = V[2][2]*sin(eta)*sin(chi) + V[1][2]*cos(chi)
-            bottom = -V[2][2]*cos(chi) + V[1][2]*sin(eta)*sin(chi)
+            top = V[2][2] * sin(eta) * sin(chi) + V[1][2] * cos(chi)
+            bottom = -V[2][2] * cos(chi) + V[1][2] * sin(eta) * sin(chi)
             if is_small(bottom):
-                mu = 0 if is_small(top) else sign(top) * sign(bottom) * pi/2
+                mu = 0 if is_small(top) else sign(top) * sign(bottom) * pi / 2
             else:
                 mu = atan(top / bottom)
             
             #Equation 42:
-            phi = atan2(V[0][1]*cos(eta)*cos(chi) - V[0][0]*sin(eta),
-                      V[0][1]*sin(eta) + V[0][0]*cos(eta)*cos(chi))
+            phi = atan2(V[0][1] * cos(eta) * cos(chi) - V[0][0] * sin(eta),
+                      V[0][1] * sin(eta) + V[0][0] * cos(eta) * cos(chi))
                 
         else:
             raise ValueError('Given angle must be one of phi, chi, eta or mu')

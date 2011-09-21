@@ -22,24 +22,24 @@ class ScanDataPrinter(ScanDataHandler):
         header = ""
         for scn in self.scannables:
             fieldNames = scn.getInputNames() + scn.getExtraNames()
-            if len(fieldNames)==1:
-                header += "%s\t"%scn.getName()
+            if len(fieldNames) == 1:
+                header += "%s\t" % scn.getName()
             else:
                 for fieldName in fieldNames:
-                    header += "%s.%s\t"%(scn.getName(), fieldName)
+                    header += "%s.%s\t" % (scn.getName(), fieldName)
         self.headerWidth = len(header.expandtabs())
-        result = time.asctime(), '\n', '='*self.headerWidth, '\n', header,'\n','-'*self.headerWidth
+        result = time.asctime(), '\n', '='*self.headerWidth, '\n', header, '\n', '-'*self.headerWidth
         print result
     
     def callWithScanPoint(self, positionDictIndexedByScannable):    
         result = ""
         for scn in self.scannables:
             for formattedValue in scn.formatPositionFields(positionDictIndexedByScannable[scn]):
-                result += formattedValue +'\t'
+                result += formattedValue + '\t'
         print result
 
     def callAtScanEnd(self):
-        print '='*self.headerWidth
+        print '=' * self.headerWidth
 
 
 class Scan(object):
@@ -52,14 +52,14 @@ class Scan(object):
             return(self.scannable.getLevel() - other.scannable.getLevel())
     
         def __repr__(self):
-            return "Group(%s, %s)"%(self.scannable.getName(), str(self.args))
+            return "Group(%s, %s)" % (self.scannable.getName(), str(self.args))
     
         def shouldTriggerLoop(self):
             return len(self.args) == 3
 
     def __init__(self, scanDataHandlers):
         # scanDataHandlers should be list
-        if type(scanDataHandlers) not in (tuple,list):
+        if type(scanDataHandlers) not in (tuple, list):
             scanDataHandlers = (scanDataHandlers,)
         self.dataHandlers = scanDataHandlers
 
@@ -109,11 +109,11 @@ class Scan(object):
             first = unprocessedGroups[0]
             # If groups starts with a request to loop:
             if first.shouldTriggerLoop():
-                posList = self._frange(first.args[0], first.args[1],first.args[2] )
+                posList = self._frange(first.args[0], first.args[1], first.args[2])
                 for pos in posList:
                     first.scannable.asynchronousMoveTo(pos)
                     # TODO: Should wait. minigda assumes all moves complete immediately
-                    self._performScan(groups,currentRecursionLevel+1)
+                    self._performScan(groups, currentRecursionLevel + 1)
                 return
         
         # 2) Move all non-loop triggering groups (may be zero)
@@ -135,7 +135,7 @@ class Scan(object):
             elif len(grp.args) == 2:
                 raise Exception("Scannables followed by two args not supported by minigda's scan command ")
             else:
-                raise Exception("Scannable: %s args%s"%(grp.scannable,str(grp.args)))
+                raise Exception("Scannable: %s args%s" % (grp.scannable, str(grp.args)))
     
     def _samplePositionsOfAllScannables(self, groups):
         posDict = {}

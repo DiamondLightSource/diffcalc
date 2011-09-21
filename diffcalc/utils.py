@@ -15,8 +15,8 @@ MIRROR = Matrix([[1, 0, 0],
                 ])
 
 SMALL = 1e-10
-TORAD=pi/180
-TODEG=180/pi
+TORAD = pi / 180
+TODEG = 180 / pi
 
 class Position(object):
     """The position of all six diffractometer axis"""
@@ -97,7 +97,7 @@ class Position(object):
     def __repr__(self):
         return self.__str__()
     
-    def __eq__(self,b):
+    def __eq__(self, b):
         return self.nearlyEquals(b, .001)
 
 
@@ -110,7 +110,7 @@ def check(condition, ErrorOrStringOrCallable, *args):
     passed in, or creates one from a string. If a callable function is passed in this is
     called with any args specified and the thing returns false.
     """
-    if condition==False:
+    if condition == False:
         if callable(ErrorOrStringOrCallable):
             ErrorOrStringOrCallable(*args)
             return False
@@ -135,20 +135,20 @@ Please report this.""" % x)
 
 
         
-def cross3(x,y):
+def cross3(x, y):
     """z = cross3(x ,y) -- where x, y & z are 3*1 Jama matrices"""
     [[x1], [x2], [x3]] = x.getArray()
     [[y1], [y2], [y3]] = y.getArray()
-    return Matrix([[x2*y3-x3*y2], [x3*y1-x1*y3], [x1*y2-x2*y1]])
+    return Matrix([[x2 * y3 - x3 * y2], [x3 * y1 - x1 * y3], [x1 * y2 - x2 * y1]])
 
-def dot3(x,y):
+def dot3(x, y):
     """z = dot3(x ,y) -- where x, y are 3*1 Jama matrices"""
     [[x1], [x2], [x3]] = x.getArray()
     [[y1], [y2], [y3]] = y.getArray()
-    return x1*y1+x2*y2+x3*y3
+    return x1 * y1 + x2 * y2 + x3 * y3
 
 def angle_between_vectors(a, b):
-    costheta = dot3(a.times(1/a.normF()),b.times(1/b.normF()) )
+    costheta = dot3(a.times(1 / a.normF()), b.times(1 / b.normF()))
     return acos(bound(costheta))
 
 #H. You's matrices
@@ -175,13 +175,13 @@ def calcNU(nu):
     return Matrix(((1, 0, 0), (0, cos(nu), -sin(nu)), (0, sin(nu), cos(nu))))
 
 def calcETA(eta):
-    return Matrix(((cos(eta), sin(eta), 0), (-sin(eta), cos(eta), 0), (0, 0, 1) ))
+    return Matrix(((cos(eta), sin(eta), 0), (-sin(eta), cos(eta), 0), (0, 0, 1)))
 
 def calcCHI(chi):
     return Matrix(((cos(chi), 0, sin(chi)), (0, 1, 0), (-sin(chi), 0, cos(chi))))
 
 def calcPHI(phi):
-    return Matrix(((cos(phi), sin(phi), 0), (-sin(phi), cos(phi), 0), (0, 0, 1) ))
+    return Matrix(((cos(phi), sin(phi), 0), (-sin(phi), cos(phi), 0), (0, 0, 1)))
 
 # vlieg's matrices
 
@@ -204,7 +204,7 @@ calcALPHA = calcMU
 calcOMEGA = calcETA
 
 def calcGAMMA(gamma):
-    return Matrix([[1, 0, 0], [0, cos(gamma), -sin(gamma)],[0, sin(gamma), cos(gamma)] ])
+    return Matrix([[1, 0, 0], [0, cos(gamma), -sin(gamma)], [0, sin(gamma), cos(gamma)] ])
 
   
 
@@ -216,7 +216,7 @@ def createVliegsSurfaceTransformationMatrices(sigma, tau):
                     [0, 1, 0], \
                     [-sin(sigma), 0, cos(sigma)] ])
         
-    TAU = Matrix([[cos(tau), sin(tau) ,0], \
+    TAU = Matrix([[cos(tau), sin(tau) , 0], \
                 [-sin(tau), cos(tau), 0], \
                 [0, 0, 1] ])
     return(SIGMA, TAU)
@@ -225,14 +225,14 @@ def createVliegsPsiTransformationMatrix(psi):
     """PSI = createPsiTransformationMatrices(psi)
     angles in radians
     """
-    return Matrix([[1, 0, 0],\
-                [0, cos(psi), sin(psi)],\
+    return Matrix([[1, 0, 0], \
+                [0, cos(psi), sin(psi)], \
                 [0, -sin(psi), cos(psi) ]])
 
 def matrixToString(m):
     ''' str = matrixToString(m) --- displays a Jama matrix m as a string
     '''
-    toReturn=''
+    toReturn = ''
     for row in m.array:
         for el in row:
             toReturn += str(el) + '\t'
@@ -240,7 +240,7 @@ def matrixToString(m):
     return toReturn
 
 def sign(x):
-    if x<0:
+    if x < 0:
         return -1
     else:
         return 1
@@ -257,10 +257,10 @@ def getInputWithDefault(prompt, default=""):
             defaultString = ""
             for val in default:
                 defaultString += str(val) + ' '
-            defaultString=defaultString.strip()
+            defaultString = defaultString.strip()
         else:
             defaultString = str(default)
-        prompt = str(prompt)+'['+defaultString+']: '
+        prompt = str(prompt) + '[' + defaultString + ']: '
     else:
         prompt = str(prompt) + ': '
         
@@ -280,7 +280,7 @@ def getInputWithDefault(prompt, default=""):
     except ValueError:
         # return a string
         return rawresult
-    if len(result)==1:
+    if len(result) == 1:
         result = result[0]
     return result
 
@@ -292,7 +292,7 @@ class MockRawInput(object):
 
     def __call__(self, prompt):
         toReturn = self.toReturnList.pop(0)
-        if type(toReturn)!=str:
+        if type(toReturn) != str:
             raise TypeError
         print prompt + toReturn
         return toReturn
@@ -308,32 +308,32 @@ def getMessageFromException(e):
             return e.args[0]
 
 def nearlyEqual(first, second, tolerance):
-    if type(first) in (int,float):
-        return abs(first-second) <= tolerance
+    if type(first) in (int, float):
+        return abs(first - second) <= tolerance
     
     if type(first) != type(Matrix([[1]])):
         # lists
-        first  = Matrix([list(first)])
+        first = Matrix([list(first)])
         second = Matrix([list(second)])
     diff = first.minus(second)
     return diff.normF() <= tolerance
 
 def radiansEquivilant(first, second, tolerance):
-    if abs(first-second) <= tolerance:
+    if abs(first - second) <= tolerance:
         return True
-    if abs((first-2*pi)-second) <= tolerance:
+    if abs((first - 2 * pi) - second) <= tolerance:
         return True    
-    if abs((first+2*pi)-second) <= tolerance:
+    if abs((first + 2 * pi) - second) <= tolerance:
         return True
-    if abs(first-(second-2*pi)) <= tolerance:
+    if abs(first - (second - 2 * pi)) <= tolerance:
         return True    
-    if abs(first-(second+2*pi)) <= tolerance:
+    if abs(first - (second + 2 * pi)) <= tolerance:
         return True
     
     return False
     
 def degreesEquivilant(first, second, tolerance):
-    return radiansEquivilant(first*TORAD, second*TORAD, tolerance)
+    return radiansEquivilant(first * TORAD, second * TORAD, tolerance)
     
 def differ(first, second, tolerance):
         """Returns error message if the norm of the difference between two arrays
@@ -341,15 +341,15 @@ def differ(first, second, tolerance):
         """
         # TODO: Fix spaghetti
         nonArray = False
-        if type(first) in (int,float):
+        if type(first) in (int, float):
             if type(second) not in (int, float):
                 raise TypeError, "If first is an int or float, so must second. first=%s, second=%s" & (`first`, `second`)
             first = [first]
             second = [second]
             nonArray = True
-        if not isinstance(first,Matrix ):
-            first  = Matrix([list(first)])
-        if not isinstance(second,Matrix ):
+        if not isinstance(first, Matrix):
+            first = Matrix([list(first)])
+        if not isinstance(second, Matrix):
             second = Matrix([list(second)])
         diff = first.minus(second)
         if diff.normF() >= tolerance:
@@ -360,7 +360,7 @@ def differ(first, second, tolerance):
 
 def promptForNumber(prompt, default=""):
     val = getInputWithDefault(prompt, default)
-    if type(val) not in (float,int):
+    if type(val) not in (float, int):
         return None
     return val
 
@@ -371,7 +371,7 @@ def promptForList(prompt, default=""):
     return val
 
 def isnum(o):
-    return isinstance(o, (int,float))
+    return isinstance(o, (int, float))
 
 def allnum(l):
     return not [o for o in l if not isnum(o)]

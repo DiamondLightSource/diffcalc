@@ -1,6 +1,5 @@
 from StringIO import StringIO
-from diffcalc.gdasupport.minigda.scannable.scannable import Scannable
-from tokenize import *
+from tokenize import generate_tokens, COMMENT, ENDMARKER, OP
 print "WARNING: minigda.terminal is not well tested"
 
 class TranslatorException(Exception):

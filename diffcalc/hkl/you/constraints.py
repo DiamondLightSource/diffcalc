@@ -69,11 +69,11 @@ class ConstraintManager(object):
         constraint_types = (det_constraints, ref_constraints,
                             samp_constraints)
         num_rows = max([len(col) for col in constraint_types])
-        max_name_width = max([len(name) for name in sum(constraint_types[:2],())])
+        max_name_width = max([len(name) for name in sum(constraint_types[:2], ())])
         s = '    ' + 'DET'.ljust(max_name_width) + ' '
         s += '    ' + 'REF'.ljust(max_name_width) + ' '
         s += '    ' + 'SAMP'.ljust(max_name_width) + '\n'
-        s += ('    ' + '=' * max_name_width + ' ')*3 + '\n'
+        s += ('    ' + '=' * max_name_width + ' ') * 3 + '\n'
         for n_row in range(num_rows):
             for col in constraint_types:
                 name = col[n_row] if n_row < len(col) else ''
@@ -126,7 +126,7 @@ class ConstraintManager(object):
     def _could_not_constrain_exception(self, name):
         return DiffcalcException(
 """%s could not be constrained. First un-constrain one of as the angles %s,
-%s or %s (with 'uncon')""" % ((name.capitalize(),)+self.constrained_names))
+%s or %s (with 'uncon')""" % ((name.capitalize(),) + self.constrained_names))
      
     def _constrain_reference(self, name):
         if self.reference:
@@ -158,19 +158,19 @@ class ConstraintManager(object):
         if self._constrained.has_key(name):
             del self._constrained[name]
         else:
-            return "%s was not already constrained." %name.capitalize()
+            return "%s was not already constrained." % name.capitalize()
 
 ###
     def _check_constraint_settable_or_trackable(self, name, verb):
         if name not in all_constraints:
             raise DiffcalcException(
-                   "Could not %s %s as this is not an available constraint." % (verb,name))
+                   "Could not %s %s as this is not an available constraint." % (verb, name))
         elif name not in self.all.keys():
             raise DiffcalcException(
-                   "Could not %s %s as this is not currently constrained." % (verb,name))
+                   "Could not %s %s as this is not currently constrained." % (verb, name))
         elif name in valueless_constraints:
             raise DiffcalcException(
-                   "Could not %s %s as this constraint takes no value." % (verb,name))
+                   "Could not %s %s as this constraint takes no value." % (verb, name))
         
 
     def set(self, name, value):
@@ -193,7 +193,7 @@ physical angle. First remove this tracking (use 'untrack %s').""" % (name, name)
 """Could not configure %s to track as this constraint is not associated with a
 physical angle.""" % name)
         elif name in self._tracking:
-            return "%s was already configured to track." %name.capitalize()
+            return "%s was already configured to track." % name.capitalize()
         else:
             old_value = self.all[name]
             old = str(old_value) if old_value is not None else '---'
@@ -204,7 +204,7 @@ physical angle.""" % name)
         
     def untrack(self, name):
         if name not in self._tracking:
-            return "%s was not configured to track." %name.capitalize()
+            return "%s was not configured to track." % name.capitalize()
         self._tracking.remove(name)
 
     def update_tracked(self):

@@ -1,11 +1,10 @@
-from diffcalc.utils import DiffcalcException
-from diffcalc.utils import differ
 from diffcalc.hkl.modes import ModeSelector
-from math import pi
 from diffcalc.hkl.parameters import ParameterManager
+from diffcalc.utils import DiffcalcException, differ
+from math import pi
 
-TORAD=pi/180
-TODEG=180/pi
+TORAD = pi / 180
+TODEG = 180 / pi
 
 class HklCalculatorBase(object):
     """
@@ -13,7 +12,7 @@ class HklCalculatorBase(object):
     INTERNAL METHODS IN RADIANS. VALUES IN THE PARAMETER DICTIONARY ARE IN DEGREES.
     """
 
-    def __init__(self, ubcalc, geometry, hardware, raiseExceptionsIfAnglesDoNotMapBackToHkl = False):
+    def __init__(self, ubcalc, geometry, hardware, raiseExceptionsIfAnglesDoNotMapBackToHkl=False):
         
         self._ubcalc = ubcalc # Used only to get the UBMatrix, tau and sigma
         self._geometry = geometry # Used to access information about the diffractometer geometry and mode_selector
@@ -43,7 +42,7 @@ class HklCalculatorBase(object):
    
         h, k, l = self._anglesToHkl(pos.inRadians(), energy)
         paramDict = self.anglesToVirtualAngles(pos, energy)
-        return ( (h, k, l), paramDict)   
+        return ((h, k, l), paramDict)   
 
     def anglesToVirtualAngles(self, pos, energy):
         anglesDict = self._anglesToVirtualAngles(pos.inRadians(), energy)
@@ -66,9 +65,9 @@ class HklCalculatorBase(object):
         (pos, virtualAngles) = self._hklToAngles(h, k, l, energy)
         (hkl, _) = self.anglesToHkl(pos, energy)
         e = 0.001
-        if ( abs(hkl[0]-h)>e ) or ( abs(hkl[1]-k)>e ) or ( abs(hkl[2]-l)>e ):
-            s = "PROBABLE ERROR: The angles calculated for hkl=(%f,%f,%f) were %s.\n" % ( h,k,l, str(pos) )
-            s+= "Converting these angles back to hkl resulted in hkl=(%f,%f,%f)" % ( hkl[0], hkl[1], hkl[2] )
+        if (abs(hkl[0] - h) > e) or (abs(hkl[1] - k) > e) or (abs(hkl[2] - l) > e):
+            s = "PROBABLE ERROR: The angles calculated for hkl=(%f,%f,%f) were %s.\n" % (h, k, l, str(pos))
+            s += "Converting these angles back to hkl resulted in hkl=(%f,%f,%f)" % (hkl[0], hkl[1], hkl[2])
             if self.raiseExceptionsIfAnglesDoNotMapBackToHkl:
                 raise DiffcalcException(s)
             else:
@@ -82,9 +81,9 @@ class HklCalculatorBase(object):
             if val != None: #Some values calculated in some mode_selector
                 d = differ(val, virtualAnglesReadback[key], .00001)
                 if d:
-                    s = "PROBABLE ERROR: The angles calculated for hkl=(%f,%f,%f) with mode=%s were %s.\n" % ( h,k,l, self._mode.name, str(pos) )
-                    s+= "During verification the virtual angle %s resulting from (or set for) this calculation of %f" % (key, val)
-                    s+= "did not match that calculated by anglesToVirtualAngles of %f" % virtualAnglesReadback[key]
+                    s = "PROBABLE ERROR: The angles calculated for hkl=(%f,%f,%f) with mode=%s were %s.\n" % (h, k, l, self._mode.name, str(pos))
+                    s += "During verification the virtual angle %s resulting from (or set for) this calculation of %f" % (key, val)
+                    s += "did not match that calculated by anglesToVirtualAngles of %f" % virtualAnglesReadback[key]
                     # TODO: misuse of existing variable: rename it
                     if self.raiseExceptionsIfAnglesDoNotMapBackToHkl:
                         raise DiffcalcException(s)

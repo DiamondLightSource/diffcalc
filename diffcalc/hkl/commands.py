@@ -1,8 +1,8 @@
 from diffcalc.help import HelpList, UsageHandler
-from diffcalc.utils import allnum
 from diffcalc.hkl.calcvlieg import VliegHklCalculator
+from diffcalc.utils import allnum
 
-_hklcalcCommandHelp=HelpList()
+_hklcalcCommandHelp = HelpList()
 
 
 def getNameFromScannableOrString(o):
@@ -29,17 +29,17 @@ class HklCommands(object):
 
     def addDynamicHelpLines(self):
         angleNames = self._hardware.getPhysicalAngleNames()
-        formatStr = ( "[" + "%s, "*len(angleNames) )[:-1] + "]"
+        formatStr = ("[" + "%s, "*len(angleNames))[:-1] + "]"
         diffHwName = self._hardware.getDiffHardwareName()
-        _hklcalcCommandHelp.append('pos ' + diffHwName +' '+ formatStr % angleNames +' --move diffractometer to Eularian position. Use None to hold a value still')
-        _hklcalcCommandHelp.append('sim ' + diffHwName+' '+ formatStr % angleNames + '-- simulates moving ' + diffHwName)    
-        _hklcalcCommandHelp.append(diffHwName + '-- shows loads of info about current '+diffHwName+' position')
+        _hklcalcCommandHelp.append('pos ' + diffHwName + ' ' + formatStr % angleNames + ' --move diffractometer to Eularian position. Use None to hold a value still')
+        _hklcalcCommandHelp.append('sim ' + diffHwName + ' ' + formatStr % angleNames + '-- simulates moving ' + diffHwName)    
+        _hklcalcCommandHelp.append(diffHwName + '-- shows loads of info about current ' + diffHwName + ' position')
     
     def __str__(self):
         return self._hklcalc.__str__()
     
-    def hklToAngles(self,  h, k, l, energy):
-        return self._hklcalc.hklToAngles( h, k, l, energy)
+    def hklToAngles(self, h, k, l, energy):
+        return self._hklcalc.hklToAngles(h, k, l, energy)
  
     def anglesToHkl(self, pos, energy):
         return self._hklcalc.anglesToHkl(pos, energy)
@@ -81,7 +81,7 @@ class HklCommands(object):
             print self._hklcalc.__str__()
         else:
             self._hklcalc.mode_selector.setModeByIndex(int(num))
-            print self._hklcalc.mode_selector.reportCurrentMode() + "\n" +self._hklcalc.parameter_manager.reportParametersUsedInCurrentMode()
+            print self._hklcalc.mode_selector.reportCurrentMode() + "\n" + self._hklcalc.parameter_manager.reportParametersUsedInCurrentMode()
         
     def _setParameter(self, name, value):
         self._hklcalc.parameter_manager.setParameter(name, value)
@@ -111,8 +111,8 @@ class HklCommands(object):
                 self._setParameter(name, float(val))
                 print self._representParameter(name, oldval, float(val))
 
-    def _representParameter(self, name, oldval = None, newval = None):
-        flags=''
+    def _representParameter(self, name, oldval=None, newval=None):
+        flags = ''
         if self._hklcalc.parameter_manager.isParameterTracked(name):
             flags += '(tracking hardware) '
         if self._geometry.isParameterFixed(name):
@@ -127,7 +127,7 @@ class HklCommands(object):
                 val = str(val)
             return "%s: %s %s" % (name, val, flags)
         else:
-            return "%s: %s --> %f %s" % (name, oldval, newval, flags )
+            return "%s: %s --> %f %s" % (name, oldval, newval, flags)
 
     def __checkInputAndSetOrShowParameterTracking(self, name, b=None):
         """ for track-parameter commands: If no args displays parameter settings,
@@ -136,14 +136,14 @@ class HklCommands(object):
         """
         # set if arg given
         if b is not None:
-            self._hklcalc.parameter_manager.setTrackParameter(name,b)
+            self._hklcalc.parameter_manager.setTrackParameter(name, b)
         # Display:
         lastValue = self._getParameter(name)
         if lastValue is None:
             lastValue = "---"
         else:
             lastValue = str(lastValue)
-        flags=''
+        flags = ''
         if self._hklcalc.parameter_manager.isParameterTracked(name):
             flags += '(tracking hardware)'  
         print "%s: %s %s" % (name, lastValue, flags)

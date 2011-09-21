@@ -6,7 +6,7 @@ except ImportError:
 
 class ScannableGroup(PseudoDevice):
     "wraps up motors. Simulates motors if non given."
-    def __init__(self, name ,motorList):
+    def __init__(self, name , motorList):
 
         self.setName(name)
         # Set input format
@@ -21,13 +21,13 @@ class ScannableGroup(PseudoDevice):
         self.setOutputFormat(format)
         self.__motors = motorList
 
-    def asynchronousMoveTo(self,position):
+    def asynchronousMoveTo(self, position):
         # if input has any Nones, then replace these with the current positions
         if None in position:
             position = list(position)
             current = self.getPosition()
             for idx, val in enumerate(position):
-                if val==None:
+                if val == None:
                     position[idx] = current[idx]
         
         for scn, pos in zip(self.__motors, position):
@@ -91,7 +91,7 @@ class DottedAccessPseudoDevice(PseudoDevice):
         # Add parts to access the extra fields
         for index in range(len(self.getExtraNames())):
             scannableName = self.getExtraNames()[index]
-            self.childrenDict[scannableName] = self.MotionScannablePart(scannableName, index+len(self.getInputNames()), self, isInputField=0)
+            self.childrenDict[scannableName] = self.MotionScannablePart(scannableName, index + len(self.getInputNames()), self, isInputField=0)
             #exec "self." + scannableName + "= self.childrenDict['" + scannableName + "']"
     
     def fillPosition(self, position):
@@ -137,11 +137,11 @@ class DottedAccessPseudoDevice(PseudoDevice):
         def isBusy(self):
             return self.parentScannable.isBusy()
 
-        def asynchronousMoveTo(self,new_position):
+        def asynchronousMoveTo(self, new_position):
             if self.parentScannable.isBusy():
                 raise Exception, self.parentScannable.getName() + "." + self.getName() + " cannot be moved because " + self.parentScannable.getName() + " is already moving"
                 
-            toMoveTo=[None] * len(self.parentScannable.getInputNames())
+            toMoveTo = [None] * len(self.parentScannable.getInputNames())
             toMoveTo[self.index] = new_position
             self.parentScannable.asynchronousMoveTo(toMoveTo)
 
@@ -155,6 +155,6 @@ class DottedAccessPseudoDevice(PseudoDevice):
             # Get the name of this field (assume its an input field first and correct if wrong
             name = self.getInputNames()[0]
             
-            if name=='value':
+            if name == 'value':
                 name = self.getExtraNames()[0]
             return self.parentScannable.getName() + "." + name + " : " + str(self.getPosition())

@@ -1,7 +1,7 @@
-import unittest
 from diffcalc.hkl.modes import ModeSelector
-from tests.diffcalc.hkl.test_calcvlieg import createMockDiffractometerGeometry
 from diffcalc.hkl.parameters import ParameterManager
+from tests.diffcalc.hkl.test_calcvlieg import createMockDiffractometerGeometry
+import unittest
 
 class TestModeSelector(unittest.TestCase):
     

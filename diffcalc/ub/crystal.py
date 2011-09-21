@@ -13,11 +13,11 @@ try:
 except ImportError:
     from diffcalc.npadaptor import Matrix
 
-TORAD=pi/180
-TODEG=180/pi
+TORAD = pi / 180
+TODEG = 180 / pi
 
 class CrystalUnderTest:
-    def __init__(self, name, a,b,c,alpha,beta,gamma):
+    def __init__(self, name, a, b, c, alpha, beta, gamma):
         '''Creates a new lattice and calculates related values.
         
         Note: uses the convention where reciprical lattice vectors include 2pi factor
@@ -38,20 +38,20 @@ class CrystalUnderTest:
         self._alpha3 = alpha3 = gamma * TORAD
 
         # Calculate the reciprical lattice paraemeters from the direct parameters
-        self._beta1 = acos( (cos(alpha2)*cos(alpha3)-cos(alpha1)) / (sin(alpha2)*sin(alpha3)) )
-        self._beta2 = acos( (cos(alpha1)*cos(alpha3)-cos(alpha2)) / (sin(alpha1)*sin(alpha3)) )
-        self._beta3 = acos( (cos(alpha1)*cos(alpha2)-cos(alpha3)) / (sin(alpha1)*sin(alpha2)) )
+        self._beta1 = acos((cos(alpha2) * cos(alpha3) - cos(alpha1)) / (sin(alpha2) * sin(alpha3)))
+        self._beta2 = acos((cos(alpha1) * cos(alpha3) - cos(alpha2)) / (sin(alpha1) * sin(alpha3)))
+        self._beta3 = acos((cos(alpha1) * cos(alpha2) - cos(alpha3)) / (sin(alpha1) * sin(alpha2)))
         
-        volume = a1*a2*a3*sqrt(1+2*cos(alpha1)*cos(alpha2)*cos(alpha3)-pow((cos(alpha1)),2)-pow(cos(alpha2),2)-pow(cos(alpha3),2))
-        self._b1 = 2*pi*a2*a3*sin(alpha1)/volume;
-        self._b2 = 2*pi*a1*a3*sin(alpha2)/volume;
-        self._b3 = 2*pi*a1*a2*sin(alpha3)/volume;
+        volume = a1 * a2 * a3 * sqrt(1 + 2 * cos(alpha1) * cos(alpha2) * cos(alpha3) - pow((cos(alpha1)), 2) - pow(cos(alpha2), 2) - pow(cos(alpha3), 2))
+        self._b1 = 2 * pi * a2 * a3 * sin(alpha1) / volume;
+        self._b2 = 2 * pi * a1 * a3 * sin(alpha2) / volume;
+        self._b3 = 2 * pi * a1 * a2 * sin(alpha3) / volume;
 
         # Calculate the BMatrix from the direct and reciprical lattice parameters.
         # Reference: Busang and Levy (1967)
-        self._bMatrix = Matrix([[self._b1, self._b2*cos(self._beta3), self._b3*cos(self._beta2)],
-                                 [0.0, self._b2*sin(self._beta3), -self._b3*sin(self._beta2)*cos(self._alpha1)],
-                                [0.0, 0.0, 2*pi/self._a3]])
+        self._bMatrix = Matrix([[self._b1, self._b2 * cos(self._beta3), self._b3 * cos(self._beta2)],
+                                 [0.0, self._b2 * sin(self._beta3), -self._b3 * sin(self._beta2) * cos(self._alpha1)],
+                                [0.0, 0.0, 2 * pi / self._a3]])
 
 
     def getBMatrix(self):
@@ -62,13 +62,13 @@ class CrystalUnderTest:
         return self._bMatrix
 
 
-    def getHklPlaneDistance(self,hkl):
+    def getHklPlaneDistance(self, hkl):
         '''Calculates and returns the distance between planes at a given hkl=[h,k,l]'''
         h, k, l = hkl
-        c1= self._a1*self._a2*cos(self._beta3)
-        c2= self._a1*self._a3*cos(self._beta2)
-        c3= self._a2*self._a3*cos(self._beta1)
-        return sqrt(1.0/(h**2*self._a1**2 + k**2*self._a2**2 + l**2*self._a3**2 +2*h*k*c1+2*h*l*c2+2*k*l*c3))
+        c1 = self._a1 * self._a2 * cos(self._beta3)
+        c2 = self._a1 * self._a3 * cos(self._beta2)
+        c3 = self._a2 * self._a3 * cos(self._beta1)
+        return sqrt(1.0 / (h ** 2 * self._a1 ** 2 + k ** 2 * self._a2 ** 2 + l ** 2 * self._a3 ** 2 + 2 * h * k * c1 + 2 * h * l * c2 + 2 * k * l * c3))
 
 
 
@@ -79,11 +79,11 @@ class CrystalUnderTest:
         if self._name == None:
             return "   none specified\n" 
         
-        b  = self._bMatrix.getArray() #Convert to regular (actually java!) array
+        b = self._bMatrix.getArray() #Convert to regular (actually java!) array
         
-        result =  "   crystal:       %s\n\n" % self._name
+        result = "   crystal:       %s\n\n" % self._name
         result += "   lattice:                a ,b ,c  = % 9.5f, % 9.5f, % 9.5f\n" % (self._a1, self._a2, self._a3)
-        result += "                alpha, beta, gamma  = % 9.5f, % 9.5f, % 9.5f\n" % (self._alpha1*TODEG, self._alpha2*TODEG, self._alpha3*TODEG)
+        result += "                alpha, beta, gamma  = % 9.5f, % 9.5f, % 9.5f\n" % (self._alpha1 * TODEG, self._alpha2 * TODEG, self._alpha3 * TODEG)
         result += "\n"
         result += "   reciprical:          b1, b2, b3  = % 9.5f, % 9.5f, % 9.5f\n" % (self._b1, self._b2, self._b3)
         result += "               beta1, beta2, beta3  = % 9.5f, % 9.5f, % 9.5f\n" % (self._beta1, self._beta2, self._beta3)
@@ -94,7 +94,7 @@ class CrystalUnderTest:
         return result
     
     def getLattice(self):
-        return(self._name, self._a1,self._a2,self._a3, self._alpha1*TODEG, self._alpha2*TODEG, self._alpha3*TODEG)
+        return(self._name, self._a1, self._a2, self._a3, self._alpha1 * TODEG, self._alpha2 * TODEG, self._alpha3 * TODEG)
 
     def getStateDict(self):
         return {

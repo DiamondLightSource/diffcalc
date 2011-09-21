@@ -1,5 +1,5 @@
-from diffcalc.mapper.sector import SectorSelector
 from diffcalc.hkl.commands import _hklcalcCommandHelp, HklCommand
+from diffcalc.mapper.sector import SectorSelector
 
 
 def getNameFromScannableOrString(o):
@@ -60,7 +60,7 @@ class MapperCommands(object):
         self._transform('transformc', 'c', args)
         
     def _transform(self, commandName, transformName, args):
-        if len(args)==0:
+        if len(args) == 0:
             print self._sectorSelector.__repr__()
             return
         # get name
@@ -83,13 +83,13 @@ class MapperCommands(object):
         print self._sectorSelector.__repr__()    
     
     @HklCommand
-    def sector(self, sector = None):
+    def sector(self, sector=None):
         """sector [0-7] -- Select or display sector (a la Spec)
         """
         if sector is None:
             print self._sectorSelector.__repr__()
         else:
-            if type(sector) is not int and not (0<=sector<=7):
+            if type(sector) is not int and not (0 <= sector <= 7):
                 raise TypeError()
             self._sectorSelector.setSector(sector)
             print self._sectorSelector.__repr__()
@@ -98,9 +98,9 @@ class MapperCommands(object):
     def autosector(self, *args):
         """autosector '[None] [0-7] [0-7]... -- Set sectors that might be automatically selected')
         """
-        if len(args)==0:
+        if len(args) == 0:
             print self._sectorSelector.__repr__()
-        elif len(args)==1 and args[0] is None:
+        elif len(args) == 1 and args[0] is None:
             self._sectorSelector.setAutoSectors([])
             print self._sectorSelector.__repr__()
         else:
@@ -133,13 +133,13 @@ class MapperCommands(object):
     def setmin(self, name=None, val=None):
         """setmin [axis [val]] -- set lower limits used by auto sector code (None to clear)
         """
-        self._setMinOrMax( name, val, self._hardware.setLowerLimit)
+        self._setMinOrMax(name, val, self._hardware.setLowerLimit)
     
     @HklCommand
     def setmax(self, name=None, val=None):
         """setmax [name [val]] -- sets upper limits used by auto sector code (None to clear)
         """
-        self._setMinOrMax( name, val, self._hardware.setUpperLimit)
+        self._setMinOrMax(name, val, self._hardware.setUpperLimit)
 
     
     def _setMinOrMax(self, name, val, setMethod):

@@ -3,7 +3,7 @@ from nose.tools import assert_almost_equal #@UnresolvedImport
 # not seen by pydev.
 
 def format_note(note):
-    return " # %s"%note if note else ""
+    return " # %s" % note if note else ""
 
 def assert_array_almost_equal(first, second, places=7, msg=None, note=None):
     assert len(first) == len(second), "%r != %r as lengths differ%s" % (first, second, format_note(note))

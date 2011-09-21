@@ -1,5 +1,4 @@
-from diffcalc.ub.persistence import \
-    UBCalculationPersister, UbCalculationNonPersister
+from diffcalc.ub.persistence import UbCalculationNonPersister
 import os
 import shutil
 import unittest

@@ -1,10 +1,9 @@
 from diffcalc.geometry.plugin import DiffractometerGeometryPlugin
-from diffcalc.utils import Position
+from diffcalc.utils import Position, nearlyEqual, sign, bound
 from math import tan, cos, sin, asin, atan, pi, fabs
-from diffcalc.utils import nearlyEqual, sign, bound
 
-TORAD=pi/180
-TODEG=180/pi
+TORAD = pi / 180
+TODEG = 180 / pi
 
 class SixCircleGammaOnArmGeometry(DiffractometerGeometryPlugin):
     """
@@ -14,17 +13,17 @@ class SixCircleGammaOnArmGeometry(DiffractometerGeometryPlugin):
     """
 
     def __init__(self):
-        DiffractometerGeometryPlugin.__init__(self, 
-                    name = 'sixc_gamma_on_arm', 
-                    supportedModeGroupList = ('fourc', 'fivecFixedGamma', 'fivecFixedAlpha', 'zaxis'), 
-                    fixedParameterDict = {}, 
-                    gammaLocation = 'arm'
+        DiffractometerGeometryPlugin.__init__(self,
+                    name='sixc_gamma_on_arm',
+                    supportedModeGroupList=('fourc', 'fivecFixedGamma', 'fivecFixedAlpha', 'zaxis'),
+                    fixedParameterDict={},
+                    gammaLocation='arm'
                     )
 
     def physicalAnglesToInternalPosition(self, physicalAngles):
         """ (a,d,g,o,c,p) = physicalAnglesToInternal(a,d,g,o,c,p)
         """
-        assert (len(physicalAngles)==6), "Wrong length of input list"
+        assert (len(physicalAngles) == 6), "Wrong length of input list"
         return Position(*physicalAngles)
     
     def internalPositionToPhysicalAngles(self, internalPosition):
@@ -35,11 +34,11 @@ class SixCircleGammaOnArmGeometry(DiffractometerGeometryPlugin):
 
 class SixCircleYouGeometry(SixCircleGammaOnArmGeometry):
     def __init__(self):
-        DiffractometerGeometryPlugin.__init__(self, 
-                    name = 'sixc_you', 
-                    supportedModeGroupList = ('fourc', 'fivecFixedGamma', 'fivecFixedAlpha', 'zaxis'), 
-                    fixedParameterDict = {}, 
-                    gammaLocation = None
+        DiffractometerGeometryPlugin.__init__(self,
+                    name='sixc_you',
+                    supportedModeGroupList=('fourc', 'fivecFixedGamma', 'fivecFixedAlpha', 'zaxis'),
+                    fixedParameterDict={},
+                    gammaLocation=None
                     )
 
 
@@ -52,11 +51,11 @@ class SixCircleGeometry(DiffractometerGeometryPlugin):
 
     def __init__(self):
         DiffractometerGeometryPlugin.__init__(
-                    self, 
-                    name = 'sixc', 
-                    supportedModeGroupList = ('fourc', 'fivecFixedGamma', 'fivecFixedAlpha', 'zaxis'), 
-                    fixedParameterDict = {}, 
-                    gammaLocation = 'base'
+                    self,
+                    name='sixc',
+                    supportedModeGroupList=('fourc', 'fivecFixedGamma', 'fivecFixedAlpha', 'zaxis'),
+                    fixedParameterDict={},
+                    gammaLocation='base'
                     )
         self.hardwareMonitor = None
 #(deltaA, gammaA) = gammaOnBaseToArm(deltaB, gammaB, alpha) (all in radians)
@@ -65,17 +64,17 @@ class SixCircleGeometry(DiffractometerGeometryPlugin):
     def physicalAnglesToInternalPosition(self, physicalAngles):
         """ (a,d,g,o,c,p) = physicalAnglesToInternal(a,d,g,o,c,p)
         """
-        assert (len(physicalAngles)==6), "Wrong length of input list"
+        assert (len(physicalAngles) == 6), "Wrong length of input list"
         alpha, deltaB, gammaB, omega, chi, phi = physicalAngles
-        (deltaA, gammaA) = gammaOnBaseToArm(deltaB*TORAD, gammaB*TORAD, alpha*TORAD)
-        return Position(alpha, deltaA*TODEG, gammaA*TODEG, omega, chi, phi)
+        (deltaA, gammaA) = gammaOnBaseToArm(deltaB * TORAD, gammaB * TORAD, alpha * TORAD)
+        return Position(alpha, deltaA * TODEG, gammaA * TODEG, omega, chi, phi)
     
     def internalPositionToPhysicalAngles(self, internalPosition):
         """ (a,d,g,o,c,p) = physicalAnglesToInternal(a,d,g,o,c,p)
         """
         alpha, deltaA, gammaA, omega, chi, phi = internalPosition.totuple()
-        deltaB, gammaB = gammaOnArmToBase(deltaA*TORAD, gammaA*TORAD, alpha*TORAD)
-        deltaB, gammaB = deltaB*TODEG, gammaB*TODEG
+        deltaB, gammaB = gammaOnArmToBase(deltaA * TORAD, gammaA * TORAD, alpha * TORAD)
+        deltaB, gammaB = deltaB * TODEG, gammaB * TODEG
         
         if self.hardwareMonitor is not None:
             gammaName = self.hardwareMonitor.getPhysicalAngleNames()[2]
@@ -107,9 +106,9 @@ min_gamma = 0
 
 def solvesEq8(alpha, deltaA, gammaA, deltaB, gammaB):
     tol = 1e-6
-    return nearlyEqual(sin(deltaA)*cos(gammaA), sin(deltaB), tol) and \
-        nearlyEqual(cos(deltaA)*cos(gammaA), cos(gammaB-alpha)*cos(deltaB), tol ) and \
-        nearlyEqual(sin(gammaA), sin(gammaB-alpha)*cos(deltaB), tol )
+    return nearlyEqual(sin(deltaA) * cos(gammaA), sin(deltaB), tol) and \
+        nearlyEqual(cos(deltaA) * cos(gammaA), cos(gammaB - alpha) * cos(deltaB), tol) and \
+        nearlyEqual(sin(gammaA), sin(gammaB - alpha) * cos(deltaB), tol)
 
 
 GAMMAONBASETOARM_WARNING = '''
@@ -136,10 +135,10 @@ def gammaOnBaseToArm(deltaB, gammaB, alpha):
     """
 
     ### Equation11 ###
-    if fabs(cos(gammaB-alpha))<1e-20:
-        deltaA1 = sign(tan(deltaB))*sign(cos(gammaB-alpha))*pi/2
+    if fabs(cos(gammaB - alpha)) < 1e-20:
+        deltaA1 = sign(tan(deltaB)) * sign(cos(gammaB - alpha)) * pi / 2
     else:
-        deltaA1 = atan( tan(deltaB)/cos(gammaB-alpha) )
+        deltaA1 = atan(tan(deltaB) / cos(gammaB - alpha))
     # ...second root
     if deltaA1 <= 0:
         deltaA2 = deltaA1 + pi
@@ -147,7 +146,7 @@ def gammaOnBaseToArm(deltaB, gammaB, alpha):
         deltaA2 = deltaA1 - pi
         
     ### Equation 12 ###
-    gammaA1 = asin( bound(cos(deltaB)*sin(gammaB-alpha)) )
+    gammaA1 = asin(bound(cos(deltaB) * sin(gammaB - alpha)))
     # ...second root    
     if gammaA1 >= 0:
         gammaA2 = pi - gammaA1
@@ -196,7 +195,7 @@ def gammaOnArmToBase(deltaA, gammaA, alpha):
     """
 
     ### Equation 9 ###
-    deltaB1 = asin( bound(sin(deltaA)*cos(gammaA)) )
+    deltaB1 = asin(bound(sin(deltaA) * cos(gammaA)))
     # ...second root:
     if deltaB1 >= 0:
         deltaB2 = pi - deltaB1
@@ -204,10 +203,10 @@ def gammaOnArmToBase(deltaA, gammaA, alpha):
         deltaB2 = -pi - deltaB1
     
     ### Equation 10 ###:
-    if fabs(cos(deltaA))<1e-20:
-        gammaB1 = sign(tan(gammaA))*sign(cos(deltaA))*pi/2 + alpha
+    if fabs(cos(deltaA)) < 1e-20:
+        gammaB1 = sign(tan(gammaA)) * sign(cos(deltaA)) * pi / 2 + alpha
     else:
-        gammaB1 = atan( tan(gammaA)/cos(deltaA) ) + alpha
+        gammaB1 = atan(tan(gammaA) / cos(deltaA)) + alpha
     #... second root:
     if gammaB1 <= 0:
         gammaB2 = gammaB1 + pi
@@ -215,15 +214,15 @@ def gammaOnArmToBase(deltaA, gammaA, alpha):
         gammaB2 = gammaB1 - pi
     
     ### Choose the solution that fits equation 8 ###
-    if solvesEq8(alpha, deltaA, gammaA, deltaB1, gammaB1) and 0<=gammaB1<=pi:
+    if solvesEq8(alpha, deltaA, gammaA, deltaB1, gammaB1) and 0 <= gammaB1 <= pi:
         deltaB, gammaB = deltaB1, gammaB1
-    elif solvesEq8(alpha, deltaA, gammaA, deltaB2, gammaB1) and 0<=gammaB1<=pi: 
+    elif solvesEq8(alpha, deltaA, gammaA, deltaB2, gammaB1) and 0 <= gammaB1 <= pi: 
         deltaB, gammaB = deltaB2, gammaB1
         print "gammaOnArmToBase choosing 2nd delta root (to physical)"
-    elif solvesEq8(alpha, deltaA, gammaA, deltaB1, gammaB2) and 0<=gammaB2<=pi:
+    elif solvesEq8(alpha, deltaA, gammaA, deltaB1, gammaB2) and 0 <= gammaB2 <= pi:
         print "gammaOnArmToBase choosing 2nd gamma root (to physical)"
         deltaB, gammaB = deltaB1, gammaB2
-    elif solvesEq8(alpha, deltaA, gammaA, deltaB2, gammaB2) and 0<=gammaB2<=pi: 
+    elif solvesEq8(alpha, deltaA, gammaA, deltaB2, gammaB2) and 0 <= gammaB2 <= pi: 
         print "gammaOnArmToBase choosing 2nd delta root and 2nd gamma root (to physical)"
         deltaB, gammaB = deltaB2, gammaB2    
     else:

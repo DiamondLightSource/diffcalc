@@ -1,5 +1,5 @@
-import unittest
 from diffcalc.hardware.dummy import DummyHardwareMonitorPlugin
+import unittest
 
 
 class TestDummyHardwareMonitorPlugin(unittest.TestCase):
@@ -8,9 +8,9 @@ class TestDummyHardwareMonitorPlugin(unittest.TestCase):
         self.hardware = DummyHardwareMonitorPlugin(['alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'])
     
     def test__init__(self):
-        self.assertEquals(self.hardware.getPosition(),[0.]*6)
-        self.assertEquals(self.hardware.getEnergy(),12.39842)
-        self.assertEquals(self.hardware.getWavelength(),1.)
+        self.assertEquals(self.hardware.getPosition(), [0.] * 6)
+        self.assertEquals(self.hardware.getEnergy(), 12.39842)
+        self.assertEquals(self.hardware.getWavelength(), 1.)
         self.assertEquals(self.hardware.getPhysicalAngleNames(), ('alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'))    
 
     def test__repr__(self):
@@ -23,6 +23,6 @@ class TestDummyHardwareMonitorPlugin(unittest.TestCase):
         pass
     
     def testGetPositionByName(self):
-        self.hardware.setPosition([1.,2.,3.,4.,5.,6.])
+        self.hardware.setPosition([1., 2., 3., 4., 5., 6.])
         self.assertEqual(self.hardware.getPositionByName('gamma'), 3.)
         self.assertRaises(ValueError, self.hardware.getPositionByName, 'not an angle name')

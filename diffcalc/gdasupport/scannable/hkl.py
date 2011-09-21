@@ -1,14 +1,9 @@
 from diffcalc.gdasupport.scannable.base import DottedAccessPseudoDevice
 from diffcalc.utils import getMessageFromException
-try:
-    from gda.device.scannable import PseudoDevice
-except ImportError:
-    from diffcalc.gdasupport.minigda.scannable.scannable import Scannable as PseudoDevice
 
 class Hkl(DottedAccessPseudoDevice):
-    '''
-    '''
-    def __init__(self ,name ,diffractometerObject, diffcalcObject, virtualAnglesToReport=None):
+
+    def __init__(self , name , diffractometerObject, diffcalcObject, virtualAnglesToReport=None):
         self.diffhw = diffractometerObject
         self.__diffcalc = diffcalcObject
         if type(virtualAnglesToReport) is str:
@@ -16,26 +11,26 @@ class Hkl(DottedAccessPseudoDevice):
         self.vAngleNames = virtualAnglesToReport
         
         self.setName(name)
-        self.setInputNames(['h','k','l'])
-        self.setOutputFormat(['%7.5f']*3)
+        self.setInputNames(['h', 'k', 'l'])
+        self.setOutputFormat(['%7.5f'] * 3)
         if self.vAngleNames:
             self.setExtraNames(self.vAngleNames)
-            self.setOutputFormat(['%7.5f']*(3+len(self.vAngleNames)))
+            self.setOutputFormat(['%7.5f'] * (3 + len(self.vAngleNames)))
         self.completeInstantiation()
 
-    def asynchronousMoveTo(self,hkl):
+    def asynchronousMoveTo(self, hkl):
         #if type(hkl) not in (type(()), type([])): ...
         try:
             hkl = list(hkl)
         except TypeError:
-            raise ValueError('Hkl value could not be turned into list. Received %s of type %s'%( str(hkl), str(type(hkl)) ) )
-        if len(hkl)!=3: raise ValueError('Hkl device expects three inputs')
+            raise ValueError('Hkl value could not be turned into list. Received %s of type %s' % (str(hkl), str(type(hkl))))
+        if len(hkl) != 3: raise ValueError('Hkl device expects three inputs')
         
         # if input has any Nones, then replace these with the current positions
         if None in hkl:
             current = self.getPosition()
             for idx, val in enumerate(hkl):
-                if val==None:
+                if val == None:
                     hkl[idx] = current [idx]
         #    
         (pos, _) = self.__diffcalc._hklToAngles(hkl[0], hkl[1], hkl[2])
@@ -56,7 +51,7 @@ class Hkl(DottedAccessPseudoDevice):
     def simulateMoveTo(self, hkl):
         if type(hkl) not in (list, tuple):
             raise ValueError('Hkl device expects three inputs')
-        if len(hkl)!=3:
+        if len(hkl) != 3:
             raise ValueError('Hkl device expects three inputs')
         (pos, params) = self.__diffcalc._hklToAngles(hkl[0], hkl[1], hkl[2])
         
@@ -99,8 +94,7 @@ class Hkl(DottedAccessPseudoDevice):
         def __repr__(self):
             # Get the name of this field (assume its an input field first and correct if wrong
             name = self.getInputNames()[0]
-            print "hjhjhjkh"
-            if name=='value':
+            if name == 'value':
                 name = self.getExtraNames()[0]
             try:
                 return self.parentScannable.getName() + "." + name + " : " + str(self.getPosition())

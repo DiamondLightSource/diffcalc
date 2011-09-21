@@ -1,6 +1,6 @@
 '''Angles in radians'''
-from diffcalc.utils import Position as P
 from copy import copy
+from diffcalc.utils import Position as P
 from math import pi
 
 SMALL = 1e-10
@@ -28,7 +28,7 @@ class TransformB(Transform):
     '''
     def transform(self, pos):
         pos = pos.clone()
-        pos.chi -=180
+        pos.chi -= 180
         pos.omega = 180 - pos.omega
         return pos
 
@@ -62,11 +62,11 @@ transformsFromSector = {
                     0 : (),
                     1 : ('c',),
                     2 : ('a',),
-                    3 : ('a','c'),
-                    4 : ('b','c'),
+                    3 : ('a', 'c'),
+                    4 : ('b', 'c'),
                     5 : ('b',),
-                    6 : ('a','b','c'),
-                    7 : ('a','b')
+                    6 : ('a', 'b', 'c'),
+                    7 : ('a', 'b')
                     }
 
 sectorFromTransforms = {}
@@ -88,13 +88,13 @@ class SectorSelector(object):
         self.setSector(0)
         
     def setSector(self, sector):
-        if not 0<=sector<=7:
+        if not 0 <= sector <= 7:
             raise ValueError('%i must between 0 and 7.' % sector)
         self.sector = sector
         self.transforms = list(transformsFromSector[sector])
 
     def setTransforms(self, transformList):
-    	transformList = list(transformList)
+        transformList = list(transformList)
         transformList.sort()
         self.sector = sectorFromTransforms[tuple(transformList)]
         self.transforms = transformList
@@ -132,7 +132,7 @@ class SectorSelector(object):
                 print "WARNING: %s is already set to auto apply" % transform
         elif type(transformOrSector) == int:
             sector = transformOrSector
-            if not 0<=sector<=7:
+            if not 0 <= sector <= 7:
                 raise ValueError('%i must between 0 and 7.' % sector)
             if sector not in self.autosectors:
                 self.autotransforms = []
@@ -153,7 +153,7 @@ class SectorSelector(object):
                 print "WARNING: %s is not set to auto apply" % transform
         elif type(transformOrSector) == int:
             sector = transformOrSector
-            if not 0<=sector<=7:
+            if not 0 <= sector <= 7:
                 raise ValueError('%i must between 0 and 7.' % sector)
             if sector in self.autosectors:
                 self.autosectors.remove(sector)
@@ -164,19 +164,19 @@ class SectorSelector(object):
     
     def setAutoSectors(self, sectorList):
         for sector in sectorList:
-            if not 0<=sector<=7:
+            if not 0 <= sector <= 7:
                 raise ValueError('%i must between 0 and 7.' % sector)
         self.autosectors = list(sectorList)
 
     def transformPosition(self, pos):
         pos = self.transformNWithoutCut(self.sector, pos)
         cutpos = self.cutPosition(pos) # -180<=cutpos<180, NOT the externally applied cuts
-        if len(self.autosectors)>0:
+        if len(self.autosectors) > 0:
             if self.isPositionWithinLimits(cutpos):
                 return cutpos
             else:
                 return self.autoTransformPositionBySector(cutpos)
-        if len(self.autotransforms)>0:
+        if len(self.autotransforms) > 0:
             if self.isPositionWithinLimits(cutpos):
                 return cutpos
             else:
@@ -209,19 +209,19 @@ class SectorSelector(object):
 ### autosector
     
     def hasAutoSectorsOrTransformsToApply(self):
-        return len(self.autosectors)>0 or len(self.autotransforms)>0
+        return len(self.autosectors) > 0 or len(self.autotransforms) > 0
 
     def autoTransformPositionBySector(self, pos):
-        okaysectors=[]
+        okaysectors = []
         okaypositions = []
         for sector in self.autosectors:
             newpos = self.transformNWithoutCut(sector, pos)
             if self.isPositionWithinLimits(newpos):
                 okaysectors.append(sector)
                 okaypositions.append(newpos)
-        if len(okaysectors)==0:
-            raise Exception("Autosector could not find a sector (from %s) to move %s into limits." % (self.autosectors, str(pos)) )
-        if len(okaysectors)>1:
+        if len(okaysectors) == 0:
+            raise Exception("Autosector could not find a sector (from %s) to move %s into limits." % (self.autosectors, str(pos)))
+        if len(okaysectors) > 1:
             print "WARNING: Autosector found multiple sectors that would move %s to move into limits: %s" % (str(pos), okaysectors) 
         
         print "INFO: Autosector changed sector from %i to %i" % (self.sector, okaysectors[0])
@@ -238,9 +238,9 @@ class SectorSelector(object):
             if self.isPositionWithinLimits(newpos):
                 okaytransforms.append(transforms)
                 okaypositions.append(newpos)
-        if len(okaytransforms)==0:
-            raise Exception("Autosector could not find a sector (from %s) to move %s into limits." % (`self.autosectors`, `pos`) )
-        if len(okaytransforms)>1:
+        if len(okaytransforms) == 0:
+            raise Exception("Autosector could not find a sector (from %s) to move %s into limits." % (`self.autosectors`, `pos`))
+        if len(okaytransforms) > 1:
             print "WARNING: Autosector found multiple sectors that would move %s to move into limits: %s" % (`pos`, `okaytransforms`) 
         
         print "INFO: Autosector changed selected transforms from %s to %s" % (`self.transforms`, `okaytransforms[0]`)
@@ -263,7 +263,7 @@ class SectorSelector(object):
                 result.append(toadd)
             return result
         # start with the currently selected list of transforms
-        if len(self.transforms)==0:
+        if len(self.transforms) == 0:
             possibleTransforms = [()]
         else:
             possibleTransforms = copy(self.transforms)
@@ -290,11 +290,11 @@ class SectorSelector(object):
                     s += '      '
             return s
         s = 'Transforms/sector:\n'
-        s += '  %s (a transform) Invert scattering plane: invert delta and omega and flip chi\n' %createPrefix('a')
-        s += '  %s (b transform) Flip chi, and invert and flip omega\n' %createPrefix('b')
-        s += '  %s (c transform) Flip omega, invert chi and flip phi\n' %createPrefix('c')
+        s += '  %s (a transform) Invert scattering plane: invert delta and omega and flip chi\n' % createPrefix('a')
+        s += '  %s (b transform) Flip chi, and invert and flip omega\n' % createPrefix('b')
+        s += '  %s (c transform) Flip omega, invert chi and flip phi\n' % createPrefix('c')
         s += '  Current sector: %i (Spec fourc equivalent)\n' % self.sector
-        if len(self.autosectors)>0:
+        if len(self.autosectors) > 0:
             s += '  Auto sectors: %s\n' % self.autosectors
         return s
 
@@ -308,9 +308,9 @@ class SectorSelector(object):
             if a is None:
                 return None
             else:
-                if a < (-180.-SMALL):
+                if a < (-180. - SMALL):
                     return a + 360.
-                if a > (180.+SMALL):
+                if a > (180. + SMALL):
                     return a - 360.
             return a
         return P(cut(position.alpha), cut(position.delta), cut(position.gamma), cut(position.omega), cut(position.chi), cut(position.phi))

@@ -1,14 +1,14 @@
 
-from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter,Gaussian
+from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter, \
+    Gaussian
 from diffcalc.geometry.fourc import fourc
 from diffcalc.utils import nearlyEqual
+from math import pi
+import unittest
 try:
     from Jama import Matrix
 except ImportError:
     from diffcalc.npadaptor import Matrix
-
-import unittest
-from math import pi
 
 
 class MockScannable(object):
@@ -42,29 +42,29 @@ class TestSimulatedCrystalCounter(unittest.TestCase):
         self.assertEquals(self.scc.phiMissmount, 0.)
 
     def testCalcUB(self):
-        UB = [[2*pi, 0, 0], [0, 2*pi, 0], [0, 0, 2*pi]]
-        self.assert_(self.scc.UB.minus(Matrix(UB)).norm1()<=.0001)
+        UB = [[2 * pi, 0, 0], [0, 2 * pi, 0], [0, 0, 2 * pi]]
+        self.assert_(self.scc.UB.minus(Matrix(UB)).norm1() <= .0001)
 
     def testGetHkl(self):
         self.diff.pos = [60, 30, 0, 0]
         hkl = self.scc.getHkl()
-        self.assert_(nearlyEqual(hkl, (1,0,0), .0000001), "%s!=\n%s"%(hkl, (1,0,0)))
+        self.assert_(nearlyEqual(hkl, (1, 0, 0), .0000001), "%s!=\n%s" % (hkl, (1, 0, 0)))
         
         self.diff.pos = [60, 31, 0, 0]
         hkl = self.scc.getHkl()
-        self.assert_(nearlyEqual(hkl, (0.999847695156391, 0.017452406437283574,0), .0000001), "%s!=\n%s"%(hkl, (1,0,0)))
+        self.assert_(nearlyEqual(hkl, (0.999847695156391, 0.017452406437283574, 0), .0000001), "%s!=\n%s" % (hkl, (1, 0, 0)))
 
     def testGetPosition(self):
         self.diff.pos = [60, 30, 0, 0]
         self.scc.asynchronousMoveTo(2)
         count = self.scc.getPosition()
-        self.assert_(nearlyEqual(self.eq.dHkl, (0,0,0), .00001))
+        self.assert_(nearlyEqual(self.eq.dHkl, (0, 0, 0), .00001))
         self.assertEqual(count, 2)
         
         self.diff.pos = [60, 31, 0, 0]
         count = self.scc.getPosition()
-        dHkl = (0.999847695156391-1,.017452406437283574,0)
-        self.assert_( nearlyEqual( self.eq.dHkl, dHkl, .00001), "%s!=\n%s"%(self.eq.dHkl, dHkl))
+        dHkl = (0.999847695156391 - 1, .017452406437283574, 0)
+        self.assert_(nearlyEqual(self.eq.dHkl, dHkl, .00001), "%s!=\n%s" % (self.eq.dHkl, dHkl))
         self.assertEqual(count, 2)
         
     def test__repr__(self):

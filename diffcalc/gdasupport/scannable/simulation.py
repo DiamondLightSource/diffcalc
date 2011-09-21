@@ -8,8 +8,8 @@ except ImportError:
 import time
 from math import sqrt, pi, exp
 
-TORAD=pi/180
-TODEG=180/pi
+TORAD = pi / 180
+TODEG = 180 / pi
 
 class Equation(object):
     
@@ -25,16 +25,15 @@ class Gaussian(Equation):
         self.variance = float(variance)
         
     def __call__(self, dh, dk, dl):
-        dr_squared = dh*dh + dk*dk + dl*dl
-        return 1/sqrt(2*pi*self.variance) * exp(-dr_squared/(2*self.variance))
+        dr_squared = dh * dh + dk * dk + dl * dl
+        return 1 / sqrt(2 * pi * self.variance) * exp(-dr_squared / (2 * self.variance))
         
 
 class SimulatedCrystalCounter(PseudoDevice):
-    '''
-    '''
-    def __init__(self , name, diffractometerScannable, geometryPlugin, wavelengthScannable, equation = Gaussian(.01)):
+
+    def __init__(self , name, diffractometerScannable, geometryPlugin, wavelengthScannable, equation=Gaussian(.01)):
         self.setName(name)
-        self.setInputNames([name+'_count'])
+        self.setInputNames([name + '_count'])
         #elf.setExtraNames([name+'_count'])
         self.setOutputFormat(['%7.5f'])#*2)
         self.exposureTime = 1
@@ -63,7 +62,7 @@ class SimulatedCrystalCounter(PseudoDevice):
         self.calcUB()
         
     def calcUB(self):
-        [_,_,_,_, CHI, PHI] = createVliegMatrices( None, None, None, None, self.chiMissmount*TORAD, self.phiMissmount*TORAD)
+        [_, _, _, _, CHI, PHI] = createVliegMatrices(None, None, None, None, self.chiMissmount * TORAD, self.phiMissmount * TORAD)
         self.UB = CHI.times(PHI).times(self.cut.getBMatrix())
 
     def asynchronousMoveTo(self, exposureTime):
@@ -73,10 +72,10 @@ class SimulatedCrystalCounter(PseudoDevice):
     
     def getPosition(self):
         h, k, l = self.getHkl()
-        dh, dk, dl = h-round(h), k-round(k), l-round(l)
+        dh, dk, dl = h - round(h), k - round(k), l - round(l)
         count = self.equation(dh, dk, dl)
         #return self.exposureTime, count*self.exposureTime
-        return count*self.exposureTime
+        return count * self.exposureTime
 
     def getHkl(self):
         pos = self.geometry.physicalAnglesToInternalPosition(self.diffractometerScannable.getPosition())
@@ -92,10 +91,10 @@ class SimulatedCrystalCounter(PseudoDevice):
     
     def __repr__(self):
         s = 'simulated crystal detector: %s\n' % self.getName()
-        h,k,l = self.getHkl()
+        h, k, l = self.getHkl()
         s += '   h : %f\n' % h
         s += '   k : %f\n' % k
-        s += '   l : %f\n' % k
+        s += '   l : %f\n' % l
         s += self.cut.__str__()
         s += "chi orientation: %s\n" % self.chiMissmount
         s += "phi orientation: %s\n" % self.phiMissmount

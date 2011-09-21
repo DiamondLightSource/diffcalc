@@ -1,13 +1,14 @@
 
-from diffcalc.gdasupport.scannable.mock import MockMotor
-from diffcalc.gdasupport.scannable.diffractometer import DiffractometerScannableGroup
-from tests.diffcalc.gda.scannable.mockdiffcalc import MockDiffcalc
 from diffcalc.gdasupport.scannable.base import ScannableGroup
+from diffcalc.gdasupport.scannable.diffractometer import \
+    DiffractometerScannableGroup
+from diffcalc.gdasupport.scannable.mock import MockMotor
+from tests.diffcalc.gda.scannable.mockdiffcalc import MockDiffcalc
 import unittest
 
 try:
-    from gdascripts.pd.dummy_pds import DummyPD #@UnresolvedImport
-except:
+    from gdascripts.pd.dummy_pds import DummyPD #@UnusedImport
+except ImportError:
     from diffcalc.gdasupport.minigda.scannable.dummy import DummyPD
     
 def createDummyAxes(names):
@@ -96,7 +97,7 @@ class TestDiffractometerScannableGroupWithSlave(TestDiffractometerScannableGroup
     
     def testAsynchronousMoveToWithNones(self):
         TestDiffractometerScannableGroup.testAsynchronousMoveToWithNones(self)
-        self.assertEqual(self.mockDriver.lastPosition,[None, None, 3.2, None, 5.2, None])
+        self.assertEqual(self.mockDriver.lastPosition, [None, None, 3.2, None, 5.2, None])
 
     def testIsBusyWithSlave(self):    
         self.mockDriver.busy = True
@@ -129,28 +130,28 @@ class TestScannableGroup(unittest.TestCase):
         self.sg = ScannableGroup('abc', (self.a, self.b, self.c))
     
     def testInit(self):
-        self.assertEqual(list(self.sg.getInputNames()), ['a','bbb','c'])
-        self.assertEqual(self.sg.getPosition(),[0.0 ,0.0 ,0.0])
+        self.assertEqual(list(self.sg.getInputNames()), ['a', 'bbb', 'c'])
+        self.assertEqual(self.sg.getPosition(), [0.0 , 0.0 , 0.0])
 
     def testAsynchronousMoveTo(self):
-        self.sg.asynchronousMoveTo([1,2.0,3])
-        self.assertEqual(self.sg.getPosition(),[1.0 ,2.0 ,3.0])
+        self.sg.asynchronousMoveTo([1, 2.0, 3])
+        self.assertEqual(self.sg.getPosition(), [1.0 , 2.0 , 3.0])
     
     def testAsynchronousMoveToWithNones(self):
-        self.sg.asynchronousMoveTo([1.0, 2.0 ,3.0])
-        self.sg.asynchronousMoveTo([None,None,3.2])
-        self.assertEqual(self.sg.getPosition(),[1.0 ,2.0 ,3.2])
+        self.sg.asynchronousMoveTo([1.0, 2.0 , 3.0])
+        self.sg.asynchronousMoveTo([None, None, 3.2])
+        self.assertEqual(self.sg.getPosition(), [1.0 , 2.0 , 3.2])
                 
     def testGetPosition(self):
         #implicitely tested above
         pass
     
     def testIsBusy(self):    
-        self.assertEqual(self.sg.isBusy(),False)
-        self.sg.asynchronousMoveTo([1.0, 2.0 ,3.0])
-        self.assertEqual(self.sg.isBusy(),True)
+        self.assertEqual(self.sg.isBusy(), False)
+        self.sg.asynchronousMoveTo([1.0, 2.0 , 3.0])
+        self.assertEqual(self.sg.isBusy(), True)
         self.b.makeNotBusy()
-        self.assertEqual(self.sg.isBusy(),True)
+        self.assertEqual(self.sg.isBusy(), True)
         self.a.makeNotBusy()    
         self.c.makeNotBusy()            
-        self.assertEqual(self.sg.isBusy(),False)
+        self.assertEqual(self.sg.isBusy(), False)

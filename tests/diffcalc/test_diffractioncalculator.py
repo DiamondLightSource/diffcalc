@@ -1,30 +1,32 @@
 from diffcalc.diffractioncalculator import Diffcalc
-from diffcalc.utils import DiffcalcException
-from tests.diffcalc import scenarios
+from diffcalc.gdasupport.scannable.base import ScannableGroup
+from diffcalc.gdasupport.scannable.diffractometer import \
+    DiffractometerScannableGroup
+from diffcalc.gdasupport.scannable.hkl import Hkl
+from diffcalc.gdasupport.scannable.parameter import \
+    DiffractionCalculatorParameter
+from diffcalc.gdasupport.scannable.slave.NuDriverForSixCirclePlugin import \
+    NuDriverForSixCirclePlugin
 from diffcalc.geometry.fivec import fivec
 from diffcalc.geometry.fourc import fourc
-from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
-from diffcalc.geometry.sixc import SixCircleGeometry
-from diffcalc.gdasupport.scannable.parameter import    DiffractionCalculatorParameter
-from diffcalc.gdasupport.scannable.diffractometer import DiffractometerScannableGroup
-from diffcalc.gdasupport.scannable.hkl import Hkl
-from diffcalc.gdasupport.scannable.base import ScannableGroup
+from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry, \
+    SixCircleGeometry
 from diffcalc.hardware.dummy import DummyHardwareMonitorPlugin
 from diffcalc.hardware.scannable import ScannableHardwareMonitorPlugin
-from diffcalc.utils import MockRawInput
-import diffcalc.utils # @UnusedImport to overide raw_input
-
-import unittest
-from diffcalc.gdasupport.scannable.slave.NuDriverForSixCirclePlugin import NuDriverForSixCirclePlugin
-from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.tools import assert_array_almost_equal
+from diffcalc.ub.persistence import UbCalculationNonPersister
+from diffcalc.utils import DiffcalcException, MockRawInput
+from tests.diffcalc import scenarios
+import diffcalc.utils # @UnusedImport to overide raw_input
+import unittest
+
 try:
     from Jama import Matrix
 except ImportError:
     from diffcalc.npadaptor import Matrix
 try:
-    from gdascripts.pd.dummy_pds import DummyPD #@UnresolvedImport
-except:
+    from gdascripts.pd.dummy_pds import DummyPD #@UnusedImport
+except ImportError:
     from diffcalc.gdasupport.minigda.scannable.dummy import DummyPD
 
 
@@ -269,17 +271,17 @@ class SixCircleGammaOnArmTest(TestSixcBase):
                                    self.sixc(), 4, note="[alpha, delta, gamma, omega, chi, phi") 
         
     def test5(self):
-        self.mode(1, alpha=5, gamma=10, sig=-1.3500, tau=-106)
+        self.mode(1, alpha=5, gamma=10, sig= -1.3500, tau= -106)
         self.hkl([.7, .9, 1.3])        
         assert_array_almost_equal((5.0000, 22.9649, 10.0000, 30.6586, 4.5295, 35.4036), self.sixc(), 4)
         
     def test6(self):
-        self.mode(2, alpha=5, gamma=10, sig=-1.3500, tau=-106, betain=6) # Fix Bin
+        self.mode(2, alpha=5, gamma=10, sig= -1.3500, tau= -106, betain=6) # Fix Bin
         self.hkl([.7, .9, 1.3])    
         assert_array_almost_equal((5.0000, 22.9649, 10.0000, 2.2388, 4.3898, 65.4395), self.sixc(), 4)
         
     def test7(self):
-        self.mode(3, alpha=5, gamma=10, sig=-1.3500, tau=-106, betaout=7) # Fix Bin
+        self.mode(3, alpha=5, gamma=10, sig= -1.3500, tau= -106, betaout=7) # Fix Bin
         self.hkl([.7, .9, 1.3])    
         assert_array_almost_equal((5.0000, 22.9649, 10.0000, 43.4628, 5.0387, 21.7292), self.sixc(), 4)
         
@@ -289,27 +291,27 @@ class SixCircleGammaOnArmTest(TestSixcBase):
         
     def test8(self):
         #8
-        self.mode(10, gamma=10, sig=-1.35, tau=-106) #5cgBeq
+        self.mode(10, gamma=10, sig= -1.35, tau= -106) #5cgBeq
         self.hkl([.7, .9, 1.3])        
         assert_array_almost_equal((6.1937, 22.1343, 10.0000, 46.9523, 1.5102, 18.8112), self.sixc(), 3)
 
     def test9(self):
-        self.mode(13, alpha=5, gamma=10, sig=-1.35, tau=-106) #5cgBeq
+        self.mode(13, alpha=5, gamma=10, sig= -1.35, tau= -106) #5cgBeq
         self.hkl([.7, .9, 1.3])        
         assert_array_almost_equal((5.0000, 22.2183, 11.1054, 65.8276, 2.5180, -0.0749), self.sixc(), 4)
 
     def test10(self):
-        self.mode(20, sig=-1.35, tau=-106) #6czBeq
+        self.mode(20, sig= -1.35, tau= -106) #6czBeq
         self.hkl([.7, .9, 1.3])        
         assert_array_almost_equal((8.1693, 22.0156, 8.1693, -40.2188, 1.3500, 106.0000), self.sixc(), 4)
                 
     def test11(self):
-        self.mode(21, betain=8, sig=-1.35, tau=-106) #6czBin
+        self.mode(21, betain=8, sig= -1.35, tau= -106) #6czBin
         self.hkl([.7, .9, 1.3])        
         assert_array_almost_equal((8.0000, 22.0156, 8.3386, -40.0939, 1.3500, 106.0000), self.sixc(), 4)
         
     def test12(self):
-        self.mode(22,  betaout=1, sig=-1.35, tau=-106) #6czBin
+        self.mode(22, betaout=1, sig= -1.35, tau= -106) #6czBin
         self.hkl([.7, .9, 1.3])        
         assert_array_almost_equal((15.4706, 22.0994, 1.0000, -45.5521, 1.3500, 106.0000), self.sixc(), 4)
     
@@ -341,13 +343,13 @@ class ZAxisGammaOnBaseTest(TestSixcBase):
         self.checkHKL([0, 1, 0], adgocp=[0, 60, 0, 120, 0, 0], betaout=0, nu=0)
 
     def testHKL_011(self):
-        self.checkHKL([0, 1, 1], adgocp=[30, 54.7356, 90, 125.2644 , 0, 0], betaout=30, nu=-54.7356)
+        self.checkHKL([0, 1, 1], adgocp=[30, 54.7356, 90, 125.2644 , 0, 0], betaout=30, nu= -54.7356)
 
     def testHKL_100(self):
         self.checkHKL([1, 0, 0], adgocp=[0, 60, 0, 30, 0, 0], betaout=0, nu=0)
         
     def testHKL_101(self):
-        self.checkHKL([1, 0, 1], adgocp=[30, 54.7356, 90, 35.2644, 0, 0], betaout=30, nu=-54.7356)
+        self.checkHKL([1, 0, 1], adgocp=[30, 54.7356, 90, 35.2644, 0, 0], betaout=30, nu= -54.7356)
         
     def testHKL_110(self):
         #TODO: Modify test to ask that in this case gamma is left unmoved
@@ -366,13 +368,13 @@ class ZAxisGammaOnBaseTest(TestSixcBase):
         self.checkHKL([.9, 0, 0], adgocp=[0, 53.4874, 0, 26.7437, 0, 0], betaout=0, nu=0)
         
     def testHKL_07_08_08(self):
-        self.checkHKL([.7, .8, .8], adgocp=[23.5782, 59.9980, 76.7037, 84.2591, 0, 0], betaout=23.5782, nu=-49.1014)
+        self.checkHKL([.7, .8, .8], adgocp=[23.5782, 59.9980, 76.7037, 84.2591, 0, 0], betaout=23.5782, nu= -49.1014)
 
     def testHKL_07_08_09(self):
-        self.checkHKL([.7, .8, .9], adgocp=[26.74368, 58.6754, 86.6919, 85.3391, 0, 0], betaout=26.7437, nu=-55.8910)
+        self.checkHKL([.7, .8, .9], adgocp=[26.74368, 58.6754, 86.6919, 85.3391, 0, 0], betaout=26.7437, nu= -55.8910)
 
     def testHKL_07_08_1(self):
-        self.checkHKL([.7, .8, 1], adgocp=[30, 57.0626, 96.8659, 86.6739, 0, 0], betaout=30, nu=-63.0210)
+        self.checkHKL([.7, .8, 1], adgocp=[30, 57.0626, 96.8659, 86.6739, 0, 0], betaout=30, nu= -63.0210)
 
 
 class ZAxisGammaOnBaseIncludingNuRotationTest(ZAxisGammaOnBaseTest):

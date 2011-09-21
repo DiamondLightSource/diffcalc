@@ -1,10 +1,10 @@
-import unittest
 from diffcalc.hardware.plugin import HardwareMonitorPlugin
+import unittest
 
 class SimpleHardwareMonitorPlugin(HardwareMonitorPlugin):
     
     def getPosition(self):
-        return [1,2,3]
+        return [1, 2, 3]
     
     def getEnergy(self):
         return 1.
@@ -13,10 +13,10 @@ class SimpleHardwareMonitorPlugin(HardwareMonitorPlugin):
 class TestHardwareMonitorPluginBase(unittest.TestCase):
     
     def setUp(self):
-        self.hardware = SimpleHardwareMonitorPlugin(['a','b','c'])
+        self.hardware = SimpleHardwareMonitorPlugin(['a', 'b', 'c'])
     
     def test__init__AndGetPhysicalAngleNames(self):
-        self.assertEquals(self.hardware.getPhysicalAngleNames(), ('a','b','c'))
+        self.assertEquals(self.hardware.getPhysicalAngleNames(), ('a', 'b', 'c'))
 
     def test__repr__(self):
         print self.hardware.__repr__()
@@ -57,35 +57,35 @@ class TestHardwareMonitorPluginBase(unittest.TestCase):
         self.hardware.setUpperLimit('a', 1)
         self.hardware.setUpperLimit('b', 2)
         self.hardware.setLowerLimit('a', -1)
-        self.assertEquals(self.hardware.isPositionWithinLimits([0,0,999]), True)
-        self.assertEquals(self.hardware.isPositionWithinLimits([1,2,999]), True)
-        self.assertEquals(self.hardware.isPositionWithinLimits([-1,-999,999]), True)
-        self.assertEquals(self.hardware.isPositionWithinLimits([1.01,0,999]), False)
-        self.assertEquals(self.hardware.isPositionWithinLimits([0,2.01,999]), False)
-        self.assertEquals(self.hardware.isPositionWithinLimits([-1.01,0,999]), False)
+        self.assertEquals(self.hardware.isPositionWithinLimits([0, 0, 999]), True)
+        self.assertEquals(self.hardware.isPositionWithinLimits([1, 2, 999]), True)
+        self.assertEquals(self.hardware.isPositionWithinLimits([-1, -999, 999]), True)
+        self.assertEquals(self.hardware.isPositionWithinLimits([1.01, 0, 999]), False)
+        self.assertEquals(self.hardware.isPositionWithinLimits([0, 2.01, 999]), False)
+        self.assertEquals(self.hardware.isPositionWithinLimits([-1.01, 0, 999]), False)
 
     def setCutAndGetCuts(self):
         self.hardware.setCut('a', 2)
         self.hardware.setCut('b', 2)
         self.hardware.setCut('c', 2)
-        self.assertEquals(self.hardware.getCuts(), {'a':1,'b':2,'c':3})
+        self.assertEquals(self.hardware.getCuts(), {'a':1, 'b':2, 'c':3})
         self.assertRaises(KeyError, self.hardware.setCut, 'not_a_key', 1)
         
     def test__configureCuts(self):
-        hardware = SimpleHardwareMonitorPlugin(['a','b','c'])
-        self.assertEquals(hardware.getCuts(), {'a':-180,'b':-180,'c':-180})
-        hardware = SimpleHardwareMonitorPlugin(['a','phi','c'])
-        self.assertEquals(hardware.getCuts(), {'a':-180,'phi':0,'c':-180})
+        hardware = SimpleHardwareMonitorPlugin(['a', 'b', 'c'])
+        self.assertEquals(hardware.getCuts(), {'a':-180, 'b':-180, 'c':-180})
+        hardware = SimpleHardwareMonitorPlugin(['a', 'phi', 'c'])
+        self.assertEquals(hardware.getCuts(), {'a':-180, 'phi':0, 'c':-180})
 
     def test__configureCutsWithDefaults(self):
-        hardware = SimpleHardwareMonitorPlugin(['a','b','c'], {'a':1, 'b':2})
-        self.assertEquals(hardware.getCuts(), {'a':1,'b':2,'c':-180})
-        hardware = SimpleHardwareMonitorPlugin(['a','phi','c'],{'a':1, 'phi':2})
-        self.assertEquals(hardware.getCuts(), {'a':1,'phi':2,'c':-180})    
-        self.assertRaises(KeyError, SimpleHardwareMonitorPlugin, ['a','b','c'], {'a':1, 'not_a_key':2})
+        hardware = SimpleHardwareMonitorPlugin(['a', 'b', 'c'], {'a':1, 'b':2})
+        self.assertEquals(hardware.getCuts(), {'a':1, 'b':2, 'c':-180})
+        hardware = SimpleHardwareMonitorPlugin(['a', 'phi', 'c'], {'a':1, 'phi':2})
+        self.assertEquals(hardware.getCuts(), {'a':1, 'phi':2, 'c':-180})    
+        self.assertRaises(KeyError, SimpleHardwareMonitorPlugin, ['a', 'b', 'c'], {'a':1, 'not_a_key':2})
 
     def testCut(self):
-        self.assertEquals(self.hardware.cutAngles( (1,2,3)),(1,2,3) )
-        self.assertEquals(self.hardware.cutAngles( (-181, 0, 181)), (179, 0, -179) )
-        self.assertEquals(self.hardware.cutAngles( (-180, 0, 180,)), (-180, 0, 180) )
-        self.assertEquals(self.hardware.cutAngles( (-360, 0, 360)), (0, 0, 0) )
+        self.assertEquals(self.hardware.cutAngles((1, 2, 3)), (1, 2, 3))
+        self.assertEquals(self.hardware.cutAngles((-181, 0, 181)), (179, 0, -179))
+        self.assertEquals(self.hardware.cutAngles((-180, 0, 180,)), (-180, 0, 180))
+        self.assertEquals(self.hardware.cutAngles((-360, 0, 360)), (0, 0, 0))

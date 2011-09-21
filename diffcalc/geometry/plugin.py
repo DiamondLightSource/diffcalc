@@ -2,7 +2,7 @@ class DiffractometerGeometryPlugin:
 
 # Required methods
 
-    def __init__(self, name, supportedModeGroupList, fixedParameterDict, gammaLocation, mirrorInXzPlane = False):
+    def __init__(self, name, supportedModeGroupList, fixedParameterDict, gammaLocation, mirrorInXzPlane=False):
         """
         Set geometry name (String), list of supported mode groups (list of strings), list
         of axis names (list of strings). Define the parameters e.g. alpha and gamma for a four
@@ -34,13 +34,13 @@ class DiffractometerGeometryPlugin:
     def getName(self):
         return self._name
     
-    def supportsModeGroup(self,name):
+    def supportsModeGroup(self, name):
         return name in self._supportedModeGroupList
     
     def getSupportedModeGroups(self):
         return self._supportedModeGroupList
     
-    def isParameterFixed(self,name): # isParameterFixed
+    def isParameterFixed(self, name): # isParameterFixed
         return name in self._fixedParameterDict.keys()
     
     def getFixedParameters(self):

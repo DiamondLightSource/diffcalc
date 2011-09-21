@@ -136,16 +136,16 @@ class Diffcalc(object):
             s += "<<empty>>"
         else:
             reflist = self._ubcommands.getReflist()
-            if len(reflist)==0:
+            if len(reflist) == 0:
                 s += "<<empty>>"
             for n in range(len(reflist)):
-                (hklguess, pos, energy, tag, time)=reflist.getReflection(n+1)
+                (hklguess, pos, energy, tag, time) = reflist.getReflection(n + 1)
                 (hkl, params) = self._hklcommands.anglesToHkl(pos, energy)
                 del time, params
                 if tag is None:
-                    tag=""
+                    tag = ""
                 s += "%-2d %-6.4f %-4.2f %-4.2f %-4.2f  %-6.4f %-6.4f %-6.4f  %-s\n" % \
-                                      (n+1, energy, hklguess[0], hklguess[1], hklguess[2], hkl[0], hkl[1], hkl[2], tag)
+                                      (n + 1, energy, hklguess[0], hklguess[1], hklguess[2], hkl[0], hkl[1], hkl[2], tag)
         print s
 
 ### hkl commands

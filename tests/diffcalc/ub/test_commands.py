@@ -5,7 +5,7 @@ from diffcalc.ub.commands import UbCommands
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.utils import DiffcalcException, MockRawInput
 from tests.diffcalc import scenarios
-import diffcalc.utils #  @UnusedImport to overide raw_input
+import diffcalc.utils # @UnusedImport
 import unittest
 
 try:

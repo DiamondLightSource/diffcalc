@@ -1,5 +1,4 @@
-from diffcalc.gdasupport.minigda.terminal import Terminal,\
-    TerminalAliasedCommandsOnly
+from diffcalc.gdasupport.minigda.terminal import TerminalAliasedCommandsOnly
 import unittest
 
 aGlobalString = 'a'
@@ -14,7 +13,7 @@ class TestTerminal(unittest.TestCase):
         self.term = TerminalAliasedCommandsOnly(self.mockMainNameSpaceDict)
     
     def generateMockMainNameSpaceDict(self):
-        self.mockMainNameSpaceDict ={}
+        self.mockMainNameSpaceDict = {}
         self.mockMainNameSpaceDict #for conveniance
         
         # General testing principle:
@@ -23,7 +22,7 @@ class TestTerminal(unittest.TestCase):
         self.mockMainNameSpaceDict['bFunction'] = bFunction
         self.mockMainNameSpaceDict['bString'] = 'b'
         
-        def appendFunction(a ,b):
+        def appendFunction(a , b):
             # make sure a is mutable
             a.append(b)
         self.mockMainNameSpaceDict['appendFunction'] = appendFunction
@@ -31,7 +30,7 @@ class TestTerminal(unittest.TestCase):
     
     def testEvalInMainGlobalMechanism(self):
         term = TerminalAliasedCommandsOnly(globals())
-        self.assertEqual(term.evalInMain("aGlobalFunction(aGlobalString)"), 'a' )
+        self.assertEqual(term.evalInMain("aGlobalFunction(aGlobalString)"), 'a')
     
     def testEvalInMainTestingPrinciple(self):
         self.assertEqual(self.term.evalInMain('bFunction(bString)') , 'b')    
@@ -61,7 +60,7 @@ class TestTerminalAliasedCommandsOnly(TestTerminal):
             for arg in args:
                 print arg
         self.mockMainNameSpaceDict['pos'] = pos
-        self.mockMainNameSpaceDict['scan']= scan
+        self.mockMainNameSpaceDict['scan'] = scan
         self.term.alias('pos')
         self.term.alias('scan')
         # Not very good tests:
@@ -73,9 +72,9 @@ class TestTerminalAliasedCommandsOnly(TestTerminal):
         def good():
             print "okay"
         def bad():
-            print 1/0
+            print 1 / 0
         self.mockMainNameSpaceDict['good'] = good
-        self.mockMainNameSpaceDict['bad']= bad
+        self.mockMainNameSpaceDict['bad'] = bad
         self.term.alias('good')
         self.term.alias('bad')
         self.term.processInput("good")

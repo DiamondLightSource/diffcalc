@@ -14,8 +14,8 @@ numpy.dtype
 class Matrix(object):
     """A minimal subset of the jama.Matrix class supporting only the behaviours used by diffcalc"""
 
-    def identity(m,n):
-        if m!=n:
+    def identity(m, n):
+        if m != n:
             raise ValueError
         return Matrix(numpy.identity(m))
     identity = staticmethod(identity)
@@ -24,14 +24,14 @@ class Matrix(object):
     def __init__(self, *args):
         """Creates a matrix where m can be a list/tuple or list/tuple of list/tuples"""
         # if two args, they represent the size of the desire 0 matrix
-        if len(args)==2:
-            if type(args[0])!=int or type(args[1])!=int:
+        if len(args) == 2:
+            if type(args[0]) != int or type(args[1]) != int:
                 raise TypeError()
-            self.m =  numpy.mat(numpy.zeros( (args[0],args[1]) ), 'float')
-        elif len(args)==1:
+            self.m = numpy.mat(numpy.zeros((args[0], args[1])), 'float')
+        elif len(args) == 1:
             m = args[0]
             if isinstance(m, numpy.matrix): #core.defmatrix.matrix:
-                self.m=m
+                self.m = m
             else:
                 self.m = numpy.mat(m, 'float')
         else:
@@ -44,7 +44,7 @@ class Matrix(object):
         """Returns a list of lists"""
         r = self.m.tolist()
         if type(r[0]) is not list:
-            r= [r]
+            r = [r]
         return r
     
     @property
@@ -56,13 +56,13 @@ class Matrix(object):
         return self.m[args[0], args[1]]
     
     def getRowDimension(self):
-        return numpy.size(self.m,0)
+        return numpy.size(self.m, 0)
 
     def getColumnDimension(self):
-        return numpy.size(self.m,1)
+        return numpy.size(self.m, 1)
         
     def setMatrix(self, rowList, colList, b):
-        self.m[numpy.ix_(rowList,colList)]=b.m # Doesn't work: ix_ seems to return a new matrix, not part of the original
+        self.m[numpy.ix_(rowList, colList)] = b.m # Doesn't work: ix_ seems to return a new matrix, not part of the original
 
     def minus(self, b):
         return Matrix(self.m - b.m)
@@ -82,7 +82,7 @@ class Matrix(object):
         if type(b) is Matrix:
             return Matrix(self.m * b.m)
         else: # likely a scaler
-            return Matrix( numpy.mat(numpy.array(self.m)*b) )
+            return Matrix(numpy.mat(numpy.array(self.m) * b))
     
     def transpose(self):
         return Matrix(self.m.transpose())

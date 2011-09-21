@@ -1,15 +1,15 @@
-from diffcalc.help import HelpList, UsageHandler
-from diffcalc.utils import promptForNumber, promptForList, allnum, isnum
-from diffcalc.utils import getInputWithDefault as promptForInput
 from datetime import datetime
+from diffcalc.help import HelpList, UsageHandler
 from diffcalc.ub.calculation import UBCalculation
-
+from diffcalc.utils import getInputWithDefault as promptForInput, \
+    promptForNumber, promptForList, allnum, isnum
 from math import asin, pi
 
-TORAD=pi/180
-TODEG=180/pi
 
-_ubcalcCommandHelp=HelpList()
+TORAD = pi / 180
+TODEG = 180 / pi
+
+_ubcalcCommandHelp = HelpList()
 
 
 class UbCommand(UsageHandler):
@@ -107,7 +107,7 @@ class UbCommands(object):
     def ub(self):
         """ub -- shows the complete state of the ub calculation
         """
-        print self._ubcalc.__str__() + "Wavelength: %f\n    Energy: %f\n" % (float(self._hardware.getWavelength()),float(self._hardware.getEnergy()))
+        print self._ubcalc.__str__() + "Wavelength: %f\n    Energy: %f\n" % (float(self._hardware.getWavelength()), float(self._hardware.getEnergy()))
 
 ### UB lattice ###
     _ubcalcCommandHelp.append('UB_lattice')
@@ -129,11 +129,11 @@ class UbCommands(object):
             b = promptForNumber('    b', a)
             c = promptForNumber('    c', a)
             alpha = promptForNumber('alpha', 90)
-            beta  = promptForNumber('beta', 90)
+            beta = promptForNumber('beta', 90)
             gamma = promptForNumber('gamma', 90)
-            self._ubcalc.setLattice(name, a,b,c,alpha, beta, gamma)
+            self._ubcalc.setLattice(name, a, b, c, alpha, beta, gamma)
             
-        elif isinstance(name,str) and len(args) in (1,2,3,4,6) and allnum(args):
+        elif isinstance(name, str) and len(args) in (1, 2, 3, 4, 6) and allnum(args):
             # first arg is string and rest are numbers
             self._ubcalc.setLattice(name, *args)
         else:
@@ -147,8 +147,8 @@ class UbCommands(object):
         wl = self._hardware.getWavelength()
         d = self._ubcalc.getHklPlaneDistance(hkl)
         # n*lamba = 2d*sin(theta)
-        tmp = wl/(2*d)
-        return 2.0 * asin(wl/(d*2))*TODEG
+        tmp = wl / (2 * d)
+        return 2.0 * asin(wl / (d * 2)) * TODEG
 
 ### Surface stuff ###
     _ubcalcCommandHelp.append('UB_surface')
@@ -162,7 +162,7 @@ class UbCommands(object):
             print "sigma, tau = %f, %f" % (self._ubcalc.getSigma(), self._ubcalc.getTau())
             print "  chi, phi = %f, %f" % (chi, phi)
             sigma = promptForInput("sigma", -chi)
-            tau   = promptForInput("  tau", -phi)
+            tau = promptForInput("  tau", -phi)
             self._ubcalc.setSigma(sigma)
             self._ubcalc.setTau(tau)
         else:
@@ -191,10 +191,10 @@ class UbCommands(object):
             h = promptForNumber('h', 0.)
             k = promptForNumber('k', 0.)
             l = promptForNumber('l', 0.)
-            if None in (h,k,l):
+            if None in (h, k, l):
                 self.handleInputError("h,k and l must all be numbers")
             reply = promptForInput('current pos', 'y')
-            if reply in ('y','Y','yes'):
+            if reply in ('y', 'Y', 'yes'):
                 positionList = self._hardware.getPosition()
                 energy = self._hardware.getEnergy()
             else:
@@ -210,12 +210,12 @@ class UbCommands(object):
                 if val is None:
                     self.handleInputError("Please enter a number, or press Return to accept default!")
                     return
-                energy = energy*self._hardware.energyScannableMultiplierToGetKeV
+                energy = energy * self._hardware.energyScannableMultiplierToGetKeV
             tag = promptForInput("tag")
-            if tag=='':tag=None
+            if tag == '':tag = None
             pos = self._geometry.physicalAnglesToInternalPosition(positionList)
             self._ubcalc.addReflection(h, k, l, pos, energy, tag, datetime.now())
-        elif len(args) in (3,4,5,6):
+        elif len(args) in (3, 4, 5, 6):
             args = list(args)
             h = args.pop(0)
             k = args.pop(0)
@@ -255,10 +255,10 @@ class UbCommands(object):
         h = promptForNumber('h', oldh)
         k = promptForNumber('k', oldk)
         l = promptForNumber('l', oldl)
-        if None in (h,k,l):
+        if None in (h, k, l):
             self.handleInputError("h,k and l must all be numbers")
         reply = promptForInput('update position with current hardware setting', 'n')
-        if reply in ('y','Y','yes'):
+        if reply in ('y', 'Y', 'yes'):
             positionList = self._hardware.getPosition()
             energy = self._hardware.getEnergy()
         else:
@@ -273,9 +273,9 @@ class UbCommands(object):
             if val is None:
                 self.handleInputError("Please enter a number, or press Return to accept default!")
                 return
-            energy = energy*self._hardware.energyScannableMultiplierToGetKeV
+            energy = energy * self._hardware.energyScannableMultiplierToGetKeV
         tag = promptForInput("tag", oldTag)
-        if tag=='':tag=None
+        if tag == '':tag = None
         pos = self._geometry.physicalAnglesToInternalPosition(positionList)
         self._ubcalc.editReflection(num, h, k, l, pos, energy, tag, datetime.now())    
 
@@ -292,7 +292,7 @@ class UbCommands(object):
         swapref num1 num2 -- swaps two reflections (numbered from 1)
         """
         if num1 is None and num2 is None:
-            self._ubcalc.swapReflections(1,2)
+            self._ubcalc.swapReflections(1, 2)
         elif isinstance(num1, int) and isinstance(num2, int):
             self._ubcalc.swapReflections(num1, num2)
         else:
@@ -341,7 +341,7 @@ class UbCommands(object):
         if row3 is None:
             self.handleInputError(estring)
             return None
-        return [row1,row2,row3]
+        return [row1, row2, row3]
 
     @UbCommand
     def calcub(self):
@@ -352,8 +352,8 @@ class UbCommands(object):
 
     def __is3x3TupleOrList(self, m):
         if type(m) not in (list, tuple): return False
-        if len(m)!=3: return False
+        if len(m) != 3: return False
         for mrow in m:
             if type(mrow) not in (list, tuple): return False
-            if len(mrow)!=3: return False
+            if len(mrow) != 3: return False
         return True

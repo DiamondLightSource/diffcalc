@@ -1,5 +1,5 @@
-from diffcalc.utils import DiffcalcException
 from copy import copy
+from diffcalc.utils import DiffcalcException
 class ParameterManager(object):
     
     def __init__(self, geometry, hardware, modeSelector, gammaParameterName='gamma'):
@@ -13,13 +13,13 @@ class ParameterManager(object):
     def _defineParameters(self):
         # Set default fixed values (In degrees if angles)        
         self._parameters = {}
-        self._parameters['alpha']=0
+        self._parameters['alpha'] = 0
         self._parameters[self._gammaParameterName] = 0
-        self._parameters['blw']=None # Busing and Levi omega!
-        self._parameters['betain']=None
-        self._parameters['betaout']=None
-        self._parameters['azimuth']=None
-        self._parameters['phi']=None
+        self._parameters['blw'] = None # Busing and Levi omega!
+        self._parameters['betain'] = None
+        self._parameters['betaout'] = None
+        self._parameters['azimuth'] = None
+        self._parameters['phi'] = None
         
         self._parameterDisplayOrder = ('alpha', self._gammaParameterName, 'betain', 'betaout', 'azimuth', 'phi', 'blw')
         self._trackableParameters = ('alpha', self._gammaParameterName, 'phi')
@@ -28,7 +28,7 @@ class ParameterManager(object):
         # Overide parameters that are unchangable for this diffractometer
         for (name, value) in self._geometry.getFixedParameters().items():
             if name not in self._parameters:
-                raise RuntimeError("The %s diffractometer geometry specifies a fixed parameter %s that is not used by the diffractometer calculator"%(self._geometry.getName, name))
+                raise RuntimeError("The %s diffractometer geometry specifies a fixed parameter %s that is not used by the diffractometer calculator" % (self._geometry.getName, name))
             self._parameters[name] = value
     
     
@@ -86,13 +86,13 @@ class ParameterManager(object):
         if not self._parameters.has_key(name):
             raise DiffcalcException("No fixed parameter %s is used by the diffraction calculator" % name)
         if self._geometry.isParameterFixed(name):
-            raise DiffcalcException("The parameter %s cannot be changed: It has been fixed by the %s diffractometer geometry"%(name,self._geometry.getName()))
+            raise DiffcalcException("The parameter %s cannot be changed: It has been fixed by the %s diffractometer geometry" % (name, self._geometry.getName()))
         if self.isParameterTracked(name):
             # for safety and to avoid confusion:
             raise DiffcalcException("Cannot change parameter %s as it is set to track an axis.\nTo turn this off use a command like 'tracalpha 0'." % name)
         
         if not self.isParameterUsedInSelectedMode(name):
-            print "WARNING: The parameter %s is not used in mode %i" % (name,self._modeSelector.getMode().index)
+            print "WARNING: The parameter %s is not used in mode %i" % (name, self._modeSelector.getMode().index)
         self._parameters[name] = value
     
     def isParameterUsedInSelectedMode(self, name):
@@ -104,7 +104,7 @@ class ParameterManager(object):
         except KeyError:
             raise DiffcalcException("No fixed parameter %s is used by the diffraction calculator" % name)  
          
-    def getParameter(self,name):
+    def getParameter(self, name):
         self.updateTrackedParameters()
         return self.getParameterWithoutUpdatingTrackedParemeters(name)
     
@@ -143,7 +143,7 @@ class ParameterManager(object):
         """Returns true if parameter is used in a mode (current mode if none specified),
         AND if it is not locked by the diffractometer geometry
         """
-        if mode==None:
+        if mode == None:
             mode = self._modeSelector.getMode()
         return (mode.usesParameter(name) and not self._geometry.isParameterFixed(name))   
 

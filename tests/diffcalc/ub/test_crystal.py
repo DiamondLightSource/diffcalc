@@ -1,17 +1,17 @@
-import unittest
-from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.tools import assert_dict_almost_equal
+from diffcalc.ub.crystal import CrystalUnderTest
+from tests.diffcalc import scenarios
+import unittest
 try:
     from Jama import Matrix
 except ImportError:
     from diffcalc.npadaptor import Matrix
-from tests.diffcalc import scenarios
 class TestCrystalUnderTest(unittest.TestCase):
         
     
     def setUp(self):
-        self.tclatt=[]
-        self.tcbmat=[]
+        self.tclatt = []
+        self.tcbmat = []
         
         # From the dif_init.mat next to dif_dos.exe on Vlieg's cd 
         #self.tclatt.append([4.0004, 4.0004, 2.270000, 90, 90, 90])
@@ -24,21 +24,21 @@ class TestCrystalUnderTest(unittest.TestCase):
     def testGetBMatrix(self):
         # Check the calculated B Matrix
         for sess in scenarios.sessions():
-            if sess.bmatrix==None:
+            if sess.bmatrix == None:
                 continue    
             cut = CrystalUnderTest('tc', *sess.lattice)
             desired = Matrix(sess.bmatrix)
             print desired.getArray()
             answer = cut.getBMatrix()
             print answer.getArray()
-            self.assert_(answer.minus(desired).norm1()<.0001, "Incorrect B matrix calculation for scenario.name="+sess.name)
+            self.assert_(answer.minus(desired).norm1() < .0001, "Incorrect B matrix calculation for scenario.name=" + sess.name)
 
     def test__str__(self):
-        cut = CrystalUnderTest("HCl", 1, 2, 3,4,5,6)
+        cut = CrystalUnderTest("HCl", 1, 2, 3, 4, 5, 6)
         print cut.__str__()
         
     def testGetState(self):
-        cut = CrystalUnderTest("HCl", 1, 2, 3,4,5,6)
+        cut = CrystalUnderTest("HCl", 1, 2, 3, 4, 5, 6)
         expected = {
             'name': 'HCl',
             'a' : 1,
