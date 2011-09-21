@@ -1,7 +1,7 @@
 import diffcalc.help #@UnusedImport for flag
 
-from diffcalc.ub.commands import UbCommands
-from diffcalc.hkl.commands import HklCommand, HklCommands, _hklcalcCommandHelp
+from diffcalc.ub.commands import UbCommands, UbCommand
+from diffcalc.hkl.commands import HklCommands
 from diffcalc.mapper.commands import MapperCommands
 
 
@@ -16,8 +16,6 @@ class Diffcalc(object):
                  RAISE_EXCEPTIONS_FOR_ALL_ERRORS=False,
                  raiseExceptionsIfAnglesDoNotMapBackToHkl=True,
                  ub_persister=None):
-        
-        diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = RAISE_EXCEPTIONS_FOR_ALL_ERRORS
        
         self._geometry = diffractometerPluginObject  # Geometry specific _plugin        
         
@@ -29,24 +27,34 @@ class Diffcalc(object):
                         
         self._hklcommands = HklCommands(self._ubcommands, self._hardware, self._geometry, raiseExceptionsIfAnglesDoNotMapBackToHkl)
     
-        self.addDynamicHelpLines()
-        #self.library = CrystalParametersLibrary("crystalLibrary")
+        diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = RAISE_EXCEPTIONS_FOR_ALL_ERRORS
 
-    def addDynamicHelpLines(self):
-        angleNames = self._hardware.getPhysicalAngleNames()
-        formatStr = ( "[" + "%s, "*len(angleNames) )[:-1] + "]"
-        diffHwName = self._hardware.getDiffHardwareName()
-        _hklcalcCommandHelp.append('pos ' + diffHwName +' '+ formatStr % angleNames +' --move diffractometer to Eularian position. Use None to hold a value still')
-        _hklcalcCommandHelp.append('sim ' + diffHwName+' '+ formatStr % angleNames + '-- simulates moving ' + diffHwName)    
-        _hklcalcCommandHelp.append(diffHwName + '-- shows loads of info about current '+diffHwName+' position')
-        
+
     def __str__(self):
         return self.__repr__()
     
     def __repr__(self):
         return self._ubcommands.__str__() + "\n" + self._hklcommands.__str__()
+    
+### Used by diffcalc scannables
+    
+    def _getDiffractometerPlugin(self):
+        return self._geometry
 
-###
+    def _getHardwareMonitor(self):
+        return self._hardware
+
+    def _getAxisNames(self):
+        return self._hardware.getPhysicalAngleNames()
+    
+    def _getParameterNames(self):
+        return self._hklcommands.getParameterDict().keys()
+
+    def _setParameter(self, name, value):
+        self._hklcommands.setParameter(name, value)
+        
+    def _getParameter(self, name):
+        return self._hklcommands.getParameter(name)
 
     def _hklToAngles(self, h, k, l, energy=None):
         """Convert a given hkl vector to a set of diffractometer angles"""
@@ -116,6 +124,30 @@ class Diffcalc(object):
     def calcub(self, *args):
         return self._ubcommands.calcub(*args)
 
+    # This command requires both the hklcommands and ubcommands components      
+    @UbCommand
+    def checkub(self):
+        """checkub -- show calculated and entered hkl values for reflections."""
+
+        s = "   %-6s %-4s %-4s %-4s  %-6s %-6s %-6s  tag\n" % \
+        ('energy', 'h', 'k', 'l', 'h_comp', 'k_comp', 'l_comp')
+        
+        if self._ubcommands.getReflist() is None:
+            s += "<<empty>>"
+        else:
+            reflist = self._ubcommands.getReflist()
+            if len(reflist)==0:
+                s += "<<empty>>"
+            for n in range(len(reflist)):
+                (hklguess, pos, energy, tag, time)=reflist.getReflection(n+1)
+                (hkl, params) = self._hklcommands.anglesToHkl(pos, energy)
+                del time, params
+                if tag is None:
+                    tag=""
+                s += "%-2d %-6.4f %-4.2f %-4.2f %-4.2f  %-6.4f %-6.4f %-6.4f  %-s\n" % \
+                                      (n+1, energy, hklguess[0], hklguess[1], hklguess[2], hkl[0], hkl[1], hkl[2], tag)
+        print s
+
 ### hkl commands
 
     def helphkl(self, *args):
@@ -167,48 +199,3 @@ class Diffcalc(object):
 
     def setmax(self, *args):
         return self._mapper.setmax(*args)
-
-###
-
-    @HklCommand
-    def checkub(self):
-        """checkub -- show calculated and entered hkl values for reflections."""
-
-        s = "   %-6s %-4s %-4s %-4s  %-6s %-6s %-6s  tag\n" % \
-        ('energy', 'h', 'k', 'l', 'h_comp', 'k_comp', 'l_comp')
-        
-        if self._ubcommands.getReflist() is None:
-            s += "<<empty>>"
-        else:
-            reflist = self._ubcommands.getReflist()
-            if len(reflist)==0:
-                s += "<<empty>>"
-            for n in range(len(reflist)):
-                (hklguess, pos, energy, tag, time)=reflist.getReflection(n+1)
-                (hkl, params) = self._hklcommands.anglesToHkl(pos, energy)
-                del time, params
-                if tag is None:
-                    tag=""
-                s += "%-2d %-6.4f %-4.2f %-4.2f %-4.2f  %-6.4f %-6.4f %-6.4f  %-s\n" % \
-                                      (n+1, energy, hklguess[0], hklguess[1], hklguess[2], hkl[0], hkl[1], hkl[2], tag)
-        print s
-
-### some getters
-
-    def _setParameter(self, name, value):
-        self._hklcommands.setParameter(name, value)
-        
-    def _getParameter(self, name):
-        return self._hklcommands.getParameter(name)
-
-    def _getParameterNames(self):
-        return self._hklcommands.getParameterDict().keys()
-    
-    def _getAxisNames(self):
-        return self._hardware.getPhysicalAngleNames()
-    
-    def _getDiffractometerPlugin(self):
-        return self._geometry
-
-    def _getHardwareMonitor(self):
-        return self._hardware

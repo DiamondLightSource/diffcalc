@@ -24,6 +24,16 @@ class HklCommands(object):
         self._hklcalc = VliegHklCalculator(ubcommands, geometry, hardware, raiseExceptionsIfAnglesDoNotMapBackToHkl)
         self._hardware = hardware
         self._geometry = geometry
+        
+        self.addDynamicHelpLines()
+
+    def addDynamicHelpLines(self):
+        angleNames = self._hardware.getPhysicalAngleNames()
+        formatStr = ( "[" + "%s, "*len(angleNames) )[:-1] + "]"
+        diffHwName = self._hardware.getDiffHardwareName()
+        _hklcalcCommandHelp.append('pos ' + diffHwName +' '+ formatStr % angleNames +' --move diffractometer to Eularian position. Use None to hold a value still')
+        _hklcalcCommandHelp.append('sim ' + diffHwName+' '+ formatStr % angleNames + '-- simulates moving ' + diffHwName)    
+        _hklcalcCommandHelp.append(diffHwName + '-- shows loads of info about current '+diffHwName+' position')
     
     def __str__(self):
         return self._hklcalc.__str__()
