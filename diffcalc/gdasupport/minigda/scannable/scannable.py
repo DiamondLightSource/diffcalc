@@ -78,8 +78,10 @@ class GdaLikeScannable(object):
             raise TypeError("%s.setOutputFormat() expects tuple or list; not %s"%(self.getName(), str(type(value))) )
         self.__formats = value
 
-    def __call__(self):
-        return self.getPosition()
+    def __call__(self, newpos=None):
+        if newpos is None:
+            return self.getPosition()
+        self.asynchronousMoveTo(newpos)
 
 class Scannable(GdaLikeScannable):
     # For possible extensions to the gda scannable interface
