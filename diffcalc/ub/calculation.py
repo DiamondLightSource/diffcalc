@@ -2,12 +2,16 @@ from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.paperspecific import VliegUbCalcStrategy
 from diffcalc.ub.persistence import UBCalculationPersister
 from diffcalc.ub.reflections import ReflectionList
-from diffcalc.utils import DiffcalcException, MIRROR, cross3
+from diffcalc.utils import DiffcalcException, MIRROR, cross3, dot3
+from math import acos, cos, sin, pi
 try:
     from Jama import Matrix
 except ImportError:
     from diffcalc.npadaptor import Matrix
 
+SMALL = 1e-7
+
+TODEG = 180/pi
 
 def matrixTo3x3ListOfLists(m):
     r = list(m.array)
@@ -16,7 +20,7 @@ def matrixTo3x3ListOfLists(m):
     r[2] = list(r[2])
     return r
     
-    
+
 class UBCalculation:
     """A UB matrix calculation for an experiment.
     
@@ -408,12 +412,10 @@ the orientation reflections are modified."""
         if self._reflist == None:
             raise DiffcalcException("Cannot calculate a u matrix until a UBCalcaluation has been started with newub")
         try:
-            (h1, pos1, energy1, tag1, time1) = self._reflist.getReflection(1)
-            (h2, pos2, energy2, tag2, time2) = self._reflist.getReflection(2)
+            (h1, pos1, _, _, _) = self._reflist.getReflection(1)
+            (h2, pos2, _, _, _) = self._reflist.getReflection(2)
         except IndexError:
             raise DiffcalcException("Two reflections are required to calculate a u matrix")
-        del time1, time2
-        del tag1, tag2, energy1, energy2
         h1 = Matrix([h1]).transpose() # row->column
         h2 = Matrix([h2]).transpose()
         pos1.changeToRadians()
@@ -433,8 +435,8 @@ the orientation reflections are modified."""
         #              [ cos(pos2.delta)*cos(pos2.gamma) - cos(pos2.alpha) ], \
         #              [ sin(pos2.gamma) + sin(pos2.alpha) ]])
         
-        u1p = self._strategy.calculateObserveredPlaneNormalInPhiFrame(pos1)
-        u2p = self._strategy.calculateObserveredPlaneNormalInPhiFrame(pos2)
+        u1p = self._strategy.calculate_q_phi(pos1)
+        u2p = self._strategy.calculate_q_phi(pos2)
         
         # Create modified unit vectors t1, t2 and t3 in crystal and phi systems...
         t1c = h1c    
@@ -481,7 +483,74 @@ the orientation reflections are modified."""
         self._UB = self._U.times(B)
 
         self.save()
+    
+    def calculateUBFromPrimaryOnly(self):
+        """ Calculate orientation matrix with the shortest absolute angle change. Uses first orientation reflection"""
         
+        # Algorithm from http://www.j3d.org/matrix_faq/matrfaq_latest.html
+        
+        # Get hkl and angle values for the first two refelctions
+        if self._reflist == None:
+            raise DiffcalcException("Cannot calculate a u matrix until a UBCalcaluation has been started with newub")
+        try:
+            (h, pos, _, _, _) = self._reflist.getReflection(1)
+        except IndexError:
+            raise DiffcalcException("One reflection is required to calculate a u matrix")
+        
+        h = Matrix([h]).transpose() # row->column
+        pos.changeToRadians()
+        B = self._crystal.getBMatrix()
+        h_crystal = B.times(h)
+        h_crystal = h_crystal.times(1 / h_crystal.normF())
+        
+        q_measured_phi = self._strategy.calculate_q_phi(pos)
+        q_measured_phi = q_measured_phi.times(1 / q_measured_phi.normF())
+        
+        rotation_axis = cross3( h_crystal, q_measured_phi)
+        rotation_axis = rotation_axis.times(1 / rotation_axis.normF())
+        
+        cos_rotation_angle = dot3(h_crystal, q_measured_phi)
+        rotation_angle = acos(cos_rotation_angle)
+        
+        uvw = rotation_axis.transpose().array[0]
+        print "resulting U angle: %.5f deg" % (rotation_angle * TODEG)
+        print "resulting U axis direction: [%s]" % (', '.join(['% .5f'%el for el in uvw]))
+
+        u, v, w = uvw
+        rcos = cos(rotation_angle);
+        rsin = sin(rotation_angle);
+        matrix = [[0,0,0],[0,0,0],[0,0,0]]
+        matrix[0][0] =      rcos + u*u*(1-rcos)
+        matrix[1][0] =  w * rsin + v*u*(1-rcos)
+        matrix[2][0] = -v * rsin + w*u*(1-rcos)
+        matrix[0][1] = -w * rsin + u*v*(1-rcos)
+        matrix[1][1] =      rcos + v*v*(1-rcos)
+        matrix[2][1] =  u * rsin + w*v*(1-rcos)
+        matrix[0][2] =  v * rsin + u*w*(1-rcos)
+        matrix[1][2] = -u * rsin + v*w*(1-rcos)
+        matrix[2][2] =      rcos + w*w*(1-rcos)
+       
+        # Set orientation matrix (!)
+        self._U = Matrix(matrix)
+        
+        # Compute UB matrix
+        self._UB = self._U.times(B)
+
+
+
+        if self._UB == None:
+            print "Calculating UB matrix from the first reflection only."
+        else:
+            print "Recalculating UB matrix from the first reflection only."
+        print """NOTE: A new UB matrix will not be automatically calculated when
+the orientation reflections are modified."""
+        self._okayToAutoCalculateUB = False
+        self._uSetManually = False
+        self._ubSetManually = False
+
+        self.save()
+        
+    
     def getHklPlaneDistance(self, hkl):
         '''Calculates and returns the distance between planes at a given hkl=[h,k,l]'''
         return self._crystal.getHklPlaneDistance(hkl)

@@ -124,6 +124,11 @@ class Diffcalc(object):
     def calcub(self, *args):
         return self._ubcommands.calcub(*args)
 
+    def trialub(self, *args):
+        return self._ubcommands.trialub(*args)
+    
+    
+
     # This command requires both the hklcommands and ubcommands components      
     @UbCommand
     def checkub(self):

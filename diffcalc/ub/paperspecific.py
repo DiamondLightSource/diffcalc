@@ -13,7 +13,7 @@ class PaperSpecificUbCalcStrategy(object):
     
 class VliegUbCalcStrategy(PaperSpecificUbCalcStrategy):
     
-    def calculateObserveredPlaneNormalInPhiFrame(self, pos):
+    def calculate_q_phi(self, pos):
         
         [ALPHA, DELTA, GAMMA, OMEGA, CHI, PHI] = createVliegMatrices(
            pos.alpha, pos.delta, pos.gamma, pos.omega, pos.chi, pos.phi)
@@ -25,7 +25,7 @@ class VliegUbCalcStrategy(PaperSpecificUbCalcStrategy):
     
 class YouUbCalcStrategy(PaperSpecificUbCalcStrategy):
     
-    def calculateObserveredPlaneNormalInPhiFrame(self, pos):
+    def calculate_q_phi(self, pos):
         
         [MU, DELTA, NU, ETA, CHI, PHI] = createYouMatrices(*pos.totuple())
         # Equation 12: Compute the momentum transfer vector in the lab  frame

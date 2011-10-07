@@ -18,9 +18,16 @@ def assert_2darray_almost_equal(first, second, places=7, msg=None, note=None):
     for f2, s2 in zip(first, second):
         assert len(f2) == len(s2), "%r != %r as sizes differ%s" % (first, second, format_note(note))
         for f, s in zip(f2, s2):
-            assert_almost_equal(f, s, places, msg or "%r != %r within %i places%s"
-                                 % (first, second, places, format_note(note)))
+            message = "within %i places%s"%(places, format_note(note)) + '\n' + format_2darray(first, places) + "!=\n" + format_2darray(second, places)
+            assert_almost_equal(f, s, places, msg or message)
 
+def format_2darray(array, places):
+    format = '% .' + str(places) + 'f'
+    s = ""
+    for row in array:
+        line = [format%el for el in row]
+        s += '[' + ', '.join(line) + ']\n'
+    return s
 
 def assert_matrix_almost_equal(first, second, places=7, msg=None, note=None):
     assert_2darray_almost_equal(first.array, second.array, places, msg)

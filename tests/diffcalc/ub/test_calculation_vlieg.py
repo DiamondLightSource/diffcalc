@@ -2,13 +2,20 @@ from datetime import datetime
 from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
 from diffcalc.ub.calculation import UBCalculation, matrixTo3x3ListOfLists
 from diffcalc.ub.persistence import UbCalculationNonPersister
-from diffcalc.utils import DiffcalcException
+from diffcalc.utils import DiffcalcException, Position
 from tests.diffcalc import scenarios
 import unittest
+from mock import Mock
+from diffcalc.tools import matrixeq_
+from diffcalc.hkl.calcvlieg import VliegHklCalculator
 try:
     from Jama import Matrix
 except ImportError:
     from diffcalc.npadaptor import Matrix
+from math import cos, sin, pi
+
+I = Matrix(((1, 0, 0), (0, 1, 0), (0, 0, 1)))
+TORAD = pi / 180
 
 class MockMonitor(object):
     def getPhysicalAngleNames(self):
@@ -185,3 +192,177 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
         self.ubcalc.newCalculation('unwanted one')
         self.ubcalc.restoreState(setState)
         self.assertEquals([[1, 2, 3], [4, 5, 6], [7, 8, 9]], matrixTo3x3ListOfLists(self.ubcalc.getUBMatrix()))
+
+     
+
+#TODO: hkl calculation oddity: (CUBIC, 1, 0, 0, CUBIC_EN) --> ({alpha: 0.0 delta: 60.00000000000001 gamma: 0.0 omega: -59.99999999999999 chi: 7.016709298534875e-15  phi: 90.0}, {'Bin': -6.07664850350169e-15, 'Bout': 6.07664850350169e-15, '2theta': 60.00000000000001, 'azimuth': 7.0167092985348775e-15})
+#    def calculateIdealBisectingPosition(self, lattice_args, h, k, l, energy):
+#        ubcalc = UBCalculation(self.hardware, self.geometry, UbCalculationNonPersister())
+#        ubcalc.newCalculation('xtalubcalc')
+#        ubcalc.setLattice("xtal", *lattice_args)
+#        ubcalc.setUManually(I)
+#        ac = VliegHklCalculator(ubcalc, self.geometry, self.hardware, True)
+#        ac.mode_selector.setModeByIndex(1)
+#        return ac.hklToAngles(h, k, l, energy)
+#    
+#    def testCalculateIdealBisectingPosition(self):
+#        # this is part of the harness
+#        print "test"
+#        print self.calculateIdealBisectingPosition(CUBIC, 1, 0, 0, CUBIC_EN)
+
+def x_rotation(mu_or_alpha):
+    mu_or_alpha *= TORAD
+    return Matrix(((1, 0, 0), (0, cos(mu_or_alpha), -sin(mu_or_alpha)), (0, sin(mu_or_alpha), cos(mu_or_alpha))))
+
+def y_rotation(chi):
+    chi *= TORAD
+    return Matrix(((cos(chi), 0, sin(chi)), (0, 1, 0), (-sin(chi), 0, cos(chi))))
+
+def z_rotation(th):
+    eta = -th * TORAD
+    return Matrix(((cos(eta), sin(eta), 0), (-sin(eta), cos(eta), 0), (0, 0, 1)))
+
+CUBIC_EN = 12.39842
+CUBIC = (1, 1, 1, 90, 90, 90)
+ROT = 29
+
+class TestUBCalcWithCubic():
+    
+    def setUp(self):    
+        hardware = Mock()
+        hardware.getPhysicalAngleNames.return_value = ('a', 'd', 'g', 'o', 'c', 'p')
+        self.ubcalc = UBCalculation(hardware, SixCircleGammaOnArmGeometry(), UbCalculationNonPersister())
+        self.ubcalc.newCalculation('xtalubcalc')
+        self.ubcalc.setLattice("xtal", *CUBIC)
+        self.energy = CUBIC_EN
+        
+    def addref(self, hklref):
+        hkl, position = hklref
+        self.ubcalc.addReflection(hkl[0], hkl[1], hkl[2], position, self.energy, "ref", datetime.now())
+
+
+class TestUBCalcWithCubicTwoRef(TestUBCalcWithCubic):
+
+    def check(self, testname, hklref1, hklref2, expectedUMatrix):
+        self.addref(hklref1)
+        self.addref(hklref2)
+        matrixeq_(expectedUMatrix, self.ubcalc.getUMatrix())
+
+    def test_with_squarely_mounted(self):
+        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0, phi=0))
+        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90, phi=0))
+        pairs = (("hl", href, lref, I),
+                 ("lh", lref, href, I))
+        for testname, ref1, ref2, u in pairs:
+            yield self.check, testname, ref1, ref2, u
+
+    def test_with_x_mismount(self):
+        U = x_rotation(ROT)
+        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0, phi=0))
+        kref = ((0, 1, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30-ROT+90, chi=90, phi=0))
+        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30-ROT, chi=90, phi=0))
+        pairs = (("hk", href, kref, U),
+                 ("hl", href, lref, U),
+                 ("kh", kref, href, U),
+                 ("kl", kref, lref, U),
+                 ("lk", lref, kref, U),
+                 ("lh", lref, href, U))
+        for testname, ref1, ref2, u in pairs:
+            yield self.check, testname, ref1, ref2, u
+            
+    def test_with_y_mismount(self):
+        U = y_rotation(ROT)
+        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0-ROT, phi=0))
+        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90-ROT, phi=0))
+        pairs = (("hl", href, lref, U),
+                 ("lh", lref, href, U))
+        for testname, ref1, ref2, u in pairs:
+            yield self.check, testname, ref1, ref2, u
+            
+    def test_with_z_mismount(self):
+        U = z_rotation(ROT)
+        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0, phi=0+ROT))
+        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90, phi=67)) # phi degenerate
+        pairs = (("hl", href, lref, U),
+                 ("lh", lref, href, U))
+        for testname, ref1, ref2, u in pairs:
+            yield self.check, testname, ref1, ref2, u
+            
+    def test_with_zy_mismount(self):
+        U = z_rotation(ROT).times(y_rotation(ROT))
+        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0-ROT, phi=0+ROT))
+        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90-ROT, phi=ROT)) # chi degenerate
+        pairs = (("hl", href, lref, U),
+                 ("lh", lref, href, U))
+        for testname, ref1, ref2, u in pairs:
+            yield self.check, testname, ref1, ref2, u
+            
+            
+            
+            
+class TestUBCalcWithcubicOneRef(TestUBCalcWithCubic):
+    
+    def check(self, testname, hklref, expectedUMatrix):
+        print testname
+        self.addref(hklref)
+        self.ubcalc.calculateUBFromPrimaryOnly()
+        matrixeq_(expectedUMatrix, self.ubcalc.getUMatrix())
+
+    def test_with_squarely_mounted(self):
+        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0, phi=0))
+        href_b = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30+90, chi=90, phi=-90))
+        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90, phi=67)) # degenerate in phi
+        pairs = (("h", href, I),
+                 ("hb", href_b, I),
+                 ("l", lref, I))
+        for testname, ref, u in pairs:
+            yield self.check, testname, ref, u
+            
+    def test_with_x_mismount(self):
+        U = x_rotation(ROT)
+        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0, phi=0))
+        kref = ((0, 1, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30-ROT+90, chi=90, phi=0))
+        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30-ROT, chi=90, phi=0))
+        pairs = (("h", href, I), # TODO: can't pass, no information - word instructions
+                 ("k", kref, U),
+                 ("l", lref, U))
+        for testname, ref, u in pairs:
+            yield self.check, testname, ref, u
+            
+    def test_with_y_mismount(self):
+        U = y_rotation(ROT)
+        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0-ROT, phi=0))
+        kref = ((0, 1, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30+90, chi=90, phi=0))
+        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90-ROT, phi=0))
+        pairs = (("h", href, U),
+                 ("k", kref, I),# TODO: can't pass, no information - word instructions
+                 ("l", lref, U))
+        for testname, ref, u in pairs:
+            yield self.check, testname, ref, u
+            
+    def test_with_z_mismount(self):
+        U = z_rotation(ROT)
+
+        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0, phi=0+ROT))
+        kref = ((0, 1, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30+90, chi=0, phi=0+ROT))
+        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90, phi=67)) # phi degenerate
+        pairs = (("h", href, U),
+                 ("k", kref, U),
+                 ("l", lref, I)) # TODO: can't pass, no information - word instructions
+        for testname, ref, u in pairs:
+            yield self.check, testname, ref, u
+            
+# Probably lost cause, conclusion is be careful and return the angle and direction of resulting u matrix
+#    def test_with_zy_mismount(self):
+#        U = z_rotation(ROT).times(y_rotation(ROT))
+#        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0-ROT, phi=0+ROT))
+#        kref = ((0, 1, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30+90, chi=90-ROT, phi=0+ROT))
+#        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90-ROT, phi=ROT)) # chi degenerate
+#        pairs = (("h", href, U),
+#                 ("k", kref, U),
+#                 ("l", lref, U))
+#        for testname, ref, u in pairs:
+#            yield self.check, testname, ref, u
+            
+            
+            

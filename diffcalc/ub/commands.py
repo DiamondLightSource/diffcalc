@@ -349,6 +349,12 @@ class UbCommands(object):
         """
         self._ubcalc.calculateUB()
 
+    @UbCommand
+    def trialub(self):
+        """trialub -- (re)calculate u matrix from ref1 only (check carefully).
+        """
+        self._ubcalc.calculateUBFromPrimaryOnly()
+
 
     def __is3x3TupleOrList(self, m):
         if type(m) not in (list, tuple): return False
