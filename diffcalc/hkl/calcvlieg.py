@@ -45,13 +45,14 @@ class VliegHklCalculator(HklCalculatorBase):
             
     def _anglesToHkl(self, pos, energy):
         """
-        ((h, k, l), paramDict) = vliegAnglesToHkl(pos, energy) -- Returns hkl indices from pos object in radians.
+        Return hkl tuple from Position in radians and energy in keV.
         """
         return vliegAnglesToHkl(pos, energy, self._getUBMatrix())
 
     def _anglesToVirtualAngles(self, pos, energy):
-        """
-        paramDict = anglesToVirtualAngles(pos, energy) -- Returns virtual angles in radians from pos object in degrees.
+        """Return dictionary of all virtual angles in radians from Position object
+        in radians and energy in keV. The virtual angles are: Bin, Bout,
+        azimuth and 2theta.
         """
 
         # Create transformation matrices
@@ -91,9 +92,10 @@ class VliegHklCalculator(HklCalculatorBase):
 
     
     def _hklToAngles(self, h , k , l, energy):
-        """(pos, virtualAngles) = hklToAngles(h, k, l, energy) --- with Position object 
-        pos and the virtual angles returned in degrees. Some modes may not calculate
-        all virtual angles.
+        """Return Position and virtual angles in radians from h, k & l and
+        energy in keV. The virtual angles are those fixed or generated while
+        calculating the position: Bin, Bout and 2theta; and azimuth in four and
+        five circle modes.
         """
         
         if self._getMode().group in ("fourc", "fivecFixedGamma", "fivecFixedAlpha"):
@@ -104,8 +106,10 @@ class VliegHklCalculator(HklCalculatorBase):
             raise RuntimeError("The current mode (%s) has an unrecognised group: %s." % (self._getMode().name, self._getMode().group))
 
     def _hklToAnglesFourAndFiveCirclesModes(self, h, k, l, energy):
-        """(pos, paramDict) = hklToAngles(h, k, l, energy) --- with Position object 
-        pos and the virtual twothete angle returned in degrees. 
+        """Return Position and virtual angles in radians from h, k & l and
+        energy in keV for four and five circle modes. The virtual angles are
+        those fixed or generated while calculating the position: Bin, Bout,
+        2theta and azimuth.
         """
         # HINT: To help follow this code: know that none of the methods called within will
         # effect the state of the AngleCalculator object!!!
@@ -157,18 +161,13 @@ class VliegHklCalculator(HklCalculatorBase):
                 psi -= 2 * pi
             if psi < (-1 * pi):
                 psi += 2 * pi
-        virtualAngles = {'2theta':twotheta, 'Bin':Bin, 'Bout':Bout, 'azimuth':psi}
 
-        # Return all in degrees
-        pos.changeToDegrees()
-        for key, val in virtualAngles.items():
-            if val != None:
-                virtualAngles[key] = val * TODEG
-        return (pos, virtualAngles)
+        return pos, {'2theta':twotheta, 'Bin':Bin, 'Bout':Bout, 'azimuth':psi}
 
     def _hklToAnglesZaxisModes(self, h, k, l, energy):
-        """(pos, paramDict) = hklToAngles(h, k, l, energy) --- with Position object 
-        pos and the virtual twothete angle returned in degrees.
+        """Return Position and virtual angles in radians from h, k & l and
+        energy in keV for z-axis modes. The virtual angles are those fixed or
+        generated while calculating the position: Bin, Bout, and 2theta.
         """
         # Section 6:
 
@@ -217,11 +216,7 @@ class VliegHklCalculator(HklCalculatorBase):
             pos.omega = atan2(d1, d2)
         
         # Gather up the virtual angles calculated along the way
-        virtualAngles = {'2theta':twotheta * TODEG, 'Bin':Bin * TODEG, 'Bout':Bout * TODEG, 'azimuth':None}
-        
-        # Convert angles to degrees
-        pos.changeToDegrees()
-        return (pos, virtualAngles)
+        return pos, {'2theta':twotheta, 'Bin':Bin, 'Bout':Bout}
 
 ###
 

@@ -154,16 +154,9 @@ class test_assert_dict_almost_equal():
             assert False
         except AssertionError, e:
             eq_(e.args[0], "For key 'a', 1.0 != 2 within 7 places")
+
     def test_okay_differing_types1(self):
         assert_dict_almost_equal({'a':1.}, {'a':1})
             
     def test_okay_differing_types2(self):
         assert_dict_almost_equal({'a':1}, {'a':1.})
-            
-    
-            
-#    
-#def test_fail__assert_almost_equal():
-#    assert_raises(AssertionError, assert_almost_equal, 1, 1.00001)
-#    
-#def test

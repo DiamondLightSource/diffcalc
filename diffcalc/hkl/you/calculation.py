@@ -28,8 +28,8 @@ def _calc_N(Q, n):
     if is_small(angle_between_vectors(Q, n)):
         raise ValueError(
 "Q and n are parallel and cannot be used to create an orthonormal matrix")
-    QxnxQ = cross3(Q, cross3(n, Q)) # order independent given this symmetry
     Qxn = cross3(Q, n)
+    QxnxQ = cross3(Qxn, Q)
     QxnxQ = QxnxQ.times(1 / QxnxQ.normF())
     Qxn = Qxn.times(1 / Qxn.normF())
     return Matrix([[Q.get(0, 0), QxnxQ.get(0, 0), Qxn.get(0, 0)],
@@ -69,14 +69,15 @@ class YouHklCalculator(HklCalculatorBase):
         HklCalculatorBase.__init__(self, ubcalc, geometry, hardware,
                                    raiseExceptionsIfAnglesDoNotMapBackToHkl)
         
-        self.constraints = ConstraintManager()
+        self.constraints = ConstraintManager(hardware)
         
         self.n_phi = Matrix([[0], [0], [1]])
         """Reference vector in phi frame. Must be of length 1."""
         
         self.choose_chi_from_0_to_pi = False # default is -pi/2<chi<pi/2
         
-        
+    def repr_mode(self):
+        return `self.constraints.all`
         
     def _anglesToHkl(self, pos, energy):
         """Calculate miller indices from position in radians."""
@@ -149,7 +150,6 @@ reference plane""")
         """
         # HINT: To help follow this code: know that none of the methods called within will
         # effect the state of the AngleCalculator object!!!
-
         
         h_phi = self._getUBMatrix().times(Matrix([[h], [k], [l]]))
         theta = self._calc_theta(h_phi, 12.39842 / energy)
@@ -165,7 +165,6 @@ reference plane""")
                                 ref_name, ref_value, theta, tau)
         else:
             raise RuntimeError("Code not yet written to handle the absense of a reference constraint!")
-             
         
         ### Detector constraint column ###
         
@@ -179,7 +178,7 @@ reference plane""")
             det_name, det_constraint = detector_constraint.items()[0]
             delta, nu, qaz = self._calc_remaining_detector_angles_given_one(
                              det_name, det_constraint, theta)
-            naz_qaz_angle = self._calc_angle_between_naz_and_qaz(theta, alpha, tau)
+            naz_qaz_angle = _calc_angle_between_naz_and_qaz(theta, alpha, tau)
             naz = qaz - naz_qaz_angle
             if (naz < -SMALL) or (naz >= pi):
                 naz = qaz + naz_qaz_angle
@@ -188,7 +187,7 @@ reference plane""")
             # The 'detector' angle naz is given:
             naz_name, naz = naz_constraint.items()[0]
             assert naz_name == 'naz'            
-            naz_qaz_angle = self._calc_angle_between_naz_and_qaz(theta, alpha, tau)
+            naz_qaz_angle = _calc_angle_between_naz_and_qaz(theta, alpha, tau)
             qaz = naz - naz_qaz_angle
             if (qaz < -SMALL) or (qaz >= pi):
                 qaz = naz + naz_qaz_angle
@@ -212,10 +211,12 @@ reference plane""")
             q_lab = Matrix([[cos(theta) * sin(qaz)],
                             [-sin(theta)],
                             [cos(theta) * cos(qaz)]]) # Equation 18
-            n_lab = Matrix([[cos(alpha) * sin(naz)], [], []])
+            n_lab = Matrix([[cos(alpha) * sin(naz)],
+                            [-sin(alpha)],
+                            [cos(alpha) * cos(naz)]])
             # Check this is true and get it
             
-            sample_name, sample_value = self.constraints.sample
+            sample_name, sample_value = samp_constraints.items()[0]
             phi, chi, eta, mu = self._calc_remaining_sample_angles_given_one(
                                      sample_name, sample_value, q_lab, n_lab, h_phi, self.n_phi)
 
@@ -249,8 +250,7 @@ reference plane""")
         return theta
     
     def _calc_remaining_reference_angles_given_one(self, name, value, theta, tau):
-        """Return psi, alpha and beta given one of alpha_equal_beta, alpha, beta or psi"""
-        
+        """Return psi, alpha and beta given one of a_eq_b, alpha, beta or psi"""
         if sin(tau) == 0:
             raise DiffcalcException(
 """The constraint %s could not be used to determine a unique azimuth (psi) as
@@ -275,7 +275,7 @@ reference plane""" % name)
                 raise DiffcalcException(
                  "No reflection can be reached where psi = %.4f." % psi)
             beta = asin(bound(sin_beta))
-        elif name == 'alpha_equal_beta':
+        elif name == 'a_eq_b':
             # Equation 24
             alpha = beta = asin(bound(cos(tau) * sin(theta)))
         elif name == 'alpha':
@@ -341,8 +341,6 @@ reference plane""" % name)
             nu = atan2(sin(2 * theta) * cos(qaz), cos(2 * theta))
         
         if name != 'delta':
-            print "qaz: ", qaz
-            print "nu: ", nu
             cos_qaz = cos(qaz)
             if not is_small(cos_qaz): # TODO: could we switch methods at 45 deg
                 delta = atan2(sin(qaz) * sin(nu), cos_qaz)
@@ -351,11 +349,6 @@ reference plane""" % name)
                 delta = sign(qaz) * acos(bound(cos(2 * theta) / cos(nu)))
         
         return delta, nu, qaz
-    
-    
-
-            
-            
     
     def _calc_remaining_sample_angles_given_one(self, name, value, Q_lab, n_lab,
                                                 Q_phi, n_phi):
@@ -370,8 +363,8 @@ reference plane""" % name)
             mu = value
             MU = calcMU(mu)
             V = MU.inverse().times(N_lab).times(N_phi.inverse()).array
-            phi = atan2(V[2][1], V[2][0])
-            eta = atan2(-V[1][2], V[0][2])
+            phi = atan2(-V[2][1], -V[2][0]) # choose other root to pass tests
+            eta = atan2(-V[1][2], V[0][2]) #
             if self.choose_chi_from_0_to_pi:
                 chi = acos(V[2][2]) # 0 < chi < pi
             else:
@@ -400,7 +393,7 @@ reference plane""" % name)
                     raise DiffcalcException(
 """A chi value from 0 to pi was requested, but with eta constrained, this is not
 currently possible. (Set the choose_chi_from_0_to_pi attribute on the
-YouHklCalculator object to False to relax this requirement.)""")
+YouHklCalculator object to False to remove this request.)""")
                 if is_small(eta):
                     raise ValueError(
 "Chi and mu cannot be chosen uniquely with eta so close to +-90.")
@@ -440,8 +433,3 @@ specified in equation 40.""")
             raise ValueError('Given angle must be one of phi, chi, eta or mu')
             
         return phi, chi, eta, mu
-                
-                
-    
-
-        

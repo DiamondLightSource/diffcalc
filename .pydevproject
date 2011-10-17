@@ -8,6 +8,6 @@
 <path>/diffcalc</path>
 </pydev_pathproperty>
 <pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
-<path>/home/zrb13439/gda/dev/bundles/src/uk.ac.diamond.jama/1.0.1/uk.ac.diamond.jama.jar</path>
+<path>/home/zrb13439/gda/thirdparty/bundles/uk.ac.diamond.jama-1.0.1.jar</path>
 </pydev_pathproperty>
 </pydev_project>

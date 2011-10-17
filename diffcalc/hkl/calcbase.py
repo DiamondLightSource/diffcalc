@@ -7,10 +7,6 @@ TORAD = pi / 180
 TODEG = 180 / pi
 
 class HklCalculatorBase(object):
-    """
-    NOTE: IN THIS CLASS ALL ANGLES USED BY EXTERNAL METHODS ARE IN DEGREES AND ALL
-    INTERNAL METHODS IN RADIANS. VALUES IN THE PARAMETER DICTIONARY ARE IN DEGREES.
-    """
 
     def __init__(self, ubcalc, geometry, hardware, raiseExceptionsIfAnglesDoNotMapBackToHkl=False):
         
@@ -21,7 +17,8 @@ class HklCalculatorBase(object):
         self.raiseExceptionsIfAnglesDoNotMapBackToHkl = raiseExceptionsIfAnglesDoNotMapBackToHkl
         
         self.mode_selector = ModeSelector(self._geometry, None, self._gammaParameterName) # parameter_manager set below
-        self.parameter_manager = ParameterManager(self._geometry, self._hardware, self.mode_selector, self._gammaParameterName)
+        self.parameter_manager = ParameterManager(self._geometry,
+            self._hardware, self.mode_selector, self._gammaParameterName)
         self.mode_selector.setParameterManager(self.parameter_manager)
 ###
     def __str__(self):
@@ -35,8 +32,8 @@ class HklCalculatorBase(object):
         return result
 ###
     def anglesToHkl(self, pos, energy):
-        """
-        ((h, k, l), paramDict) = anglesToHkl(pos, energy) -- Returns hkl indices from pos object in degrees.
+        """Return hkl tuple and dictionary of all virtual angles in degrees from
+        Position in degrees and energy in keV.
         """
         # Calculate the (possibly) virtual angles: 2theta, betain, betaout, azimuth    
    
@@ -45,16 +42,28 @@ class HklCalculatorBase(object):
         return ((h, k, l), paramDict)   
 
     def anglesToVirtualAngles(self, pos, energy):
+        """Return dictionary of all virtual angles in degrees from Position object
+        in degrees and energy in keV.
+        """
         anglesDict = self._anglesToVirtualAngles(pos.inRadians(), energy)
         for name in anglesDict:
             anglesDict[name] = anglesDict[name] * TODEG
         return anglesDict
     
     def hklToAngles(self, h, k, l, energy):
-        """calls _hklToAngles() and then checks if the calculated angles map
-        back to the requested hkl setting. Also calculates the virtual angles
-        associated with the calculated angle, and checks that they agree with any
-        specified or derived as part of the initial calculation.
+        """Return verified Position and all virtual angles in degrees from h, k & l
+        and energy in keV.
+        
+        The calculated Position is verified by checking that it maps back using
+        anglesToHkl() to the requested hkl value.
+        
+        Those virtual angles fixed or generated while calculating the position
+        are verified by by checking that they map back using anglesToVirtualAngles
+        to the virtual angles for the given position.
+        
+        Throws a DiffcalcException if either check fails and 
+        raiseExceptionsIfAnglesDoNotMapBackToHkl is True, otherwise displays a 
+        warning.
         """
         
         # Update tracked parameters. During this calculation parameter values will
@@ -62,7 +71,14 @@ class HklCalculatorBase(object):
         # which would trigger another potentially time-costly position update.
         self.parameter_manager.updateTrackedParameters()
         
-        (pos, virtualAngles) = self._hklToAngles(h, k, l, energy)
+        pos, virtualAngles = self._hklToAngles(h, k, l, energy) # in rad
+        
+        # to degrees:
+        pos.changeToDegrees()
+        for key, val in virtualAngles.items():
+            if val is not None:
+                virtualAngles[key] = val * TODEG
+        
         (hkl, _) = self.anglesToHkl(pos, energy)
         e = 0.001
         if (abs(hkl[0] - h) > e) or (abs(hkl[1] - k) > e) or (abs(hkl[2] - l) > e):
@@ -79,9 +95,9 @@ class HklCalculatorBase(object):
                     
         for key, val in virtualAngles.items():
             if val != None: #Some values calculated in some mode_selector
-                d = differ(val, virtualAnglesReadback[key], .00001)
-                if d:
-                    s = "PROBABLE ERROR: The angles calculated for hkl=(%f,%f,%f) with mode=%s were %s.\n" % (h, k, l, self._mode.name, str(pos))
+                r = virtualAnglesReadback[key]
+                if (differ(val, r, .00001) and differ(val, r + 360, .00001) and differ(val, r - 360, .00001)):
+                    s = "PROBABLE ERROR: The angles calculated for hkl=(%f,%f,%f) with mode=%s were %s.\n" % (h, k, l, self.repr_mode(), str(pos))
                     s += "During verification the virtual angle %s resulting from (or set for) this calculation of %f" % (key, val)
                     s += "did not match that calculated by anglesToVirtualAngles of %f" % virtualAnglesReadback[key]
                     # TODO: misuse of existing variable: rename it
@@ -90,9 +106,13 @@ class HklCalculatorBase(object):
                     else:
                         print s
         
-        # Return the verified, and posibbly more complete, virtualAnglesReadback
-        return (pos, virtualAnglesReadback)
+        # Return the no verified, and possibly more complete, virtualAnglesReadback
+        return pos, virtualAnglesReadback
 
+
+    def repr_mode(self):
+        pass
+    
 ### Collect all math access to context here
 
     def _getUBMatrix(self):

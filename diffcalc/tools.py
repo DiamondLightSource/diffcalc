@@ -8,7 +8,7 @@ def format_note(note):
 def assert_array_almost_equal(first, second, places=7, msg=None, note=None):
     assert len(first) == len(second), "%r != %r as lengths differ%s" % (first, second, format_note(note))
     for f, s in zip(first, second):
-        assert_almost_equal(f, s, places, msg or "%r != %r within %i places%s" 
+        assert_almost_equal(f, s, places, msg or "\n%r != \n%r within %i places%s" 
                             % (first, second, places, format_note(note)))
 
 arrayeq_ = assert_array_almost_equal
@@ -45,7 +45,14 @@ def assert_dict_almost_equal(first, second, places=7, msg=None, note=None):
         else:
             if f != s:
                 raise AssertionError("For key %s, %r != %r%s" % (`key`, f, s, format_note(note)))
-            
+
+def assert_second_dict_almost_in_first(value, expected, places=7, msg=None):
+    value = value.copy()
+    for key in value.keys():
+        if key not in expected.keys():
+            del value[key]
+    assert_dict_almost_equal(value, expected, places=7, msg=None)
+                
 def assert_iterable_almost_equal(first, second, places=7, msg=None, note=None):
     assert len(first) == len(second), msg or ("%r != %r as lengths differ%s" % (first, second, format_note(note)))
     for f, s in zip(first, second):
@@ -55,6 +62,4 @@ def assert_iterable_almost_equal(first, second, places=7, msg=None, note=None):
             if f != s:
                 raise AssertionError("%r != %r%s" % (f, s, format_note(note)))
         
-            
 matrixeq_ = assert_matrix_almost_equal
-

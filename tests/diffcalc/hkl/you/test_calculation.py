@@ -1,457 +1,181 @@
-#from math import pi, sin, cos
-#
-#from diffcalc.hkl.you.calculation import youAnglesToHkl, YouHklCalculator, I,\
-#    _calc_angle_between_naz_and_qaz
-#from diffcalc.utils import Position, DiffcalcException
-#from nose.tools import assert_almost_equal,eq_ #@UnresolvedImport
-#import math
-#from nose.tools import raises
-#from nose.plugins.skip import SkipTest
-#try:
-#    from Jama import Matrix
-#except ImportError:
-#    from diffcalc.npadaptor import Matrix
-#from diffcalc.tools import arrayeq_, assert_matrix_almost_equal
-#
-#from tests.diffcalc.hkl.test_calcvlieg import createMockDiffractometerGeometry,\
-# createMockHardwareMonitor, createMockUbcalc    
-#
-#TORAD=pi/180
-#TODEG=180/pi
-#
-#UB1 = Matrix(
-#             ((0.9996954135095477, -0.01745240643728364, -0.017449748351250637),
-#              (0.01744974835125045, 0.9998476951563913, -0.0003045864904520898),
-#              (0.017452406437283505, -1.1135499981271473e-16, 0.9998476951563912))
-#             ).times(2*pi)
-#             
-#EN1 = 12.39842
-#
-#
-#
-#def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
-#    return Position(mu, delta, gamma, eta, chi, phi)
-#
-#
-#def test_anglesToHkl_mu_0_gam_0():
-#    pos = posFromI16sEuler(1, 1, 30, 0, 60, 0).inRadians()
-#    arrayeq_(youAnglesToHkl(pos, EN1, UB1), [1, 0, 0])
-#
-#def test_anglesToHkl_mu_0_gam_10():
-#    pos = posFromI16sEuler(1, 1, 30, 0, 60, 10).inRadians()
-#    arrayeq_(youAnglesToHkl(pos, EN1, UB1), [1.00379806, -0.006578435, 0.08682408])
-#    
-#def test_anglesToHkl_mu_10_gam_0():
-#    pos = posFromI16sEuler(1, 1, 30, 10, 60, 0).inRadians()
-#    arrayeq_(youAnglesToHkl(pos, EN1, UB1), [0.99620193, 0.0065784359, 0.08682408])
-#    
-#def test_anglesToHkl_arbitrary():
-#    pos = posFromI16sEuler(1.9, 2.9, 30.9, 0.9, 60.9, 2.9).inRadians()
-#    arrayeq_(youAnglesToHkl(pos, EN1, UB1), [1.01174189, 0.02368622, 0.06627361])
-#    
-#
-#class Test_anglesToVirtualAngles():
-#    
-#    def setUp(self):
-#        self.calc = YouHklCalculator(createMockUbcalc(None), createMockDiffractometerGeometry(), createMockHardwareMonitor())
+from diffcalc.hkl.you.calculation import youAnglesToHkl, YouHklCalculator
+from diffcalc.tools import arrayeq_, assert_array_almost_equal, \
+    assert_second_dict_almost_in_first
+from diffcalc.utils import Position
+from math import pi
+from nose.plugins.skip import SkipTest
+from tests.diffcalc.hkl.test_calcvlieg import createMockDiffractometerGeometry, \
+    createMockHardwareMonitor, createMockUbcalc
+
+try:
+    from Jama import Matrix
+except ImportError:
+    from diffcalc.npadaptor import Matrix
+
+TORAD = pi / 180
+TODEG = 180 / pi
+
+UB1 = Matrix(
+             ((0.9996954135095477, -0.01745240643728364, -0.017449748351250637),
+              (0.01744974835125045, 0.9998476951563913, -0.0003045864904520898),
+              (0.017452406437283505, -1.1135499981271473e-16, 0.9998476951563912))
+            ).times(2 * pi)
+             
+EN1 = 12.39842
+
+
+def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
+    return Position(mu, delta, gamma, eta, chi, phi)
+
+class TestAnglesToHklI16Examples():
+
+    def test_anglesToHkl_mu_0_gam_0(self):
+        pos = posFromI16sEuler(1, 1, 30, 0, 60, 0).inRadians()
+        arrayeq_(youAnglesToHkl(pos, EN1, UB1), [1, 0, 0])
+    
+    def test_anglesToHkl_mu_0_gam_10(self):
+        pos = posFromI16sEuler(1, 1, 30, 0, 60, 10).inRadians()
+        arrayeq_(youAnglesToHkl(pos, EN1, UB1), [1.00379806, -0.006578435, 0.08682408])
+        
+    def test_anglesToHkl_mu_10_gam_0(self):
+        pos = posFromI16sEuler(1, 1, 30, 10, 60, 0).inRadians()
+        arrayeq_(youAnglesToHkl(pos, EN1, UB1), [0.99620193, 0.0065784359, 0.08682408])
+        
+    def test_anglesToHkl_arbitrary(self):
+        pos = posFromI16sEuler(1.9, 2.9, 30.9, 0.9, 60.9, 2.9).inRadians()
+        arrayeq_(youAnglesToHkl(pos, EN1, UB1), [1.01174189, 0.02368622, 0.06627361])
+    
+
+class TestCalc():
+    
+    def __init__(self):
+        self.calc = YouHklCalculator(createMockUbcalc(None),
+                                     createMockDiffractometerGeometry(),
+                                     createMockHardwareMonitor())
+        
+    def setub(self, a1, a2=None):
+        ub = Matrix(a1) if a2 is None else Matrix(a1).times(Matrix(a2))
+        self.calc._ubcalc.getUBMatrix.return_value = ub
+          
+    def setconstraints(self, d):
+        self.calc.constraints._constrained = d  
+    
+    
+    def checkAnglesToVirtualAngles(self, pos_tuple, energy, virtual_e):
+        pos = Position(*pos_tuple)
+        assert_second_dict_almost_in_first(self.calc.anglesToVirtualAngles(pos, energy),
+                                 virtual_e)
+    
+    def checkAnglesToHkl(self, postuple, energy, hkl_e, virtual_e):
+        pos = Position(*postuple)
+        hkl, virtual = self.calc.anglesToHkl(pos, energy)
+        assert_array_almost_equal(hkl, hkl_e, 5)
+        assert_second_dict_almost_in_first(virtual, virtual_e)
+    
+    def checkHklToAngles(self, hkl, energy, postuple_e, virtual_e):
+        postuple, virtual = self.calc.hklToAngles(hkl[0], hkl[1], hkl[2], energy)
+        assert_array_almost_equal(postuple.totuple(), postuple_e)
+        assert_second_dict_almost_in_first(virtual, virtual_e)
+
+
+class TestCalc_CubicFromBlissTutorial(TestCalc):
+    
+    def __init__(self):
+        TestCalc.__init__(self)
+        self.setub(((1, 0, 0), (0, -1, 0), (0, 0, -1)),
+                   ((4.07999, 0, 0), (0, 4.07999, 0), (0, 0, 4.07999)))
+        self.setconstraints({'a_eq_b': None, 'mu':0, 'nu':0})
+        self.e = 12.39842 / 1.54
+    
+    def test1(self):
+        raise SkipTest()
+        self.setconstraints({'a_eq_b': None, 'mu':0, 'nu':0})
+        hkl = 0.7, 0.9, 1.3,
+        postuple = 0, 119.669750, 0, 59.834875, -48.747500, 307.87498365109815
+        energy = self.e
+        virtual = {}
+        yield self.checkAnglesToVirtualAngles, postuple, energy, virtual
+        yield self.checkAnglesToHkl, postuple, energy, hkl, virtual
+        yield self.checkHklToAngles, hkl, energy, postuple, virtual
+
+#constraints = {'a_eq_b': None, 'mu':0, 'n':0}
+#calcs = []
+#calcs.append(energy, (0.7, 0.9, 1.3),
+#             (0.000000, 27.352179, 0.000000, 13.676090, 37.774500, 53.965500),
+#             {'alpha':8.3284 ,'beta':8.3284 ,'twotheta':27.3557})#  'rho':36.5258 , 'eta':0.1117
 #        
-#    
-#    def check_angle(self, name, expected, mu=-99, delta=99, nu=99,
-#                     eta=99, chi=99, phi=99):
-#        """All in degrees"""
-#        pos = Position(mu, delta, nu, eta, chi, phi)
-#        pos.changeToRadians()
-#        assert_almost_equal(self.calc._anglesToVirtualAngles(pos, None)[name]*TODEG, expected)
 #        
-#    # theta     
-#    def test_theta0(self):
-#        self.check_angle('theta', 0, delta=0, nu=0)
-#        
-#    def test_theta1(self):
-#        self.check_angle('theta', 1, delta=2, nu=0)
-#        
-#    def test_theta2(self):
-#        self.check_angle('theta', 1, delta=0, nu=2)
-#        
-#    def test_theta3(self):
-#        self.check_angle('theta', 1, delta=-2, nu=0)
-#        
-#    def test_theta4(self):
-#        self.check_angle('theta', 1, delta=0, nu=-2)
-#        
-#    # qaz
-#    def test_qaz0_degenerate_case(self):
-#        self.check_angle('qaz', 0, delta=0, nu=0)
+#scenarios.append
+#ac.hklList=[]
+#ac.hklList.append( (0.7, 0.9, 1.3) )
+#ac.posList.append(P(0.000000, 27.352179, 0.000000, 13.676090, 37.774500, 53.965500))
+#ac.paramList.append({'Bin':8.3284 ,'Bout':8.3284 , 'rho':36.5258 , 'eta':0.1117 ,'twotheta':27.3557})
 #
-#    def test_qaz1(self):
-#        self.check_angle('qaz', 90, delta=2, nu=0)
+#ac.hklList.append( (1,0,0) )
+#ac.posList.append(P(0.000000, 18.580230, 0.000000, 9.290115, -2.403500, 3.589000))
+#ac.paramList.append({'Bin': -0.3880,'Bout': -0.3880, 'rho':-2.3721 , 'eta': -0.0089,'twotheta':18.5826})
 #
-#    def test_qaz2(self):
-#        self.check_angle('qaz', 90, delta=90, nu=0)
+#ac.hklList.append( (0,1,0) )
+#ac.posList.append(P(0.000000, 18.580230, 0.000000, 9.290115, 0.516000, 93.567000))
+#ac.paramList.append({'Bin': 0.0833 ,'Bout': 0.0833, 'rho': 0.5092, 'eta': -0.0414 ,'twotheta':18.5826})
 #
-#    def test_qaz3(self):
-#        self.check_angle('qaz', 0, delta=0, nu=1, )
+#ac.hklList.append( (1, 1, 0) )
+#ac.posList.append(P(0.000000, 26.394192, 0.000000, 13.197096, -1.334500, 48.602000))
+#ac.paramList.append({'Bin': -0.3047,'Bout': -0.3047, 'rho': -1.2992, 'eta': -0.0351 ,'twotheta':26.3976})
 #
-#    # Can't see one by eye        
-#    # def test_qaz4(self):
-#    #    pos = Position(delta=20*TORAD, nu=20*TORAD)#.inRadians()
-#    #    assert_almost_equal(self.calc._anglesToVirtualAngles(pos, None)['qaz']*TODEG, 45)
+############################# SESSION3 ############################
+## AngleCalc scenarios from SPEC sixc. using crystal and alignment
+#session3 = SessionScenario()
+#session3.name = "spec_sixc_b16_270608"
+#session3.time = datetime.now()
+#session3.lattice = ((3.8401, 3.8401, 5.43072, 90, 90, 90))
+#session3.bmatrix = (((1.636204, 0, 0),(0, 1.636204, 0), (0, 0, 1.156971)))
+#session3.umatrix =  ( (0.997161, -0.062217,  0.042420),
+#               (0.062542,  0.998022, -0.006371),
+#               (-0.041940,  0.009006,  0.999080) )        
+#session3.ref1 = Reflection(1, 0, 1.0628, Position(5.000, 22.790, 0.000, 1.552, 22.400, 14.255), 12.39842/1.24, 'ref1', session3.time)
+#session3.ref2 = Reflection(0, 1, 1.0628, Position(5.000, 22.790, 0.000, 4.575, 24.275, 101.320), 12.39842/1.24, 'ref2', session3.time)
+#session3.ref1calchkl = (1, 0, 1.0628)
+#session3.ref2calchkl = (-0.0329, 1.0114, 1.04)
+## sixc-0a : fixed omega = 0
+#ac = CalculationScenario('sixc-0a', 'sixc', '0', 12.39842/1.24, '4cBeq',1)
+#ac.alpha=0; ac.gamma=0
+#ac.w = 0
+#### with 'omega_low':-90, 'omega_high':270, 'phi_low':-180, 'phi_high':180
+#ac.hklList=[]
+#ac.hklList.append( (0.7, 0.9, 1.3) )
+#ac.posList.append(P(0.000000, 27.352179, 0.000000, 13.676090, 37.774500, 53.965500))
+#ac.paramList.append({'Bin':8.3284 ,'Bout':8.3284 , 'rho':36.5258 , 'eta':0.1117 ,'twotheta':27.3557})
 #
-#    #alpha
-#    def test_defaultReferenceValue(self):
-#        # The following tests depemd on this
-#        assert_matrix_almost_equal(self.calc.n_phi, Matrix([[0],[0],[1]]))
+#ac.hklList.append( (1,0,0) )
+#ac.posList.append(P(0.000000, 18.580230, 0.000000, 9.290115, -2.403500, 3.589000))
+#ac.paramList.append({'Bin': -0.3880,'Bout': -0.3880, 'rho':-2.3721 , 'eta': -0.0089,'twotheta':18.5826})
 #
-#    def test_alpha0(self):
-#        self.check_angle('alpha', 0, mu=0, eta=0, chi=0, phi=0)
+#ac.hklList.append( (0,1,0) )
+#ac.posList.append(P(0.000000, 18.580230, 0.000000, 9.290115, 0.516000, 93.567000))
+#ac.paramList.append({'Bin': 0.0833 ,'Bout': 0.0833, 'rho': 0.5092, 'eta': -0.0414 ,'twotheta':18.5826})
 #
-#    def test_alpha1(self):
-#        self.check_angle('alpha', 0, mu=0, eta=0, chi=0, phi=10)
+#ac.hklList.append( (1, 1, 0) )
+#ac.posList.append(P(0.000000, 26.394192, 0.000000, 13.197096, -1.334500, 48.602000))
+#ac.paramList.append({'Bin': -0.3047,'Bout': -0.3047, 'rho': -1.2992, 'eta': -0.0351 ,'twotheta':26.3976})
 #
-#    def test_alpha2(self):
-#        self.check_angle('alpha', 0, mu=0, eta=0, chi=0, phi=-10)
-#
-#    def test_alpha3(self):
-#        self.check_angle('alpha', 2, mu=2, eta=0, chi=0, phi=0)
-#
-#    def test_alpha4(self):
-#        self.check_angle('alpha', -2, mu=-2, eta=0, chi=0, phi=0)
-#
-#    def test_alpha5(self):
-#        self.check_angle('alpha', 2, mu=0, eta=90, chi=2, phi=0)
-#    
-#    #beta
-#    
-#    def test_beta0(self):
-#        self.check_angle('beta', 0, delta=0, nu=0, mu=0, eta=0, chi=0, phi=0)
-#    
-#    def test_beta1(self):
-#        self.check_angle('beta', 0, delta=10, nu=0, mu=0, eta=6, chi=0, phi=5)
-#    
-#    def test_beta2(self):
-#        self.check_angle('beta', 10, delta=0, nu=10, mu=0, eta=0, chi=0, phi=0)
-#    
-#    def test_beta3(self):
-#        self.check_angle('beta', -10, delta=0, nu=-10, mu=0, eta=0, chi=0, phi=0)
-#    
-#    def test_beta4(self):
-#        self.check_angle('beta', 5, delta=0, nu=10, mu=5, eta=0, chi=0, phi=0)
-#    
-#    # azimuth
-#    def test_naz0(self):
-#        self.check_angle('naz', 0, mu=0, eta=0, chi=0, phi=0)
-#        
-#    def test_naz1(self):
-#        self.check_angle('naz', 0, mu=0, eta=0, chi=0, phi=10)
-#
-#    def test_naz3(self):
-#        self.check_angle('naz', 0, mu=10, eta=0, chi=0, phi=10)
-#
-#    def test_naz4(self):
-#        self.check_angle('naz', 2, mu=0, eta=0, chi=2, phi=0)
-#          
-#    def test_naz5(self):
-#        self.check_angle('naz', -2, mu=0, eta=0, chi=-2, phi=0)
-#        
-#    #tau
-#    def test_tau0(self):
-#        self.check_angle('tau', 0, mu=0, delta=0, nu=0, eta=0, chi=0, phi=0)
-#        #self.check_angle('tau_from_dot_product', 90, mu=0, delta=0, nu=0, eta=0, chi=0, phi=0)
-#
-#        
-#    def test_tau1(self):
-#        self.check_angle('tau', 90, mu=0, delta=20, nu=0, eta=10, chi=0, phi=0)
-#        #self.check_angle('tau_from_dot_product', 90, mu=0, delta=20, nu=0, eta=10, chi=0, phi=0)
-#
-#        
-#    def test_tau2(self):
-#        self.check_angle('tau', 90, mu=0, delta=20, nu=0, eta=10, chi=0, phi=3)
-#        #self.check_angle('tau_from_dot_product', 90, mu=0, delta=20, nu=0, eta=10, chi=0, phi=3)     
-#
-#    def test_tau3(self):
-#        self.check_angle('tau', 88, mu=0, delta=20, nu=0, eta=10, chi=2, phi=0)
-#        #self.check_angle('tau_from_dot_product', 88, mu=0, delta=20, nu=0, eta=10, chi=2, phi=0)
-#  
-#    def test_tau4(self):
-#        self.check_angle('tau', 92, mu=0, delta=20, nu=0, eta=10, chi=-2, phi=0)
-#        #self.check_angle('tau_from_dot_product', 92, mu=0, delta=20, nu=0, eta=10, chi=-2, phi=0)       
-#         
-#    def test_tau5(self):
-#        self.check_angle('tau', 10, mu=0, delta=0, nu=20, eta=0, chi=0, phi=0)
-#        #self.check_angle('tau_from_dot_product', 10, mu=0, delta=0, nu=20, eta=0, chi=0, phi=0)
-#
-#    #psi
-#    def test_psi0(self):
-#        pos = Position(0,0,0,0,0,0)
-#        assert math.isnan(self.calc._anglesToVirtualAngles(pos, None)['psi'])
-#        
-#    def test_psi1(self):
-#        self.check_angle('psi', 90, mu=0, delta=11, nu=0, eta=0, chi=0, phi=0)
-#
-#    def test_psi2(self):
-#        self.check_angle('psi', 100, mu=10, delta=.00000001, nu=0, eta=0, chi=0, phi=0)
-#    
-#    def test_psi3(self):
-#        self.check_angle('psi', 80, mu=-10, delta=.00000001, nu=0, eta=0, chi=0, phi=0)
-#        
-#    def test_psi4(self):
-#        self.check_angle('psi', 90, mu=0, delta=11, nu=0, eta=0, chi=0, phi=12.3)
-#        
-#    def test_psi5(self):
-#        #self.check_angle('psi', 0, mu=10, delta=.00000001, nu=0, eta=0, chi=90, phi=0)     
-#        pos = Position(0,.00000001,0,0,90,0)
-#        pos.changeToRadians()
-#        assert math.isnan(self.calc._anglesToVirtualAngles(pos, None)['psi'])
-#        
-#    def test_psi6(self):
-#        self.check_angle('psi', 90, mu=0, delta=0.00000001, nu=0, eta=90, chi=0, phi=0)
-#  
-#    def test_psi7(self):
-#        self.check_angle('psi', 92, mu=0, delta=0.00000001, nu=0, eta=90, chi=2, phi=0)
-#  
-#    def test_psi8(self):
-#        self.check_angle('psi', 88, mu=0, delta=0.00000001, nu=0, eta=90, chi=-2, phi=0)
-#  
-#        
-#class TestHklToAngles():
-#    
-#    def setUp(self):
-#        self.calc = YouHklCalculator(createMockUbcalc(I.times(2*pi)),
-#                                     createMockDiffractometerGeometry(),
-#                                     createMockHardwareMonitor())
-#        self.e = 12.398420
-#        
-#
-#class Test_calc_theta():
-#    
-#    def setUp(self):
-#        self.calc = YouHklCalculator(createMockUbcalc(I.times(2*pi)),
-#                                     createMockDiffractometerGeometry(),
-#                                     createMockHardwareMonitor())
-#        self.e = 12.398420 # 1 Angstrom
-#    
-#    def test_100(self):
-#        h_phi = Matrix([[1],[0],[0]])
-#        assert_almost_equal(self.calc._calc_theta(h_phi.times(2*pi), 1)*TODEG, 30)
-#    
-#    @raises(DiffcalcException)
-#    def test_too_short(self):
-#        h_phi = Matrix([[1],[0],[0]])
-#        self.calc._calc_theta(h_phi.times(0), 1)
-#        
-#    @raises(DiffcalcException)
-#    def test_too_long(self):
-#        h_phi = Matrix([[1],[0],[0]])
-#        self.calc._calc_theta(h_phi.times(2*pi), 10)
-#     
-#        
-#
-#class Test_calc_remaining_reference_angles_given_one():
-#    
-#    # TODO: These are very incomplete due to either totally failing inutuition
-#    #       or code!
-#    def setUp(self):
-#        self.calc = YouHklCalculator(createMockUbcalc(None),
-#                                     createMockDiffractometerGeometry(),
-#                                     createMockHardwareMonitor())
-#    
-#    def check(self, name, value, theta, tau, psi_e, alpha_e, beta_e):
-#        # all in deg
-#        psi, alpha, beta = self.calc._calc_remaining_reference_angles_given_one(
-#            name, value*TORAD, theta*TORAD, tau*TORAD)
-#        print 'psi', psi*TODEG, ' alpha:', alpha*TODEG, ' beta:', beta*TODEG
-#        if psi_e is not None:
-#            assert_almost_equal(psi*TODEG, psi_e)
-#        if alpha_e is not None:
-#            assert_almost_equal(alpha*TODEG, alpha_e)
-#        if beta_e is not None:
-#            assert_almost_equal(beta*TODEG, beta_e)
-#
-#    def test_psi_given0(self):
-#        self.check('psi', 90, theta=10, tau=90, psi_e=90,
-#                    alpha_e=0, beta_e=0) 
-#
-#    def test_psi_given1(self):
-#        self.check('psi', 92, theta=0, tau=90, psi_e=92,
-#                    alpha_e=2, beta_e=-2)
-#
-#    def test_psi_given3(self):
-#        self.check('psi', 88, theta=0, tau=90, psi_e=88,
-#                    alpha_e=-2, beta_e=2)
-#         
-#    def test_psi_given4(self):
-#        self.check('psi', 0, theta=0, tau=90, psi_e=0,
-#                    alpha_e=-90, beta_e=90)
-#         
-#    def test_psi_given4a(self):
-#        self.check('psi', 180, theta=0, tau=90, psi_e=180,
-#                    alpha_e=90, beta_e=-90)
-#        
-#    def test_psi_given5(self):
-#        raise SkipTest
-#        # TODO: I don't understand why this one passes!
-#        self.check('psi', 180, theta=0, tau=80,
-#                   psi_e=180, alpha_e=80, beta_e=-80)
-#        self.check('psi', 180, theta=0, tau=80,
-#                   psi_e=180, alpha_e=90, beta_e=-90)
-#        
-#    def test_alpha_equal_beta0(self):
-#        self.check('alpha_equal_beta', 9999, theta=0, tau=90,
-#                   psi_e=90, alpha_e=0, beta_e=0)
-#        
-#    def test_alpha_given(self):
-#        self.check('alpha', 2, theta=0, tau=90,
-#                   psi_e=92, alpha_e=2, beta_e=-2)
-#        
-#    def test_beta_given(self):
-#        self.check('beta', 2, theta=0, tau=90,
-#                   psi_e=88, alpha_e=-2, beta_e=2)
-##    def test_alpha_equal_beta1(self):
-##        self.check('alpha_equal_beta', 9999, theta=20, tau=90,
-##                   psi_e=90, alpha_e=10, beta_e=10)
-#        
-##    def test_psi_given0(self):
-##        self.check('psi', 90, theta=10, tau=45, psi_e=90,
-##                    alpha_e=7.0530221302831952, beta_e=7.0530221302831952)
-#
-#    
-#class Test_calc_detector_angles_given_one():
-#    
-#    def setUp(self):
-#        self.calc = YouHklCalculator(createMockUbcalc(None),
-#                                     createMockDiffractometerGeometry(),
-#                                     createMockHardwareMonitor())
-#    def check(self, name, value, theta, delta_e, nu_e, qaz_e):
-#        # all in deg
-#        delta, nu, qaz = self.calc._calc_remaining_detector_angles_given_one(
-#            name, value*TORAD, theta*TORAD)
-#        assert_almost_equal(delta*TODEG, delta_e)
-#        assert_almost_equal(nu*TODEG, nu_e)
-#        if qaz_e is not None:
-#            assert_almost_equal(qaz*TODEG, qaz_e)
-#    
-#    def test_nu_given0(self):
-#        self.check('nu', 0, theta=3, delta_e=6, nu_e=0, qaz_e=90)
-#                
-#    def test_nu_given1(self):
-#        self.check('nu', 10, theta=7.0530221302831952, delta_e=10, nu_e=10, qaz_e=None)
-#        
-#    def test_nu_given2(self):
-#        self.check('nu', 6, theta=3, delta_e=0, nu_e=6, qaz_e=0)
-#        
-#    def test_delta_given0(self):
-#        self.check('delta', 0, theta=3, delta_e=0, nu_e=6, qaz_e=0)
-#        
-#    def test_delta_given1(self):
-#        self.check('delta', 10, theta=7.0530221302831952, delta_e=10, nu_e=10, qaz_e=None)
-#        
-#    def test_delta_given2(self):
-#        self.check('delta', 6, theta=3, delta_e=6, nu_e=0, qaz_e=90)
-#        
-#    def test_qaz_given0(self):
-#        self.check('qaz', 90, theta=3, delta_e=6, nu_e=0, qaz_e=90)
-#                
-#    def test_qaz_given2(self):
-#        self.check('qaz', 0, theta=3, delta_e=0, nu_e=6, qaz_e=0)
+#session3.calculations.append(ac)
 #
 #
-#class Test_calc_angle_between_naz_and_qaz():
-#    
-#    def test1(self):
-#        diff = _calc_angle_between_naz_and_qaz(theta=0, alpha=0, tau=90*TORAD)
-#        assert_almost_equal(diff*TODEG, 90)
-#    
-#    def test2(self):
-#        diff = _calc_angle_between_naz_and_qaz(theta=0*TORAD, alpha=0, tau=80*TORAD)
-#        assert_almost_equal(diff*TODEG, 80)
-#
-#x = Matrix([[1], [0], [0]])   
-#y = Matrix([[0], [1], [0]])   
-#z = Matrix([[0], [0], [1]])
-#   
-#class Test_calc_remaining_sample_angles_given_one():
-#    #_calc_remaining_detector_angles_given_one
-#    def setUp(self):
-#        self.calc = YouHklCalculator(createMockUbcalc(None),
-#                                     createMockDiffractometerGeometry(),
-#                                     createMockHardwareMonitor())
-#    
-#    def check(self, name, value, Q_lab, n_lab, Q_phi,  n_phi,
-#              phi_e, chi_e, eta_e, mu_e):
-#        phi, chi, eta, mu = self.calc._calc_remaining_sample_angles_given_one(
-#                            name, value*TORAD, Q_lab, n_lab, Q_phi, n_phi)
-#        print 'phi', phi*TODEG, ' chi:', chi*TODEG, ' eta:', eta*TODEG, ' mu:', mu*TODEG
-#        if phi_e is not None:
-#            assert_almost_equal(phi*TODEG, phi_e)
-#        if chi_e is not None:
-#            assert_almost_equal(chi*TODEG, chi_e)
-#        if eta_e is not None:
-#            assert_almost_equal(eta*TODEG, eta_e)
-#        if mu_e is not None:
-#            assert_almost_equal(mu*TODEG, mu_e)
-#   
-#    @raises(ValueError)
-#    def test_constrain_xx_degenerate(self):
-#        self.check('mu', 0, Q_lab=x, n_lab=x, Q_phi=x, n_phi=x,
-#                    phi_e=0, chi_e=0, eta_e=0, mu_e=0)
-#        
-#    def test_constrain_mu_0(self):
-#        self.check('mu', 0, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-#                    phi_e=0, chi_e=0, eta_e=0, mu_e=0)
-#
-#
-#    def test_constrain_mu_10(self):
-#        self.check('mu', 10, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-#                    phi_e=-90, chi_e=10, eta_e=-90, mu_e=10)
-#        
-#    def test_constrain_mu_n10(self):
-#        self.check('mu', -10, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-#                    phi_e=90, chi_e=10, eta_e=90, mu_e=-10)
-#        
-#    def test_constrain_eta_10_wasfailing(self):
-#        # Required the choice of a different equation
-#        self.check('eta', 10, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-#                    phi_e=-10, chi_e=0, eta_e=10, mu_e=0)
-#        
-#    def test_constrain_eta_n10(self):
-#        self.check('eta', -10, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-#                    phi_e=10, chi_e=0, eta_e=-10, mu_e=0)
-#
-#    def test_constrain_eta_20_with_theta_20(self):
-#        theta = 20*TORAD
-#        Q_lab = Matrix([[cos(theta)], [-sin(theta)],[0]])
-#        self.check('eta', 20, Q_lab=Q_lab, n_lab=z, Q_phi=x, n_phi=z,
-#                    phi_e=0, chi_e=0, eta_e=20, mu_e=0)
-#        
-#    @raises(ValueError)
-#    def test_constrain_chi_0_degenerate(self):
-#        self.check('chi', 0, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-#                    phi_e=0, chi_e=0, eta_e=0, mu_e=0)
-#
-#    def test_constrain_chi_10(self):
-#        self.check('chi', 10, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-#                    phi_e=-90, chi_e=10, eta_e=90, mu_e=-10)
-#
-#    def test_constrain_chi_90(self):
-#        self.check('chi', 90, Q_lab=z.times(-1), n_lab=x, Q_phi=x, n_phi=z,
-#                    phi_e=0, chi_e=90, eta_e=0, mu_e=0)
-#        
-#    def test_constrain_phi_0(self):
-#        self.check('phi', 0, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-#                    phi_e=0, chi_e=0, eta_e=0, mu_e=0)
-#
-#    def test_constrain_phi_10(self):
-#        self.check('phi', 10, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-#                    phi_e=10, chi_e=0, eta_e=-10, mu_e=0)
-#
-#    def test_constrain_phi_n10(self):
-#        self.check('phi', -10, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-#                    phi_e=-10, chi_e=0, eta_e=10, mu_e=0)
-#        
-#    def test_constrain_phi_20_with_theta_20(self):
-#        theta = 20*TORAD
-#        Q_lab = Matrix([[cos(theta)], [-sin(theta)],[0]])
-#        self.check('phi', 20, Q_lab=Q_lab, n_lab=z, Q_phi=x, n_phi=z,
-#                    phi_e=20, chi_e=0, eta_e=0, mu_e=0)
-#  
-#    
+
+
+
+############################ SESSION1 ############################
+
+
+
+
+
+
+
+
+
+########################################################################
+#def sessions():
+#    return (session1, session2, session3)
+
