@@ -44,6 +44,11 @@ class DiffractometerScannableGroup(PseudoDevice):
             return self.__group.isBusy()
         else:
             return self.__group.isBusy() or self.slaveScannableDriver.isBusy() 
+        
+    def waitWhileBusy(self):
+        self.__group.waitWhileBusy()
+        if self.slaveScannableDriver is not None:
+            self.slaveScannableDriver.waitWhileBusy() 
     
     def simulateMoveTo(self, pos):
         if len(pos) != len(self.getInputNames()): raise ValueError('Wrong number of inputs')

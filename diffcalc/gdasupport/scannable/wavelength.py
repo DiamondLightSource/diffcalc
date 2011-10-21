@@ -21,3 +21,5 @@ class Wavelength(DummyPD):
     def isBusy(self):
         return self.energyScannable.isBusy()
     
+    def waitWhileBusy(self):
+        return self.energyScannable.waitWhileBusy()
