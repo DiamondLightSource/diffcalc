@@ -9,5 +9,6 @@
 </pydev_pathproperty>
 <pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
 <path>/home/zrb13439/gda/thirdparty/bundles/uk.ac.diamond.jama-1.0.1.jar</path>
+<path>/home/zrb13439/gda/thirdparty/bundles/uk.ac.diamond.org.jscience-2.0.2.jar</path>
 </pydev_pathproperty>
 </pydev_project>

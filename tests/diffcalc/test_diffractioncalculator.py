@@ -332,7 +332,7 @@ class ZAxisGammaOnBaseTest(TestSixcBase):
         self.d.sigtau(0, 0)
     
     def checkHKL(self, hkl, adgocp=None, betaout=None, nu=None): 
-        self.hkl(hkl)
+        self.hklverbose.asynchronousMoveTo(hkl)
         assert_array_almost_equal(self.sixc(), list(adgocp), 3)
         assert_array_almost_equal(self.hklverbose(), (hkl[0], hkl[1], hkl[2], betaout), 3)
         

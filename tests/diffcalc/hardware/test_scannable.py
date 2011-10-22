@@ -3,7 +3,7 @@ from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
 from diffcalc.gdasupport.scannable.mock import MockMotor
 from diffcalc.hardware.scannable import ScannableHardwareMonitorPlugin
-from tests.diffcalc.gda.scannable.mockdiffcalc import MockDiffcalc
+from tests.diffcalc.gdasupport.scannable.mockdiffcalc import MockDiffcalc
 import unittest
 
 

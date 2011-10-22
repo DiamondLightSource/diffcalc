@@ -1,6 +1,6 @@
 from diffcalc.gdasupport.scannable.parameter import \
     DiffractionCalculatorParameter
-from tests.diffcalc.gda.scannable.mockdiffcalc import MockDiffcalc
+from tests.diffcalc.gdasupport.scannable.mockdiffcalc import MockDiffcalc
 import unittest
 
 

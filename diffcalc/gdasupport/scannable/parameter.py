@@ -1,9 +1,9 @@
 try:
-    from gda.device.scannable import PseudoDevice
+    from gda.device.scannable import ScannableMotionBase
 except ImportError:
-    from diffcalc.gdasupport.minigda.scannable.scannable import Scannable as PseudoDevice
+    from diffcalc.gdasupport.minigda.scannable.scannable import Scannable as ScannableMotionBase
 
-class DiffractionCalculatorParameter(PseudoDevice):
+class DiffractionCalculatorParameter(ScannableMotionBase):
     "wraps up the diffractometer motors"
     
     def __init__(self , name , parameterName, diffcalcObject):

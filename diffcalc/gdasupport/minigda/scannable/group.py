@@ -1,8 +1,4 @@
-try:
-    from gda.device.scannable import PseudoDevice
-except ImportError:
-    from diffcalc.gdasupport.minigda.scannable.scannable import Scannable as PseudoDevice
-
+from diffcalc.gdasupport.minigda.scannable.scannable import Scannable as PseudoDevice
 
 class ScannableGroup(PseudoDevice):
     "wraps up motors. Simulates motors if non given."
@@ -42,7 +38,10 @@ class ScannableGroup(PseudoDevice):
                 return True
         return False
     
-class DottedAccessPseudoDevice(PseudoDevice):
+    def configure(self):
+        pass
+    
+class ScannableMotionWithScannableFieldsBase(PseudoDevice):
     '''This extended version of ScannableMotionBase contains a completeInstantiation() method
     which adds a dictionary of MotionScannableParts to an instance. Each part allows one of the
     instances fields to be interacted with like it itself is a scannable. Fields are dynamically 
@@ -77,6 +76,20 @@ class DottedAccessPseudoDevice(PseudoDevice):
         self.numInputFields = len(self.getInputNames())
         self.numExtraFields = len(self.getExtraNames())
         self.addScannableParts()
+        self.autoCompletePartialMoveToTargets = False
+        self.positionAtScanStart = None
+    
+    def setAutoCompletePartialMoveToTargets(self, b):
+        self.autoCompletePartialMoveToTargets = b
+        
+    def atScanStart(self):
+        self.positionAtScanStart = self.getPosition()
+        
+    def atCommandFailure(self):
+        self.positionAtScanStart = None
+        
+    def atScanEnd(self):
+        self.positionAtScanStart = None
 
     def addScannableParts(self):
         '''Creates an array of MotionScannableParts each of which allows acces to the scannable's
@@ -94,23 +107,32 @@ class DottedAccessPseudoDevice(PseudoDevice):
             self.childrenDict[scannableName] = self.MotionScannablePart(scannableName, index + len(self.getInputNames()), self, isInputField=0)
             #exec "self." + scannableName + "= self.childrenDict['" + scannableName + "']"
     
-    def fillPosition(self, position):
+    
+    def asynchronousMoveTo(self, newpos):
+        if self.autoCompletePartialMoveToTargets:
+            newpos = self.completePosition(newpos)
+        PseudoDevice.asynchronousMoveTo(self, newpos)
+    
+    def completePosition(self, position):
         '''If position contains any null or None values, these are replaced with the
         corresponding fields from the scannables current position and then returned.'''
         # Just return position if it does not need padding
         if None not in position:
             return position
-            
-        currentPosition = self.getPosition()[:self.numInputFields]
+        if self.positionAtScanStart is not None:
+            basePosition =  self.positionAtScanStart
+        else:
+            basePosition = self.getPosition()[:self.numInputFields]
         for i in range(self.numInputFields):
             if position[i] == None:
-                position[i] = currentPosition[i]
+                position[i] = basePosition[i]
+        return position
                 
     def __getattr__(self, name):
         try:
             return self.childrenDict[name]
         except:
-            raise AttributeError
+            raise AttributeError("No child named:" + name)
     
     def __getitem__(self, key):
         '''Provides container like access from Jython'''

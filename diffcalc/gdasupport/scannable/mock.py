@@ -1,25 +1,28 @@
-class MockMotor:
+try:
+    from gda.device.scannable import ScannableMotionBase
+except ImportError:
+    from diffcalc.gdasupport.minigda.scannable.scannable import Scannable as ScannableMotionBase
+ 
+
+class MockMotor(ScannableMotionBase):
     
     def __init__(self, name='mock'):
         self.pos = 0.0
-        self.busy = False
+        self._busy = False
         self.name = name
         
-    def getName(self):
-        return self.name
-        
     def asynchronousMoveTo(self, pos):
-        self.busy = True
+        self._busy = True
         self.pos = float(pos)
         
     def getPosition(self):
         return self.pos
     
     def isBusy(self):
-        return self.busy
+        return self._busy
     
     def makeNotBusy(self):
-        self.busy = False
+        self._busy = False
         
     def getOutputFormat(self):
         return ['%f']

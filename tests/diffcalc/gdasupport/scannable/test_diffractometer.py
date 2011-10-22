@@ -1,9 +1,12 @@
+try:
+    from gda.device.scannable.scannablegroup import ScannableGroup
+except ImportError:
+    from diffcalc.gdasupport.minigda.scannable.group import ScannableGroup
 
-from diffcalc.gdasupport.scannable.base import ScannableGroup
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
 from diffcalc.gdasupport.scannable.mock import MockMotor
-from tests.diffcalc.gda.scannable.mockdiffcalc import MockDiffcalc
+from tests.diffcalc.gdasupport.scannable.mockdiffcalc import MockDiffcalc
 import unittest
 
 try:
@@ -39,20 +42,21 @@ class TestDiffractometerScannableGroup(unittest.TestCase):
         self.d = MockMotor()
         self.e = MockMotor()
         self.f = MockMotor()#
-        self.grp = ScannableGroup('grp', (self.a, self.b, self.c, self.d, self.e, self.f))
+        self.grp = ScannableGroup('grp', [self.a, self.b, self.c, self.d, self.e, self.f])
+        self.grp.configure()
         self.sg = DiffractometerScannableGroup('sixc', MockDiffcalc(6), self.grp)
     
     def testInit(self):
-        self.assertEqual(self.sg.getPosition(), [0.0 , 0.0 , 0.0, 0.0 , 0.0 , 0.0])
+        self.assertEqual(list(self.sg.getPosition()), [0.0 , 0.0 , 0.0, 0.0 , 0.0 , 0.0])
     
     def testAsynchronousMoveTo(self):
         self.sg.asynchronousMoveTo([1, 2.0, 3, 4, 5, 6])
-        self.assertEqual(self.sg.getPosition(), [1.0 , 2.0 , 3.0, 4.0, 5.0, 6.0])
+        self.assertEqual(list(self.sg.getPosition()), [1.0 , 2.0 , 3.0, 4.0, 5.0, 6.0])
     
     def testAsynchronousMoveToWithNones(self):
         self.sg.asynchronousMoveTo([1.0, 2.0 , 3.0, 4.0, 5.0, 6.0])
         self.sg.asynchronousMoveTo([None, None, 3.2, None, 5.2, None])
-        self.assertEqual(self.sg.getPosition(), [1.0 , 2.0 , 3.2, 4.0, 5.2, 6.0])
+        self.assertEqual(list(self.sg.getPosition()), [1.0 , 2.0 , 3.2, 4.0, 5.2, 6.0])
 
     def testGetPosition(self):
         #implicitely tested above
@@ -111,6 +115,7 @@ class TestDiffractometerScannableGroupWithFailingAngleCalculator(unittest.TestCa
             def _anglesToHkl(self, pos):
                 raise Exception("Problem")
         self.group = ScannableGroup('grp', createDummyAxes(['alpha', 'delta', 'gamma', 'omega', 'chi', 'phi']))
+        self.group.configure()
         self.sg = DiffractometerScannableGroup('sixc', BadMockAngleCalculator(), self.group)
 
     def testGetPosition(self):
@@ -118,40 +123,3 @@ class TestDiffractometerScannableGroupWithFailingAngleCalculator(unittest.TestCa
         
     def testSimulateMoveTo(self):
         self.assertEqual(self.sg.simulateMoveTo([1.0, 2.0 , 3.0, 4.0, 5.0, 6.0]), "Error: Problem")
-
-
-
-class TestScannableGroup(unittest.TestCase):
-
-    def setUp(self):
-        self.a = MockMotor('a')
-        self.b = MockMotor('bbb')
-        self.c = MockMotor('c')    
-        self.sg = ScannableGroup('abc', (self.a, self.b, self.c))
-    
-    def testInit(self):
-        self.assertEqual(list(self.sg.getInputNames()), ['a', 'bbb', 'c'])
-        self.assertEqual(self.sg.getPosition(), [0.0 , 0.0 , 0.0])
-
-    def testAsynchronousMoveTo(self):
-        self.sg.asynchronousMoveTo([1, 2.0, 3])
-        self.assertEqual(self.sg.getPosition(), [1.0 , 2.0 , 3.0])
-    
-    def testAsynchronousMoveToWithNones(self):
-        self.sg.asynchronousMoveTo([1.0, 2.0 , 3.0])
-        self.sg.asynchronousMoveTo([None, None, 3.2])
-        self.assertEqual(self.sg.getPosition(), [1.0 , 2.0 , 3.2])
-                
-    def testGetPosition(self):
-        #implicitely tested above
-        pass
-    
-    def testIsBusy(self):    
-        self.assertEqual(self.sg.isBusy(), False)
-        self.sg.asynchronousMoveTo([1.0, 2.0 , 3.0])
-        self.assertEqual(self.sg.isBusy(), True)
-        self.b.makeNotBusy()
-        self.assertEqual(self.sg.isBusy(), True)
-        self.a.makeNotBusy()    
-        self.c.makeNotBusy()            
-        self.assertEqual(self.sg.isBusy(), False)

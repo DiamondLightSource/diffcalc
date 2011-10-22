@@ -5,10 +5,25 @@ class GdaLikeScannable(object):
         raise Exception("Must be overidden. Not needed in minigda yet!")    
     
     def getPosition(self):
-        raise Exception("Must be overidden")    
+        return self.rawGetPosition()   
     
     def asynchronousMoveTo(self, newpos):
+        self.rawAsynchronousMoveTo(newpos)
+    
+    def rawGetPosition(self):
+        raise Exception("Must be overidden")    
+    
+    def rawAsynchronousMoveTo(self, newpos):
         raise Exception("Must be overidden")
+    
+    def atScanStart(self):
+        pass
+
+    def atScanEnd(self):
+        pass
+    
+    def atCommandFailure(self):
+        pass
 
 ###
 
@@ -49,34 +64,39 @@ class GdaLikeScannable(object):
 ###
 
     def getName(self):
-        return self._name
+        return self.name
+    
     def setName(self, value):
-        self._name = value
+        self.name = value
 
     def getLevel(self):
-        return self.__level
+        return self._level
+    
     def setLevel(self, value):
-        self.__level = value
+        self._level = value
     
     def getInputNames(self):
-        return self.__ioFieldNames    
+        return self._ioFieldNames 
+       
     def setInputNames(self, value):
-        self.__ioFieldNames = value    
+        self._ioFieldNames = value    
     
     def getExtraNames(self):
         try:
-            return self.__oFieldNames
+            return self._oFieldNames
         except:
             return []
+        
     def setExtraNames(self, value):
-        self.__oFieldNames = value
+        self._oFieldNames = value
         
     def getOutputFormat(self):
-        return self.__formats    
+        return self._formats 
+       
     def setOutputFormat(self, value):
         if type(value) not in (tuple, list):
             raise TypeError("%s.setOutputFormat() expects tuple or list; not %s" % (self.getName(), str(type(value))))
-        self.__formats = value
+        self._formats = value
 
     def __call__(self, newpos=None):
         if newpos is None:

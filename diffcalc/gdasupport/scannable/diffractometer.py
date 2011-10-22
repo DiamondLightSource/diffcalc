@@ -1,12 +1,12 @@
 from diffcalc.utils import getMessageFromException
 try:
-    from gda.device.scannable import PseudoDevice
+    from gda.device.scannable import ScannableMotionBase
 except ImportError:
-    from diffcalc.gdasupport.minigda.scannable.scannable import Scannable as PseudoDevice
+    from diffcalc.gdasupport.minigda.scannable.scannable import Scannable as ScannableMotionBase
     
 # TODO: Split into a base class when making other scannables
 
-class DiffractometerScannableGroup(PseudoDevice):
+class DiffractometerScannableGroup(ScannableMotionBase):
     """"Wraps up a scannableGroup of axis to tweak the way the resulting object is
     displayed and to add a simulate move to method.
     
