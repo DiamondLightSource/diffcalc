@@ -29,7 +29,8 @@ diffcalcObjects = createDiffcalcObjects(
 	energyScannableMultiplierToGetKeV = 0.001,
 	geometryPlugin = 'fivec',
 	hklverboseVirtualAnglesToReport=('2theta','Bin','Bout','azimuth'),
-	demoCommands = demoCommands
+	demoCommands = demoCommands,
+	simulatedCrystalCounterName = 'ct'
 )
 
 diffcalcObjects['diffcalcdemo'].commands = demoCommands
