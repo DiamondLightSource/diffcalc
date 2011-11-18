@@ -95,6 +95,29 @@ class SixCircleGeometry(DiffractometerGeometryPlugin):
         return alpha, deltaB, gammaB, omega, chi, phi
 
 
+class FivecWithGammaOnBase(SixCircleGeometry):
+    
+    def __init__(self):
+        DiffractometerGeometryPlugin.__init__(
+                    self,
+                    name='fivec_with_gamma',
+                    supportedModeGroupList=('fourc', 'fivecFixedGamma'),
+                    fixedParameterDict={'alpha':0.0},
+                    gammaLocation='base'
+                    )
+        self.hardwareMonitor = None
+        
+    def physicalAnglesToInternalPosition(self, physicalAngles):
+        """ (a,d,g,o,c,p) = physicalAnglesToInternal(d,g,o,c,p)
+        """
+        assert (len(physicalAngles) == 5), "Wrong length of input list"
+        return SixCircleGeometry.physicalAnglesToInternalPosition(self, (0,) + tuple(physicalAngles))
+    
+    def internalPositionToPhysicalAngles(self, internalPosition):
+        """ (d,g,o,c,p) = physicalAnglesToInternal(a,d,g,o,c,p)
+        """
+        return SixCircleGeometry.internalPositionToPhysicalAngles(self, internalPosition)[1:]
+
 
 """
 Based on: Elias Vlieg, "A (2+3)-Type Surface Diffractometer: Mergence of the z-axis
