@@ -24,7 +24,8 @@ demoCommands.append( "ub" )
 demoCommands.append( "hklmode" )
 
 diffcalcObjects = createDiffcalcObjects(
-	axisScannableList = (alpha, delta, omega, chi, phi), #@UndefinedVariable
+	#axisScannableList = (alpha, delta, omega, chi, phi), #@UndefinedVariable
+	axesGroupScannable = dif, #@UndefinedVariable
 	energyScannable = energy, #@UndefinedVariable
 	energyScannableMultiplierToGetKeV = 0.001,
 	geometryPlugin = 'fivec',

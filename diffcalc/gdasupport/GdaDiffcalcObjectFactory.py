@@ -9,9 +9,12 @@ from diffcalc.hardware.scannable import ScannableHardwareMonitorPlugin
 from diffcalc.gdasupport.scannable.hkl import Hkl
 from diffcalc.gdasupport.scannable.wavelength import Wavelength
 from diffcalc.gdasupport.scannable.parameter import DiffractionCalculatorParameter
-from diffcalc.gdasupport.scannable.base import ScannableGroup
 from diffcalc.gdasupport.scannable.diffractometer import DiffractometerScannableGroup
 from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter
+try:
+    from gda.device.scannable.scannablegroup import ScannableGroup
+except ImportError:
+    from diffcalc.gdasupport.minigda.scannable.group import ScannableGroup
 
 import time
 try:
