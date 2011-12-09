@@ -90,7 +90,12 @@ class Test(unittest.TestCase):
         c = Factory.createDiffractometerScannableAndPossiblyDummies
         objects, diffractometerScannable = c(None, self.motorList, None, 'ncircle')
         group = diffractometerScannable._DiffractometerScannableGroup__group
-        self.assertEquals(group._ScannableGroup__motors, self.motorList)
+        try:
+            motors = group._ScannableGroup__motors
+        except AttributeError:
+            motors = group.getGroupMembers()
+        self.assert_(len(motors), 6)
+        self.assertEquals(list(motors), list(self.motorList))
         self.assertEquals(diffractometerScannable.getName(), 'ncircle')
         self.assertEquals(list(diffractometerScannable.getInputNames()), list(self.motorNames))
         self.assertEquals(objects['ncircle'], diffractometerScannable)
@@ -101,7 +106,10 @@ class Test(unittest.TestCase):
         c = Factory.createDiffractometerScannableAndPossiblyDummies
         objects, diffractometerScannable = c(self.motorNames, None, None, 'ncircle')
         group = diffractometerScannable._DiffractometerScannableGroup__group
-        motors = group._ScannableGroup__motors
+        try:
+            motors = group._ScannableGroup__motors
+        except AttributeError:
+            motors = group.getGroupMembers()
         self.assert_(len(motors), 6)
         self.assertEquals(list(motors[0].getInputNames()), ['alpha'])
         self.assertEquals(list(objects['alpha'].getInputNames()), ['alpha'])
