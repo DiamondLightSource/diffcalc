@@ -6,6 +6,8 @@ from diffcalc.utils import MockRawInput
 from mock import Mock
 import diffcalc.utils # @UnusedImport to overide raw_input
 import unittest
+from diffcalc.hkl.calcvlieg import VliegHklCalculator
+from diffcalc.ub.calculation import UBCalculation
 
 try:
     from gdascripts.pd.dummy_pds import DummyPD #@UnusedImport
@@ -23,8 +25,9 @@ class TestHklCommands(unittest.TestCase):
     def setUp(self):
         self.geometry = SixCircleGammaOnArmGeometry()
         self.hardware = DummyHardwareMonitorPlugin(('alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'))
-        self.mock_ubcalc = Mock(spec=UbCommands) # Used only to get the UBMatrix, tau and sigma
-        self.hklcommands = HklCommands(self.mock_ubcalc, self.hardware, self.geometry, True)
+        self.mock_ubcalc = Mock(spec=UBCalculation) # Used only to get the UBMatrix, tau and sigma
+        self.hklcalc = VliegHklCalculator(self.mock_ubcalc, self.geometry, self.hardware, True)
+        self.hklcommands = HklCommands(self.hardware, self.geometry, self.hklcalc)
         diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
         prepareRawInput([])
 

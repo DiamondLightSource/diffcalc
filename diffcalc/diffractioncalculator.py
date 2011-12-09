@@ -4,6 +4,7 @@ from diffcalc.ub.commands import UbCommands, UbCommand
 from diffcalc.hkl.commands import HklCommands
 from diffcalc.mapper.commands import MapperCommands
 from diffcalc.ub.calculation import UBCalculation
+from diffcalc.hkl.calcvlieg import VliegHklCalculator
 
 
 class Diffcalc(object):
@@ -26,7 +27,9 @@ class Diffcalc(object):
         
         self._ubcalc = UBCalculation(self._hardware, self._geometry, ub_persister)
         
-        self._hklcommands = HklCommands(self._ubcalc, self._hardware, self._geometry, raiseExceptionsIfAnglesDoNotMapBackToHkl)
+        self._hklcalc = VliegHklCalculator(self._ubcalc, self._geometry, self._hardware, raiseExceptionsIfAnglesDoNotMapBackToHkl)
+        
+        self.hklcommands = HklCommands(self._hardware, self._geometry, self._hklcalc)
     
         diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = RAISE_EXCEPTIONS_FOR_ALL_ERRORS
 
@@ -36,7 +39,7 @@ class Diffcalc(object):
         return self.__repr__()
     
     def __repr__(self):
-        return self.ubcommands.__str__() + "\n" + self._hklcommands.__str__()
+        return self.ubcommands.__str__() + "\n" + self.hklcommands.__str__()
     
 ### Used by diffcalc scannables
     
@@ -50,19 +53,19 @@ class Diffcalc(object):
         return self._hardware.getPhysicalAngleNames()
     
     def _getParameterNames(self):
-        return self._hklcommands.getParameterDict().keys()
+        return self.hklcommands.getParameterDict().keys()
 
     def _setParameter(self, name, value):
-        self._hklcommands.setParameter(name, value)
+        self.hklcommands.setParameter(name, value)
         
     def _getParameter(self, name):
-        return self._hklcommands.getParameter(name)
+        return self.hklcommands.getParameter(name)
 
     def _hklToAngles(self, h, k, l, energy=None):
         """Convert a given hkl vector to a set of diffractometer angles"""
         if energy is None:
             energy = self._hardware.getEnergy()
-        (pos, params) = self._hklcommands.hklToAngles(h, k, l, energy)
+        (pos, params) = self.hklcommands.hklToAngles(h, k, l, energy)
         return (self._mapper.map(pos), params)
     
     def _anglesToHkl(self, angleTuple, energy=None):
@@ -71,7 +74,7 @@ class Diffcalc(object):
         #we will assume this is called correctly, as it is not a user command
         if energy is None:
             energy = self._hardware.getEnergy()
-        return self._hklcommands.anglesToHkl(self._geometry.physicalAnglesToInternalPosition(angleTuple), energy)
+        return self.hklcommands.anglesToHkl(self._geometry.physicalAnglesToInternalPosition(angleTuple), energy)
 
 ### ub commands
 
@@ -147,7 +150,7 @@ class Diffcalc(object):
                 s += "<<empty>>"
             for n in range(len(reflist)):
                 (hklguess, pos, energy, tag, time) = reflist.getReflection(n + 1)
-                (hkl, params) = self._hklcommands.anglesToHkl(pos, energy)
+                (hkl, params) = self.hklcommands.anglesToHkl(pos, energy)
                 del time, params
                 if tag is None:
                     tag = ""
@@ -158,25 +161,25 @@ class Diffcalc(object):
 ### hkl commands
 
     def helphkl(self, *args):
-        return self._hklcommands.helphkl(*args)
+        return self.hklcommands.helphkl(*args)
 
     def hklmode(self, *args):
-        return self._hklcommands.hklmode(*args)
+        return self.hklcommands.hklmode(*args)
 
     def setpar(self, *args):
-        return self._hklcommands.setpar(*args)
+        return self.hklcommands.setpar(*args)
 
     def trackalpha(self, *args):
-        return self._hklcommands.trackalpha(*args)
+        return self.hklcommands.trackalpha(*args)
 
     def trackgamma(self, *args):
-        return self._hklcommands.trackgamma(*args)
+        return self.hklcommands.trackgamma(*args)
 
     def trackphi(self, *args):
-        return self._hklcommands.trackphi(*args)
+        return self.hklcommands.trackphi(*args)
 
     def sim(self, *args):
-        return self._hklcommands.sim(*args)
+        return self.hklcommands.sim(*args)
     
 ### mapper commands
 

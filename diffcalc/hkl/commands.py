@@ -20,14 +20,14 @@ class HklCommand(UsageHandler):
 
 class HklCommands(object):
     
-    def __init__(self, ubcommands, hardware, geometry, raiseExceptionsIfAnglesDoNotMapBackToHkl):
-        self._hklcalc = VliegHklCalculator(ubcommands, geometry, hardware, raiseExceptionsIfAnglesDoNotMapBackToHkl)
+    def __init__(self, hardware, geometry, hklcalc):
         self._hardware = hardware
         self._geometry = geometry
+        self._hklcalc = hklcalc
         
-        self.addDynamicHelpLines()
+        self._addDynamicHelpLines()
 
-    def addDynamicHelpLines(self):
+    def _addDynamicHelpLines(self):
         angleNames = self._hardware.getPhysicalAngleNames()
         formatStr = ("[" + "%s, "*len(angleNames))[:-1] + "]"
         diffHwName = self._hardware.getDiffHardwareName()
