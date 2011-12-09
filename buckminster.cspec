@@ -3,4 +3,7 @@
     <cs:dependencies>
         <cs:dependency name="builders.dawn" componentType="buckminster"/>
     </cs:dependencies>
+    <cs:artifacts>
+        <cs:public name="containsDocumentationSource"/>
+    </cs:artifacts>
 </cs:cspec>
