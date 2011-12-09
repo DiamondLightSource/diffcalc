@@ -1,6 +1,5 @@
 from datetime import datetime
 from diffcalc.help import HelpList, UsageHandler
-from diffcalc.ub.calculation import UBCalculation
 from diffcalc.utils import getInputWithDefault as promptForInput, \
     promptForNumber, promptForList, allnum, isnum
 from math import asin, pi
@@ -19,25 +18,10 @@ class UbCommand(UsageHandler):
 
 class UbCommands(object):
     
-    def __init__(self, hardware, geometry, ub_persister):
-        self._ubcalc = UBCalculation(hardware, geometry, ub_persister)
+    def __init__(self, hardware, geometry, ubcalc):
         self._hardware = hardware
         self._geometry = geometry
-    
-    def getUBMatrix(self):
-        return self._ubcalc.getUBMatrix()
-        
-    def getUMatrix(self):
-        return self._ubcalc.getUMatrix()
-
-    def getTau(self):
-        return self._ubcalc.getTau()
-        
-    def getSigma(self):
-        return self._ubcalc.getSigma()
-    
-    def getReflist(self):
-        return self._ubcalc.getReflist()
+        self._ubcalc = ubcalc
     
     def __str__(self):
         return self._ubcalc.__str__()

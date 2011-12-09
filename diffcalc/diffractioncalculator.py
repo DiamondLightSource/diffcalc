@@ -3,6 +3,7 @@ import diffcalc.help #@UnusedImport for flag
 from diffcalc.ub.commands import UbCommands, UbCommand
 from diffcalc.hkl.commands import HklCommands
 from diffcalc.mapper.commands import MapperCommands
+from diffcalc.ub.calculation import UBCalculation
 
 
 class Diffcalc(object):
@@ -23,18 +24,19 @@ class Diffcalc(object):
         
         self._mapper = MapperCommands(self._geometry, self._hardware)
         
-        self._ubcommands = UbCommands(self._hardware, self._geometry, ub_persister)
-                        
-        self._hklcommands = HklCommands(self._ubcommands, self._hardware, self._geometry, raiseExceptionsIfAnglesDoNotMapBackToHkl)
+        self._ubcalc = UBCalculation(self._hardware, self._geometry, ub_persister)
+        
+        self._hklcommands = HklCommands(self._ubcalc, self._hardware, self._geometry, raiseExceptionsIfAnglesDoNotMapBackToHkl)
     
         diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = RAISE_EXCEPTIONS_FOR_ALL_ERRORS
 
+        self.ubcommands = UbCommands(self._hardware, self._geometry, self._ubcalc)
 
     def __str__(self):
         return self.__repr__()
     
     def __repr__(self):
-        return self._ubcommands.__str__() + "\n" + self._hklcommands.__str__()
+        return self.ubcommands.__str__() + "\n" + self._hklcommands.__str__()
     
 ### Used by diffcalc scannables
     
@@ -74,58 +76,58 @@ class Diffcalc(object):
 ### ub commands
 
     def helpub(self, *args):
-        return self._ubcommands.helpub(*args)
+        return self.ubcommands.helpub(*args)
 
     def newub(self, *args):
-        return self._ubcommands.newub(*args)
+        return self.ubcommands.newub(*args)
 
     def loadub(self, *args):
-        return self._ubcommands.loadub(*args)
+        return self.ubcommands.loadub(*args)
 
     def listub(self, *args):
-        return self._ubcommands.listub(*args)
+        return self.ubcommands.listub(*args)
 
     def saveubas(self, *args):
-        return self._ubcommands.saveubas(*args)
+        return self.ubcommands.saveubas(*args)
 
     def ub(self, *args):
-        return self._ubcommands.ub(*args)
+        return self.ubcommands.ub(*args)
 
     def setlat(self, *args):
-        return self._ubcommands.setlat(*args)
+        return self.ubcommands.setlat(*args)
     
     def c2th(self, *args):
-        return self._ubcommands.c2th(*args)
+        return self.ubcommands.c2th(*args)
 
     def sigtau(self, *args):
-        return self._ubcommands.sigtau(*args)
+        return self.ubcommands.sigtau(*args)
 
     def showref(self, *args):
-        return self._ubcommands.showref(*args)
+        return self.ubcommands.showref(*args)
 
     def addref(self, *args):
-        return self._ubcommands.addref(*args)
+        return self.ubcommands.addref(*args)
 
     def editref(self, *args):
-        return self._ubcommands.editref(*args)
+        return self.ubcommands.editref(*args)
 
     def delref(self, *args):
-        return self._ubcommands.delref(*args)
+        return self.ubcommands.delref(*args)
 
     def swapref(self, *args):
-        return self._ubcommands.swapref(*args)
+        return self.ubcommands.swapref(*args)
 
     def setu(self, *args):
-        return self._ubcommands.setu(*args)
+        return self.ubcommands.setu(*args)
 
     def setub(self, *args):
-        return self._ubcommands.setub(*args)
+        return self.ubcommands.setub(*args)
 
     def calcub(self, *args):
-        return self._ubcommands.calcub(*args)
+        return self.ubcommands.calcub(*args)
 
     def trialub(self, *args):
-        return self._ubcommands.trialub(*args)
+        return self.ubcommands.trialub(*args)
     
     
 
@@ -137,10 +139,10 @@ class Diffcalc(object):
         s = "   %-6s %-4s %-4s %-4s  %-6s %-6s %-6s  tag\n" % \
         ('energy', 'h', 'k', 'l', 'h_comp', 'k_comp', 'l_comp')
         
-        if self._ubcommands.getReflist() is None:
+        if self._ubcalc.getReflist() is None:
             s += "<<empty>>"
         else:
-            reflist = self._ubcommands.getReflist()
+            reflist = self._ubcalc.getReflist()
             if len(reflist) == 0:
                 s += "<<empty>>"
             for n in range(len(reflist)):
@@ -204,3 +206,8 @@ class Diffcalc(object):
 
     def setmax(self, *args):
         return self._mapper.setmax(*args)
+    
+# NOTE: Fails, must be pulled off instances
+#for command_name in (n for n in dir(Diffcalc._mapper) if n[0] != '_'):
+#    Diffcalc.__dict__.append(getattr(Diffcalc._mapper, command_name))
+#    

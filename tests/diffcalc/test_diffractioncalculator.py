@@ -77,7 +77,7 @@ class BaseTestDiffractionCalculatorWithData():
         self.d.calcub()
         
         # check the ubcalculation is okay before continuing (useful to check for typos!)        
-        self.assert_(self.d._ubcommands.getUBMatrix().minus(Matrix(s.umatrix).times(Matrix(s.bmatrix))).norm1() <= .0001, \
+        self.assert_(self.d._ubcalc.getUBMatrix().minus(Matrix(s.umatrix).times(Matrix(s.bmatrix))).norm1() <= .0001, \
                                                          "wrong UB matrix after calculating U")
         # Test each hkl/position pair
         for idx in range(len(c.hklList)):
@@ -105,7 +105,7 @@ class BaseTestDiffractionCalculatorWithData():
         r = s.ref2; self.d.addref(r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
         self.d.calcub()
         # check the ubcalculation is okay before continuing (useful to check for typos!)        
-        self.assert_(self.d._ubcommands.getUBMatrix().minus(Matrix(s.umatrix).times(Matrix(s.bmatrix))).norm1() <= .0001, \
+        self.assert_(self.d._ubcalc.getUBMatrix().minus(Matrix(s.umatrix).times(Matrix(s.bmatrix))).norm1() <= .0001, \
                                                          "wrong UB matrix after calculating U")
     
         ## setup calculation info
@@ -154,7 +154,7 @@ class BaseTestDiffractionCalculatorWithData():
         self.d.calcub()
         
         # check the ubcalculation is okay before continuing (useful to check for typos!)        
-        self.assert_(self.d._ubcommands.getUBMatrix().minus(Matrix(s.umatrix).times(Matrix(s.bmatrix))).norm1() <= .0001, \
+        self.assert_(self.d._ubcalc.getUBMatrix().minus(Matrix(s.umatrix).times(Matrix(s.bmatrix))).norm1() <= .0001, \
                                                          "wrong UB matrix after calculating U")
         self.hardware.setEnergy(c.energy)
         # Test each hkl/position pair
@@ -416,7 +416,7 @@ class SixcGammaOnBaseTest(TestSixcBase):
         self.sixc([0, 90, 0, 45, 45, 90])
         self.d.addref(0, 1, 1)
         self.d.checkub()
-        res = self.d._ubcommands.getUMatrix()
+        res = self.d._ubcalc.getUMatrix()
         des = Matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
         self.assert_(res.minus(des).norm1() <= .0001)
         print "***"

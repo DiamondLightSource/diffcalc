@@ -7,6 +7,7 @@ from diffcalc.utils import DiffcalcException, MockRawInput
 from tests.diffcalc import scenarios
 import diffcalc.utils # @UnusedImport
 import unittest
+from diffcalc.ub.calculation import UBCalculation
 
 try:
     from Jama import Matrix
@@ -24,7 +25,8 @@ class TestUbCommands(unittest.TestCase):
     def setUp(self):
         self.hardware = DummyHardwareMonitorPlugin(('alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'))
         self.geometry = SixCircleGammaOnArmGeometry()
-        self.ubcommands = UbCommands(self.hardware, self.geometry, UbCalculationNonPersister())
+        self.ubcalc = UBCalculation(self.hardware, self.geometry, UbCalculationNonPersister())
+        self.ubcommands = UbCommands(self.hardware, self.geometry, self.ubcalc)
         prepareRawInput([])
         diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
         
@@ -253,13 +255,13 @@ class TestUbCommands(unittest.TestCase):
         
         prepareRawInput(['1 2 3', '4 5 6', '7 8 9'])
         self.ubcommands.setu()
-        a = self.ubcommands.getUMatrix().getArray()
+        a = self.ubcalc.getUMatrix().getArray()
         self.assertEquals([ list(a[0]), list(a[1]), list(a[2])], [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         
         prepareRawInput(['', ' 9 9.9 99', ''])
         self.ubcommands.setu()
         
-        a = self.ubcommands.getUMatrix().getArray()
+        a = self.ubcalc.getUMatrix().getArray()
         self.assertEquals([ list(a[0]), list(a[1]), list(a[2])], [[1, 0, 0], [9, 9.9, 99], [0, 0, 1]])
         
     def testSetub(self):
@@ -280,12 +282,12 @@ class TestUbCommands(unittest.TestCase):
         
         prepareRawInput(['1 2 3', '4 5 6', '7 8 9'])
         self.ubcommands.setub()
-        a = self.ubcommands.getUBMatrix().getArray()
+        a = self.ubcalc.getUBMatrix().getArray()
         self.assertEquals([ list(a[0]), list(a[1]), list(a[2])], [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         
         prepareRawInput(['', ' 9 9.9 99', ''])
         self.ubcommands.setub()
-        a = self.ubcommands.getUBMatrix().getArray()
+        a = self.ubcalc.getUBMatrix().getArray()
         self.assertEquals([ list(a[0]), list(a[1]), list(a[2])], [[1, 0, 0], [9, 9.9, 99], [0, 0, 1]])
     
     def testCalcub(self):        
@@ -300,7 +302,7 @@ class TestUbCommands(unittest.TestCase):
         r = s.ref1; self.ubcommands.addref(r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
         r = s.ref2; self.ubcommands.addref(r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
         self.ubcommands.calcub()
-        self.assert_(self.ubcommands.getUBMatrix().minus(Matrix(s.umatrix).times(Matrix(s.bmatrix))).norm1() <= .0001, \
+        self.assert_(self.ubcalc.getUBMatrix().minus(Matrix(s.umatrix).times(Matrix(s.bmatrix))).norm1() <= .0001, \
                                                          "wrong UB matrix after calculating U")    
 
     def testC2th(self):
@@ -314,20 +316,20 @@ class TestUbCommands(unittest.TestCase):
         self.assertRaises(ValueError, self.ubcommands.sigtau, 1, 'a')
         self.ubcommands.sigtau(1, 2)
         self.ubcommands.sigtau(1, 2.0)
-        self.assertEqual(self.ubcommands.getSigma(), 1)
-        self.assertEqual(self.ubcommands.getTau(), 2.0)        
+        self.assertEqual(self.ubcalc.getSigma(), 1)
+        self.assertEqual(self.ubcalc.getTau(), 2.0)        
 
     def testSigtauInteractive(self):
         prepareRawInput(['1', '2.'])
         self.ubcommands.sigtau()
-        self.assertEqual(self.ubcommands.getSigma(), 1)
-        self.assertEqual(self.ubcommands.getTau(), 2.0)
+        self.assertEqual(self.ubcalc.getSigma(), 1)
+        self.assertEqual(self.ubcalc.getTau(), 2.0)
         #Defaults:
         prepareRawInput(['', ''])
         self.hardware.setPosition([None, None, None, None, 3, 4.])
         self.ubcommands.sigtau()
-        self.assertEqual(self.ubcommands.getSigma(), -3.)
-        self.assertEqual(self.ubcommands.getTau(), -4.)
+        self.assertEqual(self.ubcalc.getSigma(), -3.)
+        self.assertEqual(self.ubcalc.getTau(), -4.)
         
     def testSetWithString(self):
         self.assertRaises(TypeError, self.ubcommands.setlat, 'alpha', 'a')
