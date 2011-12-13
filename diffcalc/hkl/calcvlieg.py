@@ -16,14 +16,10 @@ transformC = TransformCInRadians()
 
 PREFER_POSITIVE_CHI_SOLUTIONS = True
 
-def vliegAnglesToHkl(pos, energy, UBMatrix):
+def vliegAnglesToHkl(pos, wavelength, UBMatrix):
     """
-    (h, k, l) = anglesToHkl(pos, energy) -- Returns hkl indices from pos object in radians.
+    (h, k, l) = anglesToHkl(pos, wavelength) -- Returns hkl indices from pos object in radians.
     """
-    try:
-        wavelength = 12.39842 / energy
-    except ZeroDivisionError:
-        raise DiffcalcException("Cannot calculate hkl position as Energy is set to 0")
     wavevector = 2 * pi / wavelength
     
     # Create transformation matrices
@@ -43,15 +39,15 @@ def vliegAnglesToHkl(pos, energy, UBMatrix):
 
 class VliegHklCalculator(HklCalculatorBase):
             
-    def _anglesToHkl(self, pos, energy):
+    def _anglesToHkl(self, pos, wavelength):
         """
-        Return hkl tuple from Position in radians and energy in keV.
+        Return hkl tuple from Position in radians and wavelength in Angstroms.
         """
-        return vliegAnglesToHkl(pos, energy, self._getUBMatrix())
+        return vliegAnglesToHkl(pos, wavelength, self._getUBMatrix())
 
-    def _anglesToVirtualAngles(self, pos, energy):
+    def _anglesToVirtualAngles(self, pos, wavelength):
         """Return dictionary of all virtual angles in radians from Position object
-        in radians and energy in keV. The virtual angles are: Bin, Bout,
+        in radians and wavelength in Angstroms. The virtual angles are: Bin, Bout,
         azimuth and 2theta.
         """
 
@@ -80,10 +76,10 @@ class VliegHklCalculator(HklCalculatorBase):
         cosTwoTheta = dot3(ALPHA.times(DELTA).times(GAMMA).times(y_vector), y_vector)
         twotheta = acos(bound(cosTwoTheta))
         # FUDGE azimuth calculation (aka psi)
-#        h, k, l = self.vliegAnglesToHkl(pos, energy)
+#        h, k, l = self.vliegAnglesToHkl(pos, wavelength)
 #        hklPhiNorm = self._getUBMatrix().times(Matrix([[h],[k],[l]]))
 #        psi = self.__determinePsiForGivenBin(hklPhiNorm, pos.alpha, pos.delta, pos.gamma, Bin)
-        psi = self._anglesToPsi(pos, energy)
+        psi = self._anglesToPsi(pos, wavelength)
         
         # Gather them up
         #paramDict = {'Bin':Bin*TODEG, 'Bout':Bout*TODEG, 'azimuth': psi*TODEG, '2theta':twotheta*TODEG}
@@ -91,23 +87,23 @@ class VliegHklCalculator(HklCalculatorBase):
         return paramDict
 
     
-    def _hklToAngles(self, h , k , l, energy):
+    def _hklToAngles(self, h , k , l, wavelength):
         """Return Position and virtual angles in radians from h, k & l and
-        energy in keV. The virtual angles are those fixed or generated while
+        wavelength in Angstroms. The virtual angles are those fixed or generated while
         calculating the position: Bin, Bout and 2theta; and azimuth in four and
         five circle modes.
         """
         
         if self._getMode().group in ("fourc", "fivecFixedGamma", "fivecFixedAlpha"):
-            return self._hklToAnglesFourAndFiveCirclesModes(h, k, l, energy)
+            return self._hklToAnglesFourAndFiveCirclesModes(h, k, l, wavelength)
         elif self._getMode().group == "zaxis":
-            return self._hklToAnglesZaxisModes(h, k, l, energy)
+            return self._hklToAnglesZaxisModes(h, k, l, wavelength)
         else:
             raise RuntimeError("The current mode (%s) has an unrecognised group: %s." % (self._getMode().name, self._getMode().group))
 
-    def _hklToAnglesFourAndFiveCirclesModes(self, h, k, l, energy):
+    def _hklToAnglesFourAndFiveCirclesModes(self, h, k, l, wavelength):
         """Return Position and virtual angles in radians from h, k & l and
-        energy in keV for four and five circle modes. The virtual angles are
+        wavelength in Angstrom for four and five circle modes. The virtual angles are
         those fixed or generated while calculating the position: Bin, Bout,
         2theta and azimuth.
         """
@@ -118,7 +114,6 @@ class VliegHklCalculator(HklCalculatorBase):
         pos = Position(None, None, None, None, None, None)
         
         # Normalise hkl
-        wavelength = 12.39842 / energy
         wavevector = 2 * pi / wavelength
         hklNorm = Matrix([ [h / wavevector], [k / wavevector], [l / wavevector]])
         
@@ -164,9 +159,9 @@ class VliegHklCalculator(HklCalculatorBase):
 
         return pos, {'2theta':twotheta, 'Bin':Bin, 'Bout':Bout, 'azimuth':psi}
 
-    def _hklToAnglesZaxisModes(self, h, k, l, energy):
+    def _hklToAnglesZaxisModes(self, h, k, l, wavelength):
         """Return Position and virtual angles in radians from h, k & l and
-        energy in keV for z-axis modes. The virtual angles are those fixed or
+        wavelength in Angstroms for z-axis modes. The virtual angles are those fixed or
         generated while calculating the position: Bin, Bout, and 2theta.
         """
         # Section 6:
@@ -175,7 +170,6 @@ class VliegHklCalculator(HklCalculatorBase):
         pos = Position(None, None, None, None, None, None)
         
         # Normalise hkl
-        wavelength = 12.39842 / energy
         wavevector = 2 * pi / wavelength
         hkl = Matrix([ [h], [k], [l]])
         hklNorm = hkl.times(1.0 / wavevector)
@@ -496,7 +490,7 @@ class VliegHklCalculator(HklCalculatorBase):
             # if u points a long
             return (omega, chi, phi, psi)
 
-    def _anglesToPsi(self, pos, energy):
+    def _anglesToPsi(self, pos, wavelength):
         """
         pos assumed in radians. -180<= psi <= 180
         """
@@ -517,7 +511,7 @@ class VliegHklCalculator(HklCalculatorBase):
         
             
         # Finh H_phi
-        h, k, l = self._anglesToHkl(pos, energy)
+        h, k, l = self._anglesToHkl(pos, wavelength)
         H_phi = self._getUBMatrix().times(Matrix([[h], [k], [l]]))
         norm = H_phi.normF()
         check(norm >= 1e-10, "reciprical lattice vector too close to zero")

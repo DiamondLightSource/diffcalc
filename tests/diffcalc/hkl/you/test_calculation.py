@@ -21,8 +21,7 @@ UB1 = Matrix(
               (0.017452406437283505, -1.1135499981271473e-16, 0.9998476951563912))
             ).times(2 * pi)
              
-EN1 = 12.39842
-
+WL1 = 1 # Angstrom
 
 def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
     return Position(mu, delta, gamma, eta, chi, phi)
@@ -31,19 +30,19 @@ class TestAnglesToHklI16Examples():
 
     def test_anglesToHkl_mu_0_gam_0(self):
         pos = posFromI16sEuler(1, 1, 30, 0, 60, 0).inRadians()
-        arrayeq_(youAnglesToHkl(pos, EN1, UB1), [1, 0, 0])
+        arrayeq_(youAnglesToHkl(pos, WL1, UB1), [1, 0, 0])
     
     def test_anglesToHkl_mu_0_gam_10(self):
         pos = posFromI16sEuler(1, 1, 30, 0, 60, 10).inRadians()
-        arrayeq_(youAnglesToHkl(pos, EN1, UB1), [1.00379806, -0.006578435, 0.08682408])
+        arrayeq_(youAnglesToHkl(pos, WL1, UB1), [1.00379806, -0.006578435, 0.08682408])
         
     def test_anglesToHkl_mu_10_gam_0(self):
         pos = posFromI16sEuler(1, 1, 30, 10, 60, 0).inRadians()
-        arrayeq_(youAnglesToHkl(pos, EN1, UB1), [0.99620193, 0.0065784359, 0.08682408])
+        arrayeq_(youAnglesToHkl(pos, WL1, UB1), [0.99620193, 0.0065784359, 0.08682408])
         
     def test_anglesToHkl_arbitrary(self):
         pos = posFromI16sEuler(1.9, 2.9, 30.9, 0.9, 60.9, 2.9).inRadians()
-        arrayeq_(youAnglesToHkl(pos, EN1, UB1), [1.01174189, 0.02368622, 0.06627361])
+        arrayeq_(youAnglesToHkl(pos, WL1, UB1), [1.01174189, 0.02368622, 0.06627361])
     
 
 class TestCalc():

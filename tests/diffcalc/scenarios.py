@@ -36,6 +36,7 @@ class CalculationScenario:
         self.package = package
         self.mode = mode 
         self.energy = energy
+        self.wavelength = 12.39842 / energy
         self.modeToTest = modeToTest
         self.modeNumber = modeNumber
         self.hklList = None # hkl triples

@@ -31,28 +31,28 @@ class HklCalculatorBase(object):
         result += self.parameter_manager.reportAllParameters()
         return result
 ###
-    def anglesToHkl(self, pos, energy):
+    def anglesToHkl(self, pos, wavelength):
         """Return hkl tuple and dictionary of all virtual angles in degrees from
-        Position in degrees and energy in keV.
+        Position in degrees and wavelength in Angstroms.
         """
         # Calculate the (possibly) virtual angles: 2theta, betain, betaout, azimuth    
    
-        h, k, l = self._anglesToHkl(pos.inRadians(), energy)
-        paramDict = self.anglesToVirtualAngles(pos, energy)
+        h, k, l = self._anglesToHkl(pos.inRadians(), wavelength)
+        paramDict = self.anglesToVirtualAngles(pos, wavelength)
         return ((h, k, l), paramDict)   
 
-    def anglesToVirtualAngles(self, pos, energy):
+    def anglesToVirtualAngles(self, pos, wavelength):
         """Return dictionary of all virtual angles in degrees from Position object
-        in degrees and energy in keV.
+        in degrees and wavelength in Angstroms.
         """
-        anglesDict = self._anglesToVirtualAngles(pos.inRadians(), energy)
+        anglesDict = self._anglesToVirtualAngles(pos.inRadians(), wavelength)
         for name in anglesDict:
             anglesDict[name] = anglesDict[name] * TODEG
         return anglesDict
     
-    def hklToAngles(self, h, k, l, energy):
+    def hklToAngles(self, h, k, l, wavelength):
         """Return verified Position and all virtual angles in degrees from h, k & l
-        and energy in keV.
+        and wavelength in Angstroms.
         
         The calculated Position is verified by checking that it maps back using
         anglesToHkl() to the requested hkl value.
@@ -71,7 +71,7 @@ class HklCalculatorBase(object):
         # which would trigger another potentially time-costly position update.
         self.parameter_manager.updateTrackedParameters()
         
-        pos, virtualAngles = self._hklToAngles(h, k, l, energy) # in rad
+        pos, virtualAngles = self._hklToAngles(h, k, l, wavelength) # in rad
         
         # to degrees:
         pos.changeToDegrees()
@@ -79,7 +79,7 @@ class HklCalculatorBase(object):
             if val is not None:
                 virtualAngles[key] = val * TODEG
         
-        (hkl, _) = self.anglesToHkl(pos, energy)
+        (hkl, _) = self.anglesToHkl(pos, wavelength)
         e = 0.001
         if (abs(hkl[0] - h) > e) or (abs(hkl[1] - k) > e) or (abs(hkl[2] - l) > e):
             s = "PROBABLE ERROR: The angles calculated for hkl=(%f,%f,%f) were %s.\n" % (h, k, l, str(pos))
@@ -91,7 +91,7 @@ class HklCalculatorBase(object):
                 
         # Check that the virtual angles calculated/fixed during the hklToAnglesXXX calculation
         # those read back from pos using anglesToVirtualAngles
-        virtualAnglesReadback = self.anglesToVirtualAngles(pos, energy)
+        virtualAnglesReadback = self.anglesToVirtualAngles(pos, wavelength)
                     
         for key, val in virtualAngles.items():
             if val != None: #Some values calculated in some mode_selector

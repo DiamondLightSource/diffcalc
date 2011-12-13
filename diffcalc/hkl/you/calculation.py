@@ -45,12 +45,8 @@ def _calc_angle_between_naz_and_qaz(theta, alpha, tau):
 "Either cos(alpha) or cos(theta) are too small. This should have been caught by now")
     return acos(bound(top / bottom))    
 
-def youAnglesToHkl(pos, energy, UBMatrix):
+def youAnglesToHkl(pos, wavelength, UBMatrix):
     """Calculate miller indices from position in radians."""
-    try:
-        wavelength = 12.39842 / energy
-    except ZeroDivisionError:
-        raise DiffcalcException("Cannot calculate hkl position as energy is 0")
     
     [MU, DELTA, NU, ETA, CHI, PHI] = createYouMatrices(*pos.totuple())
     # Equation 12: Compute the momentum transfer vector in the lab  frame
@@ -79,16 +75,19 @@ class YouHklCalculator(HklCalculatorBase):
     def repr_mode(self):
         return `self.constraints.all`
         
-    def _anglesToHkl(self, pos, energy):
+    def _anglesToHkl(self, pos, wavelength):
         """Calculate miller indices from position in radians."""
-        return youAnglesToHkl(pos, energy, self._getUBMatrix())
+        return youAnglesToHkl(pos, wavelength, self._getUBMatrix())
 
-    def _anglesToVirtualAngles(self, pos, energy):
+    def _anglesToVirtualAngles(self, pos, wavelength):
         """Calculate pseudo-angles in radians from position in radians.
         
         Return theta, qaz, alpha, naz, tau, psi and beta in a dictionary.
         
         """
+        
+        del wavelength # not used
+        
         # depends on surface normal n_lab.
         mu, delta, nu, eta, chi, phi = pos.totuple()
 
@@ -143,8 +142,8 @@ reference plane""")
                 'naz': naz, 'tau': tau, 'psi': psi, 'beta': beta}
         
 
-    def _hklToAngles(self, h , k , l, energy):
-        """(pos, virtualAngles) = hklToAngles(h, k, l, energy) --- with Position object 
+    def _hklToAngles(self, h , k , l, wavelength):
+        """(pos, virtualAngles) = hklToAngles(h, k, l, wavelength) --- with Position object 
         pos and the virtual angles returned in degrees. Some modes may not calculate
         all virtual angles.
         """
@@ -152,7 +151,7 @@ reference plane""")
         # effect the state of the AngleCalculator object!!!
         
         h_phi = self._getUBMatrix().times(Matrix([[h], [k], [l]]))
-        theta = self._calc_theta(h_phi, 12.39842 / energy)
+        theta = self._calc_theta(h_phi, wavelength)
         tau = angle_between_vectors(h_phi, self.n_phi)
         
         ### Reference constraint column ###

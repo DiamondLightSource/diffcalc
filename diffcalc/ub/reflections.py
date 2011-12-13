@@ -11,6 +11,7 @@ class Reflection:
         self.pos = position
         self.tag = tag
         self.energy = float(energy)      #energy=12.39842/lambda
+        self.wavelength = 12.3984 / self.energy
         self.time = time
 
     def __str__(self):

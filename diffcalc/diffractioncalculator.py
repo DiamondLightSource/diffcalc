@@ -7,6 +7,7 @@ from diffcalc.ub.calculation import UBCalculation
 from diffcalc.hkl.calcvlieg import VliegHklCalculator
 from diffcalc.mapper.sector import SectorSelector
 from diffcalc.mapper.mapper import PositionMapper
+from diffcalc.utils import DiffcalcException
 
 
 class Diffcalc(object):
@@ -55,19 +56,25 @@ class Diffcalc(object):
         return self._hardware.getPhysicalAngleNames()
     
     def _getParameterNames(self):
-        return self.hklcommands.getParameterDict().keys()
+        return self._hklcalc.parameter_manager.getParameterDict().keys()
 
     def _setParameter(self, name, value):
-        self.hklcommands.setParameter(name, value)
+        self._hklcalc.parameter_manager.setParameter(name, value)
         
     def _getParameter(self, name):
-        return self.hklcommands.getParameter(name)
+        return self._hklcalc.parameter_manager.getParameter(name)
 
     def _hklToAngles(self, h, k, l, energy=None):
         """Convert a given hkl vector to a set of diffractometer angles"""
         if energy is None:
             energy = self._hardware.getEnergy()
-        (pos, params) = self.hklcommands.hklToAngles(h, k, l, energy)
+            
+        try:
+            wavelength = 12.39842 / energy
+        except ZeroDivisionError:
+            raise DiffcalcException("Cannot calculate hkl position as Energy is set to 0")
+
+        (pos, params) = self._hklcalc.hklToAngles(h, k, l, wavelength)
         return (self._position_mapper.map(pos), params)
     
     def _anglesToHkl(self, angleTuple, energy=None):
@@ -76,7 +83,13 @@ class Diffcalc(object):
         #we will assume this is called correctly, as it is not a user command
         if energy is None:
             energy = self._hardware.getEnergy()
-        return self.hklcommands.anglesToHkl(self._geometry.physicalAnglesToInternalPosition(angleTuple), energy)
+
+        try:
+            wavelength = 12.39842 / energy
+        except ZeroDivisionError:
+            raise DiffcalcException("Cannot calculate hkl position as Energy is set to 0")
+
+        return self._hklcalc.anglesToHkl(self._geometry.physicalAnglesToInternalPosition(angleTuple), wavelength)
 
 
     # This command requires both the hklcommands and ubcommands components      
@@ -95,7 +108,7 @@ class Diffcalc(object):
                 s += "<<empty>>"
             for n in range(len(reflist)):
                 (hklguess, pos, energy, tag, time) = reflist.getReflection(n + 1)
-                (hkl, params) = self.hklcommands.anglesToHkl(pos, energy)
+                (hkl, params) = self._hklcalc.anglesToHkl(pos, energy)
                 del time, params
                 if tag is None:
                     tag = ""

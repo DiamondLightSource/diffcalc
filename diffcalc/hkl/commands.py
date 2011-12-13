@@ -38,25 +38,6 @@ class HklCommands(object):
     def __str__(self):
         return self._hklcalc.__str__()
     
-    def hklToAngles(self, h, k, l, energy):
-        return self._hklcalc.hklToAngles(h, k, l, energy)
- 
-    def anglesToHkl(self, pos, energy):
-        return self._hklcalc.anglesToHkl(pos, energy)
-    
-    def setParameter(self, name, value):
-        self._hklcalc.parameter_manager.setParameter(name, value)
-        
-    def getParameter(self, name):
-        return self._hklcalc.parameter_manager.getParameter(name)
-
-    def getParameterNames(self):
-        return self._hklcalc.parameter_manager.getParameterDict().keys()
-
-    def getParameterDict(self):
-        return self._hklcalc.parameter_manager.getParameterDict()
-    
-    
     _hklcalcCommandHelp.append('Diffcalc')
     
     @HklCommand

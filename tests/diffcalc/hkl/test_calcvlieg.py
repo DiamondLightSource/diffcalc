@@ -108,16 +108,16 @@ class BaseTestHklCalculator():
         self.ac.raiseExceptionsIfAnglesDoNotMapBackToHkl = True
 
         # Check the two given reflections
-        (hklactual1, params) = self.ac.anglesToHkl(self.sess.ref1.pos, self.sess.ref1.energy)
+        (hklactual1, params) = self.ac.anglesToHkl(self.sess.ref1.pos, self.sess.ref1.wavelength)
         del params
-        (hklactual2, params) = self.ac.anglesToHkl(self.sess.ref2.pos, self.sess.ref2.energy)
+        (hklactual2, params) = self.ac.anglesToHkl(self.sess.ref2.pos, self.sess.ref2.wavelength)
         self.assert_(Matrix([hklactual1]).minus(Matrix([self.sess.ref1calchkl])).normF() <= .0003, "wrong hkl calcualted from ref1 angles for scenario.names.name=" + self.sess.name)
         self.assert_(Matrix([hklactual2]).minus(Matrix([self.sess.ref2calchkl])).normF() <= .0003, "wrong hkl calcualted from ref2 angles for scenario.names.name=" + self.sess.name)
 
         # ... znd in each calculation through the hkl/posiiont pairs
         if self.calc:
             for hkl, pos, param in zip(self.calc.hklList, self.calc.posList, self.calc.paramList):
-                (hkl_actual, params) = self.ac.anglesToHkl(pos, self.calc.energy)
+                (hkl_actual, params) = self.ac.anglesToHkl(pos, self.calc.wavelength)
                 self.assert_(Matrix([hkl_actual]).minus(Matrix([hkl])).normF() <= .0003, \
                             "wrong hkl calcualted for scenario.name=%s, calculation.tag=%s\n  expected hkl=(%f,%f,%f)\ncalculated hkl=(%f,%f,%f)" % (self.sess.name, self.calc.tag, hkl[0], hkl[1], hkl[2], hkl_actual[0], hkl_actual[1], hkl_actual[2]))
                 print "***anglesToHkl***"
@@ -148,7 +148,7 @@ class BaseTestHklCalculator():
             for idx in range(len(self.calc.hklList)):
                 hkl = self.calc.hklList[idx]
                 expectedpos = self.calc.posList[idx]
-                (pos, params) = ac.hklToAngles(hkl[0], hkl[1], hkl[2], self.calc.energy)
+                (pos, params) = ac.hklToAngles(hkl[0], hkl[1], hkl[2], self.calc.wavelength)
                 self.assert_(pos.nearlyEquals(expectedpos, 0.01), \
                             "wrong positions calculated for TestScenario=%s, AngleTestScenario=%s, hkl=(%f,%f,%f):\n  expected pos=%s;\n  returned pos=%s "\
                             % (self.sess.name, self.calc.tag, hkl[0], hkl[1], hkl[2], str(expectedpos), str(pos)))

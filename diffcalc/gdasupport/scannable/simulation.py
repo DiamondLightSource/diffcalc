@@ -80,8 +80,8 @@ class SimulatedCrystalCounter(PseudoDevice):
     def getHkl(self):
         pos = self.geometry.physicalAnglesToInternalPosition(self.diffractometerScannable.getPosition())
         pos.changeToRadians()
-        energy = 12.39842 / self.wavelengthScannable.getPosition()
-        return vliegAnglesToHkl(pos, energy, self.UB)
+        wavelength = self.wavelengthScannable.getPosition()
+        return vliegAnglesToHkl(pos, wavelength, self.UB)
 
     def isBusy(self):
         return False
