@@ -5,6 +5,8 @@ from diffcalc.hkl.commands import HklCommands
 from diffcalc.mapper.commands import MapperCommands
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.hkl.calcvlieg import VliegHklCalculator
+from diffcalc.mapper.sector import SectorSelector
+from diffcalc.mapper.mapper import PositionMapper
 
 
 class Diffcalc(object):
@@ -19,21 +21,21 @@ class Diffcalc(object):
                  raiseExceptionsIfAnglesDoNotMapBackToHkl=True,
                  ub_persister=None):
        
-        self._geometry = diffractometerPluginObject  # Geometry specific _plugin        
-        
+        self._geometry = diffractometerPluginObject 
         self._hardware = hardwareMonitorPluginObject
-        
-        self._mapper = MapperCommands(self._geometry, self._hardware)
-        
-        self._ubcalc = UBCalculation(self._hardware, self._geometry, ub_persister)
-        
-        self._hklcalc = VliegHklCalculator(self._ubcalc, self._geometry, self._hardware, raiseExceptionsIfAnglesDoNotMapBackToHkl)
-        
-        self.hklcommands = HklCommands(self._hardware, self._geometry, self._hklcalc)
-    
         diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = RAISE_EXCEPTIONS_FOR_ALL_ERRORS
 
+        # Create core calculation code
+        self._ubcalc = UBCalculation(self._hardware, self._geometry, ub_persister)
+        self._hklcalc = VliegHklCalculator(self._ubcalc, self._geometry, self._hardware, raiseExceptionsIfAnglesDoNotMapBackToHkl)
+        self._sector_selector = SectorSelector()
+        self._position_mapper = PositionMapper(self._geometry, self._hardware, self._sector_selector)
+
+        # Create user interface code
         self.ubcommands = UbCommands(self._hardware, self._geometry, self._ubcalc)
+        self.hklcommands = HklCommands(self._hardware, self._geometry, self._hklcalc)
+        self.mappercommands = MapperCommands(self._geometry, self._hardware, self._position_mapper)
+
 
     def __str__(self):
         return self.__repr__()
@@ -66,7 +68,7 @@ class Diffcalc(object):
         if energy is None:
             energy = self._hardware.getEnergy()
         (pos, params) = self.hklcommands.hklToAngles(h, k, l, energy)
-        return (self._mapper.map(pos), params)
+        return (self._position_mapper.map(pos), params)
     
     def _anglesToHkl(self, angleTuple, energy=None):
         """Converts a set of diffractometer angles to an hkl position
@@ -76,63 +78,6 @@ class Diffcalc(object):
             energy = self._hardware.getEnergy()
         return self.hklcommands.anglesToHkl(self._geometry.physicalAnglesToInternalPosition(angleTuple), energy)
 
-### ub commands
-
-    def helpub(self, *args):
-        return self.ubcommands.helpub(*args)
-
-    def newub(self, *args):
-        return self.ubcommands.newub(*args)
-
-    def loadub(self, *args):
-        return self.ubcommands.loadub(*args)
-
-    def listub(self, *args):
-        return self.ubcommands.listub(*args)
-
-    def saveubas(self, *args):
-        return self.ubcommands.saveubas(*args)
-
-    def ub(self, *args):
-        return self.ubcommands.ub(*args)
-
-    def setlat(self, *args):
-        return self.ubcommands.setlat(*args)
-    
-    def c2th(self, *args):
-        return self.ubcommands.c2th(*args)
-
-    def sigtau(self, *args):
-        return self.ubcommands.sigtau(*args)
-
-    def showref(self, *args):
-        return self.ubcommands.showref(*args)
-
-    def addref(self, *args):
-        return self.ubcommands.addref(*args)
-
-    def editref(self, *args):
-        return self.ubcommands.editref(*args)
-
-    def delref(self, *args):
-        return self.ubcommands.delref(*args)
-
-    def swapref(self, *args):
-        return self.ubcommands.swapref(*args)
-
-    def setu(self, *args):
-        return self.ubcommands.setu(*args)
-
-    def setub(self, *args):
-        return self.ubcommands.setub(*args)
-
-    def calcub(self, *args):
-        return self.ubcommands.calcub(*args)
-
-    def trialub(self, *args):
-        return self.ubcommands.trialub(*args)
-    
-    
 
     # This command requires both the hklcommands and ubcommands components      
     @UbCommand
@@ -157,60 +102,3 @@ class Diffcalc(object):
                 s += "%-2d %-6.4f %-4.2f %-4.2f %-4.2f  %-6.4f %-6.4f %-6.4f  %-s\n" % \
                                       (n + 1, energy, hklguess[0], hklguess[1], hklguess[2], hkl[0], hkl[1], hkl[2], tag)
         print s
-
-### hkl commands
-
-    def helphkl(self, *args):
-        return self.hklcommands.helphkl(*args)
-
-    def hklmode(self, *args):
-        return self.hklcommands.hklmode(*args)
-
-    def setpar(self, *args):
-        return self.hklcommands.setpar(*args)
-
-    def trackalpha(self, *args):
-        return self.hklcommands.trackalpha(*args)
-
-    def trackgamma(self, *args):
-        return self.hklcommands.trackgamma(*args)
-
-    def trackphi(self, *args):
-        return self.hklcommands.trackphi(*args)
-
-    def sim(self, *args):
-        return self.hklcommands.sim(*args)
-    
-### mapper commands
-
-    def mapper(self, *args):
-        return self._mapper.mapper(*args)
-
-    def transforma(self, *args):
-        return self._mapper.transforma(*args)
-
-    def transformb(self, *args):
-        return self._mapper.transformb(*args)
-
-    def transformc(self, *args):
-        return self._mapper.transformc(*args)
-
-    def sector(self, *args):
-        return self._mapper.sector(*args)
-
-    def autosector(self, *args):
-        return self._mapper.autosector(*args)
-
-    def setcut(self, *args):
-        return self._mapper.setcut(*args)
-
-    def setmin(self, *args):
-        return self._mapper.setmin(*args)
-
-    def setmax(self, *args):
-        return self._mapper.setmax(*args)
-    
-# NOTE: Fails, must be pulled off instances
-#for command_name in (n for n in dir(Diffcalc._mapper) if n[0] != '_'):
-#    Diffcalc.__dict__.append(getattr(Diffcalc._mapper, command_name))
-#    

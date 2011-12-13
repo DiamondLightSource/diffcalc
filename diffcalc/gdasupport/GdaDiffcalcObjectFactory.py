@@ -243,11 +243,17 @@ def createParameterScannables(diffcalc):
 
 def createAndAliasCommands(diffcalc):
     objects = {}
-    commandNames = filter(lambda s:s[0]!='_', dir(diffcalc))
-    for name in commandNames:
-        objects[name] = diffcalc.__getattribute__(name)
-        alias(name)
-        print "Aliased command:", name
+    for command_group in [diffcalc.ubcommands, diffcalc.hklcommands, diffcalc.mappercommands]:
+        commandNames = filter(lambda s:s[0]!='_', dir(command_group))
+        for name in commandNames:
+            if name in objects:
+                raise Exception("Duplicate command: " + name)
+            objects[name] = command_group.__getattribute__(name)
+            alias(name)
+            print "Aliased command:", name
+    objects['checkub'] = diffcalc.checkub
+    alias('checkub')
+    print "Aliased command: checkub"
     return objects
 
 def createAndAliasDiffcalcdemoCommand(demoCommands):

@@ -16,19 +16,48 @@ except ImportError:
 
 import unittest
 
-class MockDiffcalc(object):
+class MockCommandGroup1(object):
+    
+    def cmd1(self):
+        pass
+    
+    def _not_cm(self):
+        pass
+
+class MockCommandGroup2(object):
+    
+    def cmd2(self):
+        pass
+    
+    def _not_cm(self):
+        pass
+
+class MockCommandGroup3(object):
+    
+    def cmd3(self):
+        pass
+    
+    def _not_cm(self):
+        pass
         
+
+class MockDiffcalc(object):
+    
+    def __init__(self):
+        self.ubcommands = MockCommandGroup1()
+        self.hklcommands = MockCommandGroup2()
+        self.mappercommands = MockCommandGroup3()
+    
     def _getParameterNames(self):
         return self.paramNames
     
     def _getAxisNames(self):
         return self.axisNames
-
-    def command1(self):
-        pass
     
-    def command2(self):
+    def checkub(self):
         pass
+
+    
 
 class MockDiffractometerScannable(object):
     pass
@@ -200,10 +229,13 @@ class Test(unittest.TestCase):
         alias = MockAlias()
         Factory.alias = alias
         objects = Factory.createAndAliasCommands(dc)
-        self.assertEquals(len(objects), 2)
-        self.assertEquals(objects['command1'], dc.command1)
-        self.assertEquals(objects['command2'], dc.command2)
-        self.assertEquals(alias.aliased, ['command1','command2'])
+        self.assertEquals(len(objects), 4)
+        
+        self.assertEquals(objects['cmd1'], dc.ubcommands.cmd1)
+        self.assertEquals(objects['cmd2'], dc.hklcommands.cmd2)
+        self.assertEquals(objects['cmd3'], dc.mappercommands.cmd3)
+        self.assertEquals(objects['checkub'], dc.checkub)
+        self.assertEquals(alias.aliased, ['cmd1', 'cmd2', 'cmd3', 'checkub'])
 
     def testCreateDiffcalcObjects(self):
         objects = Factory.createDiffcalcObjects(

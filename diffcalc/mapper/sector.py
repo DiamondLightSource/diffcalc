@@ -79,11 +79,11 @@ class SectorSelector(object):
     '''
 ### basic sector selection
 
-    def __init__(self, limitCheckerFunction):
+    def __init__(self):
         self.transforms = []
         self.autotransforms = []
         self.autosectors = []
-        self.limitCheckerFunction = limitCheckerFunction
+        self.limitCheckerFunction = None # inject
         self.sector = None
         self.setSector(0)
         

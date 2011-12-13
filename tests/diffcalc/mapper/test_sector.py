@@ -22,7 +22,8 @@ class TestSectorSelector(unittest.TestCase):
     
     def setUp(self):
         self.limitChecker = MockLimitChecker()
-        self.ss = SectorSelector(self.limitChecker.isPoswithiLimits)
+        self.ss = SectorSelector()
+        self.ss.limitCheckerFunction = self.limitChecker.isPoswithiLimits
     
     def test__init__(self):
         self.assertEquals(self.ss.sector, 0)
@@ -98,7 +99,8 @@ class TestSectorSelectorAutoCode(unittest.TestCase):
     
     def setUp(self):
         self.limitChecker = MockLimitChecker()
-        self.ss = SectorSelector(self.limitChecker.isDeltaNegative)
+        self.ss = SectorSelector()
+        self.ss.limitCheckerFunction = self.limitChecker.isDeltaNegative
         self.pos = P(0, .1, .2, .3, .4, 5)
         self.pos_in2 = self.ss.cutPosition(self.ss.transformNWithoutCut(2, self.pos))
         self.pos_in3 = self.ss.cutPosition(self.ss.transformNWithoutCut(3, self.pos))
@@ -136,7 +138,8 @@ class TestSectorSelectorAutoCode(unittest.TestCase):
     def testTransformPosition(self):
         # Check that with no transforms set to autoapply, the limit
         # checker function is ignored
-        ss = SectorSelector(self.limitChecker.isPoswithiLimits)
+        ss = SectorSelector()
+        ss.limitCheckerFunction = self.limitChecker.isPoswithiLimits
         self.limitChecker.okay = False
         ss.transformPosition(P(0, .1, .2, .3, .4, 5))
 
@@ -236,7 +239,8 @@ class TestTransforms(unittest.TestCase):
     
     def setUp(self):
         self.limitCheckerFunction = Mock()
-        self.ss = SectorSelector(self.limitCheckerFunction)
+        self.ss = SectorSelector()
+        self.ss.limitCheckerFunction = self.limitCheckerFunction
         
     def applyTransforms(self, transforms, pos):
         result = pos.clone()
