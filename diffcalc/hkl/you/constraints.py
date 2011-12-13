@@ -2,11 +2,8 @@ from diffcalc.utils import DiffcalcException
 
 def filter_dict(d, keys):
     """Return a copy of d containing only keys that are in keys"""
-    f = {}
-    for k, v in d.iteritems():
-        if k in keys:
-            f[k] = v
-    return f
+    ##return {k: d[k] for k in keys} # requires Python 2.6
+    return dict((k, d[k]) for k in keys if k in d.keys())
 
 
 det_constraints = ('delta', 'nu', 'qaz', 'naz')
@@ -53,7 +50,7 @@ class ConstraintManager(object):
     def constrained_names(self):
         """ordered tuple of constained circles"""
         names = self.all.keys()
-        names.sort(key=lambda name:all_constraints.index(name))
+        names.sort(key=lambda name:list(all_constraints).index(name))
         return tuple(names)
     
     def is_constrained(self, name):
@@ -212,16 +209,4 @@ physical angle.""" % name)
             physical_angles = tuple(self._hardware.getPosition())
             angle_names = tuple(self._hardware.getPhysicalAngleNames())
             for name in self._tracking:
-                self._constrained[name] = physical_angles[angle_names.index(name)]
-
-###        
-    def is_properly_constrained(self):
-        num = len(self._fixed) + len(self._tracking)
-        if num > 3:
-            return "Too many constraints are set"
-        if num < 3:
-            return "Too few constraints are set"
-        return None
-    
-
-
+                self._constrained[name] = physical_angles[list(angle_names).index(name)]
