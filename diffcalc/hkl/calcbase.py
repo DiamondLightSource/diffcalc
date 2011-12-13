@@ -82,7 +82,7 @@ class HklCalculatorBase(object):
         (hkl, _) = self.anglesToHkl(pos, wavelength)
         e = 0.001
         if (abs(hkl[0] - h) > e) or (abs(hkl[1] - k) > e) or (abs(hkl[2] - l) > e):
-            s = "PROBABLE ERROR: The angles calculated for hkl=(%f,%f,%f) were %s.\n" % (h, k, l, str(pos))
+            s = "ERROR: The angles calculated for hkl=(%f,%f,%f) were %s.\n" % (h, k, l, str(pos))
             s += "Converting these angles back to hkl resulted in hkl=(%f,%f,%f)" % (hkl[0], hkl[1], hkl[2])
             if self.raiseExceptionsIfAnglesDoNotMapBackToHkl:
                 raise DiffcalcException(s)
@@ -97,7 +97,7 @@ class HklCalculatorBase(object):
             if val != None: #Some values calculated in some mode_selector
                 r = virtualAnglesReadback[key]
                 if (differ(val, r, .00001) and differ(val, r + 360, .00001) and differ(val, r - 360, .00001)):
-                    s = "PROBABLE ERROR: The angles calculated for hkl=(%f,%f,%f) with mode=%s were %s.\n" % (h, k, l, self.repr_mode(), str(pos))
+                    s = "ERROR: The angles calculated for hkl=(%f,%f,%f) with mode=%s were %s.\n" % (h, k, l, self.repr_mode(), str(pos))
                     s += "During verification the virtual angle %s resulting from (or set for) this calculation of %f" % (key, val)
                     s += "did not match that calculated by anglesToVirtualAngles of %f" % virtualAnglesReadback[key]
                     # TODO: misuse of existing variable: rename it

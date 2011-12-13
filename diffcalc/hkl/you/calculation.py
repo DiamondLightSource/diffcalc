@@ -1,13 +1,14 @@
 from diffcalc.hkl.calcbase import HklCalculatorBase
-from diffcalc.hkl.you.constraints import ConstraintManager
 from diffcalc.utils import DiffcalcException, bound, cross3, calcMU, calcPHI, \
     Position, angle_between_vectors, createYouMatrices
 from math import pi, sin, cos, tan, acos, atan2, asin, sqrt, atan
-
 try:
     from Jama import Matrix
 except ImportError:
     from diffcalc.npadaptor import Matrix
+from diffcalc.configurelogging import logging
+
+logger = logging.getLogger("diffcalc.hkl.you.calculation")
 
 I = Matrix.identity(3, 3)
 
@@ -41,7 +42,7 @@ def _calc_angle_between_naz_and_qaz(theta, alpha, tau):
     top = cos(tau) - sin(alpha) * sin(theta)
     bottom = cos(alpha) * cos(theta)
     if is_small(bottom):
-        raise Exception(
+        raise ValueError(
 "Either cos(alpha) or cos(theta) are too small. This should have been caught by now")
     return acos(bound(top / bottom))    
 
@@ -58,14 +59,26 @@ def youAnglesToHkl(pos, wavelength, UBMatrix):
     return hkl.get(0, 0), hkl.get(1, 0), hkl.get(2, 0)    
 
 
+def _tidy_degenerate_solutions(pos):
+    if is_small(pos.chi) and is_small(pos.mu) and is_small(pos.nu):
+        original = pos.inDegrees()
+        desired_eta = pos.delta / 2. 
+        eta_diff = desired_eta - pos.eta
+        pos.eta += eta_diff
+        pos.phi -= eta_diff
+        print "DEGENERATE: with chi=0, phi and eta are colinear: choosing eta = delta/2 by adding %.3f to eta and removing it from phi. (mu=nu=0 only)" %(eta_diff*TODEG,)
+        print "            original:", original
+    return pos
+
+
 class YouHklCalculator(HklCalculatorBase): 
     
-    def __init__(self, ubcalc, geometry, hardware,
+    def __init__(self, ubcalc, geometry, hardware, constraints,
                   raiseExceptionsIfAnglesDoNotMapBackToHkl=False):
         HklCalculatorBase.__init__(self, ubcalc, geometry, hardware,
                                    raiseExceptionsIfAnglesDoNotMapBackToHkl)
         
-        self.constraints = ConstraintManager(hardware)
+        self.constraints = constraints
         
         self.n_phi = Matrix([[0], [0], [1]])
         """Reference vector in phi frame. Must be of length 1."""
@@ -163,7 +176,7 @@ reference plane""")
             psi, alpha, beta = self._calc_remaining_reference_angles_given_one(
                                 ref_name, ref_value, theta, tau)
         else:
-            raise RuntimeError("Code not yet written to handle the absense of a reference constraint!")
+            raise RuntimeError("Code not yet written to handle the absence of a reference constraint!")
         
         ### Detector constraint column ###
         
@@ -201,10 +214,7 @@ reference plane""")
         
         samp_constraints = self.constraints.sample
         
-        if len(samp_constraints) == 0:
-            raise AssertionError('1,2 or 3 sample constraints expected, not: 0')
-        
-        elif len(samp_constraints) == 1:
+        if len(samp_constraints) == 1:
             # JUST ONE SAMPLE ANGLE GIVEN
             sample_name, sample_value = samp_constraints.items()[0]
             q_lab = Matrix([[cos(theta) * sin(qaz)],
@@ -212,10 +222,8 @@ reference plane""")
                             [cos(theta) * cos(qaz)]]) # Equation 18
             n_lab = Matrix([[cos(alpha) * sin(naz)],
                             [-sin(alpha)],
-                            [cos(alpha) * cos(naz)]])
-            # Check this is true and get it
+                            [cos(alpha) * cos(naz)]]) # Equation 20
             
-            sample_name, sample_value = samp_constraints.items()[0]
             phi, chi, eta, mu = self._calc_remaining_sample_angles_given_one(
                                      sample_name, sample_value, q_lab, n_lab, h_phi, self.n_phi)
 
@@ -234,6 +242,10 @@ reference plane""")
         position = Position(mu, delta, nu, eta, chi, phi)
         pseudo_angles = {'theta': theta, 'qaz': qaz, 'alpha': alpha,
                          'naz': naz, 'tau': tau, 'psi': psi, 'beta': beta}
+        
+        position = _tidy_degenerate_solutions(position)
+        if position.phi <= -pi + SMALL:
+            position.phi += 2*pi
         return position, pseudo_angles
                 
     def _calc_theta(self, h_phi, wavelength):
@@ -349,21 +361,26 @@ reference plane""" % name)
         
         return delta, nu, qaz
     
-    def _calc_remaining_sample_angles_given_one(self, name, value, Q_lab, n_lab,
-                                                Q_phi, n_phi):
+    def _calc_remaining_sample_angles_given_one(self, name, value, q_lab, n_lab,
+                                                q_phi, n_phi):
         """Return phi, chi, eta and mu, given one of these (from section 5.3)."""
         
         #TODO: Check this whole code for special cases!!!!
         
-        N_lab = _calc_N(Q_lab, n_lab)
-        N_phi = _calc_N(Q_phi, n_phi)
+        N_lab = _calc_N(q_lab, n_lab)
+        N_phi = _calc_N(q_phi, n_phi)
         
         if name == 'mu': # Equation 35.
             mu = value
             MU = calcMU(mu)
-            V = MU.inverse().times(N_lab).times(N_phi.inverse()).array
-            phi = atan2(-V[2][1], -V[2][0]) # choose other root to pass tests
-            eta = atan2(-V[1][2], V[0][2]) #
+            V = MU.inverse().times(N_lab).times(N_phi.transpose()).array
+            phi = atan2(-V[2][1], -V[2][0]) # TODO: choosing other root than that from paper to pass tests
+            if not is_small(phi - atan2(V[2][1], V[2][0])):
+                logger.warn("Taking phi = %s not %s", phi, atan2(V[2][1], V[2][0]))
+            eta = atan2(-V[1][2], V[0][2])
+            
+            logger.debug("   0 < chi < pi:   %s", acos(V[2][2]) * TODEG)
+            logger.debug("-pi/2< chi < pi/2: %s", atan2(sqrt(V[2][0] ** 2 + V[2][1] ** 2), V[2][2]) * TODEG)
             if self.choose_chi_from_0_to_pi:
                 chi = acos(V[2][2]) # 0 < chi < pi
             else:
@@ -372,7 +389,7 @@ reference plane""" % name)
         elif name == 'phi': # Equation 37
             phi = value
             PHI = calcPHI(phi)
-            V = N_lab.times(N_phi.inverse()).times(PHI.inverse()).array
+            V = N_lab.times(N_phi.inverse()).times(PHI.transpose()).array
             eta = atan2(V[0][1], sqrt(V[1][1] ** 2 + V[2][1] ** 2))
             mu = atan2(V[2][1], V[1][1])
             if self.choose_chi_from_0_to_pi:
@@ -385,7 +402,7 @@ reference plane""" % name)
                 chi = atan2(V[0][2], V[0][0]) # -pi/2 < chi < pi/2
                 
         elif name in ('eta', 'chi'):
-            V = N_lab.times(N_phi.inverse()).array
+            V = N_lab.times(N_phi.transpose()).array
             if name == 'eta': # Equation 39
                 eta = value
                 if self.choose_chi_from_0_to_pi:
