@@ -14,6 +14,12 @@ MIRROR = Matrix([[1, 0, 0],
                  [0, 0, 1]
                 ])
 
+# from http://physics.nist.gov/
+h_in_eV_per_s = 4.135667516E-15
+c = 299792458
+TWELVEISH = c * h_in_eV_per_s#12.39842
+
+
 SMALL = 1e-10
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -58,20 +64,20 @@ class Position(object):
         return Position(self._alpha_mu, self.delta, self._gamma_nu, self._omega_eta, self.chi, self.phi)
         
     def changeToRadians(self):
-        self._alpha_mu = self._alpha_mu * TORAD
-        self.delta = self.delta * TORAD
-        self._gamma_nu = self._gamma_nu * TORAD
-        self._omega_eta = self._omega_eta * TORAD
-        self.chi = self.chi * TORAD
-        self.phi = self.phi * TORAD
+        self._alpha_mu *= TORAD
+        self.delta *= TORAD
+        self._gamma_nu *= TORAD
+        self._omega_eta *= TORAD
+        self.chi *= TORAD
+        self.phi *= TORAD
 
     def changeToDegrees(self):
-        self._alpha_mu = self._alpha_mu * TODEG
-        self.delta = self.delta * TODEG
-        self._gamma_nu = self._gamma_nu * TODEG
-        self._omega_eta = self._omega_eta * TODEG
-        self.chi = self.chi * TODEG
-        self.phi = self.phi * TODEG
+        self._alpha_mu *= TODEG
+        self.delta *= TODEG
+        self._gamma_nu *= TODEG
+        self._omega_eta *= TODEG
+        self.chi *= TODEG
+        self.phi *= TODEG
         
     def inRadians(self):
         pos = self.clone()
@@ -101,6 +107,18 @@ class Position(object):
     def __eq__(self, b):
         return self.nearlyEquals(b, .001)
 
+class YouPosition(Position):
+    
+        def __init__(self, mu=None, delta=None, nu=None, eta=None, chi=None, phi=None):
+            Position.__init__(self, mu, delta, nu, eta, chi, phi)
+
+        def __str__(self):
+            return "Position(mu: %s delta: %s nu: %s eta: %s chi: %s  phi: %s)" % \
+                  (`self._alpha_mu`, `self.delta`, `self._gamma_nu`, `self._omega_eta`, `self.chi`, `self.phi`)
+                  
+        def clone(self):
+            return YouPosition(self._alpha_mu, self.delta, self._gamma_nu, self._omega_eta, self.chi, self.phi)
+        
 
 class DiffcalcException(Exception):
     "Error caused by user misuse of diffraction calculator"
@@ -154,6 +172,16 @@ def angle_between_vectors(a, b):
 
 #H. You's matrices
 
+def x_rotation(th):
+    return Matrix(((1, 0, 0), (0, cos(th), -sin(th)), (0, sin(th), cos(th))))
+
+def y_rotation(th):
+    return Matrix(((cos(th), 0, sin(th)), (0, 1, 0), (-sin(th), 0, cos(th))))
+
+def z_rotation(th):
+    return Matrix(((cos(th), -sin(th), 0), (sin(th), cos(th), 0), (0, 0, 1)))
+
+
 def createYouMatrices(mu=None, delta=None, nu=None, eta=None, chi=None, phi=None):
     """    
     Return transformation matrices from H. You's paper.
@@ -167,25 +195,23 @@ def createYouMatrices(mu=None, delta=None, nu=None, eta=None, chi=None, phi=None
     return MU, DELTA, NU, ETA, CHI, PHI
 
 
-def calcMU(mu_or_alpha):
-    return Matrix(((1, 0, 0), (0, cos(mu_or_alpha), -sin(mu_or_alpha)), (0, sin(mu_or_alpha), cos(mu_or_alpha))))
+def calcNU(nu):
+    return x_rotation(nu)
 
 def calcDELTA(delta):
-    return Matrix(((cos(delta), sin(delta), 0), (-sin(delta), cos(delta), 0), (0, 0, 1)))
+    return z_rotation(-delta)
 
-def calcNU(nu):
-    return Matrix(((1, 0, 0), (0, cos(nu), -sin(nu)), (0, sin(nu), cos(nu))))
+def calcMU(mu_or_alpha):
+    return x_rotation(mu_or_alpha)
 
 def calcETA(eta):
-    return Matrix(((cos(eta), sin(eta), 0), (-sin(eta), cos(eta), 0), (0, 0, 1)))
+    return z_rotation(-eta)
 
 def calcCHI(chi):
-    return Matrix(((cos(chi), 0, sin(chi)), (0, 1, 0), (-sin(chi), 0, cos(chi))))
+    return y_rotation(chi)
 
 def calcPHI(phi):
-    return Matrix(((cos(phi), sin(phi), 0), (-sin(phi), cos(phi), 0), (0, 0, 1)))
-
-# vlieg's matrices
+    return z_rotation(-phi)
 
 def createVliegMatrices(alpha=None, delta=None, gamma=None, omega=None, chi=None, phi=None):
     """[ALPHA, DELTA, GAMMA, OMEGA, CHI, PHI] =     
@@ -201,14 +227,12 @@ def createVliegMatrices(alpha=None, delta=None, gamma=None, omega=None, chi=None
     PHI = None if phi is None else calcPHI(phi)
     return ALPHA, DELTA, GAMMA, OMEGA, CHI, PHI
 
-calcALPHA = calcMU
+calcALPHA = calcNU
 
 calcOMEGA = calcETA
 
 def calcGAMMA(gamma):
     return Matrix([[1, 0, 0], [0, cos(gamma), -sin(gamma)], [0, sin(gamma), cos(gamma)] ])
-
-  
 
 def createVliegsSurfaceTransformationMatrices(sigma, tau):
     """[SIGMA, TAU] = createVliegsSurfaceTransformationMatrices(sigma, tau)
@@ -219,8 +243,8 @@ def createVliegsSurfaceTransformationMatrices(sigma, tau):
                     [-sin(sigma), 0, cos(sigma)] ])
         
     TAU = Matrix([[cos(tau), sin(tau) , 0], \
-                [-sin(tau), cos(tau), 0], \
-                [0, 0, 1] ])
+                  [-sin(tau), cos(tau), 0], \
+                  [0, 0, 1] ])
     return(SIGMA, TAU)
 
 def createVliegsPsiTransformationMatrix(psi):
@@ -228,8 +252,8 @@ def createVliegsPsiTransformationMatrix(psi):
     angles in radians
     """
     return Matrix([[1, 0, 0], \
-                [0, cos(psi), sin(psi)], \
-                [0, -sin(psi), cos(psi) ]])
+                   [0, cos(psi), sin(psi)], \
+                   [0, -sin(psi), cos(psi) ]])
 
 def matrixToString(m):
     ''' str = matrixToString(m) --- displays a Jama matrix m as a string
@@ -378,9 +402,6 @@ def isnum(o):
 def allnum(l):
     return not [o for o in l if not isnum(o)]
 
-
-
-
 ## http://docs.python.org/dev/library/collections.html#ordereddict-objects
 ## {{{ http://code.activestate.com/recipes/576693/ (r6)
 from UserDict import DictMixin
@@ -478,7 +499,7 @@ class OrderedDict(dict, DictMixin):
 
     def __eq__(self, other):
         if isinstance(other, OrderedDict):
-            return len(self)==len(other) and self.items() == other.items()
+            return len(self) == len(other) and self.items() == other.items()
         return dict.__eq__(self, other)
 
     def __ne__(self, other):
