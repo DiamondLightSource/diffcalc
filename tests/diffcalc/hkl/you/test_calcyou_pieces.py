@@ -1,4 +1,4 @@
-from diffcalc.hkl.you.calculation import YouHklCalculator, I, _calc_angle_between_naz_and_qaz
+from diffcalc.hkl.you.calcyou import YouHklCalculator, I, _calc_angle_between_naz_and_qaz
 from diffcalc.tools import  assert_matrix_almost_equal
 from diffcalc.utils import Position, DiffcalcException
 from math import pi, sin, cos
@@ -6,7 +6,6 @@ from nose.plugins.skip import SkipTest
 from nose.tools import assert_almost_equal, raises #@UnresolvedImport
 from tests.diffcalc.hkl.test_calcvlieg import createMockDiffractometerGeometry, createMockHardwareMonitor, createMockUbcalc
 import math
-from diffcalc.hkl.you.constraints import ConstraintManager
 
 try:
     from Jama import Matrix

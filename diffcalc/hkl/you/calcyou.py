@@ -8,7 +8,7 @@ except ImportError:
     from diffcalc.npadaptor import Matrix
 from diffcalc.configurelogging import logging
 
-logger = logging.getLogger("diffcalc.hkl.you.calculation")
+logger = logging.getLogger("diffcalc.hkl.you.calcyou")
 
 I = Matrix.identity(3, 3)
 
