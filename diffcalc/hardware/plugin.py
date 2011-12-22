@@ -93,13 +93,18 @@ class HardwareMonitorPlugin:
             
     def isPositionWithinLimits(self, positionArray):
         """where position array is in degrees and cut to be between -180 and 180"""
-        for name, val in zip(self._diffractometerAngleNames, positionArray):
-            if self._upperLimitDict.has_key(name):
-                if val > self._upperLimitDict[name]:
-                    return False
-            if self._lowerLimitDict.has_key(name):
-                if val < self._lowerLimitDict[name]:
-                    return False
+        for axis_name, value in zip(self._diffractometerAngleNames, positionArray):
+            if not self.isAxisValueWithinLimits(axis_name, value):
+                return False
+        return True
+    
+    def isAxisValueWithinLimits(self, axis_name, value):
+        if self._upperLimitDict.has_key(axis_name):
+            if value > self._upperLimitDict[axis_name]:
+                return False
+        if self._lowerLimitDict.has_key(axis_name):
+            if value < self._lowerLimitDict[axis_name]:
+                return False
         return True
     
     def reprSectorLimitsAndCuts(self, name=None):
@@ -150,18 +155,24 @@ class HardwareMonitorPlugin:
         '''Assumes each angle in positionArray is between -360 and 360
         '''
         cutArray = []
-        for name, pos in zip(self._diffractometerAngleNames, positionArray):
-            cutAngle = self._cutAngles[name]
-            if cutAngle is None:
-                cutArray.append(pos)
-            else:
-                if cutAngle == 0 and (abs(pos - 360) < SMALL) or (abs(pos + 360) < SMALL) or (abs(pos) < SMALL):
-                    pos = 0.
-                if pos < (cutAngle - SMALL):
-                    cutArray.append(pos + 360.)
-                elif pos >= cutAngle + 360. + SMALL:
-                    cutArray.append(pos - 360.)
-                else:
-                    cutArray.append(pos)
+        for axis_name, value in zip(self._diffractometerAngleNames, positionArray):
+            cutArray.append(self.cutAngle(axis_name, value))
         return tuple(cutArray)
     
+    def cutAngle(self, axis_name, value):
+        cut_angle = self._cutAngles[axis_name]
+        if cut_angle is None:
+            return value
+        return cut_angle_at(cut_angle, value)
+        
+        
+        
+def cut_angle_at(cut_angle, value):
+    if cut_angle == 0 and (abs(value - 360) < SMALL) or (abs(value + 360) < SMALL) or (abs(value) < SMALL):
+        value = 0.
+    if value < (cut_angle - SMALL):
+        return value + 360.
+    elif value >= cut_angle + 360. + SMALL:
+        return value - 360.
+    else:
+        return value

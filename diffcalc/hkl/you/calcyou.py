@@ -9,7 +9,6 @@ except ImportError:
 from diffcalc.configurelogging import logging
 
 logger = logging.getLogger("diffcalc.hkl.you.calcyou")
-
 I = Matrix.identity(3, 3)
 
 SMALL = 1e-8
@@ -19,8 +18,24 @@ TODEG = 180 / pi
 def is_small(x):
     return abs(x) < SMALL
 
+def ne(a, b):
+    return is_small(a - b)
+
+def sequence_ne(a_seq, b_seq):
+    for a, b in zip(a_seq, b_seq):
+        if not ne(a, b):
+            return False
+    return True
+
 def sign(x):
     return 1 if x > 0 else -1
+
+def cut_at_minus_pi(value):
+    if value < (-pi - SMALL):
+        return value + 2 * pi
+    if value >= pi + SMALL:
+        return value - 2 * pi
+    return value
 
 def _calc_N(Q, n):
     """Return N as described by Equation 31"""
@@ -66,24 +81,50 @@ def _tidy_degenerate_solutions(pos):
         eta_diff = desired_eta - pos.eta
         pos.eta += eta_diff
         pos.phi -= eta_diff
-        print "DEGENERATE: with chi=0, phi and eta are colinear: choosing eta = delta/2 by adding %.3f to eta and removing it from phi. (mu=nu=0 only)" %(eta_diff*TODEG,)
+        print "DEGENERATE: with chi=0, phi and eta are colinear: choosing eta = delta/2 by adding % 7.3f to eta and removing it from phi. (mu=nu=0 only)" % (eta_diff * TODEG,)
         print "            original:", original
     return pos
+
+def _theta_and_qaz_from_detector_angles(delta, nu):
+    # Equation 19:
+    cos_2theta = cos(delta) * cos(nu)
+    theta = acos(bound(cos_2theta)) / 2.
+    qaz = atan2(tan(delta), sin(nu))
+    return theta, qaz
+
+def _filter_detector_solutions_by_theta_and_qaz(possible_delta_nu_pairs, required_theta, required_qaz):
+    delta_nu_pairs = []
+    for delta, nu in possible_delta_nu_pairs:
+        theta, qaz = _theta_and_qaz_from_detector_angles(delta, nu)
+        if ne(theta, required_theta) and ne(qaz, required_qaz):
+            delta_nu_pairs.append((delta, nu))
+    return delta_nu_pairs
+        
+
+
+
+_identity = lambda x: x
+
+_transforms = (_identity,
+              lambda x :-x,
+              lambda x : pi + x,
+              lambda x : pi - x)
+
+_transforms_for_zero = (lambda x : 0.,
+                       lambda x : pi,)
 
 
 class YouHklCalculator(HklCalculatorBase): 
     
     def __init__(self, ubcalc, geometry, hardware, constraints,
-                  raiseExceptionsIfAnglesDoNotMapBackToHkl=False):
+                  raiseExceptionsIfAnglesDoNotMapBackToHkl=True):
         HklCalculatorBase.__init__(self, ubcalc, geometry, hardware,
                                    raiseExceptionsIfAnglesDoNotMapBackToHkl)
-        
+        self._hardware = hardware # for checking limits only
         self.constraints = constraints
         
         self.n_phi = Matrix([[0], [0], [1]])
         """Reference vector in phi frame. Must be of length 1."""
-        
-        self.choose_chi_from_0_to_pi = False # default is -pi/2<chi<pi/2
         
     def repr_mode(self):
         return `self.constraints.all`
@@ -92,6 +133,8 @@ class YouHklCalculator(HklCalculatorBase):
         """Calculate miller indices from position in radians."""
         return youAnglesToHkl(pos, wavelength, self._getUBMatrix())
 
+
+
     def _anglesToVirtualAngles(self, pos, wavelength):
         """Calculate pseudo-angles in radians from position in radians.
         
@@ -99,16 +142,13 @@ class YouHklCalculator(HklCalculatorBase):
         
         """
         
-        del wavelength # not used
+        del wavelength # TODO: not used
         
         # depends on surface normal n_lab.
         mu, delta, nu, eta, chi, phi = pos.totuple()
 
-        
         # Equation 19:
-        cos_2theta = cos(delta) * cos(nu)
-        theta = acos(bound(cos_2theta)) / 2.
-        qaz = atan2(tan(delta), sin(nu))
+        theta, qaz = _theta_and_qaz_from_detector_angles(delta, nu)
         
         #Equation 20:
         [MU, _, _, ETA, CHI, PHI] = createYouMatrices(mu,
@@ -153,8 +193,47 @@ reference plane""")
         
         return {'theta': theta, 'qaz': qaz, 'alpha': alpha,
                 'naz': naz, 'tau': tau, 'psi': psi, 'beta': beta}
-        
 
+    def _choose_detector_angles(self, delta_nu_pairs):
+        if len(delta_nu_pairs) > 1:
+            raise Exception("Multiple detector solutions were found: delta, nu = %s, please constrain detector limits" % delta_nu_pairs)
+        if len(delta_nu_pairs) == 0:
+            raise Exception("No detector solutions were found, please unconstrain detector limits")
+        return delta_nu_pairs[0]
+    
+
+    def _choose_sample_angles(self, mu_eta_chi_phi_tuples):
+
+        if len(mu_eta_chi_phi_tuples) == 0:
+            raise Exception("No sample solutions were found, please unconstrain sample limits")
+        
+        if len(mu_eta_chi_phi_tuples) == 1:
+            return mu_eta_chi_phi_tuples[0]
+        
+        # there are multiple solutions
+        absolute_distances = []
+        for solution in mu_eta_chi_phi_tuples:
+            absolute_distances.append(sum([abs(v) for v in solution]))
+            
+        shortest_solution_index = absolute_distances.index(min(absolute_distances))
+        mu_eta_chi_phi = mu_eta_chi_phi_tuples[shortest_solution_index]
+        
+        if logger.isEnabledFor(logging.INFO):
+            msg = 'Multiple sample solutions found (choosing solution with shortest distance):\n'
+            i = 0
+            for solution, distance in zip(mu_eta_chi_phi_tuples, absolute_distances):
+                msg += '*' if i == shortest_solution_index else '.'
+                    
+                values_in_deg = tuple(v * TODEG for v in solution)
+                msg += 'mu=% 7.3f, eta=% 7.3f, chi=% 7.3f, phi=% 7.3f' % values_in_deg
+                msg += ' (distance=% 4.3f)\n' % (distance * TODEG)
+                i += 1
+            msg += ':\n'
+            logger.info(msg)
+        
+        return mu_eta_chi_phi
+    
+    
     def _hklToAngles(self, h , k , l, wavelength):
         """(pos, virtualAngles) = hklToAngles(h, k, l, wavelength) --- with Position object 
         pos and the virtual angles returned in degrees. Some modes may not calculate
@@ -172,9 +251,9 @@ reference plane""")
         reference_constraint = self.constraints.reference
         if reference_constraint:
             # One of the angles for the reference vector (n) is given (Section 5.2)
-            ref_name, ref_value = reference_constraint.items()[0]
-            psi, alpha, beta = self._calc_remaining_reference_angles_given_one(
-                                ref_name, ref_value, theta, tau)
+            ref_constraint_name, ref_constraint_value = reference_constraint.items()[0]
+            _, alpha, _ = self._calc_remaining_reference_angles_given_one(
+                                ref_constraint_name, ref_constraint_value, theta, tau)
         else:
             raise RuntimeError("Code not yet written to handle the absence of a reference constraint!")
         
@@ -187,36 +266,44 @@ reference plane""")
         
         if detector_constraint:
             # One of the detector angles is given (Section 5.1)
-            det_name, det_constraint = detector_constraint.items()[0]
+            det_constraint_name, det_constraint = detector_constraint.items()[0]
             delta, nu, qaz = self._calc_remaining_detector_angles_given_one(
-                             det_name, det_constraint, theta)
+                             det_constraint_name, det_constraint, theta)
             naz_qaz_angle = _calc_angle_between_naz_and_qaz(theta, alpha, tau)
             naz = qaz - naz_qaz_angle
-            if (naz < -SMALL) or (naz >= pi):
-                naz = qaz + naz_qaz_angle
+#            if (naz < -SMALL) or (naz >= pi):
+#                naz = qaz + naz_qaz_angle
                 
         elif naz_constraint:
             # The 'detector' angle naz is given:
-            naz_name, naz = naz_constraint.items()[0]
+            det_constraint_name, det_constraint = naz_constraint.items()[0]
+            naz_name, naz = det_constraint_name, det_constraint
             assert naz_name == 'naz'            
             naz_qaz_angle = _calc_angle_between_naz_and_qaz(theta, alpha, tau)
             qaz = naz - naz_qaz_angle
-            if (qaz < -SMALL) or (qaz >= pi):
-                qaz = naz + naz_qaz_angle
+#            if (qaz < -SMALL) or (qaz >= pi):
+#                qaz = naz + naz_qaz_angle
             nu = atan2(sin(2 * theta) * cos(qaz), cos(2 * theta))
             delta = atan2(sin(qaz) * sin(nu), cos(qaz))
             
         else:
-            # No detector contraint is given 
-            raise RuntimeError("No code yet to handle the absense of a detector constraint!")
+            # No detector constraint is given 
+            raise RuntimeError("No code yet to handle the absence of a detector constraint!")
 
-        ### Sample constraint columns ###
+
+        logger.info("initial detector solution - delta=% 7.3f, nu=% 7.3f" % (delta * TODEG, nu * TODEG))
+        possible_delta_nu_pairs = self._generate_possible_detector_solutions(delta, nu, det_constraint_name)
+        delta_nu_pairs = _filter_detector_solutions_by_theta_and_qaz(possible_delta_nu_pairs, theta, qaz)
+        delta, nu = self._choose_detector_angles(delta_nu_pairs)
         
+        
+        ### Sample constraint column ###
+         
         samp_constraints = self.constraints.sample
         
         if len(samp_constraints) == 1:
             # JUST ONE SAMPLE ANGLE GIVEN
-            sample_name, sample_value = samp_constraints.items()[0]
+            sample_constraint_name, sample_value = samp_constraints.items()[0]
             q_lab = Matrix([[cos(theta) * sin(qaz)],
                             [-sin(theta)],
                             [cos(theta) * cos(qaz)]]) # Equation 18
@@ -225,7 +312,7 @@ reference plane""")
                             [cos(alpha) * cos(naz)]]) # Equation 20
             
             phi, chi, eta, mu = self._calc_remaining_sample_angles_given_one(
-                                     sample_name, sample_value, q_lab, n_lab, h_phi, self.n_phi)
+                                     sample_constraint_name, sample_value, q_lab, n_lab, h_phi, self.n_phi)
 
         elif len(samp_constraints) == 2:
             raise DiffcalcException("No code yet to handle 2 sample constraints!")
@@ -237,15 +324,23 @@ reference plane""")
             raise AssertionError('1,2 or 3 sample constraints expected, not: ',
                                   len(samp_constraints))
             
-        ### Finished! ###
+
+        logger.info("initial sample solution -- mu=% 7.3f, eta=% 7.3f, chi=% 7.3f, phi=% 7.3f" % (mu * TODEG, eta * TODEG, chi * TODEG, phi * TODEG))
+        possible_mu_eta_chi_phi_tuples = self._generate_possible_sample_solutions(mu, eta, chi, phi, sample_constraint_name)
+        mu_eta_chi_phi_tuples = self._filter_sample_solutions_by_hkl_and_virtual_angle(delta, nu, possible_mu_eta_chi_phi_tuples, wavelength, (h, k, l), ref_constraint_name, ref_constraint_value)
+        mu, eta, chi, phi = self._choose_sample_angles(mu_eta_chi_phi_tuples)
         
+        # Create position
         position = Position(mu, delta, nu, eta, chi, phi)
-        pseudo_angles = {'theta': theta, 'qaz': qaz, 'alpha': alpha,
-                         'naz': naz, 'tau': tau, 'psi': psi, 'beta': beta}
-        
         position = _tidy_degenerate_solutions(position)
         if position.phi <= -pi + SMALL:
-            position.phi += 2*pi
+            position.phi += 2 * pi
+
+        # pseudo angles calculated along the way were for the initial solution
+        # and may be invalid for the chosen solution
+        # TODO: anglesToHkl need no longer check the pseudo_angles as they will be
+        # generated with the same function and it will prove nothing
+        pseudo_angles = self._anglesToVirtualAngles(position, wavelength) 
         return position, pseudo_angles
                 
     def _calc_theta(self, h_phi, wavelength):
@@ -259,6 +354,52 @@ reference plane""")
         except ValueError:
             raise DiffcalcException("Reflection is unreachable as |Q| is too long")
         return theta
+    
+    def _generate_possible_detector_solutions(self, delta, nu, det_constraint_name):
+        return self._generate_possible_solutions([delta, nu], ['delta', 'nu'], (det_constraint_name,))
+
+    def _generate_possible_sample_solutions(self, mu, eta, chi, phi, sample_constraint_name):
+        possible_mu_eta_chi_phi_tuples = self._generate_possible_solutions([mu, eta, chi, phi], ['mu', 'eta', 'chi', 'phi'], (sample_constraint_name,))
+        return possible_mu_eta_chi_phi_tuples
+    
+    def _filter_sample_solutions_by_hkl_and_virtual_angle(self, delta, nu, possible_mu_eta_chi_phi_tuples, wavelength, hkl, ref_constraint_name, ref_constraint_value):
+        mu_eta_chi_phi_tuples = []
+        
+        if logger.isEnabledFor(logging.DEBUG):
+            msg = 'Checking all sample solutions (found to be within limits)\n'
+          
+        for mu, eta, chi, phi in possible_mu_eta_chi_phi_tuples:
+            pos = Position(mu, delta, nu, eta, chi, phi)
+            hkl_actual = self._anglesToHkl(pos, wavelength)
+            hkl_okay = sequence_ne(hkl, hkl_actual)
+ 
+            if hkl_okay:
+                virtual_angles = self._anglesToVirtualAngles(pos, wavelength)
+                if ref_constraint_name == 'a_eq_b':
+                    virtual_okay = ne(virtual_angles['alpha'], virtual_angles['beta'])
+                else:
+                    virtual_okay = ne(ref_constraint_value, virtual_angles[ref_constraint_name])
+            else:
+                virtual_okay = False  
+            if hkl_okay and virtual_okay:
+                mu_eta_chi_phi_tuples.append((mu, eta, chi, phi))
+                
+                
+            if logger.isEnabledFor(logging.DEBUG):
+                msg += '*' if virtual_okay else '.'
+                msg += '*' if hkl_okay else '.'
+                msg += 'mu=% 7.3f, eta=% 7.3f, chi=% 7.3f, phi=% 7.3f' % (mu * TODEG, eta * TODEG, chi * TODEG, phi * TODEG)
+                if hkl_okay:
+                    virtual_angles_in_deg = {}
+                    for k in virtual_angles:
+                        virtual_angles_in_deg[k] = virtual_angles[k] * TODEG
+                        #         return {'theta': theta, 'qaz': qaz, 'alpha': alpha, 'naz': naz, 'tau': tau, 'psi': psi, 'beta': beta}
+                    msg += ' --- psi=%(psi) 7.3f, tau=%(tau) 7.3f, naz=%(naz) 7.3f, qaz=%(qaz) 7.3f, alpha=%(alpha) 7.3f, beta=%(beta) 7.3f' % virtual_angles_in_deg
+                msg += '\n'
+        if logger.isEnabledFor(logging.DEBUG): 
+            logger.debug(msg)
+        return mu_eta_chi_phi_tuples
+
     
     def _calc_remaining_reference_angles_given_one(self, name, value, theta, tau):
         """Return psi, alpha and beta given one of a_eq_b, alpha, beta or psi"""
@@ -374,17 +515,12 @@ reference plane""" % name)
             mu = value
             MU = calcMU(mu)
             V = MU.inverse().times(N_lab).times(N_phi.transpose()).array
-            phi = atan2(-V[2][1], -V[2][0]) # TODO: choosing other root than that from paper to pass tests
-            if not is_small(phi - atan2(V[2][1], V[2][0])):
-                logger.warn("Taking phi = %s not %s", phi, atan2(V[2][1], V[2][0]))
+            phi = atan2(V[2][1], V[2][0])
             eta = atan2(-V[1][2], V[0][2])
             
             logger.debug("   0 < chi < pi:   %s", acos(V[2][2]) * TODEG)
             logger.debug("-pi/2< chi < pi/2: %s", atan2(sqrt(V[2][0] ** 2 + V[2][1] ** 2), V[2][2]) * TODEG)
-            if self.choose_chi_from_0_to_pi:
-                chi = acos(V[2][2]) # 0 < chi < pi
-            else:
-                chi = atan2(sqrt(V[2][0] ** 2 + V[2][1] ** 2), V[2][2]) # -pi/2<chi< pi/2
+            chi = atan2(sqrt(V[2][0] ** 2 + V[2][1] ** 2), V[2][2]) # -pi/2<chi< pi/2
                 
         elif name == 'phi': # Equation 37
             phi = value
@@ -392,24 +528,12 @@ reference plane""" % name)
             V = N_lab.times(N_phi.inverse()).times(PHI.transpose()).array
             eta = atan2(V[0][1], sqrt(V[1][1] ** 2 + V[2][1] ** 2))
             mu = atan2(V[2][1], V[1][1])
-            if self.choose_chi_from_0_to_pi:
-                try:
-                    chi = acos(V[0][0] / cos(eta)) # 0 < chi < pi
-                except ZeroDivisionError:
-                    raise ZeroDivisionError(
-                           "Could not calculate chi given phi as cos(eta) is 0")
-            else:
-                chi = atan2(V[0][2], V[0][0]) # -pi/2 < chi < pi/2
+            chi = atan2(V[0][2], V[0][0]) # -pi/2 < chi < pi/2
                 
         elif name in ('eta', 'chi'):
             V = N_lab.times(N_phi.transpose()).array
             if name == 'eta': # Equation 39
                 eta = value
-                if self.choose_chi_from_0_to_pi:
-                    raise DiffcalcException(
-"""A chi value from 0 to pi was requested, but with eta constrained, this is not
-currently possible. (Set the choose_chi_from_0_to_pi attribute on the
-YouHklCalculator object to False to remove this request.)""")
                 if is_small(eta):
                     raise ValueError(
 "Chi and mu cannot be chosen uniquely with eta so close to +-90.")
@@ -449,3 +573,37 @@ specified in equation 40.""")
             raise ValueError('Given angle must be one of phi, chi, eta or mu')
             
         return phi, chi, eta, mu
+
+    def _generate_possible_solutions(self, values, names, constrained_names):
+        
+        individualy_transformed_values = []
+        for value, name in zip(values, names):
+            transforms_of_value_within_limits = []
+            
+            if name in constrained_names:
+                transforms = (_identity,)
+            elif is_small(value):
+                transforms = _transforms_for_zero
+            else:
+                transforms = _transforms
+            
+            for transform in transforms:
+                transformed_value = transform(value)
+                if self._hardware.isAxisValueWithinLimits(name,
+                        self._hardware.cutAngle(name, transformed_value * TODEG)):
+                    transforms_of_value_within_limits.append(cut_at_minus_pi(transformed_value))
+            individualy_transformed_values.append(transforms_of_value_within_limits)
+    
+        def expand(tuples_so_far, b):
+            r = []
+            for tuple_so_far in tuples_so_far:
+                try:
+                    tuple_so_far = tuple(tuple_so_far)
+                except TypeError:
+                    tuple_so_far = (tuple_so_far,)
+                for bb in b:
+                    new = tuple_so_far + (bb,)
+                    r.append(new)
+            return r
+        
+        return reduce(expand, individualy_transformed_values)

@@ -63,6 +63,33 @@ class TestHardwareMonitorPluginBase(unittest.TestCase):
         self.assertEquals(self.hardware.isPositionWithinLimits([1.01, 0, 999]), False)
         self.assertEquals(self.hardware.isPositionWithinLimits([0, 2.01, 999]), False)
         self.assertEquals(self.hardware.isPositionWithinLimits([-1.01, 0, 999]), False)
+ 
+    def testIsAxisWithinLimits(self):
+        self.hardware.setUpperLimit('a', 1)
+        self.hardware.setUpperLimit('b', 2)
+        self.hardware.setLowerLimit('a', -1)
+#        self.assertEquals(self.hardware.isPositionWithinLimits([0, 0, 999]), True)
+        self.assertEquals(self.hardware.isAxisValueWithinLimits('a', 0), True)
+        self.assertEquals(self.hardware.isAxisValueWithinLimits('b', 0), True)
+        self.assertEquals(self.hardware.isAxisValueWithinLimits('c', 999), True)
+        
+#        self.assertEquals(self.hardware.isPositionWithinLimits([1, 2, 999]), True)
+        self.assertEquals(self.hardware.isAxisValueWithinLimits('a', 1), True)
+        self.assertEquals(self.hardware.isAxisValueWithinLimits('b', 2), True)
+        self.assertEquals(self.hardware.isAxisValueWithinLimits('c', 999), True)
+        
+#        self.assertEquals(self.hardware.isPositionWithinLimits([-1, -999, 999]), True)
+        self.assertEquals(self.hardware.isAxisValueWithinLimits('a', -1), True)
+        self.assertEquals(self.hardware.isAxisValueWithinLimits('b', -999), True)
+        
+#        self.assertEquals(self.hardware.isPositionWithinLimits([1.01, 0, 999]), False)
+        self.assertEquals(self.hardware.isAxisValueWithinLimits('a', 1.01), False)
+        
+#        self.assertEquals(self.hardware.isPositionWithinLimits([0, 2.01, 999]), False)
+        self.assertEquals(self.hardware.isAxisValueWithinLimits('b', 2.01), False)
+        
+#        self.assertEquals(self.hardware.isPositionWithinLimits([-1.01, 0, 999]), False)
+        self.assertEquals(self.hardware.isAxisValueWithinLimits('a', 1.01), False)
 
     def setCutAndGetCuts(self):
         self.hardware.setCut('a', 2)

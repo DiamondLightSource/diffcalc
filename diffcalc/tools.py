@@ -9,7 +9,11 @@ def assert_array_almost_equal(first, second, places=7, msg=None, note=None):
     assert len(first) == len(second), "%r != %r as lengths differ%s" % (first, second, format_note(note))
     for f, s in zip(first, second):
         assert_almost_equal(f, s, places, msg or "\n%r != \n%r within %i places%s" 
-                            % (first, second, places, format_note(note)))
+                            % (format_array(first, places), format_array(second, places), places, format_note(note)))
+
+def format_array(a, places):
+    fmt = '% .' + str(places) + 'f'
+    return '(' + ', '.join((fmt%el) for el in a) + ')'
 
 arrayeq_ = assert_array_almost_equal
         

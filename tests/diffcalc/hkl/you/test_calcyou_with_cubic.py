@@ -1,14 +1,12 @@
-from diffcalc.hkl.you.calcyou import youAnglesToHkl, YouHklCalculator
+from diffcalc.hkl.you.calcyou import YouHklCalculator
 from diffcalc.hkl.you.constraints import ConstraintManager
-from diffcalc.tools import arrayeq_, assert_array_almost_equal, \
-    assert_second_dict_almost_in_first, assert_matrix_almost_equal
-from diffcalc.utils import Position, createYouMatrices, calcCHI, calcPHI, \
-    y_rotation, z_rotation, YouPosition as Pos, DiffcalcException
-from math import pi, sqrt, cos, sin
-from nose.plugins.skip import SkipTest
+from diffcalc.tools import assert_array_almost_equal, \
+    assert_second_dict_almost_in_first
+from diffcalc.utils import y_rotation, z_rotation, YouPosition as Pos, DiffcalcException
+from math import pi, cos, sin
 from nose.tools import raises
-from tests.diffcalc.hkl.test_calcvlieg import createMockDiffractometerGeometry, \
-    createMockHardwareMonitor, createMockUbcalc
+from tests.diffcalc.hkl.test_calcvlieg import createMockDiffractometerGeometry, createMockUbcalc
+from tests.diffcalc.hardware.test_plugin import SimpleHardwareMonitorPlugin
 
 try:
     from Jama import Matrix
@@ -17,40 +15,34 @@ except ImportError:
 
 TORAD = pi / 180
 TODEG = 180 / pi
-
-
-
 I = Matrix.identity(3, 3)
-
 
 class TestBase():
     
     def setup(self):
         self.mock_ubcalc = createMockUbcalc(None)
         self.mock_geometry = createMockDiffractometerGeometry()
-        self.mock_hardware = createMockHardwareMonitor
+        self.mock_hardware = SimpleHardwareMonitorPlugin(['delta', 'nu', 'mu', 'eta', 'chi', 'phi'])
+        self.mock_hardware.setLowerLimit('delta', 0)
+        
+        self.mock_hardware.setLowerLimit('mu', 0)
+        self.mock_hardware.setLowerLimit('eta', 0)
+        self.mock_hardware.setLowerLimit('chi', -10)
         
         self.constraints = ConstraintManager(self.mock_hardware)
         self.calc = YouHklCalculator(self.mock_ubcalc, self.mock_geometry, self.mock_hardware, self.constraints)
         
-#    def _check_angles_to_virtual_angles(self, testname, pos, wavelength, virtual_expected):
-#        assert_second_dict_almost_in_first(self.calc.anglesToVirtualAngles(pos, wavelength),
-#                                 virtual_expected)
-#    
-#    def _check_angles_to_hkl(self, testname, hkl_expected, pos, wavelength, virtual_expected):
-#        hkl, virtual = self.calc.anglesToHkl(pos, wavelength)
-#        assert_array_almost_equal(hkl, hkl_expected)
-#        assert_second_dict_almost_in_first(virtual, virtual_expected)
-    
+        self.places = 12
+
     def _check_hkl_to_angles(self, testname, zrot, yrot, hkl, pos_expected, wavelength, virtual_expected):
         ZROT = z_rotation(zrot * TORAD)  # -PHI
         YROT = y_rotation(yrot * TORAD)  # +CHI
         U = ZROT.times(YROT) 
         UB = U.times(self.B)
         self.mock_ubcalc.getUBMatrix.return_value = UB
-        
+        print '_check_hkl_to_angles(%s, %.1f, %.1f, %s, %s, %.2f, %s)' % (testname, zrot, yrot, hkl, pos_expected, wavelength, virtual_expected)
         pos, virtual = self.calc.hklToAngles(hkl[0], hkl[1], hkl[2], wavelength)
-        assert_array_almost_equal(pos.totuple(), pos_expected.totuple())
+        assert_array_almost_equal(pos.totuple(), pos_expected.totuple(), self.places)
         assert_second_dict_almost_in_first(virtual, virtual_expected)
     
     @raises(DiffcalcException) 
@@ -66,7 +58,7 @@ class TestYouHklCalculatorWithCubic(TestBase):
        
         
     
-    def case(self, name, fails=False, mu=None, delta=None, nu=None, eta=None, chi=None, phi=None):
+    def case(self, name, fails=False):
         cases = {
                 '100': ((1, 0, 0),
                         Pos(mu=0, delta=60, nu=0, eta=30, chi=0 - self.yrot, phi=0 + self.zrot), 1, {}),
@@ -81,30 +73,13 @@ class TestYouHklCalculatorWithCubic(TestBase):
             }
         test_method = self._check_hkl_to_angles_fails if fails else self._check_hkl_to_angles
         t = (test_method, name, self.zrot, self.yrot) + cases[name]
-        if mu is not None:
-            t[5].mu = mu
-        if delta is not None:
-            t[5].delta = delta
-        if nu is not None:
-            t[5].nu = nu
-        if eta is not None:
-            t[5].eta = eta
-        if chi is not None:
-            t[5].chi = chi
-        if phi is not None:
-            t[5].phi = phi
         return t
-    
-    
-#    def test_angles_to_hkl(self):
-#        for testname, hkl_expected, pos, wavelength, virtual in self.cases:
-#            yield self._check_angles_to_hkl, testname, hkl_expected, pos, wavelength, virtual
 
 class TestYouHklCalculatorWithCubicMode_a_eq_b(TestYouHklCalculatorWithCubic):
 #            
     def setup(self):
         TestYouHklCalculatorWithCubic.setup(self)
-        self.constraints._constrained = {'psi': 90*TORAD, 'mu':0, 'nu':0}
+        self.constraints._constrained = {'a_eq_b': None, 'mu':0, 'nu':0}
 
     def test_hkl_to_angles_zrot0_yrot0(self):
         self.zrot = self.yrot = 0 
@@ -126,7 +101,7 @@ class TestYouHklCalculatorWithCubicMode_a_eq_b(TestYouHklCalculatorWithCubic):
     def test_hkl_to_angles_zrot1_yrot2(self):
         self.zrot = 1
         self.yrot = 2 
-        yield self.case('100', eta=-150,chi=178) # TODO: Unexpected solution
+        yield self.case('100')
         yield self.case('100-->001')
         yield self.case('001-->100')
         yield self.case('001')
@@ -135,10 +110,10 @@ class TestYouHklCalculatorWithCubicMode_a_eq_b(TestYouHklCalculatorWithCubic):
     def test_hkl_to_angles_zrot1_yrotm2(self):
         self.zrot = 1
         self.yrot = -2 
-        yield self.case('100') # TODO: Unexpected solution
+        yield self.case('100')
         yield self.case('100-->001')
         yield self.case('001-->100')
-        yield self.case('001', chi=88, phi=-179)
+        yield self.case('001')
         yield self.case('010')
     
             
@@ -147,18 +122,20 @@ class TestYouHklCalculatorWithCubicMode_psi_90(TestYouHklCalculatorWithCubicMode
     
     def setup(self):
         TestYouHklCalculatorWithCubicMode_a_eq_b.setup(self)
-        self.constraints._constrained = {'psi': 90*TORAD, 'mu':0, 'nu':0}
+        self.constraints._constrained = {'psi': 90 * TORAD, 'mu':0, 'nu':0}
 
 class TestYouHklCalculatorWithCubicMode_aeqb_qaz_90(TestYouHklCalculatorWithCubicMode_a_eq_b):
     '''mode psi=90 should be the same as mode a_eq_b'''
     
     def setup(self):
         TestYouHklCalculatorWithCubicMode_a_eq_b.setup(self)
-        self.constraints._constrained = {'a_eq_b': None, 'mu':0, 'qaz':90*TORAD}
+        self.constraints._constrained = {'a_eq_b': None, 'mu':0, 'qaz':90 * TORAD}
 
-# Many fail with unexpected solutions
+# Works to 4-5 decimal places but chooses different solutions when phi||eta .
+# Skip all tests.
 #class TestYouHklCalculatorWithCubicMode_aeqb_delta_60(TestYouHklCalculatorWithCubicMode_a_eq_b):
 #    
 #    def setup(self):
 #        TestYouHklCalculatorWithCubicMode_a_eq_b.setup(self)
-#        self.constraints._constrained = {'a_eq_b': None, 'mu':0, 'delta':59.9999999999999*TORAD}
+#        self.constraints._constrained = {'a_eq_b': None, 'mu':0, 'delta':60*TORAD}
+#        self.places = 5

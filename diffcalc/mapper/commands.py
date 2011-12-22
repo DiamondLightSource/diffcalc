@@ -1,13 +1,10 @@
 from diffcalc.hkl.commands import _hklcalcCommandHelp, HklCommand
-from diffcalc.mapper.sector import SectorSelector
-
 
 def getNameFromScannableOrString(o):
         try: # it may be a scannable
             return o.getName()
         except AttributeError:
             return str(o)
-            raise TypeError()
             
 
 class MapperCommands(object):

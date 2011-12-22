@@ -1,11 +1,13 @@
 from diffcalc.hkl.you.calcyou import YouHklCalculator, I, _calc_angle_between_naz_and_qaz
-from diffcalc.tools import  assert_matrix_almost_equal
+from diffcalc.tools import  assert_matrix_almost_equal,\
+    assert_2darray_almost_equal
 from diffcalc.utils import Position, DiffcalcException
 from math import pi, sin, cos
 from nose.plugins.skip import SkipTest
-from nose.tools import assert_almost_equal, raises #@UnresolvedImport
+from nose.tools import assert_almost_equal, raises, eq_ #@UnresolvedImport
 from tests.diffcalc.hkl.test_calcvlieg import createMockDiffractometerGeometry, createMockHardwareMonitor, createMockUbcalc
 import math
+from tests.diffcalc.hardware.test_plugin import SimpleHardwareMonitorPlugin
 
 try:
     from Jama import Matrix
@@ -426,3 +428,199 @@ class Test_calc_remaining_sample_angles_given_one():
         Q_lab = Matrix([[cos(theta)], [-sin(theta)],[0]])
         self.check('phi', 20, Q_lab=Q_lab, n_lab=z, Q_phi=x, n_phi=z,
                     phi_e=20, chi_e=0, eta_e=0, mu_e=0)
+
+
+
+class TestSolutionGenerator():
+    def setup(self):
+        
+        self.hardware = SimpleHardwareMonitorPlugin(['delta', 'nu', 'mu', 'eta', 'chi', 'phi'])
+        self.calc = YouHklCalculator(createMockUbcalc(None),
+                                     createMockDiffractometerGeometry(),
+                                     self.hardware,
+                                     None)
+    
+    # constraint could have been 'delta', 'nu', 'qaz' or 'naz'.
+    
+    def test_generate_possible_detector_solutions_no_limits_constrained_qaz_or_naz(self):
+        # we will enfoce the order too, incase this later effects hearistically made choices
+        expected = (
+                    (.1, .2),
+                    (.1, -.2),
+                    (.1, .2 - pi),
+                    (.1, pi - .2),
+                    (-.1, .2),
+                    (-.1, -.2),
+                    (-.1, .2 - pi),
+                    (-.1, pi - .2),
+                    (.1 - pi, .2), # pi + x cuts to x-pi 
+                    (.1 - pi, -.2),
+                    (.1 - pi, .2 - pi),
+                    (.1 - pi, pi - .2),
+                    (pi - .1, .2),
+                    (pi - .1, -.2),
+                    (pi - .1, .2 - pi),
+                    (pi - .1, pi - .2),
+                   )
+        
+        assert_2darray_almost_equal(expected,
+                self.calc._generate_possible_detector_solutions(.1, .2, 'naz'))
+        assert_2darray_almost_equal(expected,
+                self.calc._generate_possible_detector_solutions(.1, .2, 'qaz'))
+
+    def test_generate_possible_detector_solutions_no_limits_constrained_qaz_or_naz_delta_and_nu_at_zero(self):
+        # we will enfoce the order too, incase this later effects hearistically made choices
+        expected = ( 
+                    (0., 0,),
+                    (0., pi),
+                    (pi, 0.),
+                    (pi, pi)
+                    )
+        
+        assert_2darray_almost_equal(expected,
+                self.calc._generate_possible_detector_solutions(-2e-9, 2e-9, 'naz'))
+        assert_2darray_almost_equal(expected,
+                self.calc._generate_possible_detector_solutions(-2e-9, 2e-9, 'qaz'))
+        
+    def test_generate_possible_detector_solutions_no_limits_constrained_delta(self):
+        expected = (
+                    (.1, .2),
+                    (.1, -.2),
+                    (.1, .2 - pi),
+                    (.1, pi - .2),
+                   )
+        
+        assert_2darray_almost_equal(expected,
+                self.calc._generate_possible_detector_solutions(.1, .2, 'delta'))
+        
+    def test_generate_possible_detector_solutions_no_limits_constrained_nu(self):
+        expected = (
+                    (.1, .2),
+                    (-.1, .2),
+                    (.1 - pi, .2),
+                    (pi - .1, .2),
+                   )
+        
+        assert_2darray_almost_equal(expected,
+                self.calc._generate_possible_detector_solutions(.1, .2, 'nu'))
+
+    def test_generate_possible_detector_solutions_with_limits_constrained_delta(self):
+        self.hardware.setLowerLimit('nu', 0)
+        expected = (
+                    (.1, .2),
+                    (.1, pi - .2),
+                   )
+        
+        assert_2darray_almost_equal(expected,
+                self.calc._generate_possible_detector_solutions(.1, .2, 'delta'))
+        
+    def test_generate_possible_detector_solutions_with_limits_constrained_nu(self):
+        self.hardware.setUpperLimit('delta', 0)
+        expected = (
+                    (-.1, .2),
+                    (.1 - pi, .2), # cuts to .1-pi
+                   )
+        
+        assert_2darray_almost_equal(expected,
+                self.calc._generate_possible_detector_solutions(.1, .2, 'nu'))
+
+    def test_generate_possible_detector_solutions_with_limits_overly_constrained_nu(self):
+        self.hardware.setLowerLimit('delta', .3)
+        self.hardware.setUpperLimit('delta', .31)
+        eq_(len(self.calc._generate_possible_detector_solutions(.1, .2, 'nu')), 0)
+        
+    def test_generate_possible_sample_solutions(self):
+        result = self.calc._generate_possible_sample_solutions(.1, .2, .3, .4, 'naz')
+        assert_2darray_almost_equal(self._hardcoded_generate_possible_sample_solutions(.1, .2, .3, .4, 'naz'),
+                result)
+        eq_(4**4, len(result))
+
+    def test_generate_possible_sample_solutions_fixed_chi(self):
+        result = self.calc._generate_possible_sample_solutions(.1, .2, .3, .4, 'chi')
+        assert_2darray_almost_equal(self._hardcoded_generate_possible_sample_solutions(.1, .2, .3, .4, 'chi'),
+                result)
+        eq_(4**3, len(result))
+
+    def test_generate_possible_sample_solutions_fixed_chi_positive_mu(self):
+        self.hardware.setLowerLimit('mu', 0)
+        result = self.calc._generate_possible_sample_solutions(.1, .2, .3, .4, 'chi')
+        assert_2darray_almost_equal(self._hardcoded_generate_possible_sample_solutions(.1, .2, .3, .4, 'chi'),
+                result)
+        eq_(2 * (4**2), len(result))
+        
+    def _hardcoded_generate_possible_sample_solutions(self, mu, eta, chi, phi, sample_constraint_name):
+        possible_solutions = []
+        _identity = lambda x: x
+        _transforms = (_identity,
+                      lambda x :-x,
+                      lambda x : pi + x,
+                      lambda x : pi - x)
+        _transforms_for_zero = (lambda x : 0.,
+                               lambda x : pi,)
+        SMALL = 1e-8
+        def cut_at_minus_pi(value):
+            if value < (-pi - SMALL):
+                return value + 2 * pi
+            if value >= pi + SMALL:
+                return value - 2 * pi
+            return value
+        
+        def is_small(x):
+            return abs(x) < SMALL
+        
+        for transform in ((_identity,) if sample_constraint_name=='mu' else
+                           _transforms if not is_small(mu) else _transforms_for_zero):
+            transformed_mu = (transform(mu))
+            if not self.hardware.isAxisValueWithinLimits('mu', 
+                    self.hardware.cutAngle('mu', transformed_mu*TODEG)):
+                continue
+            for transform in ((_identity,) if sample_constraint_name=='eta' else
+                               _transforms if not is_small(eta) else _transforms_for_zero):
+                transformed_eta = transform(eta)
+                if not self.hardware.isAxisValueWithinLimits('eta', 
+                    self.hardware.cutAngle('eta', transformed_eta*TODEG)):
+                    continue
+                for transform in ((_identity,) if sample_constraint_name=='chi' else
+                                   _transforms if not is_small(chi) else _transforms_for_zero):
+                    transformed_chi = transform(chi)
+                    if not self.hardware.isAxisValueWithinLimits('chi', 
+                        self.hardware.cutAngle('chi', transformed_chi*TODEG)):
+                        continue
+                    for transform in ((_identity,) if sample_constraint_name=='phi' else
+                                       _transforms if not is_small(phi) else _transforms_for_zero):
+                        transformed_phi = transform(phi)
+                        if not self.hardware.isAxisValueWithinLimits('phi', 
+                            self.hardware.cutAngle('phi', transformed_phi*TODEG)):
+                            continue
+                        possible_solutions.append((
+                                                 cut_at_minus_pi(transformed_mu),
+                                                 cut_at_minus_pi(transformed_eta),
+                                                 cut_at_minus_pi(transformed_chi),
+                                                 cut_at_minus_pi(transformed_phi)))
+        return possible_solutions
+#def iterate(tuples_so_far, b):
+#    r = []
+#    for tuple_so_far in tuples_so_far:
+#        try:
+#            tuple_so_far = tuple(tuple_so_far)
+#        except TypeError:
+#            tuple_so_far = (tuple_so_far,)
+#        for bb in b:
+#            new = tuple_so_far + (bb,)
+#            r.append(new)
+#    return r
+#
+#def test_iterate():
+#    eq_([], iterate([], [1]))
+#    
+#    eq_([(3,2)], iterate([(3,)], [2]))
+#    eq_([(3,2), (3,2.1)], iterate([(3,)], [2, 2.1]))
+#    
+#    eq_([(3,2,1), (3,2.1,1)], iterate([(3,2), (3,2.1)], [1]))
+#    eq_([(3, 2, 1), (3, 2, 1.1), (3, 2.1, 1), (3, 2.1, 1.1)], iterate([(3,2), (3,2.1)], [1,1.1]))
+#    
+#    eq_([(3, 2, 1), (3, 2, 1.1), (3, 2.1, 1), (3, 2.1, 1.1)], reduce(iterate, [(3,), (2, 2.1), (1,1.1)] ))
+    
+    
+#    eq_([], iterate)
+
