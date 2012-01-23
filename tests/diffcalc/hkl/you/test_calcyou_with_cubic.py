@@ -275,36 +275,36 @@ class TestAgainstSpecSixcB16_270608(_BaseTest):
             yield case_tuple
 
 
-#class TestThreeTwoCircleForDiamondI06andI10(_BaseTest):
-#    """"This is a three circle diffractometer with only delta and omega axes and
-#    a chi axis with limited range around 90. It is operated with phi fixed and
-#    can only reach reflections with l (or z) component.
-#    
-#    The data here is taken from an experiment performed on Diamonds I06 beamline."""
-#    def setup(self):
-#        _BaseTest.setup(self)
-#        self.constraints._constrained = {'phi': -pi/2, 'nu':0, 'mu':0}
-#        self.wavelength = 12.39842 / 1.650
-#        
-#    def _configure_ub(self):
-#        U = Matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-#        B = CrystalUnderTest('xtal', 5.34, 5.34, 13.2, 90, 90, 90).getBMatrix()
-#        self.mock_ubcalc.getUBMatrix.return_value =  U.times(B)
-#
-#    def testHkl001(self):
-#        hkl = (0, 0, 1) 
-#        pos = Pos(mu=0, delta=33.07329403295449, nu=0, eta=16.536647016477247, chi=90, phi=-90)
-#        self._check_angles_to_hkl('001', 999, 999, hkl, pos, self.wavelength, {})
-#        self._check_hkl_to_angles('001', 999, 999, hkl, pos, self.wavelength, {})
-#   
-#    def testHkl100(self):
-#        hkl = (1, 0, 0) 
-#        pos = Pos(mu=0, delta=89.42926563609406, nu=0, eta=134.71463281804702, chi=90, phi=-90)
-#        self._check_angles_to_hkl('100', 999, 999, hkl, pos, self.wavelength, {})
-#        self._check_hkl_to_angles('100', 999, 999, hkl, pos, self.wavelength, {})
-#   
-#    def testHkl101(self):
-#        hkl = (1, 0, 1) 
-#        pos = Pos(mu=0, delta=98.74666191021282, nu=0, eta=117.347760720783, chi=90, phi=-90)
-#        self._check_angles_to_hkl('101', 999, 999, hkl, pos, self.wavelength, {})
-#        self._check_hkl_to_angles('101', 999, 999, hkl, pos, self.wavelength, {})
+class SkipTestThreeTwoCircleForDiamondI06andI10(_BaseTest):
+    """"This is a three circle diffractometer with only delta and omega axes and
+    a chi axis with limited range around 90. It is operated with phi fixed and
+    can only reach reflections with l (or z) component.
+    
+    The data here is taken from an experiment performed on Diamonds I06 beamline."""
+    def setup(self):
+        _BaseTest.setup(self)
+        self.constraints._constrained = {'phi': -pi/2, 'nu':0, 'mu':0}
+        self.wavelength = 12.39842 / 1.650
+        
+    def _configure_ub(self):
+        U = Matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        B = CrystalUnderTest('xtal', 5.34, 5.34, 13.2, 90, 90, 90).getBMatrix()
+        self.mock_ubcalc.getUBMatrix.return_value =  U.times(B)
+
+    def testHkl001(self):
+        hkl = (0, 0, 1) 
+        pos = Pos(mu=0, delta=33.07329403295449, nu=0, eta=16.536647016477247, chi=90, phi=-90)
+        self._check_angles_to_hkl('001', 999, 999, hkl, pos, self.wavelength, {})
+        self._check_hkl_to_angles('001', 999, 999, hkl, pos, self.wavelength, {})
+   
+    def testHkl100(self):
+        hkl = (1, 0, 0) 
+        pos = Pos(mu=0, delta=89.42926563609406, nu=0, eta=134.71463281804702, chi=90, phi=-90)
+        self._check_angles_to_hkl('100', 999, 999, hkl, pos, self.wavelength, {})
+        self._check_hkl_to_angles('100', 999, 999, hkl, pos, self.wavelength, {})
+   
+    def testHkl101(self):
+        hkl = (1, 0, 1) 
+        pos = Pos(mu=0, delta=98.74666191021282, nu=0, eta=117.347760720783, chi=90, phi=-90)
+        self._check_angles_to_hkl('101', 999, 999, hkl, pos, self.wavelength, {})
+        self._check_hkl_to_angles('101', 999, 999, hkl, pos, self.wavelength, {})

@@ -125,7 +125,7 @@ eq36:MU.ETA.CHI;
 /* [wxMaxima: input   end   ] */
 
 /* [wxMaxima: input   start ] */
-eq36_eta90:subst(0, cos(eta), subst(1, sin(eta), eq36));
+eq36_eta90:subst(%pi/2, eta, eq36);
 /* [wxMaxima: input   end   ] */
 
 /* [wxMaxima: comment start ]
@@ -217,11 +217,136 @@ trigsimp(top/bot);
    [wxMaxima: comment end   ] */
 
 /* [wxMaxima: input   start ] */
-phi_mu_parallel:subst(1, sin(chi), subst(1, cos(eta), subst(0, sin(eta), subst(0, cos(chi), eq38))));
+phi_mu_parallel:subst(0, eta, subst(%pi/2, chi, eq38));
 /* [wxMaxima: input   end   ] */
 
 /* [wxMaxima: input   start ] */
 trigreduce(trigrat((phi_mu_parallel[2,1]=V[2,1])/(phi_mu_parallel[2,2]=V[2,2])));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: section start ]
+Two sample angles given
+   [wxMaxima: section end   ] */
+
+/* [wxMaxima: input   start ] */
+THETA:subst(-theta, theta, Rz);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+PSI:subst(psi, theta, Rx);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+F:subst(xi, theta, Ry);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: section start ]
+psi, mu, eta given
+   [wxMaxima: section end   ] */
+
+/* [wxMaxima: input   start ] */
+eq49:transpose(PHI).transpose(CHI).transpose(ETA).transpose(MU).F;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+*chi*
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: comment start ]
+using the linear combination identity
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+comb_idenity:sqrt(A^2+B^2)*sin(x+omega);
+omega:atan(B/A);
+A*sin(x)+B*cos(x)=comb_idenity;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+a:-sin(eta)*cos(mu)$
+b:-sin(mu)$
+V32=a*sin(chi)+b*cos(chi);
+V32=subst(b, B, subst(a, A, comb_idenity));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+asin(%/(sqrt(sin(mu)^2+sin(eta)^2*cos(mu)^2))), triginverses=all;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+*xi and phi*
+
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+top:factor(eq49[3,1]*cos(xi)+eq49[3,3]*sin(xi));
+bot:factor(eq49[3,1]*sin(xi)-eq49[3,3]*cos(xi));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+factor(top/bot);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: subsect start ]
+mu, phi, qaz (for three circle on i10 and i06, not in paper )
+   [wxMaxima: subsect end   ] */
+
+/* [wxMaxima: input   start ] */
+thisV:transpose(MU).F.THETA;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+Nphi:matrix([n11, n12, n13], [n21, n22, n23], [n31, n32, n33]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+eq:ETA.CHI.PHI.Nphi.transpose(PSI);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+*chi*
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: comment start ]
+using the linear combination identity
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+comb_idenity:sqrt(A^2+B^2)*sin(x+omega);
+omega:atan(B/A);
+A*sin(x)+B*cos(x)=comb_idenity;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+on V31:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+a:-1*(n21*sin(phi)+n11*cos(phi))$
+b:n31$
+V31=a*sin(chi)+b*cos(chi);
+V31=subst(b, B, subst(a, A, comb_idenity));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+asin(%/sqrt((-n21*sin(phi)-n11*cos(phi))^2+n31^2)), triginverses=all;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+*xi and phi*
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+top:factor(eq49[3,1]*cos(xi)+eq49[3,3]*sin(xi));
+bot:factor(eq49[3,1]*sin(xi)-eq49[3,3]*cos(xi));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+factor(top/bot);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+solve()
 /* [wxMaxima: input   end   ] */
 
 /* Maxima can't load/batch files which end with a comment! */
