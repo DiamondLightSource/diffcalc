@@ -7,6 +7,12 @@ from math import pi, cos, sin
 from nose.tools import raises
 from tests.diffcalc.hkl.test_calcvlieg import createMockDiffractometerGeometry, createMockUbcalc
 from tests.diffcalc.hardware.test_plugin import SimpleHardwareMonitorPlugin
+from diffcalc.ub.calculation import UBCalculation
+from diffcalc.ub.persistence import UbCalculationNonPersister
+from diffcalc.ub.paperspecific import YouUbCalcStrategy
+from diffcalc.geometry.sixc import SixCircleYouGeometry
+from mock import Mock
+from diffcalc.ub.crystal import CrystalUnderTest
 
 try:
     from Jama import Matrix
@@ -16,6 +22,8 @@ except ImportError:
 TORAD = pi / 180
 TODEG = 180 / pi
 I = Matrix.identity(3, 3)
+
+#TODO: Test fixed phi code
 
 
 class Pair:
@@ -151,6 +159,8 @@ class TestCubicVertical_qaz_90(_TestCubicVertical):
         self.constraints._constrained = {'a_eq_b': None, 'mu':0, 'qaz':90 * TORAD}
 
 
+
+
 class SkipTestYouHklCalculatorWithCubicMode_aeqb_delta_60(_TestCubicVertical):
     '''Works to 4-5 decimal places but chooses different solutions when phi||eta .
      Skip all tests.'''
@@ -159,6 +169,65 @@ class SkipTestYouHklCalculatorWithCubicMode_aeqb_delta_60(_TestCubicVertical):
         _TestCubicVertical.setup(self)
         self.constraints._constrained = {'a_eq_b': None, 'mu':0, 'delta':60 * TORAD}
         self.places = 5
+
+class _TestCubicHorizontal(_TestCubic):
+    
+    def setup(self):
+        _TestCubic.setup(self)
+    
+    def makes_cases(self, zrot, yrot):
+        self.zrot = zrot
+        self.yrot = yrot
+        self.wavelength = 1
+        self.cases = (
+                 Pair('100', (1, 0, 0), Pos(mu=30, delta=0, nu=60, eta=0, chi=90+self.yrot, phi=-180+self.zrot)),
+                 Pair('100-->001', (cos(4 * TORAD), 0, sin(4 * TORAD)), Pos(mu=30, delta=0, nu=60, eta=0, chi=90-4+self.yrot, phi=-180+self.zrot)),
+                 Pair('010' , (0, 1, 0), Pos(mu=30, delta=0, nu=60, eta=0, chi=90, phi=-90 + self.zrot)), # no yrot as chi||q
+                 Pair('001' , (0, 0, 1), Pos(mu=30, delta=0, nu=60, eta=0, chi=0 - self.yrot, phi=0 + self.zrot)),
+                 Pair('001-->100' , (cos(86 * TORAD), 0, sin(86 * TORAD)), Pos(mu=30, delta=0, nu=60, eta=0, chi=0-4-self.yrot, phi=0 + self.zrot)),
+            )
+        self.case_dict = {}
+        for case in self.cases:
+            self.case_dict[case.name] = case
+            
+    def test_pairs_zrot0_yrot0(self):
+        self.makes_cases(0, 0)
+        self.case_dict['001'].fails = True # q||n
+        self.case_dict['100'].position.phi=180 # not -180
+        self.case_dict['100-->001'].position.phi=180 # not -180
+        for case_tuple in self.case_generator():
+            yield case_tuple
+
+#    def test_pairs_various_zrot_and_yrot0(self):
+#        for zrot in [0, 2, -2, 45, -45, 90, -90]: # -180, 180 work but with cut problem
+#            self.makes_cases(zrot, 0)
+#            self.case_dict['001'].fails = True # q||n
+#            for case_tuple in self.case_generator():
+#                yield case_tuple
+            
+    def test_hkl_to_angles_zrot1_yrot2(self):
+        self.makes_cases(1, 2)
+        for case_tuple in self.case_generator():
+            yield case_tuple
+
+    def test_hkl_to_angles_zrot1_yrotm2(self):
+        self.makes_cases(1, -2)
+        for case_tuple in self.case_generator():
+            yield case_tuple
+
+
+class TestCubicHorizontal_qaz0_aeqb(_TestCubicHorizontal):
+#            
+    def setup(self):
+        _TestCubicHorizontal.setup(self)
+        self.constraints._constrained = {'a_eq_b': None, 'qaz':0, 'eta':0}
+
+class TestCubicHorizontal_delta0_aeqb(_TestCubicHorizontal):
+#            
+    def setup(self):
+        _TestCubicHorizontal.setup(self)
+        self.constraints._constrained = {'a_eq_b': None, 'delta':0, 'eta':0}
+
 
 class TestAgainstSpecSixcB16_270608(_BaseTest):
     '''NOTE: copied from tests.diffcalc.scenarios.session3'''
@@ -204,3 +273,38 @@ class TestAgainstSpecSixcB16_270608(_BaseTest):
         self.makes_cases(None, None) # xrot, yrot unused
         for case_tuple in self.case_generator():
             yield case_tuple
+
+
+#class TestThreeTwoCircleForDiamondI06andI10(_BaseTest):
+#    """"This is a three circle diffractometer with only delta and omega axes and
+#    a chi axis with limited range around 90. It is operated with phi fixed and
+#    can only reach reflections with l (or z) component.
+#    
+#    The data here is taken from an experiment performed on Diamonds I06 beamline."""
+#    def setup(self):
+#        _BaseTest.setup(self)
+#        self.constraints._constrained = {'phi': -pi/2, 'nu':0, 'mu':0}
+#        self.wavelength = 12.39842 / 1.650
+#        
+#    def _configure_ub(self):
+#        U = Matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+#        B = CrystalUnderTest('xtal', 5.34, 5.34, 13.2, 90, 90, 90).getBMatrix()
+#        self.mock_ubcalc.getUBMatrix.return_value =  U.times(B)
+#
+#    def testHkl001(self):
+#        hkl = (0, 0, 1) 
+#        pos = Pos(mu=0, delta=33.07329403295449, nu=0, eta=16.536647016477247, chi=90, phi=-90)
+#        self._check_angles_to_hkl('001', 999, 999, hkl, pos, self.wavelength, {})
+#        self._check_hkl_to_angles('001', 999, 999, hkl, pos, self.wavelength, {})
+#   
+#    def testHkl100(self):
+#        hkl = (1, 0, 0) 
+#        pos = Pos(mu=0, delta=89.42926563609406, nu=0, eta=134.71463281804702, chi=90, phi=-90)
+#        self._check_angles_to_hkl('100', 999, 999, hkl, pos, self.wavelength, {})
+#        self._check_hkl_to_angles('100', 999, 999, hkl, pos, self.wavelength, {})
+#   
+#    def testHkl101(self):
+#        hkl = (1, 0, 1) 
+#        pos = Pos(mu=0, delta=98.74666191021282, nu=0, eta=117.347760720783, chi=90, phi=-90)
+#        self._check_angles_to_hkl('101', 999, 999, hkl, pos, self.wavelength, {})
+#        self._check_hkl_to_angles('101', 999, 999, hkl, pos, self.wavelength, {})

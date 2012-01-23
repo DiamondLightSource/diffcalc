@@ -1,7 +1,7 @@
 from diffcalc.hkl.calcbase import HklCalculatorBase
 from diffcalc.utils import DiffcalcException, bound, cross3, calcMU, calcPHI, \
     Position, angle_between_vectors, createYouMatrices
-from math import pi, sin, cos, tan, acos, atan2, asin, sqrt, atan
+from math import pi, sin, cos, tan, acos, atan2, asin, sqrt
 try:
     from Jama import Matrix
 except ImportError:
@@ -75,14 +75,25 @@ def youAnglesToHkl(pos, wavelength, UBMatrix):
 
 
 def _tidy_degenerate_solutions(pos):
-    if is_small(pos.chi) and is_small(pos.mu) and is_small(pos.nu):
-        original = pos.inDegrees()
-        desired_eta = pos.delta / 2. 
-        eta_diff = desired_eta - pos.eta
-        pos.eta += eta_diff
-        pos.phi -= eta_diff
-        print "DEGENERATE: with chi=0, phi and eta are colinear: choosing eta = delta/2 by adding % 7.3f to eta and removing it from phi. (mu=nu=0 only)" % (eta_diff * TODEG,)
-        print "            original:", original
+    
+    original = pos.inDegrees()
+    if is_small(pos.mu) and is_small(pos.nu): # assume a vertical 4-circle like mode
+        if is_small(pos.chi): # phi || eta
+            desired_eta = pos.delta / 2. 
+            eta_diff = desired_eta - pos.eta
+            pos.eta += eta_diff
+            pos.phi -= eta_diff
+            print "DEGENERATE: with chi=0, phi and eta are colinear: choosing eta = delta/2 by adding % 7.3f to eta and removing it from phi. (mu=nu=0 only)" % (eta_diff * TODEG,)
+            print "            original:", original
+    elif is_small(pos.delta) and is_small(pos.eta): # assume a horizontal 4-circle like mode
+        if is_small(pos.chi-pi/2): # phi || eta
+            desired_mu = pos.nu / 2. 
+            mu_diff = desired_mu - pos.mu
+            pos.mu += mu_diff
+            pos.phi += mu_diff
+            print "DEGENERATE: with chi=90, phi and mu are colinear: choosing mu = nu/2 by adding % 7.3f to mu and to phi. (delta=eta=0 only)" % (mu_diff * TODEG,)
+            print "            original:", original
+    
     return pos
 
 def _theta_and_qaz_from_detector_angles(delta, nu):
@@ -103,9 +114,9 @@ def _filter_detector_solutions_by_theta_and_qaz(possible_delta_nu_pairs, require
 
 
 
-_identity = lambda x: x
+_identity_transform = lambda x: x
 
-_transforms = (_identity,
+_transforms_for_general = (_identity_transform,
               lambda x :-x,
               lambda x : pi + x,
               lambda x : pi - x)
@@ -113,6 +124,15 @@ _transforms = (_identity,
 _transforms_for_zero = (lambda x : 0.,
                        lambda x : pi,)
 
+_transforms_for_90_or_minus90 = (lambda x : pi/2,
+                       lambda x : -pi/2,)
+
+def _choose_transforms(value):
+    if is_small(value):
+        return _transforms_for_zero
+    if is_small(value - pi / 2) or is_small(value + pi / 2):
+        return _transforms_for_90_or_minus90
+    return _transforms_for_general
 
 class YouHklCalculator(HklCalculatorBase): 
     
@@ -205,7 +225,7 @@ reference plane""")
     def _choose_sample_angles(self, mu_eta_chi_phi_tuples):
 
         if len(mu_eta_chi_phi_tuples) == 0:
-            raise Exception("No sample solutions were found, please unconstrain sample limits")
+            raise Exception("No sample solutions were found, please un-constrain sample limits")
         
         if len(mu_eta_chi_phi_tuples) == 1:
             return mu_eta_chi_phi_tuples[0]
@@ -219,7 +239,7 @@ reference plane""")
         mu_eta_chi_phi = mu_eta_chi_phi_tuples[shortest_solution_index]
         
         if logger.isEnabledFor(logging.INFO):
-            msg = 'Multiple sample solutions found (choosing solution with shortest distance):\n'
+            msg = 'Multiple sample solutions found (choosing solution with shortest distance to all-zeros position):\n'
             i = 0
             for solution, distance in zip(mu_eta_chi_phi_tuples, absolute_distances):
                 msg += '*' if i == shortest_solution_index else '.'
@@ -388,7 +408,7 @@ reference plane""")
             if logger.isEnabledFor(logging.DEBUG):
                 msg += '*' if virtual_okay else '.'
                 msg += '*' if hkl_okay else '.'
-                msg += 'mu=% 7.3f, eta=% 7.3f, chi=% 7.3f, phi=% 7.3f' % (mu * TODEG, eta * TODEG, chi * TODEG, phi * TODEG)
+                msg += 'mu=% 7.10f, eta=% 7.10f, chi=% 7.10f, phi=% 7.10f' % (mu * TODEG, eta * TODEG, chi * TODEG, phi * TODEG)
                 if hkl_okay:
                     virtual_angles_in_deg = {}
                     for k in virtual_angles:
@@ -450,12 +470,12 @@ reference plane""" % name)
             
         return psi, alpha, beta
 
-    def _calc_remaining_detector_angles_given_one(self, name, value, theta):
+    def _calc_remaining_detector_angles_given_one(self, constraint_name, constraint_value, theta):
         """Return delta, nu and qaz given one detector angle (from section 5.1)."""
         
         # Find qaz using various derivations of 17 and 18
-        if name == 'delta':
-            delta = value
+        if constraint_name == 'delta':
+            delta = constraint_value
             # Equation 17 and 18 (x components are equal)
             sin_2theta = sin(2 * theta)
             if is_small(sin_2theta):
@@ -464,8 +484,8 @@ reference plane""" % name)
 (sin(2theta) is too small.)""" % theta)
             qaz = asin(bound(sin(delta) / sin_2theta))
         
-        elif name == 'nu':
-            nu = value
+        elif constraint_name == 'nu':
+            nu = constraint_value
 #            cos_delta = cos(2*theta) / cos(nu)#<--fails when nu = 90 
 #            delta = acos(bound(cos_delta))
 #            tan
@@ -480,19 +500,19 @@ reference plane""" % name)
 "The specified nu=%.4f is greater than the 2theta (%.4f)" % (nu, theta))
             qaz = acos(bound(cos_qaz));
             
-        elif name == 'qaz':
-            qaz = value
+        elif constraint_name == 'qaz':
+            qaz = constraint_value
         
         else:
-            raise ValueError(name + 
+            raise ValueError(constraint_name + 
               " is not an explicit detector angle (naz cannot be handled here)")
         
-        if name != 'nu':
+        if constraint_name != 'nu':
             # TODO: does this calculation of nu suffer the same problems as
             #       that of delta below
             nu = atan2(sin(2 * theta) * cos(qaz), cos(2 * theta))
         
-        if name != 'delta':
+        if constraint_name != 'delta':
             cos_qaz = cos(qaz)
             if not is_small(cos_qaz): # TODO: could we switch methods at 45 deg
                 delta = atan2(sin(qaz) * sin(nu), cos_qaz)
@@ -502,92 +522,105 @@ reference plane""" % name)
         
         return delta, nu, qaz
     
-    def _calc_remaining_sample_angles_given_one(self, name, value, q_lab, n_lab,
+    def _calc_remaining_sample_angles_given_one(self, constraint_name, constraint_value, q_lab, n_lab,
                                                 q_phi, n_phi):
         """Return phi, chi, eta and mu, given one of these (from section 5.3)."""
-        
-        #TODO: Check this whole code for special cases!!!!
+        # TODO: Sould return a valid solution, rather than just one that can
+        # be mapped to a correct solution by applying +-x and 180+-x mappings
         
         N_lab = _calc_N(q_lab, n_lab)
         N_phi = _calc_N(q_phi, n_phi)
         
-        if name == 'mu': # Equation 35.
-            mu = value
-            MU = calcMU(mu)
-            V = MU.inverse().times(N_lab).times(N_phi.transpose()).array
+        if constraint_name == 'mu': # Equation 35.
+            mu = constraint_value
+            V = calcMU(mu).inverse().times(N_lab).times(N_phi.transpose()).array
             phi = atan2(V[2][1], V[2][0])
             eta = atan2(-V[1][2], V[0][2])
-            
-            logger.debug("   0 < chi < pi:   %s", acos(V[2][2]) * TODEG)
-            logger.debug("-pi/2< chi < pi/2: %s", atan2(sqrt(V[2][0] ** 2 + V[2][1] ** 2), V[2][2]) * TODEG)
             chi = atan2(sqrt(V[2][0] ** 2 + V[2][1] ** 2), V[2][2]) # -pi/2<chi< pi/2
-                
-        elif name == 'phi': # Equation 37
-            phi = value
-            PHI = calcPHI(phi)
-            V = N_lab.times(N_phi.inverse()).times(PHI.transpose()).array
+            if is_small(sin(chi)): # chi ~= 0 or 180 and therefor phi || eta
+                # The solutions for phi and eta here will be valid but will be
+                # chosen unpredictably. Choose eta=0:
+                phi_orig, eta_orig = phi, eta
+                # tan(phi+eta)=v12/v11 from docs/extensions_to_yous_paper.wxm
+                eta = 0
+                phi = atan2(V[0][1], V[0][0])
+                logger.debug(
+"""Eta and phi cannot be chosen uniquely with chi so close to 0 or 180. Ignoring
+solution phi=%.3f and eta=%.3, and returning phi=%.3f and eta=%.3""",
+                    phi_orig*TODEG, eta_orig*TODEG, phi*TODEG, eta*TODEG  )
+            return phi, chi, eta, mu
+        
+        if constraint_name == 'phi': # Equation 37
+            phi = constraint_value
+            V = N_lab.times(N_phi.inverse()).times(calcPHI(phi).transpose()).array
             eta = atan2(V[0][1], sqrt(V[1][1] ** 2 + V[2][1] ** 2))
             mu = atan2(V[2][1], V[1][1])
             chi = atan2(V[0][2], V[0][0]) # -pi/2 < chi < pi/2
-                
-        elif name in ('eta', 'chi'):
+            if is_small(cos(eta)):
+                #TODO: Not likely to happen in real world!?
+                raise ValueError(
+"""Chi and mu cannot be chosen uniquely with eta so close to +-90.
+(The chi ring would block the beam anyway).""")
+            return phi, chi, eta, mu 
+        
+        elif constraint_name in ('eta', 'chi'):
             V = N_lab.times(N_phi.transpose()).array
-            if name == 'eta': # Equation 39
-                eta = value
+            if constraint_name == 'eta': # Equation 39
+                eta = constraint_value
                 cos_eta = cos(eta)
                 if is_small(cos_eta):
+                    #TODO: Not likely to happen in real world!?
                     raise ValueError(
-"Chi and mu cannot be chosen uniquely with eta so close to +-90.")
-                try:
-                    chi = asin(V[0][2] / cos_eta) # -pi/2 < chi < pi/2
-                except ZeroDivisionError:
-                    raise ZeroDivisionError(
-                           "Could not calculate chi given eta as cos(eta) is 0")
-
-            else: # name == 'chi', Equation 40
-                chi = value
-                if chi < 0 or chi > pi: # TODO: what if equal
-                    print (
-"""WARNING: when calculating eta given chi, chi is outside the range 0 to pi
-specified in equation 40.""")
-                if is_small(chi):
+"""Chi and mu cannot be chosen uniquely with eta constrained so close to +-90.
+(The chi ring would block the beam anyway)""")
+                chi = asin(V[0][2] / cos_eta) # -pi/2 < chi < pi/2
+            else: # constraint_name == 'chi', Equation 40
+                chi = constraint_value
+                sin_chi = sin(chi)
+                if is_small(sin_chi):
                     raise ValueError(
-"Eta and phi cannot be chosen uniquely with chi constrained so close to 0.")
-                eta = acos(V[0][2] / sin(chi))
+""""Eta and phi cannot be chosen uniquely with chi constrained so close to 0.
+(Please contact developer if this case is actually useful for you)""")
+                eta = acos(V[0][2] / sin_chi)
             # Equation 41:
-            # The atan2 function chooses the wrong sign. At least for:
-            # test_calcvlieg.test_constrain_eta_0_wasfailing. The atan2 function
-            # could be used (in this case) if the sign of top and bottom were
-            # flipped.
-            top = V[2][2] * sin(eta) * sin(chi) + V[1][2] * cos(chi)
-            bottom = -V[2][2] * cos(chi) + V[1][2] * sin(eta) * sin(chi)
-            if is_small(bottom):
-                mu = 0 if is_small(top) else sign(top) * sign(bottom) * pi / 2
-            else:
-                mu = atan(top / bottom)
-            
-            #Equation 42:
-            phi = atan2(V[0][1] * cos(eta) * cos(chi) - V[0][0] * sin(eta),
-                      V[0][1] * sin(eta) + V[0][0] * cos(eta) * cos(chi))
-                
-        else:
-            raise ValueError('Given angle must be one of phi, chi, eta or mu')
-            
-        return phi, chi, eta, mu
+            top_for_mu = V[2][2] * sin(eta) * sin(chi) + V[1][2] * cos(chi)
+            bot_for_mu = -V[2][2] * cos(chi) + V[1][2] * sin(eta) * sin(chi)
+            mu = atan2(-top_for_mu, -bot_for_mu) # minus signs added from paper to pass (pieces) tests
+            if is_small(top_for_mu) and is_small(bot_for_mu): 
+                # chi == +-90, eta == 0/180 and therefor phi || mu
+                # cos(chi) == 0 and sin(eta) == 0
+                # Experience shows that even though e.g. the V[2][2] and V[1][2]
+                # values used to calculate mu may be basically 0 (1e-34) their
+                # ratio in every case tested so far still remains valid and
+                # using them will result in a phi solution that is continous
+                # with neighbouring positions.
+                #
+                # We cannot test phi minus mu here unfortunetely as the final phi
+                # and mu solutions have not yet been chosen (they may be +-x or 180+-x).
+                # Otherwise we could choose a sensible solution here if the one found was incorrect.
+                                                
+                # tan(phi+eta)=v12/v11 from extensions_to_yous_paper.wxm
+                phi_minus_mu = -atan2(V[2][0],V[1][1])
+                logger.debug(
+"""Mu and phi cannot be chosen uniquely with chi so close to +-90 and eta so close 0 or 180.
+After the final solution has been chose phi-mu should equal: %.3f""", phi_minus_mu*TODEG  )
+            # Eqution 42:
+            top_for_phi = V[0][1] * cos(eta) * cos(chi) - V[0][0] * sin(eta)
+            bot_for_phi =  V[0][1] * sin(eta) + V[0][0] * cos(eta) * cos(chi)
+            phi = atan2(top_for_phi, bot_for_phi)
+#            if is_small(bot_for_phi) and is_small(top_for_phi):
+#                raise ValueError(
+#"phi=%.3f cannot be known with confidence as top an bottom are both close to zero. chi=%.3f, eta=%.3f"%(mu*TODEG, chi*TODEG, eta*TODEG))
+            return phi, chi, eta, mu
+        
+        raise ValueError('Given angle must be one of phi, chi, eta or mu')
 
     def _generate_possible_solutions(self, values, names, constrained_names):
         
         individualy_transformed_values = []
         for value, name in zip(values, names):
             transforms_of_value_within_limits = []
-            
-            if name in constrained_names:
-                transforms = (_identity,)
-            elif is_small(value):
-                transforms = _transforms_for_zero
-            else:
-                transforms = _transforms
-            
+            transforms = (_identity_transform,) if name in constrained_names else _choose_transforms(value)
             for transform in transforms:
                 transformed_value = transform(value)
                 if self._hardware.isAxisValueWithinLimits(name,

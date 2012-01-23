@@ -1,0 +1,228 @@
+/* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
+/* [ Created with wxMaxima version 11.08.0 ] */
+
+/* [wxMaxima: input   start ] */
+Rx:matrix([1,0,0],[0, cos(theta), -sin(theta)],[0, sin(theta), cos(theta)])$
+Ry:matrix([cos(theta), 0, sin(theta)], [0, 1, 0], [-sin(theta), 0, cos(theta)])$
+Rz:matrix([cos(theta), -sin(theta), 0], [sin(theta), cos(theta), 0], [0, 0, 1])$
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Equation 5:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+PHI:subst(-phi, theta, Rz);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+CHI:subst(chi, theta, Ry);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+ETA:subst(-eta, theta, Rz);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+MU:subst(mu, theta, Rx);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Generic V:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+V:matrix([v11, v12, v13], [v21, v22, v23], [v31, v32, v33]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: section start ]
+When one sample-orienting angle is given
+   [wxMaxima: section end   ] */
+
+/* [wxMaxima: subsect start ]
+For mu fixed
+   [wxMaxima: subsect end   ] */
+
+/* [wxMaxima: input   start ] */
+eq34:ETA.CHI.PHI;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+eq34_chi0:subst(0, chi, eq34);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+*phi* with chi <> 0
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+trigreduce(trigsimp((eq34[3,2]=V[3,2])/(eq34[3,1]=V[3,1])));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+show that with phi with v31 == 0 and v12 <> 0, no special case is needed when using atan2
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+solve(cos(phi)=0, phi);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+atan2(1234,0);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+show that with phi with v32 == 0 and v31 <> 0, no special case is needed when using atan2
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+solve(sin(phi)=0, phi);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+atan2(0,1234);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+*eta* with chi <> 0 
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+trigreduce(trigsimp((-eq34[2,3]=V[2,3]) / (eq34[1, 3]=V[1,3])));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+eta with v23 == 0 and v13 == 0 (phi||eta degeneracy because chi == 0)
+Then see equation for phi+eta above
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: comment start ]
+*chi*
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+trigsimp(sqrt((eq34[3,1]=V[3,1])^2+(eq34[3,2]=V[3,2])^2)/(eq34[3,3]=V[3,3]));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+*phi + eta* with chi == 0
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+trigreduce(trigrat((eq34_chi0[1,2]=V[1,2])/(eq1:eq34_chi0[1,1]=V[1,1])));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: subsect start ]
+For phi fixed
+   [wxMaxima: subsect end   ] */
+
+/* [wxMaxima: input   start ] */
+eq36:MU.ETA.CHI;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+eq36_eta90:subst(0, cos(eta), subst(1, sin(eta), eq36));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+*eta*
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+trigsimp((eq36[1,2]=V[1,2])/sqrt((eq36[2,2]=V[2,2])^2+(eq36[3,2]=V[3,2])^2));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+*mu* with eta <> +-90
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+trigreduce(trigsimp((eq36[3,2]=V[3,2])/(eq36[2,2]=V[2,2])));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+*chi* with eta <> +-90
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+trigreduce(trigsimp((eq36[1,3]=V[1,3])/(eq36[1,1]=V[1,1])));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+*chi + mu* with eta == +-90
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+trigreduce(trigrat((eq36_eta90[2,3]=V[2,3])/(eq36_eta90[2,1]=V[2,1])));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: subsect start ]
+For eta or chi fixed
+   [wxMaxima: subsect end   ] */
+
+/* [wxMaxima: input   start ] */
+eq38:MU.ETA.CHI.PHI;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+*chi* (eq. 39) given eta, and eta <> +-90 (with eta == +-90 chi||mu)
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+(eq38[1,3]=V[1,3])/cos(eta);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: comment start ]
+*eta* given chi, and chi <> 0 (with chi == 0 phi||eta)
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+(eq38[1,3]=V[1,3])/sin(chi);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+*mu* given that chi and eta have been given or calclulated respecitively
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+top:(eq38[3,3]=V[3,3])*sin(eta)*sin(chi) + (eq38[2,3]=V[2,3])*cos(chi);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+bot:-(eq38[3,3]=V[3,3])*cos(chi)+(eq38[2,3]=V[2,3])*sin(eta)*sin(chi);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+factor(top);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+factor(bot);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+trigsimp(top/bot);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+*phi - mu* when phi || mu because chi == +-90, eta == 0 or eta == 180
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+phi_mu_parallel:subst(1, sin(chi), subst(1, cos(eta), subst(0, sin(eta), subst(0, cos(chi), eq38))));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+trigreduce(trigrat((phi_mu_parallel[2,1]=V[2,1])/(phi_mu_parallel[2,2]=V[2,2])));
+/* [wxMaxima: input   end   ] */
+
+/* Maxima can't load/batch files which end with a comment! */
+"Created with wxMaxima"$
