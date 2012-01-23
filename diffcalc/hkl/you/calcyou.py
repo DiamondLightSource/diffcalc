@@ -534,11 +534,12 @@ reference plane""" % name)
             V = N_lab.times(N_phi.transpose()).array
             if name == 'eta': # Equation 39
                 eta = value
-                if is_small(eta):
+                cos_eta = cos(eta)
+                if is_small(cos_eta):
                     raise ValueError(
 "Chi and mu cannot be chosen uniquely with eta so close to +-90.")
                 try:
-                    chi = asin(V[0][2] / cos(eta)) # -pi/2 < chi < pi/2
+                    chi = asin(V[0][2] / cos_eta) # -pi/2 < chi < pi/2
                 except ZeroDivisionError:
                     raise ZeroDivisionError(
                            "Could not calculate chi given eta as cos(eta) is 0")

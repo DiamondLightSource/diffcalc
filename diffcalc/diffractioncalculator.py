@@ -69,7 +69,7 @@ class Diffcalc(object):
         if energy is None:
             energy = self._hardware.getEnergy()
             
-        try:
+        try: #12.39842
             wavelength = 12.39842 / energy
         except ZeroDivisionError:
             raise DiffcalcException("Cannot calculate hkl position as Energy is set to 0")
