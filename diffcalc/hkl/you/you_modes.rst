@@ -1,26 +1,17 @@
-Two sample and either a detector or pseudo angle given:
+Section 5.4: Two sample and either a detector or pseudo angle given
+===================================================================
 
 in the following psi can be obtained from alpha, beta or a_eq_b
 
 solved in paper are:
 
-chi, phi, psi/alpha/beta --- zaxis mode (zaxis horizontal with chi=0 and vertical with chi=90?)
+x chi, phi, psi/alpha/beta --- zaxis mode (zaxis horizontal with chi=0 and vertical with chi=90?)
 
-chi, phi, qaz/nu/delta
+x chi, phi, qaz/nu/delta
 
-mu, eta, psi/alpha/beta 
+x mu, eta, psi/alpha/beta 
 
-mu, eta, qaz/nu/delta
-
-
-
-not solved but mentioned are:
-
-phi, mu, chi
-
-mu, phi, eta
-
-chi, mu, psi
+x mu, eta, qaz/nu/delta
 
 not solved but required are:
 
@@ -32,7 +23,7 @@ all possible are:
 
 phi, chi *solved with qaz and psi*
 phi, eta
-phi, mu *required with qaz*
+phi, mu *required with qaz, for i06 and i10*
 chi, eta
 chi, mu
 eta, mu *solved with qaz and psi*

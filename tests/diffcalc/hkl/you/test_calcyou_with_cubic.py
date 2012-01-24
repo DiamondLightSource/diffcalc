@@ -7,11 +7,6 @@ from math import pi, cos, sin
 from nose.tools import raises
 from tests.diffcalc.hkl.test_calcvlieg import createMockDiffractometerGeometry, createMockUbcalc
 from tests.diffcalc.hardware.test_plugin import SimpleHardwareMonitorPlugin
-from diffcalc.ub.calculation import UBCalculation
-from diffcalc.ub.persistence import UbCalculationNonPersister
-from diffcalc.ub.paperspecific import YouUbCalcStrategy
-from diffcalc.geometry.sixc import SixCircleYouGeometry
-from mock import Mock
 from diffcalc.ub.crystal import CrystalUnderTest
 
 try:
@@ -22,9 +17,6 @@ except ImportError:
 TORAD = pi / 180
 TODEG = 180 / pi
 I = Matrix.identity(3, 3)
-
-#TODO: Test fixed phi code
-
 
 class Pair:
     
@@ -308,3 +300,65 @@ class SkipTestThreeTwoCircleForDiamondI06andI10(_BaseTest):
         pos = Pos(mu=0, delta=98.74666191021282, nu=0, eta=117.347760720783, chi=90, phi=-90)
         self._check_angles_to_hkl('101', 999, 999, hkl, pos, self.wavelength, {})
         self._check_hkl_to_angles('101', 999, 999, hkl, pos, self.wavelength, {})
+        
+class TestFixedChiPhiPsiMode_DiamondI07Example(_TestCubic):
+    """"The data here is taken from an experiment performed on Diamonds I07 beamline, obtained
+    using Vlieg's DIF software"""
+    
+    def setup(self):
+        _BaseTest.setup(self)
+        self.mock_hardware.setLowerLimit('nu', 0)
+        self.constraints._constrained = {'chi':0, 'phi':0, 'a_eq_b':None}
+        self.wavelength = 1
+        self.UB = I.times((2 * pi))
+        self.places = 4
+        
+    def _configure_ub(self):
+        self.mock_ubcalc.getUBMatrix.return_value =  self.UB
+
+    def _check_pair(self, hkl, pos, virtual_expected, fails=False):
+        self._check_angles_to_hkl('', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        if fails:
+            self._check_hkl_to_angles_fails('', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        else:
+            self._check_hkl_to_angles('', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+
+    def testHkl001(self):
+        self._check_pair((0, 0, 1), Pos(mu=30, delta=0, nu=60, eta=90, chi=0, phi=0), {}, fails=True) #betaout=30
+
+    def testHkl010(self):
+        self._check_pair((0, 1, 0), Pos(mu=0, delta=60, nu=0, eta=120, chi=0, phi=0), {})#betaout=0
+
+    def testHkl011(self):
+        self._check_pair((0, 1, 1), Pos(mu=30, delta=54.7356, nu=90, eta=125.2644, chi=0, phi=0), {})#betaout=30
+
+    def testHkl100(self):
+        self._check_pair((1, 0, 0), Pos(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0), {})#betaout=0
+
+    def testHkl101(self):
+        self._check_pair((1, 0, 1), Pos(mu=30, delta=54.7356, nu=90, eta=35.2644, chi=0, phi=0), {})#betaout=30
+        
+    def testHkl110(self):
+        self._check_pair((1, 1, 0), Pos(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0), {})#betaout=0
+        
+    def testHkl11nearly0(self):
+        self.places = 3
+        self._check_pair((1, 1, .0001), Pos(mu=0.0029, delta=89.9971, nu=90.0058, eta=90, chi=0, phi=0), {})#betaout=0
+    
+    def testHkl111(self):
+        self._check_pair((1, 1, 1), Pos(mu=30, delta=54.7356, nu=150, eta=99.7356, chi=0, phi=0), {})#betaout=30
+    
+    def testHklover100(self):
+        self._check_pair((1.1, 0, 0), Pos(mu=0, delta=66.7340, nu=0, eta=33.3670, chi=0, phi=0), {})#betaout=0
+
+    def testHklunder100(self):
+        self._check_pair((.9, 0, 0), Pos(mu=0, delta=53.4874, nu=0, eta=26.7437, chi=0, phi=0), {})#betaout=0
+
+    def testHkl788(self):
+        self._check_pair((.7, .8, .8), Pos(mu=23.5782, delta=59.9980, nu=76.7037, eta=84.2591, chi=0, phi=0), {})#betaout=23.5782
+    
+    def testHkl789(self):
+        self._check_pair((.7, .8, .9), Pos(mu=26.74368, delta=58.6754, nu=86.6919, eta=85.3391, chi=0, phi=0), {})#betaout=26.7437
+   
+    def testHkl7810(self):
+        self._check_pair((.7, .8, 1), Pos(mu=30, delta=57.0626, nu=96.86590, eta=86.6739, chi=0, phi=0), {})#betaout=30

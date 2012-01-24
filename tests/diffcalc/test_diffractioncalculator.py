@@ -328,7 +328,7 @@ class ZAxisGammaOnBaseTest(TestSixcBase):
         self.d.ubcommands.setlat('cubic', 1, 1, 1)
         self.en(12.39842 / 1)
         self.d.ubcommands.setu([[1, 0, 0], [0, 1, 0], [0, 0, 1]])    
-        self.d.hklcommands.hklmode(20) # zaxis
+        self.d.hklcommands.hklmode(20) # zaxis, bisecting
         self.d.ubcommands.sigtau(0, 0)
     
     def checkHKL(self, hkl, adgocp=None, betaout=None, nu=None): 
