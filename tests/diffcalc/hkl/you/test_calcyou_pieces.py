@@ -230,7 +230,7 @@ class Test_calc_remaining_reference_angles_given_one():
     
     def check(self, name, value, theta, tau, psi_e, alpha_e, beta_e):
         # all in deg
-        psi, alpha, beta = self.calc._calc_remaining_reference_angles_given_one(
+        psi, alpha, beta = self.calc._calc_remaining_reference_angles(
             name, value*TORAD, theta*TORAD, tau*TORAD)
         print 'psi', psi*TODEG, ' alpha:', alpha*TODEG, ' beta:', beta*TODEG
         if psi_e is not None:
@@ -297,7 +297,7 @@ class Test_calc_detector_angles_given_one():
                                      None)
     def check(self, name, value, theta, delta_e, nu_e, qaz_e):
         # all in deg
-        delta, nu, qaz = self.calc._calc_remaining_detector_angles_given_one(
+        delta, nu, qaz = self.calc._calc_remaining_detector_angles(
             name, value*TORAD, theta*TORAD)
         assert_almost_equal(delta*TODEG, delta_e)
         assert_almost_equal(nu*TODEG, nu_e)
@@ -350,7 +350,7 @@ class Test_calc_remaining_sample_angles_given_one():
     
     def check(self, name, value, Q_lab, n_lab, Q_phi,  n_phi,
               phi_e, chi_e, eta_e, mu_e):
-        phi, chi, eta, mu = self.calc._calc_remaining_sample_angles_given_one(
+        phi, chi, eta, mu = self.calc._calc_remaining_sample_angles(
                             name, value*TORAD, Q_lab, n_lab, Q_phi, n_phi)
         print 'phi', phi*TODEG, ' chi:', chi*TODEG, ' eta:', eta*TODEG, ' mu:', mu*TODEG
         if phi_e is not None:
@@ -465,9 +465,9 @@ class TestSolutionGenerator():
                    )
         
         assert_2darray_almost_equal(expected,
-                self.calc._generate_possible_detector_solutions(.1, .2, 'naz'))
+                self.calc._generate_possible_solutions((.1, .2), ('delta', 'nu'), ('naz',)))
         assert_2darray_almost_equal(expected,
-                self.calc._generate_possible_detector_solutions(.1, .2, 'qaz'))
+                self.calc._generate_possible_solutions((.1, .2), ('delta', 'nu'), ('qaz',)))
 
     def test_generate_possible_detector_solutions_no_limits_constrained_qaz_or_naz_delta_and_nu_at_zero(self):
         # we will enfoce the order too, incase this later effects hearistically made choices
@@ -479,9 +479,9 @@ class TestSolutionGenerator():
                     )
         
         assert_2darray_almost_equal(expected,
-                self.calc._generate_possible_detector_solutions(-2e-9, 2e-9, 'naz'))
+                self.calc._generate_possible_solutions((-2e-9, 2e-9), ('delta', 'nu'), ('naz',)))
         assert_2darray_almost_equal(expected,
-                self.calc._generate_possible_detector_solutions(-2e-9, 2e-9, 'qaz'))
+                self.calc._generate_possible_solutions((-2e-9, 2e-9), ('delta', 'nu'), ('qaz',)))
         
     def test_generate_possible_detector_solutions_no_limits_constrained_delta(self):
         expected = (
@@ -492,7 +492,7 @@ class TestSolutionGenerator():
                    )
         
         assert_2darray_almost_equal(expected,
-                self.calc._generate_possible_detector_solutions(.1, .2, 'delta'))
+                self.calc._generate_possible_solutions((.1, .2), ('delta', 'nu'), ('delta',)))
         
     def test_generate_possible_detector_solutions_no_limits_constrained_nu(self):
         expected = (
@@ -503,7 +503,7 @@ class TestSolutionGenerator():
                    )
         
         assert_2darray_almost_equal(expected,
-                self.calc._generate_possible_detector_solutions(.1, .2, 'nu'))
+                self.calc._generate_possible_solutions((.1, .2), ('delta', 'nu'), ('nu',)))
 
     def test_generate_possible_detector_solutions_with_limits_constrained_delta(self):
         self.hardware.setLowerLimit('nu', 0)
@@ -513,7 +513,7 @@ class TestSolutionGenerator():
                    )
         
         assert_2darray_almost_equal(expected,
-                self.calc._generate_possible_detector_solutions(.1, .2, 'delta'))
+                self.calc._generate_possible_solutions((.1, .2), ('delta', 'nu') ,('delta',)))
         
     def test_generate_possible_detector_solutions_with_limits_constrained_nu(self):
         self.hardware.setUpperLimit('delta', 0)
@@ -523,28 +523,28 @@ class TestSolutionGenerator():
                    )
         
         assert_2darray_almost_equal(expected,
-                self.calc._generate_possible_detector_solutions(.1, .2, 'nu'))
+                self.calc._generate_possible_solutions((.1, .2), ('delta', 'nu'), ('nu',)))
 
     def test_generate_possible_detector_solutions_with_limits_overly_constrained_nu(self):
         self.hardware.setLowerLimit('delta', .3)
         self.hardware.setUpperLimit('delta', .31)
-        eq_(len(self.calc._generate_possible_detector_solutions(.1, .2, 'nu')), 0)
+        eq_(len(self.calc._generate_possible_solutions((.1, .2), ('delta', 'nu'), ('nu',))), 0)
         
     def test_generate_possible_sample_solutions(self):
-        result = self.calc._generate_possible_sample_solutions(.1, .2, .3, .4, 'naz')
+        result = self.calc._generate_possible_solutions((.1, .2, .3, .4), ('mu', 'eta', 'chi', 'phi'), ('naz',))
         assert_2darray_almost_equal(self._hardcoded_generate_possible_sample_solutions(.1, .2, .3, .4, 'naz'),
                 result)
         eq_(4**4, len(result))
 
     def test_generate_possible_sample_solutions_fixed_chi(self):
-        result = self.calc._generate_possible_sample_solutions(.1, .2, .3, .4, 'chi')
+        result = self.calc._generate_possible_solutions((.1, .2, .3, .4), ('mu', 'eta', 'chi', 'phi'), ('chi',))
         assert_2darray_almost_equal(self._hardcoded_generate_possible_sample_solutions(.1, .2, .3, .4, 'chi'),
                 result)
         eq_(4**3, len(result))
 
     def test_generate_possible_sample_solutions_fixed_chi_positive_mu(self):
         self.hardware.setLowerLimit('mu', 0)
-        result = self.calc._generate_possible_sample_solutions(.1, .2, .3, .4, 'chi')
+        result = self.calc._generate_possible_solutions((.1, .2, .3, .4), ('mu', 'eta', 'chi', 'phi'), ('chi',))
         assert_2darray_almost_equal(self._hardcoded_generate_possible_sample_solutions(.1, .2, .3, .4, 'chi'),
                 result)
         eq_(2 * (4**2), len(result))
