@@ -1,3 +1,5 @@
+from diffcalc.hkl.vlieg.position import VliegPosition
+from diffcalc.hkl.vlieg.matrices import createVliegMatrices
 try:
     from Jama import Matrix
 except ImportError:
@@ -5,8 +7,7 @@ except ImportError:
     
 from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry, gammaOnArmToBase, \
     gammaOnBaseToArm, SixCircleGeometry
-from diffcalc.utils import Position, createVliegMatrices, nearlyEqual, \
-    radiansEquivilant as radeq
+from diffcalc.utils import nearlyEqual, radiansEquivilant as radeq
 from math import pi
 import random
 import unittest
@@ -33,11 +34,11 @@ class TestSixCirclePlugin(unittest.TestCase):
 
     def testPhysicalAnglesToInternalPosition(self):
         pos = [0, 0, 0, 0, 0, 0]
-        self.assert_(Position(*pos) == self.geometry.physicalAnglesToInternalPosition(pos))
+        self.assert_(VliegPosition(*pos) == self.geometry.physicalAnglesToInternalPosition(pos))
     
     def testInternalPositionToPhysicalAngles(self):
         pos = [0, 0, 0, 0, 0, 0]    
-        result = self.geometry.internalPositionToPhysicalAngles(Position(*pos))
+        result = self.geometry.internalPositionToPhysicalAngles(VliegPosition(*pos))
         self.assert_(Matrix([pos]).minus(Matrix([result])).normF() < 0.001)
 
     def testGammaOn(self):
@@ -75,11 +76,11 @@ class TestSixCircleGammaOnArmGeometry(unittest.TestCase):
 
     def testPhysicalAnglesToInternalPosition(self):
         pos = [1, 2, 3, 4, 5, 6]
-        self.assert_(Position(*pos) == self.geometry.physicalAnglesToInternalPosition(pos))
+        self.assert_(VliegPosition(*pos) == self.geometry.physicalAnglesToInternalPosition(pos))
     
     def testInternalPositionToPhysicalAngles(self):
         pos = [1, 2, 3, 4, 5, 6]    
-        result = self.geometry.internalPositionToPhysicalAngles(Position(*pos))
+        result = self.geometry.internalPositionToPhysicalAngles(VliegPosition(*pos))
         self.assert_(Matrix([pos]).minus(Matrix([result])).normF() < 0.001)
         
 #    def testPhysicalAnglesToInternalWrongInput(self):
@@ -100,8 +101,6 @@ class TestSixCircleGammaOnArmGeometry(unittest.TestCase):
     
     def isParamaterUnchangable(self):
         self.assertEqual(self.geometry.isParamaterUnchangable('made up parameter'), False)
-
-
 
 
 y_vector = Matrix([[0], [1], [0]])

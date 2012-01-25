@@ -1,5 +1,5 @@
 from diffcalc.help import HelpList, UsageHandler
-from diffcalc.hkl.calcvlieg import VliegHklCalculator
+from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator
 from diffcalc.utils import allnum
 
 _hklcalcCommandHelp = HelpList()

@@ -1,13 +1,14 @@
 import diffcalc.help #@UnusedImport for flag
 
 from diffcalc.ub.commands import UbCommands, UbCommand
-from diffcalc.hkl.commands import HklCommands
+from diffcalc.hkl.vlieg.commands import HklCommands
 from diffcalc.mapper.commands import MapperCommands
 from diffcalc.ub.calculation import UBCalculation
-from diffcalc.hkl.calcvlieg import VliegHklCalculator
+from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator
 from diffcalc.mapper.sector import SectorSelector
 from diffcalc.mapper.mapper import PositionMapper
 from diffcalc.utils import DiffcalcException
+from diffcalc.hkl.vlieg.ubcalcstrategy import VliegUbCalcStrategy
 
 
 class Diffcalc(object):
@@ -27,7 +28,7 @@ class Diffcalc(object):
         diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = RAISE_EXCEPTIONS_FOR_ALL_ERRORS
 
         # Create core calculation code
-        self._ubcalc = UBCalculation(self._hardware, self._geometry, ub_persister)
+        self._ubcalc = UBCalculation(self._hardware, self._geometry, ub_persister, VliegUbCalcStrategy())
         self._hklcalc = VliegHklCalculator(self._ubcalc, self._geometry, self._hardware, raiseExceptionsIfAnglesDoNotMapBackToHkl)
         self._sector_selector = SectorSelector()
         self._position_mapper = PositionMapper(self._geometry, self._hardware, self._sector_selector)

@@ -1,13 +1,16 @@
+from diffcalc.configurelogging import logging
 from diffcalc.hkl.calcbase import HklCalculatorBase
-from diffcalc.utils import DiffcalcException, bound, cross3, calcMU, calcPHI, \
-    Position, angle_between_vectors, createYouMatrices, z_rotation, x_rotation, \
+from diffcalc.hkl.you.matrices import createYouMatrices, calcMU, calcPHI, \
     calcCHI
+from diffcalc.hkl.you.position import YouPosition
+from diffcalc.utils import DiffcalcException, bound, cross3, \
+    angle_between_vectors, z_rotation, x_rotation
 from math import pi, sin, cos, tan, acos, atan2, asin, sqrt
+
 try:
     from Jama import Matrix
 except ImportError:
     from diffcalc.npadaptor import Matrix
-from diffcalc.configurelogging import logging
 
 logger = logging.getLogger("diffcalc.hkl.you.calcyou")
 I = Matrix.identity(3, 3)
@@ -354,7 +357,7 @@ class YouHklCalculator(HklCalculatorBase):
 
         
         # Create position
-        position = Position(mu, delta, nu, eta, chi, phi)
+        position = YouPosition(mu, delta, nu, eta, chi, phi)
 
         position = _tidy_degenerate_solutions(position, self.constraints)
         if position.phi <= -pi + SMALL:
@@ -654,7 +657,7 @@ class YouHklCalculator(HklCalculatorBase):
             msg = 'Checking all sample solutions (found to be within limits)\n'
           
         for mu, eta, chi, phi in possible_mu_eta_chi_phi_tuples:
-            pos = Position(mu, delta, nu, eta, chi, phi)
+            pos = YouPosition(mu, delta, nu, eta, chi, phi)
             hkl_actual = self._anglesToHkl(pos, wavelength)
             hkl_okay = sequence_ne(hkl, hkl_actual)
  

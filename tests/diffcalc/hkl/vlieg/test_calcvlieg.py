@@ -1,6 +1,7 @@
-from diffcalc.hkl.calcvlieg import VliegHklCalculator, \
-    _findOmegaAndChiToRotateHchiIntoQalpha
-from diffcalc.utils import createVliegMatrices
+from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator, \
+    _findOmegaAndChiToRotateHchiIntoQalpha, check
+from diffcalc.hkl.vlieg.matrices import createVliegMatrices
+from diffcalc.utils import DiffcalcException
 from math import pi
 from mock import Mock
 from tests.diffcalc import scenarios
@@ -43,11 +44,28 @@ def createMockDiffractometerGeometry():
 
 ###################################################################################
 
+
+
 class TestVliegCoreMathBits(unittest.TestCase):
     
     def setUp(self):
         self.many = [-91, -90, -89, -46, -45, -44, -1, 0, 1, 44, 45, 46, 89, 90, 91]
         self.many = self.many + map(lambda x:x + 180, self.many) + map(lambda x:x - 180, self.many)
+    
+    def test_check(self):
+        check(True, 'Should not throw')
+        self.assertRaises(Exception, check, False, 'string')
+        self.assertRaises(DiffcalcException, check, False, DiffcalcException('dce'))
+        
+        def acallable(toPrint=None):
+            if toPrint == None:
+                print "Not throwing exception"
+            else:
+                print toPrint
+                
+        check(False, acallable) 
+        check(False, acallable, 'this should be printed')
+        
     
     def test__findOmegaAndChiToRotateHchiIntoQalpha_WithIntegerValues(self):
         for omega in self.many:

@@ -1,5 +1,5 @@
-from diffcalc.hkl.modes import ModeSelector
-from diffcalc.hkl.parameters import ParameterManager
+from diffcalc.hkl.vlieg.modes import ModeSelector
+from diffcalc.hkl.vlieg.parameters import ParameterManager
 from diffcalc.utils import DiffcalcException, differ
 from math import pi
 

@@ -1,12 +1,12 @@
 from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
 from diffcalc.hardware.dummy import DummyHardwareMonitorPlugin
-from diffcalc.hkl.commands import HklCommands
+from diffcalc.hkl.vlieg.commands import HklCommands
 from diffcalc.ub.commands import UbCommands
 from diffcalc.utils import MockRawInput
 from mock import Mock
 import diffcalc.utils # @UnusedImport to overide raw_input
 import unittest
-from diffcalc.hkl.calcvlieg import VliegHklCalculator
+from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator
 from diffcalc.ub.calculation import UBCalculation
 
 try:

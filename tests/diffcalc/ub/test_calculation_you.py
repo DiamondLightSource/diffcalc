@@ -1,9 +1,9 @@
 from diffcalc.geometry.sixc import SixCircleYouGeometry
+from diffcalc.hkl.vlieg.position import VliegPosition
+from diffcalc.hkl.you.ubcalcstrategy import YouUbCalcStrategy
 from diffcalc.tools import matrixeq_
 from diffcalc.ub.calculation import UBCalculation
-from diffcalc.ub.paperspecific import YouUbCalcStrategy
 from diffcalc.ub.persistence import UbCalculationNonPersister
-from diffcalc.utils import Position
 from math import pi
 from mock import Mock
 
@@ -27,7 +27,7 @@ except ImportError:
 
 
 def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
-    return Position(mu, delta, gamma, eta, chi, phi)
+    return VliegPosition(mu, delta, gamma, eta, chi, phi)
 
 UB1 = Matrix(
              ((0.9996954135095477, -0.01745240643728364, -0.017449748351250637),

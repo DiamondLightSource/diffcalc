@@ -1,18 +1,19 @@
 from datetime import datetime
 from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
+from diffcalc.hkl.vlieg.position import VliegPosition
+from diffcalc.tools import matrixeq_
 from diffcalc.ub.calculation import UBCalculation, matrixTo3x3ListOfLists
 from diffcalc.ub.persistence import UbCalculationNonPersister
-from diffcalc.utils import DiffcalcException, Position
+from diffcalc.utils import DiffcalcException
+from math import cos, sin, pi
+from mock import Mock
 from tests.diffcalc import scenarios
 import unittest
-from mock import Mock
-from diffcalc.tools import matrixeq_
-from diffcalc.hkl.calcvlieg import VliegHklCalculator
+from diffcalc.hkl.vlieg.ubcalcstrategy import VliegUbCalcStrategy
 try:
     from Jama import Matrix
 except ImportError:
     from diffcalc.npadaptor import Matrix
-from math import cos, sin, pi
 
 I = Matrix(((1, 0, 0), (0, 1, 0), (0, 0, 1)))
 TORAD = pi / 180
@@ -26,7 +27,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
     def setUp(self):    
         self.geometry = SixCircleGammaOnArmGeometry()
         self.hardware = MockMonitor()
-        self.ubcalc = UBCalculation(self.hardware, self.geometry, UbCalculationNonPersister())
+        self.ubcalc = UBCalculation(self.hardware, self.geometry, UbCalculationNonPersister(), VliegUbCalcStrategy())
         self.time = datetime.now()
 
 ### State ###
@@ -231,7 +232,7 @@ class TestUBCalcWithCubic():
     def setUp(self):    
         hardware = Mock()
         hardware.getPhysicalAngleNames.return_value = ('a', 'd', 'g', 'o', 'c', 'p')
-        self.ubcalc = UBCalculation(hardware, SixCircleGammaOnArmGeometry(), UbCalculationNonPersister())
+        self.ubcalc = UBCalculation(hardware, SixCircleGammaOnArmGeometry(), UbCalculationNonPersister(), VliegUbCalcStrategy())
         self.ubcalc.newCalculation('xtalubcalc')
         self.ubcalc.setLattice("xtal", *CUBIC)
         self.energy = CUBIC_EN
@@ -249,8 +250,8 @@ class TestUBCalcWithCubicTwoRef(TestUBCalcWithCubic):
         matrixeq_(expectedUMatrix, self.ubcalc.getUMatrix())
 
     def test_with_squarely_mounted(self):
-        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0, phi=0))
-        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90, phi=0))
+        href = ((1, 0, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0))
+        lref = ((0, 0, 1), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=90, phi=0))
         pairs = (("hl", href, lref, I),
                  ("lh", lref, href, I))
         for testname, ref1, ref2, u in pairs:
@@ -258,9 +259,9 @@ class TestUBCalcWithCubicTwoRef(TestUBCalcWithCubic):
 
     def test_with_x_mismount(self):
         U = x_rotation(ROT)
-        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0, phi=0))
-        kref = ((0, 1, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30-ROT+90, chi=90, phi=0))
-        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30-ROT, chi=90, phi=0))
+        href = ((1, 0, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0))
+        kref = ((0, 1, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30-ROT+90, chi=90, phi=0))
+        lref = ((0, 0, 1), VliegPosition(alpha=0, delta=60, gamma=0, omega=30-ROT, chi=90, phi=0))
         pairs = (("hk", href, kref, U),
                  ("hl", href, lref, U),
                  ("kh", kref, href, U),
@@ -272,8 +273,8 @@ class TestUBCalcWithCubicTwoRef(TestUBCalcWithCubic):
             
     def test_with_y_mismount(self):
         U = y_rotation(ROT)
-        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0-ROT, phi=0))
-        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90-ROT, phi=0))
+        href = ((1, 0, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=0-ROT, phi=0))
+        lref = ((0, 0, 1), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=90-ROT, phi=0))
         pairs = (("hl", href, lref, U),
                  ("lh", lref, href, U))
         for testname, ref1, ref2, u in pairs:
@@ -281,8 +282,8 @@ class TestUBCalcWithCubicTwoRef(TestUBCalcWithCubic):
             
     def test_with_z_mismount(self):
         U = z_rotation(ROT)
-        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0, phi=0+ROT))
-        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90, phi=67)) # phi degenerate
+        href = ((1, 0, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0+ROT))
+        lref = ((0, 0, 1), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=90, phi=67)) # phi degenerate
         pairs = (("hl", href, lref, U),
                  ("lh", lref, href, U))
         for testname, ref1, ref2, u in pairs:
@@ -290,8 +291,8 @@ class TestUBCalcWithCubicTwoRef(TestUBCalcWithCubic):
             
     def test_with_zy_mismount(self):
         U = z_rotation(ROT).times(y_rotation(ROT))
-        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0-ROT, phi=0+ROT))
-        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90-ROT, phi=ROT)) # chi degenerate
+        href = ((1, 0, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=0-ROT, phi=0+ROT))
+        lref = ((0, 0, 1), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=90-ROT, phi=ROT)) # chi degenerate
         pairs = (("hl", href, lref, U),
                  ("lh", lref, href, U))
         for testname, ref1, ref2, u in pairs:
@@ -309,9 +310,9 @@ class TestUBCalcWithcubicOneRef(TestUBCalcWithCubic):
         matrixeq_(expectedUMatrix, self.ubcalc.getUMatrix())
 
     def test_with_squarely_mounted(self):
-        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0, phi=0))
-        href_b = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30+90, chi=90, phi=-90))
-        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90, phi=67)) # degenerate in phi
+        href = ((1, 0, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0))
+        href_b = ((1, 0, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30+90, chi=90, phi=-90))
+        lref = ((0, 0, 1), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=90, phi=67)) # degenerate in phi
         pairs = (("h", href, I),
                  ("hb", href_b, I),
                  ("l", lref, I))
@@ -320,9 +321,9 @@ class TestUBCalcWithcubicOneRef(TestUBCalcWithCubic):
             
     def test_with_x_mismount(self):
         U = x_rotation(ROT)
-        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0, phi=0))
-        kref = ((0, 1, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30-ROT+90, chi=90, phi=0))
-        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30-ROT, chi=90, phi=0))
+        href = ((1, 0, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0))
+        kref = ((0, 1, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30-ROT+90, chi=90, phi=0))
+        lref = ((0, 0, 1), VliegPosition(alpha=0, delta=60, gamma=0, omega=30-ROT, chi=90, phi=0))
         pairs = (("h", href, I), # TODO: can't pass, no information - word instructions
                  ("k", kref, U),
                  ("l", lref, U))
@@ -331,9 +332,9 @@ class TestUBCalcWithcubicOneRef(TestUBCalcWithCubic):
             
     def test_with_y_mismount(self):
         U = y_rotation(ROT)
-        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0-ROT, phi=0))
-        kref = ((0, 1, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30+90, chi=90, phi=0))
-        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90-ROT, phi=0))
+        href = ((1, 0, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=0-ROT, phi=0))
+        kref = ((0, 1, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30+90, chi=90, phi=0))
+        lref = ((0, 0, 1), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=90-ROT, phi=0))
         pairs = (("h", href, U),
                  ("k", kref, I),# TODO: can't pass, no information - word instructions
                  ("l", lref, U))
@@ -343,9 +344,9 @@ class TestUBCalcWithcubicOneRef(TestUBCalcWithCubic):
     def test_with_z_mismount(self):
         U = z_rotation(ROT)
 
-        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0, phi=0+ROT))
-        kref = ((0, 1, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30+90, chi=0, phi=0+ROT))
-        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90, phi=67)) # phi degenerate
+        href = ((1, 0, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0+ROT))
+        kref = ((0, 1, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30+90, chi=0, phi=0+ROT))
+        lref = ((0, 0, 1), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=90, phi=67)) # phi degenerate
         pairs = (("h", href, U),
                  ("k", kref, U),
                  ("l", lref, I)) # TODO: can't pass, no information - word instructions
@@ -355,9 +356,9 @@ class TestUBCalcWithcubicOneRef(TestUBCalcWithCubic):
 # Probably lost cause, conclusion is be careful and return the angle and direction of resulting u matrix
 #    def test_with_zy_mismount(self):
 #        U = z_rotation(ROT).times(y_rotation(ROT))
-#        href = ((1, 0, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=0-ROT, phi=0+ROT))
-#        kref = ((0, 1, 0), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30+90, chi=90-ROT, phi=0+ROT))
-#        lref = ((0, 0, 1), Position(alpha_mu=0, delta=60, gamma_nu=0, omega_eta=30, chi=90-ROT, phi=ROT)) # chi degenerate
+#        href = ((1, 0, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=0-ROT, phi=0+ROT))
+#        kref = ((0, 1, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30+90, chi=90-ROT, phi=0+ROT))
+#        lref = ((0, 0, 1), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=90-ROT, phi=ROT)) # chi degenerate
 #        pairs = (("h", href, U),
 #                 ("k", kref, U),
 #                 ("l", lref, U))

@@ -1,6 +1,6 @@
 from diffcalc.ub.crystal import CrystalUnderTest
-from diffcalc.hkl.calcvlieg import vliegAnglesToHkl
-from diffcalc.utils import createVliegMatrices
+from diffcalc.hkl.vlieg.calcvlieg import vliegAnglesToHkl
+from diffcalc.hkl.vlieg.matrices import createVliegMatrices
 try:
     from gda.device.scannable import PseudoDevice
 except ImportError:

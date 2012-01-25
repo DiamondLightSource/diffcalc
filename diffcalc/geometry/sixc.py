@@ -1,9 +1,16 @@
 from diffcalc.geometry.plugin import DiffractometerGeometryPlugin
-from diffcalc.utils import Position, nearlyEqual, sign, bound
+from diffcalc.hkl.vlieg.position  import VliegPosition
+from diffcalc.utils import nearlyEqual, bound
 from math import tan, cos, sin, asin, atan, pi, fabs
 
 TORAD = pi / 180
 TODEG = 180 / pi
+
+def sign(x):
+    if x < 0:
+        return -1
+    else:
+        return 1
 
 class SixCircleGammaOnArmGeometry(DiffractometerGeometryPlugin):
     """
@@ -24,7 +31,7 @@ class SixCircleGammaOnArmGeometry(DiffractometerGeometryPlugin):
         """ (a,d,g,o,c,p) = physicalAnglesToInternal(a,d,g,o,c,p)
         """
         assert (len(physicalAngles) == 6), "Wrong length of input list"
-        return Position(*physicalAngles)
+        return VliegPosition(*physicalAngles)
     
     def internalPositionToPhysicalAngles(self, internalPosition):
         """ (a,d,g,o,c,p) = physicalAnglesToInternal(a,d,g,o,c,p)
@@ -67,7 +74,7 @@ class SixCircleGeometry(DiffractometerGeometryPlugin):
         assert (len(physicalAngles) == 6), "Wrong length of input list"
         alpha, deltaB, gammaB, omega, chi, phi = physicalAngles
         (deltaA, gammaA) = gammaOnBaseToArm(deltaB * TORAD, gammaB * TORAD, alpha * TORAD)
-        return Position(alpha, deltaA * TODEG, gammaA * TODEG, omega, chi, phi)
+        return VliegPosition(alpha, deltaA * TODEG, gammaA * TODEG, omega, chi, phi)
     
     def internalPositionToPhysicalAngles(self, internalPosition):
         """ (a,d,g,o,c,p) = physicalAnglesToInternal(a,d,g,o,c,p)

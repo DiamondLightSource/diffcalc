@@ -1,6 +1,7 @@
 from copy import deepcopy
-from diffcalc.utils import DiffcalcException, Position
+from diffcalc.utils import DiffcalcException
 import datetime #@UnusedImport for the eval below
+from diffcalc.hkl.vlieg.position import VliegPosition
 class Reflection:
     """A reflection"""
     def __init__(self, h, k, l, position, energy, tag, time):
@@ -43,13 +44,13 @@ class ReflectionList:
         position in degrees
         """
         if type(position) in (list, tuple):
-            position = Position(*position)
+            position = VliegPosition(*position)
         self._reflist += [Reflection(h, k, l, position, energy, tag, time.__repr__())]
 
     def editReflection(self, num, h, k, l, position, energy, tag, time):
         """num starts at 1"""
         if type(position) in (list, tuple):
-            position = Position(*position)
+            position = VliegPosition(*position)
         try:
             self._reflist[num - 1] = Reflection(h, k, l, position, energy, tag, time.__repr__())
         except IndexError:

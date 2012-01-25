@@ -1,13 +1,14 @@
 from diffcalc.hkl.you.calcyou import YouHklCalculator, I, _calc_angle_between_naz_and_qaz
 from diffcalc.tools import  assert_matrix_almost_equal,\
     assert_2darray_almost_equal
-from diffcalc.utils import Position, DiffcalcException
+from diffcalc.hkl.you.position  import YouPosition
 from math import pi, sin, cos
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_almost_equal, raises, eq_ #@UnresolvedImport
-from tests.diffcalc.hkl.test_calcvlieg import createMockDiffractometerGeometry, createMockHardwareMonitor, createMockUbcalc
+from tests.diffcalc.hkl.vlieg.test_calcvlieg import createMockDiffractometerGeometry, createMockHardwareMonitor, createMockUbcalc
 import math
 from tests.diffcalc.hardware.test_plugin import SimpleHardwareMonitorPlugin
+from diffcalc.utils import DiffcalcException
 
 try:
     from Jama import Matrix
@@ -39,7 +40,7 @@ class Test_anglesToVirtualAngles():
     def check_angle(self, name, expected, mu=-99, delta=99, nu=99,
                      eta=99, chi=99, phi=99):
         """All in degrees"""
-        pos = Position(mu, delta, nu, eta, chi, phi)
+        pos = YouPosition(mu, delta, nu, eta, chi, phi)
         pos.changeToRadians()
         assert_almost_equal(self.calc._anglesToVirtualAngles(pos, None)[name]*TODEG, expected)
         
@@ -74,7 +75,7 @@ class Test_anglesToVirtualAngles():
 
     # Can't see one by eye        
     # def test_qaz4(self):
-    #    pos = Position(delta=20*TORAD, nu=20*TORAD)#.inRadians()
+    #    pos = YouPosition(delta=20*TORAD, nu=20*TORAD)#.inRadians()
     #    assert_almost_equal(self.calc._anglesToVirtualAngles(pos, None)['qaz']*TODEG, 45)
 
     #alpha
@@ -162,7 +163,7 @@ class Test_anglesToVirtualAngles():
 
     #psi
     def test_psi0(self):
-        pos = Position(0,0,0,0,0,0)
+        pos = YouPosition(0,0,0,0,0,0)
         assert isnan(self.calc._anglesToVirtualAngles(pos, None)['psi'])
         
     def test_psi1(self):
@@ -179,7 +180,7 @@ class Test_anglesToVirtualAngles():
         
     def test_psi5(self):
         #self.check_angle('psi', 0, mu=10, delta=.00000001, nu=0, eta=0, chi=90, phi=0)     
-        pos = Position(0,.00000001,0,0,90,0)
+        pos = YouPosition(0,.00000001,0,0,90,0)
         pos.changeToRadians()
         assert isnan(self.calc._anglesToVirtualAngles(pos, None)['psi'])
         

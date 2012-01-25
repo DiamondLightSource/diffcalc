@@ -1,23 +1,11 @@
-from diffcalc.utils import DiffcalcException, Position, MockRawInput, \
-    getInputWithDefault, differ, nearlyEqual, degreesEquivilant
-import diffcalc.utils
+from diffcalc.hkl.vlieg.position import VliegPosition
+from diffcalc.utils import DiffcalcException, MockRawInput, getInputWithDefault, \
+    differ, nearlyEqual, degreesEquivilant
+import diffcalc.utils #@UnusedImport
 import unittest
 
 
 class TestUtils(unittest.TestCase):
-    def testCheck(self):
-        diffcalc.utils.check(True, 'Should not throw')
-        self.assertRaises(Exception, diffcalc.utils.check, False, 'string')
-        self.assertRaises(DiffcalcException, diffcalc.utils.check, False, DiffcalcException('dce'))
-        
-        def acallable(toPrint=None):
-            if toPrint == None:
-                print "Not throwing exception"
-            else:
-                print toPrint
-                
-        diffcalc.utils.check(False, acallable) 
-        diffcalc.utils.check(False, acallable, 'this should be printed')
     
     def testMockRawInput(self):
         raw_input = MockRawInput('a')
@@ -95,28 +83,22 @@ class TestPosition(unittest.TestCase):
 
     def testCompare(self):
         # Test the compare method
-        pos1 = Position(1, 2, 3, 4, 5, 6)
-        pos2 = Position(1.1, 2.1, 3.1, 4.1, 5.1, 6.1)
+        pos1 = VliegPosition(1, 2, 3, 4, 5, 6)
+        pos2 = VliegPosition(1.1, 2.1, 3.1, 4.1, 5.1, 6.1)
         
         self.assert_(pos1 == pos1)
         self.assert_(pos1 != pos2)
 
     def testNearlyEquals(self):
-        pos1 = Position(1, 2, 3, 4, 5, 6)
-        pos2 = Position(1.1, 2.1, 3.1, 4.1, 5.1, 6.1)
+        pos1 = VliegPosition(1, 2, 3, 4, 5, 6)
+        pos2 = VliegPosition(1.1, 2.1, 3.1, 4.1, 5.1, 6.1)
         self.assert_(pos1.nearlyEquals(pos2, 0.3))
         self.assert_(not pos1.nearlyEquals(pos2, 0.2))
         
     def testClone(self):
-        pos = Position(1, 2, 3, 4., 5., 6.)
+        pos = VliegPosition(1, 2, 3, 4., 5., 6.)
         copy = pos.clone()
         self.assert_(pos == copy)
         pos.alpha = 10
         pos.omega = 4.1
         
-    def testPropertyAccess(self):
-        pos = Position(1, 2, 3, 4, 5, 6)
-        self.assert_(pos.alpha == pos.mu == 1)
-        pos.mu = 10
-        self.assert_(pos.alpha == pos.mu == 10)
-    

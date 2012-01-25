@@ -1,6 +1,7 @@
 '''Angles in radians'''
 from copy import copy
-from diffcalc.utils import Position as P
+from diffcalc.hkl.vlieg.position import VliegPosition as P
+
 from math import pi
 
 SMALL = 1e-10

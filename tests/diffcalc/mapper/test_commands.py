@@ -1,7 +1,7 @@
 from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
 from diffcalc.hardware.dummy import DummyHardwareMonitorPlugin
 from diffcalc.mapper.commands import MapperCommands
-from diffcalc.utils import Position
+from diffcalc.hkl.vlieg.position  import VliegPosition
 import diffcalc.help #@UnusedImport
 import unittest
 from diffcalc.mapper.sector import SectorSelector
@@ -21,25 +21,25 @@ class TestAngleMapper(unittest.TestCase):
         diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
 
     def testMapDefaultSector(self):
-        self.assertEquals(self.position_mapper.map(Position(1, 2, 3, 4, 5, 6)), (1, 2, 3, 4, 5, 6))
-        self.assertEquals(self.position_mapper.map(Position(-180, -179, 0, 179, 180, 359)), (-180, -179, 0, 179, 180, 359))
-        self.assertEquals(self.position_mapper.map(Position(0, 0, 0, 0, 0, 0)), (0, 0, 0, 0, 0, 0))
-        self.assertEquals(self.position_mapper.map(Position(-270, 270, 0, 0, 0, -90)), (90, -90, 0, 0, 0, 270))
+        self.assertEquals(self.position_mapper.map(VliegPosition(1, 2, 3, 4, 5, 6)), (1, 2, 3, 4, 5, 6))
+        self.assertEquals(self.position_mapper.map(VliegPosition(-180, -179, 0, 179, 180, 359)), (-180, -179, 0, 179, 180, 359))
+        self.assertEquals(self.position_mapper.map(VliegPosition(0, 0, 0, 0, 0, 0)), (0, 0, 0, 0, 0, 0))
+        self.assertEquals(self.position_mapper.map(VliegPosition(-270, 270, 0, 0, 0, -90)), (90, -90, 0, 0, 0, 270))
 
     def testMapSector1(self):
         self.mappercommands._sectorSelector.setSector(1)
-        self.assertEquals(self.position_mapper.map(Position(1, 2, 3, 4, 5, 6)), (1, 2, 3, 4 - 180, -5, (6 - 180) + 360))
-        self.assertEquals(self.position_mapper.map(Position(-180, -179, 0, 179, 180, 359)), (-180, -179, 0, 179 - 180, -180, 359 - 180))
-        self.assertEquals(self.position_mapper.map(Position(0, 0, 0, 0, 0, 0)), (0, 0, 0, 0 - 180, 0, (0 - 180) + 360))
-        self.assertEquals(self.position_mapper.map(Position(-270, 270, 0, 0, 0, -90)), (90, -90, 0, 0 - 180, 0, 270 - 180))
+        self.assertEquals(self.position_mapper.map(VliegPosition(1, 2, 3, 4, 5, 6)), (1, 2, 3, 4 - 180, -5, (6 - 180) + 360))
+        self.assertEquals(self.position_mapper.map(VliegPosition(-180, -179, 0, 179, 180, 359)), (-180, -179, 0, 179 - 180, -180, 359 - 180))
+        self.assertEquals(self.position_mapper.map(VliegPosition(0, 0, 0, 0, 0, 0)), (0, 0, 0, 0 - 180, 0, (0 - 180) + 360))
+        self.assertEquals(self.position_mapper.map(VliegPosition(-270, 270, 0, 0, 0, -90)), (90, -90, 0, 0 - 180, 0, 270 - 180))
     
     def testMapAutoSector(self):
         self.mappercommands._sectorSelector.addAutoTransorm(1)
         self.hardware.setLowerLimit('c', 0)
-        self.assertEquals(self.position_mapper.map(Position(1, 2, 3, 4, -5, 6)), (1, 2, 3, 4 - 180, 5, (6 - 180) + 360))
-        self.assertEquals(self.position_mapper.map(Position(-180, -179, 0, 179, -180, 359)), (-180, -179, 0, 179 - 180, 180, 359 - 180))
-        self.assertEquals(self.position_mapper.map(Position(0, 0, 0, 0, -5, 0)), (0, 0, 0, 0 - 180, 5, (0 - 180) + 360))
-        self.assertEquals(self.position_mapper.map(Position(-270, 270, 0, 0, -5, -90)), (90, -90, 0, 0 - 180, 5, 270 - 180))
+        self.assertEquals(self.position_mapper.map(VliegPosition(1, 2, 3, 4, -5, 6)), (1, 2, 3, 4 - 180, 5, (6 - 180) + 360))
+        self.assertEquals(self.position_mapper.map(VliegPosition(-180, -179, 0, 179, -180, 359)), (-180, -179, 0, 179 - 180, 180, 359 - 180))
+        self.assertEquals(self.position_mapper.map(VliegPosition(0, 0, 0, 0, -5, 0)), (0, 0, 0, 0 - 180, 5, (0 - 180) + 360))
+        self.assertEquals(self.position_mapper.map(VliegPosition(-270, 270, 0, 0, -5, -90)), (90, -90, 0, 0 - 180, 5, 270 - 180))
 
     def test_reprSectorLimits(self):
 #        self.assertEqual(self.mappercommands._reprSectorLimits('alpha'), 'alpha')

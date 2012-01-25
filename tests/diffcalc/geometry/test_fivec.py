@@ -3,7 +3,7 @@ try:
 except ImportError:
     from diffcalc.npadaptor import Matrix
 from diffcalc.geometry.fivec import fivec
-from diffcalc.utils import Position
+from diffcalc.hkl.vlieg.position  import VliegPosition
 import unittest
 
 class TestFiveCirclePlugin(unittest.TestCase):
@@ -15,10 +15,10 @@ class TestFiveCirclePlugin(unittest.TestCase):
         self.assertEqual(self.geometry.getName(), "fivec")
 
     def testPhysicalAnglesToInternalPosition(self):
-        self.assert_(Position(1, 2, 0, 4, 5, 6) == self.geometry.physicalAnglesToInternalPosition((1, 2, 4, 5, 6)))
+        self.assert_(VliegPosition(1, 2, 0, 4, 5, 6) == self.geometry.physicalAnglesToInternalPosition((1, 2, 4, 5, 6)))
     
     def testInternalPositionToPhysicalAngles(self):
-        result = self.geometry.internalPositionToPhysicalAngles(Position(1, 2, 0, 4, 5, 6))
+        result = self.geometry.internalPositionToPhysicalAngles(VliegPosition(1, 2, 0, 4, 5, 6))
         self.assert_(Matrix([[1, 2, 4, 5, 6]]).minus(Matrix([list(result)])).normF() < 0.001)
         
 #    def testPhysicalAnglesToInternalWrongInput(self):

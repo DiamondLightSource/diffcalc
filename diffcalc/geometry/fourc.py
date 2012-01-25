@@ -1,5 +1,5 @@
-from diffcalc.utils import Position
 from plugin import DiffractometerGeometryPlugin
+from diffcalc.hkl.vlieg.position import VliegPosition
 
 class fourc(DiffractometerGeometryPlugin):
     """This five-circle diffractometer geometry is for diffractometers with the same
@@ -21,7 +21,7 @@ class fourc(DiffractometerGeometryPlugin):
         # 
         physicalAngles = tuple(physicalAngles)
         angles = (0.0, physicalAngles[0], 0.0) + physicalAngles[1:]
-        return Position(*angles)
+        return VliegPosition(*angles)
     
     def internalPositionToPhysicalAngles(self, internalPosition):
         """ (a,d,g,o,c,p) = physicalAnglesToInternal(a,d,g,o,c,p)

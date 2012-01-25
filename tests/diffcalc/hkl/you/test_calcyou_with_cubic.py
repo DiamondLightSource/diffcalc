@@ -2,12 +2,14 @@ from diffcalc.hkl.you.calcyou import YouHklCalculator
 from diffcalc.hkl.you.constraints import ConstraintManager
 from diffcalc.tools import assert_array_almost_equal, \
     assert_second_dict_almost_in_first
-from diffcalc.utils import y_rotation, z_rotation, YouPosition as Pos, DiffcalcException
+from diffcalc.ub.crystal import CrystalUnderTest
+from diffcalc.utils import y_rotation, z_rotation, DiffcalcException
 from math import pi, cos, sin
 from nose.tools import raises
-from tests.diffcalc.hkl.test_calcvlieg import createMockDiffractometerGeometry, createMockUbcalc
 from tests.diffcalc.hardware.test_plugin import SimpleHardwareMonitorPlugin
-from diffcalc.ub.crystal import CrystalUnderTest
+from tests.diffcalc.hkl.vlieg.test_calcvlieg import createMockDiffractometerGeometry, \
+    createMockUbcalc
+from diffcalc.hkl.you.position import YouPosition as Pos
 
 try:
     from Jama import Matrix

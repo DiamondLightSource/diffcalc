@@ -8,6 +8,7 @@ from tests.diffcalc import scenarios
 import diffcalc.utils # @UnusedImport
 import unittest
 from diffcalc.ub.calculation import UBCalculation
+from diffcalc.hkl.vlieg.ubcalcstrategy import VliegUbCalcStrategy
 
 try:
     from Jama import Matrix
@@ -25,7 +26,7 @@ class TestUbCommands(unittest.TestCase):
     def setUp(self):
         self.hardware = DummyHardwareMonitorPlugin(('alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'))
         self.geometry = SixCircleGammaOnArmGeometry()
-        self.ubcalc = UBCalculation(self.hardware, self.geometry, UbCalculationNonPersister())
+        self.ubcalc = UBCalculation(self.hardware, self.geometry, UbCalculationNonPersister(), VliegUbCalcStrategy())
         self.ubcommands = UbCommands(self.hardware, self.geometry, self.ubcalc)
         prepareRawInput([])
         diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True

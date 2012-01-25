@@ -1,5 +1,4 @@
 from diffcalc.ub.crystal import CrystalUnderTest
-from diffcalc.ub.paperspecific import VliegUbCalcStrategy
 from diffcalc.ub.persistence import UBCalculationPersister
 from diffcalc.ub.reflections import ReflectionList
 from diffcalc.utils import DiffcalcException, MIRROR, cross3, dot3
@@ -19,7 +18,10 @@ def matrixTo3x3ListOfLists(m):
     r[1] = list(r[1])
     r[2] = list(r[2])
     return r
-    
+
+
+class PaperSpecificUbCalcStrategy(object):
+    pass 
 
 class UBCalculation:
     """A UB matrix calculation for an experiment.
@@ -28,7 +30,7 @@ class UBCalculation:
     and, if its been calculated, a UB matrix to be used by the rest of the code.
     """
     
-    def __init__(self, hardwareMonitorObject, diffractometerPluginObject, persister=None, strategy=VliegUbCalcStrategy()):
+    def __init__(self, hardwareMonitorObject, diffractometerPluginObject, persister=None, strategy=None):
         
         # The diffractometer geometry is required to map the internal angles
         # into those used by this diffractometer (for display only)

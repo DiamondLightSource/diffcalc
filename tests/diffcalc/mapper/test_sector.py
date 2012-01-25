@@ -1,7 +1,7 @@
 
 from diffcalc.mapper.sector import SectorSelector, TransformA, TransformB, \
     TransformC, transformsFromSector
-from diffcalc.utils import Position as P
+from diffcalc.hkl.vlieg.position  import VliegPosition as P
 from mock import Mock
 import unittest
 # self.alpha, self.delta, self.gamma, self.omega, self.chi, self.phi

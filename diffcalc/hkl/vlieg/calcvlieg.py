@@ -1,9 +1,9 @@
 from diffcalc.hkl.calcbase import HklCalculatorBase
 from diffcalc.mapper.sector import TransformCInRadians
-from diffcalc.utils import DiffcalcException, Position, createVliegMatrices, \
-    sign, dot3, cross3, check, createVliegsPsiTransformationMatrix, \
-    createVliegsSurfaceTransformationMatrices, bound, differ
+from diffcalc.utils import DiffcalcException, dot3, cross3, bound, differ
+from diffcalc.hkl.vlieg.matrices import createVliegMatrices, createVliegsPsiTransformationMatrix, createVliegsSurfaceTransformationMatrices
 from math import pi, asin, acos, sin, cos, sqrt, atan2, fabs, atan
+from diffcalc.hkl.vlieg.position import VliegPosition
 try:
     from Jama import Matrix
 except ImportError:
@@ -15,6 +15,28 @@ transformC = TransformCInRadians()
 
 
 PREFER_POSITIVE_CHI_SOLUTIONS = True
+
+# TODO: Remove (really nasty) check function
+def check(condition, ErrorOrStringOrCallable, *args):
+    """fail = check(condition, ErrorOrString) -- if condition is false raises the Exception
+    passed in, or creates one from a string. If a callable function is passed in this is
+    called with any args specified and the thing returns false.
+    """
+    if condition == False:
+        if callable(ErrorOrStringOrCallable):
+            ErrorOrStringOrCallable(*args)
+            return False
+        elif isinstance(ErrorOrStringOrCallable, str):
+            raise Exception(ErrorOrStringOrCallable)
+        else: # assume input is an exception
+            raise ErrorOrStringOrCallable
+    return True
+
+def sign(x):
+    if x < 0:
+        return -1
+    else:
+        return 1
 
 def vliegAnglesToHkl(pos, wavelength, UBMatrix):
     """
@@ -41,12 +63,12 @@ class VliegHklCalculator(HklCalculatorBase):
             
     def _anglesToHkl(self, pos, wavelength):
         """
-        Return hkl tuple from Position in radians and wavelength in Angstroms.
+        Return hkl tuple from VliegPosition in radians and wavelength in Angstroms.
         """
         return vliegAnglesToHkl(pos, wavelength, self._getUBMatrix())
 
     def _anglesToVirtualAngles(self, pos, wavelength):
-        """Return dictionary of all virtual angles in radians from Position object
+        """Return dictionary of all virtual angles in radians from VliegPosition object
         in radians and wavelength in Angstroms. The virtual angles are: Bin, Bout,
         azimuth and 2theta.
         """
@@ -88,7 +110,7 @@ class VliegHklCalculator(HklCalculatorBase):
 
     
     def _hklToAngles(self, h , k , l, wavelength):
-        """Return Position and virtual angles in radians from h, k & l and
+        """Return VliegPosition and virtual angles in radians from h, k & l and
         wavelength in Angstroms. The virtual angles are those fixed or generated while
         calculating the position: Bin, Bout and 2theta; and azimuth in four and
         five circle modes.
@@ -102,7 +124,7 @@ class VliegHklCalculator(HklCalculatorBase):
             raise RuntimeError("The current mode (%s) has an unrecognised group: %s." % (self._getMode().name, self._getMode().group))
 
     def _hklToAnglesFourAndFiveCirclesModes(self, h, k, l, wavelength):
-        """Return Position and virtual angles in radians from h, k & l and
+        """Return VliegPosition and virtual angles in radians from h, k & l and
         wavelength in Angstrom for four and five circle modes. The virtual angles are
         those fixed or generated while calculating the position: Bin, Bout,
         2theta and azimuth.
@@ -111,7 +133,7 @@ class VliegHklCalculator(HklCalculatorBase):
         # effect the state of the AngleCalculator object!!!
 
         # Results in radians during calculations, returned in degreess
-        pos = Position(None, None, None, None, None, None)
+        pos = VliegPosition(None, None, None, None, None, None)
         
         # Normalise hkl
         wavevector = 2 * pi / wavelength
@@ -160,14 +182,14 @@ class VliegHklCalculator(HklCalculatorBase):
         return pos, {'2theta':twotheta, 'Bin':Bin, 'Bout':Bout, 'azimuth':psi}
 
     def _hklToAnglesZaxisModes(self, h, k, l, wavelength):
-        """Return Position and virtual angles in radians from h, k & l and
+        """Return VliegPosition and virtual angles in radians from h, k & l and
         wavelength in Angstroms for z-axis modes. The virtual angles are those fixed or
         generated while calculating the position: Bin, Bout, and 2theta.
         """
         # Section 6:
 
         # Results in radians during calculations, returned in degreess
-        pos = Position(None, None, None, None, None, None)
+        pos = VliegPosition(None, None, None, None, None, None)
         
         # Normalise hkl
         wavevector = 2 * pi / wavelength

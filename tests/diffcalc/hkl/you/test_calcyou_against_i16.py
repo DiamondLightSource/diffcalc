@@ -1,4 +1,4 @@
-from diffcalc.utils import Position
+from diffcalc.hkl.vlieg.position  import VliegPosition
 from diffcalc.tools import arrayeq_
 from diffcalc.hkl.you.calcyou import youAnglesToHkl
 from math import pi
@@ -17,7 +17,7 @@ I = Matrix.identity(3, 3)
 
 
 def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
-    return Position(mu, delta, gamma, eta, chi, phi)
+    return VliegPosition(mu, delta, gamma, eta, chi, phi)
 
 class TestAnglesToHkl_I16Examples():
     
