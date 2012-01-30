@@ -51,17 +51,6 @@ class AbstractPosition(object):
         raise Exception("abstract")
 
 
-#class WillmotHPosition(VliegPosition):
-#        
-##You    Willmot_h    Willmot_v
-##mu                  alpha
-##delta  delta        delta
-##nu     gamma        gamma
-##eta    omega_h      omega_v
-##chi
-##phi    phi
-#    pass
-
 ### Matrices
 
 def cross3(x, y):

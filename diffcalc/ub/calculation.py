@@ -21,7 +21,11 @@ def matrixTo3x3ListOfLists(m):
 
 
 class PaperSpecificUbCalcStrategy(object):
-    pass 
+    
+    def calculate_q_phi(self, pos):
+        """Calculate hkl in the phi frame in units of 2 * pi / lambda from pos object
+        in radians"""
+        raise Exception("Abstract")
 
 class UBCalculation:
     """A UB matrix calculation for an experiment.

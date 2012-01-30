@@ -1,3 +1,4 @@
+#@IgnorePep8
 from diffcalc.hkl.vlieg.modes import ModeSelector
 from diffcalc.hkl.vlieg.parameters import ParameterManager
 from diffcalc.utils import DiffcalcException, differ
@@ -6,7 +7,7 @@ from math import pi
 TORAD = pi / 180
 TODEG = 180 / pi
 
-class HklCalculatorBase(object):
+class HklCalculatorBase(object): 
 
     def __init__(self, ubcalc, geometry, hardware, raiseExceptionsIfAnglesDoNotMapBackToHkl=False):
         
