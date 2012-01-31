@@ -1,5 +1,5 @@
 /* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
-/* [ Created with wxMaxima version 11.08.0 ] */
+/* [ Created with wxMaxima version 12.01.0 ] */
 
 /* [wxMaxima: input   start ] */
 Rx:matrix([1,0,0],[0, cos(theta), -sin(theta)],[0, sin(theta), cos(theta)])$
@@ -287,6 +287,18 @@ bot:factor(eq49[3,1]*sin(xi)-eq49[3,3]*cos(xi));
 factor(top/bot);
 /* [wxMaxima: input   end   ] */
 
+/* [wxMaxima: comment start ]
+When mu=-90 and eta = 0, used to for a surface normal vertical mode
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+eq49_vert:subst(-%pi/2, mu, subst(0, eta, eq49));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+(eq49_vert[2,2]=V[2,2]) / (eq49_vert[1,2]=V[1,2]);
+/* [wxMaxima: input   end   ] */
+
 /* [wxMaxima: subsect start ]
 mu, phi, qaz (for three circle on i10 and i06, not in paper )
    [wxMaxima: subsect end   ] */
@@ -346,7 +358,51 @@ factor(top/bot);
 /* [wxMaxima: input   end   ] */
 
 /* [wxMaxima: input   start ] */
-solve()
+solve();
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: section start ]
+Fixed mu, chi, psi (probably with mu=chi=0) (not in paper)
+   [wxMaxima: section end   ] */
+
+/* [wxMaxima: input   start ] */
+Vcalulated:Nphi.transpose(PSI).transpose(THETA);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+thisV:transpose(PHI).transpose(CHI).transpose(ETA).transpose(MU).F;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+v:thisVvert:subst(0, chi, subst(0, mu, thisV));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+acos(thisVvert[3,3]=V[3,3]), triginverses=all;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+top:(v[1,2]=V[1,2])*cos(phi) + (v[2,2]=V[2,2])*sin(phi);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+bot:(v[1,2]=V[1,2])*sin(phi) - (v[2,2]=V[2,2])*cos(phi);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+factor(top);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+factor(bot);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+trigsimp(top/bot);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+subst(1,);
 /* [wxMaxima: input   end   ] */
 
 /* Maxima can't load/batch files which end with a comment! */

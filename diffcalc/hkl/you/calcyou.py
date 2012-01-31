@@ -5,7 +5,7 @@ from diffcalc.hkl.you.matrices import createYouMatrices, calcMU, calcPHI, \
 from diffcalc.hkl.you.position import YouPosition
 from diffcalc.utils import DiffcalcException, bound, cross3, \
     angle_between_vectors, z_rotation, x_rotation
-from math import pi, sin, cos, tan, acos, atan2, asin, sqrt
+from math import pi, sin, cos, tan, acos, atan2, asin, sqrt, atan
 
 try:
     from Jama import Matrix
@@ -128,7 +128,7 @@ def _filter_detector_solutions_by_theta_and_qaz(possible_delta_nu_pairs,
     return delta_nu_pairs
 
 
-def _generate_transformed_values(value, constrained):
+def _generate_transformed_values(value, constrained=False):
     if constrained:
         yield value
     elif is_small(value):
@@ -323,6 +323,9 @@ class YouHklCalculator(HklCalculatorBase):
                 solution_found = False
                 for xi in _generate_transformed_values(xi_initial, False):
                     qaz = xi + pi / 2
+                    if qaz > 2 * pi:
+                        qaz -= 2 * pi
+                    logger.info("---Trying qaz=%.3f (from xi=%.3f)", qaz*TODEG, xi*TODEG)
                     delta, nu, qaz = self._calc_remaining_detector_angles('qaz', qaz, theta)
                     
                     try:
@@ -330,6 +333,7 @@ class YouHklCalculator(HklCalculatorBase):
                                     delta, nu, qaz, theta, 'qaz')
                     except NoSolutionException:
                         continue
+                    logger.info("delta=%.3f, nu=%.3f", delta*TODEG, nu*TODEG)
                     try:
                         mu, eta, chi, phi = self._generate_final_sample_angles(
                                             mu, eta, chi, phi, samp_constraints.keys(),
@@ -581,23 +585,77 @@ class YouHklCalculator(HklCalculatorBase):
     def _calc_remaining_angles_given_two_sample_and_reference(self,
                             sample_constraint_dict, psi, theta, q_phi, n_phi):
         N_phi = _calc_N(q_phi, n_phi)
+        THETA = z_rotation(-theta)
+        PSI = x_rotation(psi)
+
         if 'chi' in sample_constraint_dict and 'phi' in sample_constraint_dict:
+            
             chi = sample_constraint_dict['chi']
             phi = sample_constraint_dict['phi']
-            THETA = z_rotation(-theta)
-            PSI = x_rotation(psi)
+            
             CHI = calcCHI(chi)
             PHI = calcPHI(phi)
             V = CHI.times(PHI).times(N_phi).times(PSI.transpose()).times(THETA.transpose()).array # eq56)
+            
             xi = atan2(-V[2][0], V[2][2])
             eta = atan2(-V[0][1], V[1][1])
             mu = atan2(-V[2][1], sqrt(V[2][2] ** 2 + V[2][0] ** 2))
-            #qaz = xi + pi / 2
-            return xi, psi, mu, eta, chi, phi
+            
+        
+        elif 'mu' in sample_constraint_dict and 'eta' in sample_constraint_dict:
+            
+            mu = sample_constraint_dict['mu']
+            eta = sample_constraint_dict['eta']
+            
+            V = N_phi.times(PSI.transpose()).times(THETA.transpose()).array  # (49)
+
+            bot = sqrt(sin(eta) ** 2 * cos(mu) ** 2 + sin(mu) ** 2)
+            chi_orig = (asin(-V[2][1] / bot) -
+                   atan2(sin(mu), (sin(eta) * cos(mu))))  #               (52)
+            
+            # Choose final chi solution here to obtain compatable xi and mu 
+            # TODO: This temporary solution works only for one case used on i07
+            #       A better solution is to return a list of possible solutions?
+            if is_small(eta) and is_small(mu + pi/2):
+                for chi in _generate_transformed_values(chi_orig):
+                    if  pi/2 <= chi < pi:
+                        break
+            else:
+                chi = chi_orig
+            
+            a = sin(chi) * cos(eta)
+            b = sin(chi) * sin(eta) * sin(mu) - cos(chi) * cos(mu)
+            xi = atan2(V[2][2] * a + V[2][0] * b,
+                       V[2][0] * a - V[2][2] * b)  #                     (54)
+            
+                
+            a = sin(chi) * sin(mu) - cos(mu) * cos(chi) * sin(eta)
+            b = cos(mu) * cos(eta)
+            phi = atan2(V[1][1] * a - V[0][1] * b,
+                        V[0][1] * a + V[1][1] * b)  #                    (55)
+#            if is_small(mu+pi/2) and is_small(eta) and False:
+#                phi_general = phi
+#                # solved in extensions_to_yous_paper.wxm
+#                phi = atan2(V[1][1], V[0][1])
+#                logger.info("phi = %.3f or %.3f (std)", phi*TODEG, phi_general*TODEG )
+        elif 'chi' in sample_constraint_dict and 'mu' in sample_constraint_dict:
+            # derived in extensions_to_yous_paper.wxm
+            chi = sample_constraint_dict['chi']
+            mu = sample_constraint_dict['mu']
+            
+            if not is_small(mu) and not is_small(chi-pi/2):
+                raise Exception('The fixed chi, mu, psi/alpha/beta modes only '
+                                ' currently work with chi=90 and mu=0')
+            V = (N_phi).times(PSI.transpose()).times(THETA.transpose()).array
+            eta = asin(-V[2][1])
+            xi = atan2(V[2][2], V[2][0])
+            phi = - atan2(V[0][1], V[1][1])
+        
         else:
             raise DiffcalcException('No code yet to handle this combination of 2 '
                                     'sample constraints and one reference!:'
                                      + str(sample_constraint_dict))
+        return xi, psi, mu, eta, chi, phi
 
     
     def _generate_final_detector_angles(self, initial_delta, initial_nu, qaz,
@@ -686,6 +744,7 @@ class YouHklCalculator(HklCalculatorBase):
                     msg += (' --- psi=%(psi) 7.3f, tau=%(tau) 7.3f, naz=%(naz) 7.3f, '
                             'qaz=%(qaz) 7.3f, alpha=%(alpha) 7.3f, beta=%(beta) 7.3f' %
                              virtual_angles_in_deg)
+                msg += 'hkl= ' + str(hkl_actual)
                 msg += '\n'
         if logger.isEnabledFor(logging.DEBUG): 
             logger.debug(msg)
