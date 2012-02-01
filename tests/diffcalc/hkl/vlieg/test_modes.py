@@ -1,5 +1,5 @@
 from diffcalc.hkl.vlieg.modes import ModeSelector
-from diffcalc.hkl.vlieg.parameters import ParameterManager
+from diffcalc.hkl.vlieg.parameters import VliegParameterManager
 from tests.diffcalc.hkl.vlieg.test_calcvlieg import createMockDiffractometerGeometry
 import unittest
 
@@ -8,7 +8,7 @@ class TestModeSelector(unittest.TestCase):
     def setUp(self):
         
         self.ms = ModeSelector(createMockDiffractometerGeometry(), parameterManager=None)
-        self.pm = ParameterManager(createMockDiffractometerGeometry(), None, self.ms)
+        self.pm = VliegParameterManager(createMockDiffractometerGeometry(), None, self.ms)
         self.ms.setParameterManager(self.pm)
         
         

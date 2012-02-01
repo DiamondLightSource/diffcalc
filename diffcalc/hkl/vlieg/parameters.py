@@ -1,6 +1,6 @@
 from copy import copy
 from diffcalc.utils import DiffcalcException
-class ParameterManager(object):
+class VliegParameterManager(object):
     
     def __init__(self, geometry, hardware, modeSelector, gammaParameterName='gamma'):
         self._geometry = geometry

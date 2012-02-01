@@ -6,6 +6,7 @@ from diffcalc.hkl.you.position import YouPosition
 from diffcalc.utils import DiffcalcException, bound, cross3, \
     angle_between_vectors, z_rotation, x_rotation
 from math import pi, sin, cos, tan, acos, atan2, asin, sqrt, atan
+from diffcalc.hkl.common import DummyParameterManager
 
 try:
     from Jama import Matrix
@@ -156,6 +157,7 @@ class YouHklCalculator(HklCalculatorBase):
                                    raiseExceptionsIfAnglesDoNotMapBackToHkl)
         self._hardware = hardware # for checking limits only
         self.constraints = constraints
+        self.parameter_manager = DummyParameterManager()
         
         self.n_phi = Matrix([[0], [0], [1]])
         

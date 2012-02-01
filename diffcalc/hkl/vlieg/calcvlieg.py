@@ -4,6 +4,8 @@ from diffcalc.utils import DiffcalcException, dot3, cross3, bound, differ
 from diffcalc.hkl.vlieg.matrices import createVliegMatrices, createVliegsPsiTransformationMatrix, createVliegsSurfaceTransformationMatrices
 from math import pi, asin, acos, sin, cos, sqrt, atan2, fabs, atan
 from diffcalc.hkl.vlieg.position import VliegPosition
+from diffcalc.hkl.vlieg.parameters import VliegParameterManager
+from diffcalc.hkl.vlieg.modes import ModeSelector
 try:
     from Jama import Matrix
 except ImportError:
@@ -60,7 +62,17 @@ def vliegAnglesToHkl(pos, wavelength, UBMatrix):
 
 
 class VliegHklCalculator(HklCalculatorBase):
-            
+    
+    def __init__(self, ubcalc, geometry, hardware, raiseExceptionsIfAnglesDoNotMapBackToHkl=False):
+        HklCalculatorBase.__init__(self, ubcalc, geometry, hardware, raiseExceptionsIfAnglesDoNotMapBackToHkl=raiseExceptionsIfAnglesDoNotMapBackToHkl)
+        
+        self.mode_selector = ModeSelector(self._geometry, None, self._gammaParameterName) # parameter_manager set below
+        self.parameter_manager = VliegParameterManager(self._geometry,
+                                                  self._hardware,
+                                                  self.mode_selector,
+                                                  self._gammaParameterName)
+        self.mode_selector.setParameterManager(self.parameter_manager)
+    
     def _anglesToHkl(self, pos, wavelength):
         """
         Return hkl tuple from VliegPosition in radians and wavelength in Angstroms.

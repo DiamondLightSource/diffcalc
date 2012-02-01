@@ -1,24 +1,15 @@
 from diffcalc.help import HelpList, UsageHandler
-from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator
-from diffcalc.utils import allnum
+from diffcalc.hkl.common import sim, getNameFromScannableOrString
+import diffcalc.help
 
 _hklcalcCommandHelp = HelpList()
-
-
-def getNameFromScannableOrString(o):
-        try: # it may be a scannable
-            return o.getName()
-        except AttributeError:
-            return str(o)
-            raise TypeError()
-            
 
 class HklCommand(UsageHandler):
     def appendDocLine(self, line):
         _hklcalcCommandHelp.append(line)
 
 
-class HklCommands(object):
+class VliegHklCommands(object):
     
     def __init__(self, hardware, geometry, hklcalc):
         self._hardware = hardware
@@ -162,20 +153,4 @@ class HklCommands(object):
     def sim(self, scn, hkl):
         """sim hkl [h k l] --simulates moving hkl
         """
-        # Catch common input errors here to tkae burdon off Scannable writers
-        if not isinstance(hkl, (tuple, list)):
-            raise TypeError
-        if not allnum(hkl):
-            raise TypeError()
-
-        # try command, if we get an atribute error then arg[0] is not a scannable,
-        # or is not a scannable that supports simulateMoveTo
-        try:
-            print scn.simulateMoveTo(hkl)
-        except AttributeError:
-            # Likely caused bu arg[0] missing method whereMoveTo
-            if self.raiseExceptionsForAllErrors:
-                raise TypeError("The first argument does not support simulated moves")
-            else:
-                print "The first argument does not support simulated moves"
-        
+        sim(scn, hkl, diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS)

@@ -1,5 +1,5 @@
 from diffcalc.hkl.vlieg.modes import ModeSelector
-from diffcalc.hkl.vlieg.parameters import ParameterManager
+from diffcalc.hkl.vlieg.parameters import VliegParameterManager
 from diffcalc.utils import DiffcalcException
 from tests.diffcalc.hkl.vlieg.test_calcvlieg import createMockHardwareMonitor, \
     createMockDiffractometerGeometry
@@ -10,7 +10,7 @@ class TestParameterManager(unittest.TestCase):
     def setUp(self):
         self.hw = createMockHardwareMonitor()
         self.ms = ModeSelector(createMockDiffractometerGeometry())
-        self.pm = ParameterManager(createMockDiffractometerGeometry(), self.hw, self.ms)
+        self.pm = VliegParameterManager(createMockDiffractometerGeometry(), self.hw, self.ms)
         
     def testDefaultParameterValues(self):
         self.assertEqual(self.pm.getParameter('alpha'), 0)

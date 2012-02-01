@@ -289,3 +289,152 @@ class Test_Fixed_Mu_Chi(TestFixedMuEta):
     def _convert_willmott_pos(self, willmott_pos):
         return  willmott_to_you_fixed_mu_chi(willmott_pos)
 
+
+#===============================================================================
+# 
+#===============================================================================
+#------------------------------------------------------------------------------ 
+#===============================================================================
+# 
+#===============================================================================
+
+# Primary and secondary reflections found with the help of DDIF on Diamond's
+# i07 on Jan 28/29 2010
+
+
+Pt531_HKL0 =  -1.000, 1.000, 6.0000
+Pt531_REF0 = WillmottHorizontalPosition(delta=9.465, gamma=16.301, omegah=2,
+                                  phi=307.94-360)
+
+Pt531_HKL1 = -2.000,  -1.000,   7.0000
+Pt531_REF1 = WillmottHorizontalPosition(delta=11.094, gamma=11.945, omegah=2,
+                                  phi=238.991-360)
+Pt531_HKL2 = 1,  1, 9
+Pt531_REF2 = WillmottHorizontalPosition(delta=14.272, gamma=7.806, omegah=2,
+                                  phi=22.9)
+Pt531_WAVELENGTH = 0.6358
+
+# This is U matrix displayed by DDIF
+U_FROM_DDIF = Matrix([[-0.00312594,  -0.00063417,   0.99999491],
+                      [0.99999229,  -0.00237817,   0.00312443],
+                      [0.00237618,   0.99999697,   0.00064159]])
+
+# This is the version that Diffcalc comes up with ( see following test)
+Pt531_U_DIFFCALC = Matrix([[-0.0023763, -0.9999970, -0.0006416],
+                           [ 0.9999923, -0.0023783,  0.0031244],
+                           [-0.0031259, -0.0006342,  0.9999949]])
+
+
+class TestUBCalculationWithYouStrategy_Pt531_FixedMuChi():
+
+    def setUp(self):
+        
+        hardware = Mock()
+        hardware.getPhysicalAngleNames.return_value = ('m', 'd', 'n', 'e', 'c', 'p')
+        self.ubcalc = UBCalculation(hardware, SixCircleYouGeometry(),
+                                    UbCalculationNonPersister(),
+                                    YouUbCalcStrategy())
+
+    def testAgainstResultsFromJan_28_2010(self):
+        self.ubcalc.newCalculation('test')
+        self.ubcalc.setLattice('Pt531', 6.204, 4.806, 23.215, 90, 90, 49.8)
+        
+        self.ubcalc.addReflection(Pt531_HKL0[0], Pt531_HKL0[1], Pt531_HKL0[2],
+                                  willmott_to_you_fixed_mu_chi(Pt531_REF0), 12.39842 / Pt531_WAVELENGTH,
+                                  'ref0', None)
+        self.ubcalc.addReflection(Pt531_HKL1[0], Pt531_HKL1[1], Pt531_HKL1[2],
+                                  willmott_to_you_fixed_mu_chi(Pt531_REF1), 12.39842 / Pt531_WAVELENGTH,
+                                  'ref1', None)
+        self.ubcalc.calculateUB()
+        print "U: ", self.ubcalc.getUMatrix()
+        print "UB: ", self.ubcalc.getUBMatrix()
+        matrixeq_(self.ubcalc.getUMatrix(), Pt531_U_DIFFCALC)
+
+
+class Test_Pt531_FixedMuChi(_BaseTest):
+
+    def setup(self):
+        _BaseTest.setup(self)
+        self._configure_constraints()
+#        self.constraints._constrained = {'alpha': 2 * TORAD, 'mu':-pi/2, 'eta':0}
+        self.wavelength = Pt531_WAVELENGTH
+        B = CrystalUnderTest('Pt531', 6.204, 4.806, 23.215, 90, 90, 49.8).getBMatrix()
+        self.UB = Pt531_U_DIFFCALC.times(B)
+        self._configure_limits()
+
+
+    def _configure_constraints(self):
+        self.constraints._constrained = {'alpha': 2 * TORAD, 'mu':0, 'chi':pi/2}
+    
+    def _configure_limits(self):
+        self.mock_hardware.setLowerLimit('nu', None) # XXX
+        #self.mock_hardware.setLowerLimit('delta', None)
+        self.mock_hardware.setUpperLimit('delta', 90)
+        self.mock_hardware.setLowerLimit('mu', None)
+        self.mock_hardware.setLowerLimit('eta', None)
+        self.mock_hardware.setLowerLimit('chi', None)
+    
+    
+      
+    def _convert_willmott_pos(self, willmott_pos):
+        return  willmott_to_you_fixed_mu_chi(willmott_pos)
+
+    def _configure_ub(self):
+        self.mock_ubcalc.getUBMatrix.return_value = self.UB
+
+    def _check(self, hkl, pos, virtual_expected={}, fails=False):
+#        self._check_angles_to_hkl('', 999, 999, hkl, pos, self.wavelength,
+#                                  virtual_expected)
+        if fails:
+            self._check_hkl_to_angles_fails('', 999, 999, hkl, pos,
+                                            self.wavelength, virtual_expected)
+        else:
+            self._check_hkl_to_angles('', 999, 999, hkl, pos, self.wavelength,
+                                      virtual_expected)
+
+
+    def testHkl_0_found_orientation_setting(self):
+        '''Check that the or0 reflection maps back to the assumed hkl'''
+        self.places = 1
+        self._check_angles_to_hkl('', 999, 999, Pt531_HKL0,
+                        self._convert_willmott_pos(Pt531_REF0),
+                        self.wavelength, {'alpha': 2})
+
+    def testHkl_1_found_orientation_setting(self):
+        '''Check that the or1 reflection maps back to the assumed hkl'''
+        self.places = 0
+        self._check_angles_to_hkl('', 999, 999, Pt531_HKL1,
+                        self._convert_willmott_pos(Pt531_REF1),
+                        self.wavelength, {'alpha': 2})
+
+    def testHkl_0_calculated_from_DDIF(self):
+        self.places = 5
+        self._check(Pt531_HKL0,
+                    self._convert_willmott_pos(Pt531_REF0),
+                    {'alpha': 2})
+
+    def testHkl_1_calculated_from_DDIF(self):
+        self.places = 5
+        self._check(Pt531_HKL1,
+                    self._convert_willmott_pos(Pt531_REF1),
+                    {'alpha': 2})
+
+    def testHkl_2_calculated_from_DDIF(self):
+        self.places = 5
+        self._check(Pt531_HKL2,
+                    self._convert_willmott_pos(Pt531_REF2),
+                    {'alpha': 2})
+
+    def testHkl_2_m1_0_16(self):
+        self.places = 5
+        self._check((-1, 0, 16),
+                    self._convert_willmott_pos(Pt531_REF2),
+                    {'alpha': 2})
+
+class Test_Pt531_Fixed_Mu_eta_(Test_Pt531_FixedMuChi):
+
+    def _configure_constraints(self):
+        self.constraints._constrained = {'alpha': 2 * TORAD, 'mu':-pi/2, 'eta':0}
+    
+    def _convert_willmott_pos(self, willmott_pos):
+        return  willmott_to_you_fixed_mu_eta(willmott_pos)

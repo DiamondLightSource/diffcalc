@@ -1,7 +1,7 @@
 import diffcalc.help #@UnusedImport for flag
 
 from diffcalc.ub.commands import UbCommands, UbCommand
-from diffcalc.hkl.vlieg.commands import HklCommands
+from diffcalc.hkl.vlieg.commands import VliegHklCommands
 from diffcalc.mapper.commands import MapperCommands
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator
@@ -9,7 +9,20 @@ from diffcalc.mapper.sector import SectorSelector
 from diffcalc.mapper.mapper import PositionMapper
 from diffcalc.utils import DiffcalcException
 from diffcalc.hkl.vlieg.ubcalcstrategy import VliegUbCalcStrategy
+from diffcalc.hkl.willmott.calcwill_horizontal import WillmottHorizontalUbCalcStrategy,\
+    WillmottHorizontalCalculator
+from diffcalc.hkl.willmott.commands import WillmottHklCommands
 
+AVAILABLE_ENGINES = ('vlieg', 'willmott')
+
+UB_CALC_STRATEGIES = {'vlieg' : VliegUbCalcStrategy,
+                      'willmott': WillmottHorizontalUbCalcStrategy}
+
+HKL_CALCULATORS = {'vlieg' : VliegHklCalculator,
+               '    willmott': WillmottHorizontalCalculator}
+
+HKL_COMMANDS = {'vlieg' : VliegHklCommands,
+               'willmott': WillmottHklCommands}
 
 class Diffcalc(object):
     """
@@ -21,22 +34,40 @@ class Diffcalc(object):
                  hardwareMonitorPluginObject,
                  RAISE_EXCEPTIONS_FOR_ALL_ERRORS=False,
                  raiseExceptionsIfAnglesDoNotMapBackToHkl=True,
-                 ub_persister=None):
+                 ub_persister=None,
+                 engine_name='vlieg'): # vlieg or willmott
        
         self._geometry = diffractometerPluginObject 
         self._hardware = hardwareMonitorPluginObject
         diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = RAISE_EXCEPTIONS_FOR_ALL_ERRORS
-
+        
+        engine_name = engine_name.lower()
+        if engine_name not in AVAILABLE_ENGINES:
+            raise KeyError("The engine '%s' was not recognised. "
+                           "Try one of %s" % (engine_name, AVAILABLE_ENGINES))
+        UbCalcStrategy = UB_CALC_STRATEGIES[engine_name]
+        HklCalculator = HKL_CALCULATORS[engine_name]
+        HklCommands = HKL_COMMANDS[engine_name]
         # Create core calculation code
-        self._ubcalc = UBCalculation(self._hardware, self._geometry, ub_persister, VliegUbCalcStrategy())
-        self._hklcalc = VliegHklCalculator(self._ubcalc, self._geometry, self._hardware, raiseExceptionsIfAnglesDoNotMapBackToHkl)
-        self._sector_selector = SectorSelector()
-        self._position_mapper = PositionMapper(self._geometry, self._hardware, self._sector_selector)
+        self._ubcalc = UBCalculation(self._hardware, self._geometry,
+                                     ub_persister, UbCalcStrategy())
+        
+        self._hklcalc = HklCalculator(self._ubcalc, self._geometry,
+                                           self._hardware,
+                                           raiseExceptionsIfAnglesDoNotMapBackToHkl)
+        
+        self.ubcommands = UbCommands(self._hardware, self._geometry, self._ubcalc)
+        
+        if engine_name == 'vlieg':
+            self._sector_selector = SectorSelector()
+            self._position_mapper = PositionMapper(self._geometry, self._hardware, self._sector_selector)
 
         # Create user interface code
-        self.ubcommands = UbCommands(self._hardware, self._geometry, self._ubcalc)
-        self.hklcommands = HklCommands(self._hardware, self._geometry, self._hklcalc)
-        self.mappercommands = MapperCommands(self._geometry, self._hardware, self._position_mapper)
+            self.mappercommands = MapperCommands(self._geometry, self._hardware, self._position_mapper)
+            self.hklcommands = HklCommands(self._hardware, self._geometry, self._hklcalc)
+
+        elif engine_name == 'willmott':
+            self.mappercommands = object()  # placeholder for now as GdaDiffcalcObjectFactory expects this
 
 
     def __str__(self):

@@ -3,6 +3,7 @@ from diffcalc.hkl.calcbase import HklCalculatorBase
 from diffcalc.ub.calculation import PaperSpecificUbCalcStrategy
 from diffcalc.utils import bound, AbstractPosition, DiffcalcException
 from math import pi, asin, acos, atan2, sin, cos, sqrt
+from diffcalc.hkl.common import DummyParameterManager
 try:
     from numpy import matrix
 except ImportError:
@@ -111,6 +112,9 @@ class WillmottHorizontalUbCalcStrategy(PaperSpecificUbCalcStrategy):
         return Matrix(H_phi.tolist())
 
 
+
+    
+
 class WillmottHorizontalCalculator(HklCalculatorBase):
 
     def __init__(self, ubcalc, geometry, hardware, constraints,
@@ -124,6 +128,7 @@ class WillmottHorizontalCalculator(HklCalculatorBase):
         HklCalculatorBase.__init__(self, ubcalc, geometry, hardware,
                                    raiseExceptionsIfAnglesDoNotMapBackToHkl)
 
+        self.parameter_manager = DummyParameterManager()
         self.constraints = constraints
 
     @property

@@ -1,6 +1,6 @@
 from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
 from diffcalc.hardware.dummy import DummyHardwareMonitorPlugin
-from diffcalc.hkl.vlieg.commands import HklCommands
+from diffcalc.hkl.vlieg.commands import VliegHklCommands
 from diffcalc.ub.commands import UbCommands
 from diffcalc.utils import MockRawInput
 from mock import Mock
@@ -27,7 +27,7 @@ class TestHklCommands(unittest.TestCase):
         self.hardware = DummyHardwareMonitorPlugin(('alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'))
         self.mock_ubcalc = Mock(spec=UBCalculation) # Used only to get the UBMatrix, tau and sigma
         self.hklcalc = VliegHklCalculator(self.mock_ubcalc, self.geometry, self.hardware, True)
-        self.hklcommands = HklCommands(self.hardware, self.geometry, self.hklcalc)
+        self.hklcommands = VliegHklCommands(self.hardware, self.geometry, self.hklcalc)
         diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
         prepareRawInput([])
 

@@ -1,6 +1,4 @@
 #@IgnorePep8
-from diffcalc.hkl.vlieg.modes import ModeSelector
-from diffcalc.hkl.vlieg.parameters import ParameterManager
 from diffcalc.utils import DiffcalcException, differ
 from math import pi
 
@@ -17,10 +15,11 @@ class HklCalculatorBase(object):
         self._hardware = hardware #Used for tracking parameters only
         self.raiseExceptionsIfAnglesDoNotMapBackToHkl = raiseExceptionsIfAnglesDoNotMapBackToHkl
         
-        self.mode_selector = ModeSelector(self._geometry, None, self._gammaParameterName) # parameter_manager set below
-        self.parameter_manager = ParameterManager(self._geometry,
-            self._hardware, self.mode_selector, self._gammaParameterName)
-        self.mode_selector.setParameterManager(self.parameter_manager)
+        # Foolowing pushed down into VliegHklCalculator
+#        self.mode_selector = ModeSelector(self._geometry, None, self._gammaParameterName) # parameter_manager set below
+#        self.parameter_manager = ParameterManager(self._geometry,
+#            self._hardware, self.mode_selector, self._gammaParameterName)
+#        self.mode_selector.setParameterManager(self.parameter_manager)
 ###
     def __str__(self):
         # should list paramemeters and indicate which are used in selected mode mode.
