@@ -3,7 +3,10 @@ from diffcalc.hkl.calcbase import HklCalculatorBase
 from diffcalc.ub.calculation import PaperSpecificUbCalcStrategy
 from diffcalc.utils import bound, AbstractPosition, DiffcalcException
 from math import pi, asin, acos, atan2, sin, cos, sqrt
-from numpy import matrix, identity
+try:
+    from numpy import matrix
+except ImportError:
+    from diffcalc.numjy import matrix
 
 try:
     from Jama import Matrix
@@ -16,7 +19,7 @@ CHOOSE_POSITIVE_GAMMA = True
 
 TORAD = pi / 180
 TODEG = 180 / pi
-I = identity(3, float)
+I = matrix('1 0 0; 0 1 0; 0 0 1')
 SMALL = 1e-10
 
 
@@ -71,10 +74,10 @@ def angles_to_hkl(delta, gamma, omegah, phi, wavelength, UB):
 class WillmottHorizontalPosition(AbstractPosition):
 
     def __init__(self, delta=None, gamma=None, omegah=None, phi=None):
-        self.delta = delta
-        self.gamma = gamma
-        self.omegah = omegah
-        self.phi = phi
+        self.delta = delta # diff1vdelta
+        self.gamma = gamma # diff1vgamma
+        self.omegah = omegah # i07 --> diff1halpha
+        self.phi = phi # diff1homega
 
     def clone(self):
         return WillmottHorizontalPosition(self.delta, self.gamma, self.omegah,
@@ -131,8 +134,9 @@ class WillmottHorizontalCalculator(HklCalculatorBase):
         """
         Calculate miller indices from position in radians.
         """
-        return angles_to_hkl(pos.delta, pos.gamma, pos.omegah, pos.phi,
+        hkl_matrix = angles_to_hkl(pos.delta, pos.gamma, pos.omegah, pos.phi,
                              wavelength, self._UB)
+        return hkl_matrix[0,0], hkl_matrix[1,0], hkl_matrix[2,0],
 
     def _anglesToVirtualAngles(self, pos, wavelength):
         """
