@@ -13,42 +13,52 @@ class DiffractometerScannableGroup(ScannableMotionBase):
     The scannable group should have the same geometry as that expected by the
     diffractometer hardware geometry used in the diffraction calculator.
     
-    The optional parameter slaveDriver can be used to provide a SlaveScannableDriver. This is useful for
+    The optional parameter slaveDriver can be used to provide a slave_driver. This is useful for
     triggering a move of an incidental axis whose position depends on that of the diffractometer, but whose
     position need not be included in the DiffractometerScannableGroup itself. This parameter is exposed
     as a field and can be set or cleared to null at will without effecting the core calculation code.
     """
     
-    def __init__(self , name , diffcalcObject, scannableGroup, slaveScannableDriver=None):
+    def __init__(self , name , diffcalcObject, scannableGroup, slave_driver=None):
         # if motorList is None, will create a dummy __group
         self.__diffcalc = diffcalcObject
         self.__group = scannableGroup
-        self.slaveScannableDriver = slaveScannableDriver
+        self.slave_driver = slave_driver
         self.setName(name)
-        self.setInputNames(self.__group.getInputNames())
-        self.setOutputFormat(self.__group.getOutputFormat())
+
+    def getInputNames(self):
+        return self.__group.getInputNames()
+        
+    def getExtraNames(self):
+        return [] if self.slave_driver is None else self.slave_driver.getScannableNames()
+        
+    def getOutputFormat(self):
+        slave_formats = [] if self.slave_driver is None else self.slave_driver.getOutputFormat()
+        return list(self.__group.getOutputFormat()) + slave_formats
+        
     
     def setDiffcalcObject(self, diffcalcObject):
         self.__diffcalc = diffcalcObject
     
     def asynchronousMoveTo(self, position):
         self.__group.asynchronousMoveTo(position)
-        if self.slaveScannableDriver is not None:
-            self.slaveScannableDriver.triggerAsynchronousMove(position)
+        if self.slave_driver is not None:
+            self.slave_driver.triggerAsynchronousMove(position)
         
     def getPosition(self):
-        return self.__group.getPosition()
+        slave_positions = [] if self.slave_driver is None else self.slave_driver.getPositions()
+        return list(self.__group.getPosition()) + slave_positions
         
     def isBusy(self):
-        if self.slaveScannableDriver is None:
+        if self.slave_driver is None:
             return self.__group.isBusy()
         else:
-            return self.__group.isBusy() or self.slaveScannableDriver.isBusy() 
+            return self.__group.isBusy() or self.slave_driver.isBusy() 
         
     def waitWhileBusy(self):
         self.__group.waitWhileBusy()
-        if self.slaveScannableDriver is not None:
-            self.slaveScannableDriver.waitWhileBusy() 
+        if self.slave_driver is not None:
+            self.slave_driver.waitWhileBusy() 
     
     def simulateMoveTo(self, pos):
         if len(pos) != len(self.getInputNames()): raise ValueError('Wrong number of inputs')
@@ -56,19 +66,23 @@ class DiffractometerScannableGroup(ScannableMotionBase):
             (hkl, params) = self.__diffcalc._anglesToHkl(pos)
         except Exception, e:
             return "Error: %s" % getMessageFromException(e)
-        result = 'hkl would move to:\n'
-        result += '  h : %f\n  k : %f\n  l : %f\n' % (hkl[0], hkl[1], hkl[2])
-        result += '\n'
-#        result += '   theta : %f\n' % params['theta']
-        result += '  2theta : %f\n' % params['2theta']
-        result += '     Bin : %f\n' % params['Bin']
-        result += '    Bout : %f\n' % params['Bout']
-        result += ' azimuth : %f\n' % params['azimuth']
-        return result
+        width = max(len(k) for k in params)
+        
+        lines = ['  ' + 'hkl'.rjust(width) + ' : % 9.4f  %.4f  %.4f' % (hkl[0], hkl[1], hkl[2])]
+        lines[-1] =  lines[-1] + '\n'
+        fmt = '  %' + str(width) + 's : % 9.4f'     
+        for k in sorted(params):
+            lines.append(fmt % (k, params[k]))
+        return '\n'.join(lines)
     
     def __repr__(self):
-        result = self.getName() + ':\n'
-        pos = self.getPosition()
-        for idx, name in enumerate(self.getInputNames()):
-            result += '  %s : %s deg\n' % (name.rjust(5), str(pos[idx]))
-        return result
+        position = self.getPosition()
+        names = list(self.getInputNames()) + list(self.getExtraNames())
+
+        lines = [self.name + ':']
+        width = max(len(k) for k in names)
+        fmt = '  %' + str(width) + 's : % 9.4f' 
+        for name, pos in zip(names, position):
+            lines.append(fmt % (name, pos))
+        lines[len(self.getInputNames())] =  lines[len(self.getInputNames())] + '\n'
+        return '\n'.join(lines)

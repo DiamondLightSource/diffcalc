@@ -27,8 +27,7 @@ def sim(scn, hkl, raise_exception_for_unsupported_target):
             raise TypeError("The first argument does not support simulated moves")
         else:
             print "The first argument does not support simulated moves"
-  
-            
+
 class DummyParameterManager(object):
 
     def getParameterDict(self):

@@ -75,7 +75,7 @@ for k, v in transformsFromSector.iteritems():
     sectorFromTransforms[v] = k
     
 
-class SectorSelector(object):
+class VliegSectorSelector(object):
     '''All returned angles are between -180. and 180. -180.<=angle<180.
     '''
 ### basic sector selection

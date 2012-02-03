@@ -3,7 +3,7 @@ from diffcalc.geometry.plugin import DiffractometerGeometryPlugin
 from diffcalc.hkl.willmott.calcwill_horizontal import \
     WillmottHorizontalPosition, \
     WillmottHorizontalUbCalcStrategy, WillmottHorizontalCalculator, I, \
-    WillmottHorizontalPosition as Pos
+    WillmottHorizontalPosition as Pos, WillmottHorizontalGeometry
 from diffcalc.tools import assert_array_almost_equal, \
     assert_second_dict_almost_in_first, matrixeq_
 from diffcalc.ub.calculation import UBCalculation
@@ -143,24 +143,6 @@ U_FROM_DDIF = Matrix([[0.233140, 0.510833, 0.827463],
 Si_5_5_12_U_DIFFCALC = Matrix([[-0.7178876, 0.6643924, -0.2078944],
                      [-0.6559596, -0.5455572, 0.5216170],
                      [0.2331402, 0.5108327, 0.8274634]])
-
-
-class WillmottHorizontalGeometry(DiffractometerGeometryPlugin):
-
-    def __init__(self):
-        DiffractometerGeometryPlugin.__init__(self,
-                    name='willmott_horizontal',
-                    supportedModeGroupList=[],
-                    fixedParameterDict={},
-                    gammaLocation='base'
-                    )
-
-    def physicalAnglesToInternalPosition(self, physicalAngles):
-        assert (len(physicalAngles) == 4), "Wrong length of input list"
-        return WillmottHorizontalPosition(*physicalAngles)
-
-    def internalPositionToPhysicalAngles(self, internalPosition):
-        return internalPosition.totuple()
 
 
 class TestUBCalculationWithWillmotStrategy_Si_5_5_12():

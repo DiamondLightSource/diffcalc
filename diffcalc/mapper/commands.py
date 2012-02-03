@@ -1,4 +1,5 @@
-from diffcalc.hkl.vlieg.commands import _hklcalcCommandHelp, HklCommand
+# from diffcalc.hkl.vlieg.commands import _hklcalcCommandHelp, HklCommand TODO: DANGER!
+from diffcalc.hkl.willmott.commands import _hklcalcCommandHelp, HklCommand
 
 def getNameFromScannableOrString(o):
         try: # it may be a scannable

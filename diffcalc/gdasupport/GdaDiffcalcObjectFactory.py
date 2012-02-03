@@ -1,4 +1,5 @@
-from diffcalc.diffractioncalculator import Diffcalc
+from diffcalc.diffractioncalculator import Diffcalc, create_diffcalc_vlieg,\
+    create_diffcalc_willmot
 from diffcalc.geometry.plugin import DiffractometerGeometryPlugin
 from diffcalc.geometry.fourc import fourc
 from diffcalc.geometry.fivec import fivec
@@ -82,7 +83,9 @@ def createDiffcalcObjects(
         hklverboseVirtualAnglesToReport = ('2theta','Bin','Bout','azimuth'),
         diffractometerScannableName = None, # e.g. SixCircleGammaOnArmGeometry. If None, determined by geometry-plug in
         demoCommands = [],
-        simulatedCrystalCounterName = None
+        simulatedCrystalCounterName = None,
+        engineName='vlieg',
+        raiseExceptionsForAllErrors = True
         ):
     print "="*80
     diffcalcObjects = {}
@@ -100,8 +103,18 @@ def createDiffcalcObjects(
     
     checkHardwarePluginClass(hardwarePluginClass)
     
+    hardware = hardwarePluginClass(diffractometerScannable, energyScannable, energyScannableMultiplierToGetKeV = energyScannableMultiplierToGetKeV)
+    
     # instantiate diffcalc
-    diffcalc = Diffcalc(geometryPlugin, hardwarePluginClass(diffractometerScannable, energyScannable, energyScannableMultiplierToGetKeV = energyScannableMultiplierToGetKeV))
+    engineName = engineName.lower()
+    if engineName == 'vlieg':
+        diffcalc = create_diffcalc_vlieg(geometryPlugin, hardware, raiseExceptionsForAllErrors)
+    elif engineName == 'willmott':
+        diffcalc = create_diffcalc_willmot(geometryPlugin, hardware, raiseExceptionsForAllErrors)
+    else:
+        raise KeyError("The engine '%s' was not recognised. Try 'vlieg' or 'willmott'" % engineName)
+    
+    
     diffcalcObjects['diffcalc_object'] = diffcalc
     diffractometerScannable.setDiffcalcObject(diffcalc)
     

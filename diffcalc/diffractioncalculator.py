@@ -5,13 +5,14 @@ from diffcalc.hkl.vlieg.commands import VliegHklCommands
 from diffcalc.mapper.commands import MapperCommands
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator
-from diffcalc.mapper.sector import SectorSelector
+from diffcalc.mapper.sector import VliegSectorSelector
 from diffcalc.mapper.mapper import PositionMapper
 from diffcalc.utils import DiffcalcException
 from diffcalc.hkl.vlieg.ubcalcstrategy import VliegUbCalcStrategy
 from diffcalc.hkl.willmott.calcwill_horizontal import WillmottHorizontalUbCalcStrategy,\
     WillmottHorizontalCalculator
 from diffcalc.hkl.willmott.commands import WillmottHklCommands
+from diffcalc.hkl.willmott.constraints import WillmottConstraintManager
 
 AVAILABLE_ENGINES = ('vlieg', 'willmott')
 
@@ -19,10 +20,38 @@ UB_CALC_STRATEGIES = {'vlieg' : VliegUbCalcStrategy,
                       'willmott': WillmottHorizontalUbCalcStrategy}
 
 HKL_CALCULATORS = {'vlieg' : VliegHklCalculator,
-               '    willmott': WillmottHorizontalCalculator}
+                   'willmott': WillmottHorizontalCalculator}
 
 HKL_COMMANDS = {'vlieg' : VliegHklCommands,
-               'willmott': WillmottHklCommands}
+                'willmott': WillmottHklCommands}
+
+
+class DummySectorSelector(object):
+    
+    def transformPosition(self, pos):
+        return pos
+
+
+def create_diffcalc_vlieg(geometry, hardware, raise_exceptions_for_all_errors):
+       
+    diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = raise_exceptions_for_all_errors
+    
+    ubcalc = UBCalculation(hardware, geometry, None, VliegUbCalcStrategy())
+    hklcalc = VliegHklCalculator(ubcalc, geometry, hardware, True)
+    mapper = PositionMapper(geometry, hardware, VliegSectorSelector())
+    hklcommands = VliegHklCommands(hardware, geometry, hklcalc)
+    return Diffcalc(geometry, hardware, ubcalc, hklcalc, mapper, hklcommands)
+
+    
+def create_diffcalc_willmot(geometry, hardware, raise_exceptions_for_all_errors):
+       
+    diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = raise_exceptions_for_all_errors
+    ubcalc = UBCalculation(hardware, geometry, None, WillmottHorizontalUbCalcStrategy())
+    hklcalc = WillmottHorizontalCalculator(ubcalc, geometry, hardware, constraints=WillmottConstraintManager())
+    mapper = PositionMapper(geometry, hardware, DummySectorSelector())
+    hklcommands = WillmottHklCommands(hardware, geometry, hklcalc)
+    return Diffcalc(geometry, hardware, ubcalc, hklcalc, mapper, hklcommands)
+
 
 class Diffcalc(object):
     """
@@ -30,45 +59,19 @@ class Diffcalc(object):
     the method should not be exposed on the command line. TODO: Fix this.
     """
     
-    def __init__(self, diffractometerPluginObject,
-                 hardwareMonitorPluginObject,
-                 RAISE_EXCEPTIONS_FOR_ALL_ERRORS=False,
-                 raiseExceptionsIfAnglesDoNotMapBackToHkl=True,
-                 ub_persister=None,
-                 engine_name='vlieg'): # vlieg or willmott
+    def __init__(self, geometry, hardware, ubcalc, hklcalc, mapper, hklcommands):
        
-        self._geometry = diffractometerPluginObject 
-        self._hardware = hardwareMonitorPluginObject
-        diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = RAISE_EXCEPTIONS_FOR_ALL_ERRORS
+        self._geometry = geometry 
+        self._hardware = hardware
+        self._ubcalc = ubcalc
+        self._hklcalc = hklcalc
+        self._mapper = mapper
+
         
-        engine_name = engine_name.lower()
-        if engine_name not in AVAILABLE_ENGINES:
-            raise KeyError("The engine '%s' was not recognised. "
-                           "Try one of %s" % (engine_name, AVAILABLE_ENGINES))
-        UbCalcStrategy = UB_CALC_STRATEGIES[engine_name]
-        HklCalculator = HKL_CALCULATORS[engine_name]
-        HklCommands = HKL_COMMANDS[engine_name]
-        # Create core calculation code
-        self._ubcalc = UBCalculation(self._hardware, self._geometry,
-                                     ub_persister, UbCalcStrategy())
-        
-        self._hklcalc = HklCalculator(self._ubcalc, self._geometry,
-                                           self._hardware,
-                                           raiseExceptionsIfAnglesDoNotMapBackToHkl)
-        
+        self.hklcommands = hklcommands
         self.ubcommands = UbCommands(self._hardware, self._geometry, self._ubcalc)
-        
-        if engine_name == 'vlieg':
-            self._sector_selector = SectorSelector()
-            self._position_mapper = PositionMapper(self._geometry, self._hardware, self._sector_selector)
-
-        # Create user interface code
-            self.mappercommands = MapperCommands(self._geometry, self._hardware, self._position_mapper)
-            self.hklcommands = HklCommands(self._hardware, self._geometry, self._hklcalc)
-
-        elif engine_name == 'willmott':
-            self.mappercommands = object()  # placeholder for now as GdaDiffcalcObjectFactory expects this
-
+        # TODO: Split out into hardware commands and sector_selector commands
+        self.mappercommands = MapperCommands(self._geometry, self._hardware, self._mapper)
 
     def __str__(self):
         return self.__repr__()
@@ -106,8 +109,10 @@ class Diffcalc(object):
         except ZeroDivisionError:
             raise DiffcalcException("Cannot calculate hkl position as Energy is set to 0")
 
-        (pos, params) = self._hklcalc.hklToAngles(h, k, l, wavelength)
-        return (self._position_mapper.map(pos), params)
+        (pos_unmapped, params) = self._hklcalc.hklToAngles(h, k, l, wavelength)
+        pos = self._mapper.map(pos_unmapped)
+        
+        return pos, params
     
     def _anglesToHkl(self, angleTuple, energy=None):
         """Converts a set of diffractometer angles to an hkl position
@@ -140,7 +145,8 @@ class Diffcalc(object):
                 s += "<<empty>>"
             for n in range(len(reflist)):
                 (hklguess, pos, energy, tag, time) = reflist.getReflection(n + 1)
-                (hkl, params) = self._hklcalc.anglesToHkl(pos, energy)
+                wavelength = 12.39842 / energy
+                (hkl, params) = self._hklcalc.anglesToHkl(pos, wavelength)
                 del time, params
                 if tag is None:
                     tag = ""

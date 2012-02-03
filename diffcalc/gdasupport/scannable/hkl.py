@@ -6,6 +6,7 @@ except ImportError:
 
 from diffcalc.utils import getMessageFromException
 
+
 class Hkl(ScannableMotionWithScannableFieldsBase):
 
     def __init__(self , name , diffractometerObject, diffcalcObject, virtualAnglesToReport=None):
@@ -27,10 +28,10 @@ class Hkl(ScannableMotionWithScannableFieldsBase):
 
     def rawAsynchronousMoveTo(self, hkl):
         #if type(hkl) not in (type(()), type([])): ...
-        try:
-            hkl = list(hkl)
-        except TypeError:
-            raise ValueError('Hkl value could not be turned into list. Received %s of type %s' % (str(hkl), str(type(hkl))))
+#        try:
+#            hkl = list(hkl)
+#        except TypeError:
+#            raise ValueError('Hkl value could not be turned into list. Received %s of type %s' % (str(hkl), str(type(hkl))))
         if len(hkl) != 3: raise ValueError('Hkl device expects three inputs')
         
         (pos, _) = self._diffcalc._hklToAngles(hkl[0], hkl[1], hkl[2])
@@ -45,6 +46,9 @@ class Hkl(ScannableMotionWithScannableFieldsBase):
                 result.append(params[vAngleName])
         return result
     
+    def getFieldPosition(self, i):
+        return self.getPosition()[i]
+    
     def isBusy(self):
         return self.diffhw.isBusy()
 
@@ -58,48 +62,32 @@ class Hkl(ScannableMotionWithScannableFieldsBase):
             raise ValueError('Hkl device expects three inputs')
         (pos, params) = self._diffcalc._hklToAngles(hkl[0], hkl[1], hkl[2])
         
-        result = self.diffhw.getName() + ' would move to:\n'
+        width = max(len(k) for k in (params.keys() + list(self.diffhw.getInputNames())))
+        fmt = '  %' + str(width) + 's : % 9.4f'
+        
+        lines = [self.diffhw.getName() + ' would move to:']
         for idx, name in enumerate(self.diffhw.getInputNames()):
-            result += '  %s : % 9.5f deg\n' % (name.rjust(6), pos[idx])
-        result += '\n'
-#        result += '   theta : %f\n' % params['theta']
-        result += '  2theta : %f\n' % params['2theta']
-        result += '     Bin : %f\n' % params['Bin']
-        result += '    Bout : %f\n' % params['Bout']
-        result += ' azimuth : %f\n' % params['azimuth']
-        return result
+            lines.append(fmt % (name, pos[idx]))
+        lines[-1] =  lines[-1] + '\n'
+        for k in sorted(params):
+            lines.append(fmt % (k, params[k]))
+        return '\n'.join(lines)
     
     def __str__(self):
         return self.__repr__()
     
     def __repr__(self):
-        result = 'hkl:\n'
+        lines = ['hkl:']
         pos = self.diffhw.getPosition()
         try:
             (hkl , params) = self._diffcalc._anglesToHkl(pos)
         except Exception, e:
             return "<hkl: %s>" % getMessageFromException(e)
-        result += '       h : %f\n' % hkl[0]
-        result += '       k : %f\n' % hkl[1]
-        result += '       l : %f\n' % hkl[2]
-        result += '\n'
-#        result += '   theta : %f\n' % params['theta']
-        result += '  2theta : %f\n' % params['2theta']
-        result += '     Bin : %f\n' % params['Bin']
-        result += '    Bout : %f\n' % params['Bout']
-        result += ' azimuth : %f\n' % params['azimuth']
-#        result += '\n'
-#        result += self._diffcalc._reportModeBriefly()
-        return result
-    
-#    class MotionScannablePart(DottedAccessPseudoDevice.MotionScannablePart):
-#    
-#        def __repr__(self):
-#            # Get the name of this field (assume its an input field first and correct if wrong
-#            name = self.getInputNames()[0]
-#            if name == 'value':
-#                name = self.getExtraNames()[0]
-#            try:
-#                return self.parentScannable.getName() + "." + name + " : " + str(self.getPosition())
-#            except Exception, e:
-#                return "<%s: %s>" % (self.getName(), getMessageFromException(e))
+        
+        width = max(len(k) for k in params)
+        lines.append('  ' + 'hkl'.rjust(width) + ' : %9.4f  %.4f  %.4f' % (hkl[0], hkl[1], hkl[2]))
+        lines[-1] =  lines[-1] + '\n'
+        fmt = '  %' + str(width) + 's : % 9.4f'
+        for k in sorted(params):
+            lines.append(fmt % (k, params[k]))
+        return '\n'.join(lines)

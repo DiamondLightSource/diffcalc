@@ -4,6 +4,7 @@ from diffcalc.ub.calculation import PaperSpecificUbCalcStrategy
 from diffcalc.utils import bound, AbstractPosition, DiffcalcException
 from math import pi, asin, acos, atan2, sin, cos, sqrt
 from diffcalc.hkl.common import DummyParameterManager
+from diffcalc.geometry.plugin import DiffractometerGeometryPlugin
 try:
     from numpy import matrix
 except ImportError:
@@ -23,6 +24,7 @@ TODEG = 180 / pi
 I = matrix('1 0 0; 0 1 0; 0 0 1')
 SMALL = 1e-10
 
+TEMPORARY_CONSTRAINTS_DICT_RAD = {'betain': 2 * TORAD}
 
 def x_rotation(th):
     return matrix(((1, 0, 0), (0, cos(th), -sin(th)), (0, sin(th), cos(th))))
@@ -105,6 +107,26 @@ class WillmottHorizontalPosition(AbstractPosition):
                 (self.delta, self.gamma, self.omegah, self.phi))
 
 
+class WillmottHorizontalGeometry(DiffractometerGeometryPlugin):
+
+    def __init__(self):
+        DiffractometerGeometryPlugin.__init__(self,
+                    name='willmott_horizontal',
+                    supportedModeGroupList=[],
+                    fixedParameterDict={},
+                    gammaLocation='base'
+                    )
+
+    def physicalAnglesToInternalPosition(self, physicalAngles):
+        assert (len(physicalAngles) == 4), "Wrong length of input list"
+        return WillmottHorizontalPosition(*physicalAngles)
+
+    def internalPositionToPhysicalAngles(self, internalPosition):
+        return internalPosition.totuple()
+    
+    def create_position(self, delta, gamma, omegah, phi):
+        return WillmottHorizontalPosition(delta, gamma, omegah, phi)
+
 class WillmottHorizontalUbCalcStrategy(PaperSpecificUbCalcStrategy):
 
     def calculate_q_phi(self, pos):
@@ -112,13 +134,42 @@ class WillmottHorizontalUbCalcStrategy(PaperSpecificUbCalcStrategy):
         return Matrix(H_phi.tolist())
 
 
+class DummyConstraints(object):
+    
+    @property    
+    def reference(self):
+        """dictionary of constrained reference circles"""
+        return TEMPORARY_CONSTRAINTS_DICT_RAD
+    
 
+class ParameterManagerConstraintAdapter(object):
+
+    def __init__(self, constraints):
+        self._constraints = constraints
+
+    def getParameterDict(self):
+        names = self._constraints.available
+        return dict(zip(names, [None]*len(names)))
+    
+    def setParameter(self, name, value):
+        self._constraints.set(name, value)
+        
+    def getParameter(self, name):
+        if name in self._constraints.all:
+            val = self._constraints.get_value(name)
+            return 999 if val is None else val
+        else:
+            return 999
+    
+    def updateTrackedParameters(self):
+        pass
+    
     
 
 class WillmottHorizontalCalculator(HklCalculatorBase):
 
-    def __init__(self, ubcalc, geometry, hardware, constraints,
-                  raiseExceptionsIfAnglesDoNotMapBackToHkl=True):
+    def __init__(self, ubcalc, geometry, hardware,
+                  raiseExceptionsIfAnglesDoNotMapBackToHkl=True, constraints=None):
         """"
         Where constraints.reference is a one element dict with the key
         either ('betain', 'betaout' or 'equal') and the value a number or None
@@ -128,9 +179,14 @@ class WillmottHorizontalCalculator(HklCalculatorBase):
         HklCalculatorBase.__init__(self, ubcalc, geometry, hardware,
                                    raiseExceptionsIfAnglesDoNotMapBackToHkl)
 
-        self.parameter_manager = DummyParameterManager()
-        self.constraints = constraints
-
+        
+        if constraints is not None:
+            self.constraints = constraints
+            self.parameter_manager = ParameterManagerConstraintAdapter(constraints)
+        else:
+            self.constraints = DummyConstraints()
+            self.parameter_manager = DummyParameterManager()
+        
     @property
     def _UB(self):
         return matrix(self._ubcalc.getUBMatrix().array)  # Jama to numpy matrix
@@ -178,14 +234,19 @@ class WillmottHorizontalCalculator(HklCalculatorBase):
 
         ### determine betain (omegah) and betaout ###
 
+        if not self.constraints.reference:
+            raise ValueError("No reference constraint has been constrained.")
+        
         ref_name, ref_value = self.constraints.reference.items()[0]
+        if ref_value is not None:
+            ref_value *= TORAD
         if ref_name == 'betain':
             betain = ref_value
             betaout = asin(bound(l_phi - sin(betain)))                   # (53)
         elif ref_name == 'betaout':
             betaout = ref_value
             betain = asin(bound(l_phi - sin(betaout)))                   # (54)
-        elif ref_name == 'betain_eq_betaout':
+        elif ref_name == 'bin_eq_bout':
             betain = betaout = asin(bound(l_phi / 2))                    # (55)
         else:
             raise ValueError("Unexpected constraint name'%s'." % ref_name)
@@ -195,8 +256,8 @@ class WillmottHorizontalCalculator(HklCalculatorBase):
                                     'q is perpendicular to surface normal)')
         if betain < -SMALL:
             raise DiffcalcException("betain was -ve (%.4f)" % betain)
-        logger.info('betain = %.4f, betaout = %.4f',
-                    betain * TODEG, betaout * TODEG)
+#        logger.info('betain = %.4f, betaout = %.4f',
+#                    betain * TODEG, betaout * TODEG)
         omegah = betain                                                  # (52)
 
         ### determine H_lab (X, Y and Z) ###
@@ -214,7 +275,7 @@ class WillmottHorizontalCalculator(HklCalculatorBase):
             X = -Xpositive
         else:
             X = Xpositive
-        logger.info('H_lab (X,Y,Z) = [%.4f, %.4f, %.4f]', X, Y, Z)
+#        logger.info('H_lab (X,Y,Z) = [%.4f, %.4f, %.4f]', X, Y, Z)
         ### determine diffractometer angles ###
 
         gamma = atan2(-X, Y + 1)                                         # (49)

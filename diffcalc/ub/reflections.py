@@ -44,7 +44,10 @@ class ReflectionList:
         position in degrees
         """
         if type(position) in (list, tuple):
-            position = VliegPosition(*position)
+            try:
+                position = self._geometry.create_position(*position)
+            except AttributeError:
+                position = VliegPosition(*position)
         self._reflist += [Reflection(h, k, l, position, energy, tag, time.__repr__())]
 
     def editReflection(self, num, h, k, l, position, energy, tag, time):

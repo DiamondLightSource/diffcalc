@@ -2,6 +2,7 @@ import types
 from diffcalc.utils import DiffcalcException
 
 RAISE_EXCEPTIONS_FOR_ALL_ERRORS = False
+DEBUG = False
 
 class HelpList:
     class Usage:
@@ -76,6 +77,8 @@ class UsageHandler(object):
                 self.appendDocLine(line)
 
     def __call__(self, *args):
+        if DEBUG:
+            return self.command(*args)
         try:
             return self.command(*args)
         except TypeError, e:
@@ -86,6 +89,8 @@ class UsageHandler(object):
                 print "-" * 80        
                 raise e
             else:
+                print 'TypeError : %s' % e.message
+                print 'USAGE:'
                 print self.command.__doc__
         except DiffcalcException, e:
             if RAISE_EXCEPTIONS_FOR_ALL_ERRORS:

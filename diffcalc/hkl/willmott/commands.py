@@ -1,5 +1,5 @@
 from diffcalc.help import HelpList, UsageHandler
-from diffcalc.hkl.common_commands import sim
+from diffcalc.hkl.common import sim, getNameFromScannableOrString
 import diffcalc.help
 
 _hklcalcCommandHelp = HelpList()
@@ -45,36 +45,43 @@ class WillmottHklCommands(object):
 ### Settings ###
     _hklcalcCommandHelp.append('Calculator')
     
-    ## TODO:HklCommand hklmode
-
-    def _setParameter(self, name, value):
-        raise Exception("parameters not supported yet")
-        
-    def _getParameter(self, name):
-        raise Exception("parameters not supported yet")
-    
-    # TODO: @HklCommand setpar
-   
-    # TODO: @HklCommand trackalpha
-
-    # TODO: @HklCommand trackgamma
-
-    # TODO: @HklCommand trackphi
-
-### Motion ###
-
-    #(Note except for the sim command, these are all implemented by the external euler, and hkl
-    _hklcalcCommandHelp.append('Motion')
-
     #TODO: Messy, inconsistant use of square brackets in usage strings.
-    _hklcalcCommandHelp.append('pos hkl [h k l] -- move diffractometer to hkl, or read hkl position. Use None to hold a value still')
-
-    _hklcalcCommandHelp.append('sim hkl [h k l] -- simulates moving hkl')
 
     _hklcalcCommandHelp.append('hkl -- shows loads of info about current hkl position')
+    
+    _hklcalcCommandHelp.append('pos hkl [h k l] -- move diffractometer to hkl, or read hkl position. Use None to hold a value still')
 
     @HklCommand
     def sim(self, scn, hkl):
         """sim hkl [h k l] --simulates moving hkl
         """
         sim(scn, hkl, diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS)
+    
+    @HklCommand    
+    def con(self, scn_or_string):
+        """con <constraint> -- constrains constraint and then shows all constraints
+        """
+        name = getNameFromScannableOrString(scn_or_string)
+        self._hklcalc.constraints.constrain(name)
+        print self._report_constraints()
+        
+    @HklCommand    
+    def uncon(self, scn_or_string):
+        """uncon <constraint> -- unconstrains constraint and then shows all constraints
+        """
+        name = getNameFromScannableOrString(scn_or_string)
+        self._hklcalc.constraints.unconstrain(name)
+        print self._report_constraints()
+
+    @HklCommand    
+    def cons(self):
+        """cons -- list available constraints, indicating currently constrained values
+        """
+        print self._report_constraints()
+     
+    def _report_constraints(self):
+        return (self._hklcalc.constraints._build_display_table() + '\n\n' +
+               self._hklcalc.constraints._report_constraints())
+        
+    _hklcalcCommandHelp.append('pos <constraint> -- sets constraint value')
+        
