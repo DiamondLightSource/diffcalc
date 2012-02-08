@@ -1,3 +1,5 @@
+from mock import Mock
+from diffcalc.gdasupport.scannable.slave_driver import SlaveScannableDriver
 try:
     from gda.device.scannable.scannablegroup import ScannableGroup
 except ImportError:
@@ -31,6 +33,9 @@ class MockSlaveScannableDriver(object):
     
     def triggerAsynchronousMove(self, position):
         self.lastPosition = position
+        
+    def getPositions(self):
+        return 90, 91
 
 
 class TestDiffractometerScannableGroup(unittest.TestCase):
@@ -87,26 +92,37 @@ class TestDiffractometerScannableGroupWithSlave(TestDiffractometerScannableGroup
 
     def setUp(self):
         TestDiffractometerScannableGroup.setUp(self)
-        self.mockDriver = MockSlaveScannableDriver()
-        self.sg.slaveScannableDriver = self.mockDriver
+        self.mock_driver = Mock(spec=SlaveScannableDriver)
+        self.mock_driver.getPositions.return_value = 90, 91
+        self.mock_driver.isBusy.return_value = False
+        self.mock_driver.getScannableNames.return_value = 'a', 'b'
+
+        self.sg.slave_driver = self.mock_driver
     
     def test__init__(self):
-        obj = object()
-        sg = DiffractometerScannableGroup('sixc', MockDiffcalc(6), self.grp, obj)
-        self.assertEquals(sg.slaveScannableDriver, obj)
+        sg = DiffractometerScannableGroup('sixc', MockDiffcalc(6), self.grp, self.mock_driver)
+        self.assertEquals(sg.slave_driver, self.mock_driver)
         
-    def testAsynchronousMoveTo(self):
-        TestDiffractometerScannableGroup.testAsynchronousMoveTo(self);
-        self.assertEqual(self.mockDriver.lastPosition, [1.0 , 2.0 , 3.0, 4.0, 5.0, 6.0])
-    
     def testAsynchronousMoveToWithNones(self):
-        TestDiffractometerScannableGroup.testAsynchronousMoveToWithNones(self)
-        self.assertEqual(self.mockDriver.lastPosition, [None, None, 3.2, None, 5.2, None])
+        self.sg.asynchronousMoveTo([1.0, 2.0 , 3.0, 4.0, 5.0, 6.0])
+        self.sg.asynchronousMoveTo([None, None, 3.2, None, 5.2, None])
+        self.assertEqual(list(self.sg.getPosition()), [1.0 , 2.0 , 3.2, 4.0, 5.2, 6.0, 90, 91])
+        self.mock_driver.triggerAsynchronousMove.assert_called_with(
+                                                [None, None, 3.2, None, 5.2, None])
 
     def testIsBusyWithSlave(self):    
-        self.mockDriver.busy = True
+        self.mock_driver.isBusy.return_value = True
         self.assertEqual(self.sg.isBusy(), True)
+    
+    ### overridden
         
+    def testInit(self):
+        self.assertEqual(list(self.sg.getPosition()), [0.0 , 0.0 , 0.0, 0.0 , 0.0 , 0.0, 90, 91])
+    
+    def testAsynchronousMoveTo(self):
+        self.sg.asynchronousMoveTo([1, 2.0, 3, 4, 5, 6])
+        self.assertEqual(list(self.sg.getPosition()), [1.0 , 2.0 , 3.0, 4.0, 5.0, 6.0, 90, 91])
+    
 
 class TestDiffractometerScannableGroupWithFailingAngleCalculator(unittest.TestCase):
 

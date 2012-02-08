@@ -1,4 +1,4 @@
-from diffcalc.diffractioncalculator import Diffcalc
+from diffcalc.diffractioncalculator import Diffcalc, create_diffcalc_vlieg
 from diffcalc.gdasupport.scannable.base import ScannableGroup
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
@@ -50,7 +50,8 @@ class BaseTestDiffractionCalculatorWithData():
     def setUp(self):
         self.geometry = SixCircleGammaOnArmGeometry()
         self.hardware = DummyHardwareMonitorPlugin(('alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'))
-        self.d = Diffcalc(self.geometry, self.hardware, True, True, UbCalculationNonPersister())
+        self.d = create_diffcalc_vlieg(self.geometry, self.hardware, True, UbCalculationNonPersister())
+
         self.d.raiseExceptionsForAllErrors = True
         #self.scenarios = scenarios.sessions()
         self.setSessionAndCalculation()
@@ -195,7 +196,8 @@ class TestSixcBase(unittest.TestCase):
         self.en = DummyPD('en')
         group = ScannableGroup('sixcgrp', createDummyAxes(['alpha', 'delta', 'gamma', 'omega', 'chi', 'phi']))    
         self.sixc = DiffractometerScannableGroup('sixc', None, group)
-        self.d = Diffcalc(geometryClass(), ScannableHardwareMonitorPlugin(self.sixc, self.en), True, True, UbCalculationNonPersister())
+        self.d = create_diffcalc_vlieg(geometryClass(), ScannableHardwareMonitorPlugin(self.sixc, self.en), True, UbCalculationNonPersister())
+
         self.sixc.setDiffcalcObject(self.d)
         self.hkl = Hkl('hkl', self.sixc, self.d)
         self.d.raiseExceptionsForAllErrors = True
@@ -208,7 +210,7 @@ class TestFourcBase(unittest.TestCase):
         scannableGroup = ScannableGroup('fourcgrp', createDummyAxes(['delta', 'omega', 'chi', 'phi']))    
         self.fourc = DiffractometerScannableGroup('fourc', None, scannableGroup)
         hwmp = ScannableHardwareMonitorPlugin(self.fourc, self.en)
-        self.d = Diffcalc(fourc(), hwmp, True, True, UbCalculationNonPersister())
+        self.d = create_diffcalc_vlieg(fourc(), hwmp, True, UbCalculationNonPersister())
         self.fourc.setDiffcalcObject(self.d)
         self.hkl = Hkl('hkl', self.fourc, self.d)
         self.d.raiseExceptionsForAllErrors = True
@@ -434,7 +436,10 @@ class FiveCircleTest(unittest.TestCase):
         self.en = DummyPD('en') 
         group = ScannableGroup('fivecgrp', createDummyAxes(['alpha', 'delta', 'omega', 'chi', 'phi']))    
         self.fivec = DiffractometerScannableGroup('fivec', None, group)
-        self.d = Diffcalc(fivec(), ScannableHardwareMonitorPlugin(self.fivec, self.en), True, True, UbCalculationNonPersister())
+        self.d = create_diffcalc_vlieg(fivec(),
+                     ScannableHardwareMonitorPlugin(self.fivec, self.en),
+                     True, UbCalculationNonPersister())
+        #self.d = Diffcalc(, , True, True, UbCalculationNonPersister())
         self.d.raiseExceptionsForAllErrors = True
         self.fivec.setDiffcalcObject(self.d)
         self.hkl = Hkl('hkl', self.fivec, self.d)

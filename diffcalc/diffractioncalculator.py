@@ -32,21 +32,23 @@ class DummySectorSelector(object):
         return pos
 
 
-def create_diffcalc_vlieg(geometry, hardware, raise_exceptions_for_all_errors):
+def create_diffcalc_vlieg(geometry, hardware, raise_exceptions_for_all_errors=True,
+                           ub_persister=None):
        
     diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = raise_exceptions_for_all_errors
     
-    ubcalc = UBCalculation(hardware, geometry, None, VliegUbCalcStrategy())
+    ubcalc = UBCalculation(hardware, geometry, ub_persister, VliegUbCalcStrategy())
     hklcalc = VliegHklCalculator(ubcalc, geometry, hardware, True)
     mapper = PositionMapper(geometry, hardware, VliegSectorSelector())
     hklcommands = VliegHklCommands(hardware, geometry, hklcalc)
     return Diffcalc(geometry, hardware, ubcalc, hklcalc, mapper, hklcommands)
 
     
-def create_diffcalc_willmot(geometry, hardware, raise_exceptions_for_all_errors):
+def create_diffcalc_willmot(geometry, hardware, raise_exceptions_for_all_errors=True,
+                             ub_persister=None):
        
     diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = raise_exceptions_for_all_errors
-    ubcalc = UBCalculation(hardware, geometry, None, WillmottHorizontalUbCalcStrategy())
+    ubcalc = UBCalculation(hardware, geometry, ub_persister, WillmottHorizontalUbCalcStrategy())
     hklcalc = WillmottHorizontalCalculator(ubcalc, geometry, hardware, constraints=WillmottConstraintManager())
     mapper = PositionMapper(geometry, hardware, DummySectorSelector())
     hklcommands = WillmottHklCommands(hardware, geometry, hklcalc)

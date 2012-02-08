@@ -47,7 +47,7 @@ class DiffractometerScannableGroup(ScannableMotionBase):
         
     def getPosition(self):
         slave_positions = [] if self.slave_driver is None else self.slave_driver.getPositions()
-        return list(self.__group.getPosition()) + slave_positions
+        return list(self.__group.getPosition()) + list(slave_positions)
         
     def isBusy(self):
         if self.slave_driver is None:

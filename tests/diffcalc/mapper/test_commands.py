@@ -4,7 +4,7 @@ from diffcalc.mapper.commands import MapperCommands
 from diffcalc.hkl.vlieg.position  import VliegPosition
 import diffcalc.help #@UnusedImport
 import unittest
-from diffcalc.mapper.sector import SectorSelector
+from diffcalc.mapper.sector import VliegSectorSelector
 from diffcalc.mapper.mapper import PositionMapper
 
 class TestAngleMapper(unittest.TestCase):
@@ -14,7 +14,7 @@ class TestAngleMapper(unittest.TestCase):
         self.geometry = SixCircleGammaOnArmGeometry()
         
         
-        self.sector_selector = SectorSelector()
+        self.sector_selector = VliegSectorSelector()
         self.position_mapper = PositionMapper(self.geometry, self.hardware, self.sector_selector)
         self.mappercommands = MapperCommands(self.geometry, self.hardware, self.sector_selector)
 
