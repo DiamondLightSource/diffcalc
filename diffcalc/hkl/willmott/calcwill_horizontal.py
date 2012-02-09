@@ -8,7 +8,7 @@ from diffcalc.geometry.plugin import DiffractometerGeometryPlugin
 try:
     from numpy import matrix
 except ImportError:
-    from diffcalc.numjy import matrix
+    from numjy import matrix
 
 try:
     from Jama import Matrix

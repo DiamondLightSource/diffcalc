@@ -33,9 +33,9 @@ I = Matrix.identity(3, 3)
 class SkipTestSurfaceNormalVerticalCubic(_BaseTest):
 
     def setup(self):
-        
+
         _BaseTest.setup(self)
-        self.constraints._constrained = {'a_eq_b': None, 'mu':-pi/2, 'eta':0}
+        self.constraints._constrained = {'a_eq_b': None, 'mu':-pi / 2, 'eta':0}
         self.wavelength = 1
         self.UB = I.times(2 * pi)
 
@@ -56,14 +56,14 @@ class SkipTestSurfaceNormalVerticalCubic(_BaseTest):
 
     def testHkl001(self):
         self._check((0, 0, 1),
-                    Pos(mu=-90, delta=60, nu=0, eta=0, chi=90+30, phi=-90),
+                    Pos(mu= -90, delta=60, nu=0, eta=0, chi=90 + 30, phi= -90),
                     {'alpha': 30, 'beta': 30})
 
     def testHkl011(self):
         # raise SkipTest()
         # skipped because we can't calculate values to check against by hand
         self._check((0, 1, 1),
-                    Pos(mu=-90, delta=90, nu=0, eta=0, chi=90+90, phi=-90),
+                    Pos(mu= -90, delta=90, nu=0, eta=0, chi=90 + 90, phi= -90),
 #                    Pos(delta=90, gamma=0, omegah=90, phi=0),
                     {'alpha': 45, 'beta': 45})
 
@@ -81,7 +81,7 @@ class SkipTestSurfaceNormalVerticalCubic(_BaseTest):
         raise SkipTest()
         # skipped because we can't calculate values to check against by hand
         self._check((1, 1, 1),
-                    Pos(mu=-90, delta=90, nu=0, eta=0, chi=90+90, phi=-90),
+                    Pos(mu= -90, delta=90, nu=0, eta=0, chi=90 + 90, phi= -90),
 #                    Pos(delta=90, gamma=0, omegah=90, phi=0),
                     {'alpha': 45, 'beta': 45})
 #
@@ -92,7 +92,7 @@ class SkipTestSurfaceNormalVerticalCubic(_BaseTest):
 # eta       eta = 0
 #           chi = 90 + omegah_w
 # phi       phi = - 90 - phi_w  
-   
+
 #def willmott_to_you(pos):
 #    return YouPosition(mu=-90,
 #                       delta = pos.delta,
@@ -142,17 +142,23 @@ U_DIFFCALC = Matrix([[-0.7178876, 0.6643924, -0.2078944],
 #        return internalPosition.totuple()
 
 def willmott_to_you_fixed_mu_eta(pos):
-    return YouPosition(mu=-90,
-                       delta = pos.delta,
-                       nu = pos.gamma,
-                       eta = 0,
-                       chi = 90 + pos.omegah,
-                       phi = -90 - pos.phi)
+    pos = YouPosition(mu= -90,
+                       delta=pos.delta,
+                       nu=pos.gamma,
+                       eta=0,
+                       chi=90 + pos.omegah,
+                       phi= -90 - pos.phi)
+
+    if pos.phi > 180:
+        pos.phi -= 360
+    elif pos.phi < -180:
+        pos.phi += 360
+    return pos
 
 class TestUBCalculationWithWillmotStrategy_Si_5_5_12_FixedMuEta():
 
     def setUp(self):
-        
+
         hardware = Mock()
         hardware.getPhysicalAngleNames.return_value = ('m', 'd', 'n', 'e', 'c', 'p')
         self.ubcalc = UBCalculation(hardware, SixCircleYouGeometry(),
@@ -186,8 +192,8 @@ class TestFixedMuEta(_BaseTest):
 
 
     def _configure_constraints(self):
-        self.constraints._constrained = {'alpha': 2 * TORAD, 'mu':-pi/2, 'eta':0}
-    
+        self.constraints._constrained = {'alpha': 2 * TORAD, 'mu':-pi / 2, 'eta':0}
+
     def _configure_limits(self):
         self.mock_hardware.setLowerLimit('nu', None) # XXX
         #self.mock_hardware.setLowerLimit('delta', None)
@@ -195,7 +201,7 @@ class TestFixedMuEta(_BaseTest):
         self.mock_hardware.setLowerLimit('mu', None)
         self.mock_hardware.setLowerLimit('eta', None)
         self.mock_hardware.setLowerLimit('chi', None)
-    
+
     def _convert_willmott_pos(self, willmott_pos):
         return  willmott_to_you_fixed_mu_eta(willmott_pos)
 
@@ -203,7 +209,7 @@ class TestFixedMuEta(_BaseTest):
         self.mock_ubcalc.getUBMatrix.return_value = self.UB
 
     def _check(self, hkl, pos, virtual_expected={}, fails=False):
-#        self._check_angles_to_hkl('', 999, 999, hkl, pos, self.wavelength,
+        self._check_angles_to_hkl('', 999, 999, hkl, pos, self.wavelength)
 #                                  virtual_expected)
         if fails:
             self._check_hkl_to_angles_fails('', 999, 999, hkl, pos,
@@ -229,8 +235,8 @@ class TestFixedMuEta(_BaseTest):
     def testHkl_2_19_32_calculated_from_DDIF(self):
         raise SkipTest() # diffcalc finds a different solution (with -ve gamma)
         self.places = 3
-        willpos = WillmottHorizontalPosition(delta=21.974, gamma=4.419, omegah=2, phi=-33.803)
-        willpos = WillmottHorizontalPosition(delta=21.974, gamma=4.419, omegah=2, phi=-33.803)
+        willpos = WillmottHorizontalPosition(delta=21.974, gamma=4.419, omegah=2, phi= -33.803)
+        willpos = WillmottHorizontalPosition(delta=21.974, gamma=4.419, omegah=2, phi= -33.803)
         self._check((2, 19, 32),
                     self._convert_willmott_pos(willpos),
                     {'alpha': 2})
@@ -238,7 +244,7 @@ class TestFixedMuEta(_BaseTest):
     def testHkl_0_7_22_calculated_from_DDIF(self):
         raise SkipTest() # diffcalc finds a different solution (with -ve gamma)
         self.places = 3
-        willpos = WillmottHorizontalPosition(delta=11.241801854649, gamma=-3.038407637123, omegah=2, phi=-3.436557497330)
+        willpos = WillmottHorizontalPosition(delta=11.241801854649, gamma= -3.038407637123, omegah=2, phi= -3.436557497330)
         self._check((0, 7, 22),
                     self._convert_willmott_pos(willpos),
                     {'alpha': 2})
@@ -246,19 +252,19 @@ class TestFixedMuEta(_BaseTest):
     def testHkl_2_m5_12_calculated_from_DDIF(self):
         raise SkipTest() # diffcalc finds a different solution (with -ve gamma)
         self.places = 3
-        willpos = WillmottHorizontalPosition(delta=5.224, gamma=10.415, omegah=2, phi=-1.972)
+        willpos = WillmottHorizontalPosition(delta=5.224, gamma=10.415, omegah=2, phi= -1.972)
         self._check((2, -5, 12),
                     self._convert_willmott_pos(willpos),
                     {'alpha': 2})
-        
+
     def testHkl_2_19_32_calculated_predicted_with_diffcalc_and_found(self):
-        willpos = WillmottHorizontalPosition(delta=21.974032376045, gamma= -4.418955754003, omegah=2, phi=  64.027358409574)
+        willpos = WillmottHorizontalPosition(delta=21.974032376045, gamma= -4.418955754003, omegah=2, phi=64.027358409574)
         self._check((2, 19, 32),
                     self._convert_willmott_pos(willpos),
                     {'alpha': 2})
 
     def testHkl_0_7_22_calculated_predicted_with_diffcalc_and_found(self):
-        willpos = WillmottHorizontalPosition(delta=11.241801854649, gamma=-3.038407637123, omegah=2, phi= -86.563442502670)
+        willpos = WillmottHorizontalPosition(delta=11.241801854649, gamma= -3.038407637123, omegah=2, phi= -86.563442502670)
         self._check((0, 7, 22),
                     self._convert_willmott_pos(willpos),
                     {'alpha': 2})
@@ -273,17 +279,23 @@ class TestFixedMuEta(_BaseTest):
 ###############################################################################
 
 def willmott_to_you_fixed_mu_chi(pos):
-    return YouPosition(mu=-0,
-                       delta = pos.delta,
-                       nu = pos.gamma,
-                       eta = pos.omegah,
-                       chi = 90,
-                       phi = - pos.phi)
+    pos = YouPosition(mu= -0,
+                       delta=pos.delta,
+                       nu=pos.gamma,
+                       eta=pos.omegah,
+                       chi=90,
+                       phi= -pos.phi)
+    if pos.phi > 180:
+        pos.phi -= 360
+    elif pos.phi < -180:
+        pos.phi += 360
+    return pos
+
 
 class TestUBCalculationWithWillmotStrategy_Si_5_5_12_FixedMuChi():
 
     def setUp(self):
-        
+
         hardware = Mock()
         hardware.getPhysicalAngleNames.return_value = ('m', 'd', 'n', 'e', 'c', 'p')
         self.ubcalc = UBCalculation(hardware, SixCircleYouGeometry(),
@@ -301,13 +313,13 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12_FixedMuChi():
         print "U: ", self.ubcalc.getUMatrix()
         print "UB: ", self.ubcalc.getUBMatrix()
         matrixeq_(self.ubcalc.getUMatrix(), U_DIFFCALC)
- 
-        
+
+
 class Test_Fixed_Mu_Chi(TestFixedMuEta):
 
     def _configure_constraints(self):
-        self.constraints._constrained = {'alpha': 2 * TORAD, 'mu':0, 'chi':pi/2}
-      
+        self.constraints._constrained = {'alpha': 2 * TORAD, 'mu':0, 'chi':pi / 2}
+
     def _convert_willmott_pos(self, willmott_pos):
         return  willmott_to_you_fixed_mu_chi(willmott_pos)
 
@@ -324,33 +336,33 @@ class Test_Fixed_Mu_Chi(TestFixedMuEta):
 # i07 on Jan 28/29 2010
 
 
-Pt531_HKL0 =  -1.000, 1.000, 6.0000
-Pt531_REF0 = WillmottHorizontalPosition(delta=9.465, gamma=16.301, omegah=2,
-                                  phi=307.94-360)
+Pt531_HKL0 = -1.000, 1.000, 6.0000
+Pt531_REF0 = WillmottHorizontalPosition(delta=9.3971025, gamma= -16.1812303, omegah=2,
+                                  phi=108.5510712)
 
-Pt531_HKL1 = -2.000,  -1.000,   7.0000
-Pt531_REF1 = WillmottHorizontalPosition(delta=11.094, gamma=11.945, omegah=2,
-                                  phi=238.991-360)
-Pt531_HKL2 = 1,  1, 9
-Pt531_REF2 = WillmottHorizontalPosition(delta=14.272, gamma=7.806, omegah=2,
-                                  phi=22.9)
+Pt531_HKL1 = -2.000, -1.000, 7.0000
+Pt531_REF1 = WillmottHorizontalPosition(delta=11.0126958, gamma= -11.8636128, omegah=2,
+                                  phi=40.3803393)
+Pt531_HKL2 = 1, 1, 9
+Pt531_REF2 = WillmottHorizontalPosition(delta=14.1881617, gamma= -7.7585939, omegah=2,
+                                  phi=176.5348540)
 Pt531_WAVELENGTH = 0.6358
 
 # This is U matrix displayed by DDIF
-U_FROM_DDIF = Matrix([[-0.00312594,  -0.00063417,   0.99999491],
-                      [0.99999229,  -0.00237817,   0.00312443],
-                      [0.00237618,   0.99999697,   0.00064159]])
+U_FROM_DDIF = Matrix([[-0.00312594, -0.00063417, 0.99999491],
+                      [0.99999229, -0.00237817, 0.00312443],
+                      [0.00237618, 0.99999697, 0.00064159]])
 
 # This is the version that Diffcalc comes up with ( see following test)
 Pt531_U_DIFFCALC = Matrix([[-0.0023763, -0.9999970, -0.0006416],
-                           [ 0.9999923, -0.0023783,  0.0031244],
-                           [-0.0031259, -0.0006342,  0.9999949]])
+                           [ 0.9999923, -0.0023783, 0.0031244],
+                           [-0.0031259, -0.0006342, 0.9999949]])
 
 
 class TestUBCalculationWithYouStrategy_Pt531_FixedMuChi():
 
     def setUp(self):
-        
+
         hardware = Mock()
         hardware.getPhysicalAngleNames.return_value = ('m', 'd', 'n', 'e', 'c', 'p')
         self.ubcalc = UBCalculation(hardware, SixCircleYouGeometry(),
@@ -360,7 +372,7 @@ class TestUBCalculationWithYouStrategy_Pt531_FixedMuChi():
     def testAgainstResultsFromJan_28_2010(self):
         self.ubcalc.newCalculation('test')
         self.ubcalc.setLattice('Pt531', 6.204, 4.806, 23.215, 90, 90, 49.8)
-        
+
         self.ubcalc.addReflection(Pt531_HKL0[0], Pt531_HKL0[1], Pt531_HKL0[2],
                                   willmott_to_you_fixed_mu_chi(Pt531_REF0), 12.39842 / Pt531_WAVELENGTH,
                                   'ref0', None)
@@ -386,8 +398,8 @@ class Test_Pt531_FixedMuChi(_BaseTest):
 
 
     def _configure_constraints(self):
-        self.constraints._constrained = {'alpha': 2 * TORAD, 'mu':0, 'chi':pi/2}
-    
+        self.constraints._constrained = {'alpha': 2 * TORAD, 'mu':0, 'chi':pi / 2}
+
     def _configure_limits(self):
         self.mock_hardware.setLowerLimit('nu', None) # XXX
         #self.mock_hardware.setLowerLimit('delta', None)
@@ -395,9 +407,9 @@ class Test_Pt531_FixedMuChi(_BaseTest):
         self.mock_hardware.setLowerLimit('mu', None)
         self.mock_hardware.setLowerLimit('eta', None)
         self.mock_hardware.setLowerLimit('chi', None)
-    
-    
-      
+
+
+
     def _convert_willmott_pos(self, willmott_pos):
         return  willmott_to_you_fixed_mu_chi(willmott_pos)
 
@@ -430,33 +442,38 @@ class Test_Pt531_FixedMuChi(_BaseTest):
                         self.wavelength, {'alpha': 2})
 
     def testHkl_0_calculated_from_DDIF(self):
-        self.places = 5
+        self.places = 7
+        pos_expected = self._convert_willmott_pos(Pt531_REF0)
         self._check(Pt531_HKL0,
-                    self._convert_willmott_pos(Pt531_REF0),
+                    pos_expected,
                     {'alpha': 2})
 
     def testHkl_1_calculated_from_DDIF(self):
-        self.places = 5
+        self.places = 7
         self._check(Pt531_HKL1,
                     self._convert_willmott_pos(Pt531_REF1),
                     {'alpha': 2})
 
     def testHkl_2_calculated_from_DDIF(self):
-        self.places = 5
+        self.places = 7
         self._check(Pt531_HKL2,
                     self._convert_willmott_pos(Pt531_REF2),
                     {'alpha': 2})
 
     def testHkl_2_m1_0_16(self):
-        self.places = 5
+        self.places = 7
+        pos = WillmottHorizontalPosition(delta=25.7990976, gamma= -6.2413545, omegah=2,
+                                  phi=47.4624380)
+#        pos.phi -= 360
         self._check((-1, 0, 16),
-                    self._convert_willmott_pos(Pt531_REF2),
+                    self._convert_willmott_pos(pos),
                     {'alpha': 2})
+
 
 class Test_Pt531_Fixed_Mu_eta_(Test_Pt531_FixedMuChi):
 
     def _configure_constraints(self):
-        self.constraints._constrained = {'alpha': 2 * TORAD, 'mu':-pi/2, 'eta':0}
-    
+        self.constraints._constrained = {'alpha': 2 * TORAD, 'mu':-pi / 2, 'eta':0}
+
     def _convert_willmott_pos(self, willmott_pos):
         return  willmott_to_you_fixed_mu_eta(willmott_pos)

@@ -44,7 +44,7 @@ class _BaseTest():
         self.mock_hardware.setLowerLimit('eta', 0)
         self.mock_hardware.setLowerLimit('chi', -10)
 
-        self.places = 12
+        self.places = 11
         
     def _configure_ub(self):
         ZROT = z_rotation(self.zrot * TORAD)  # -PHI
