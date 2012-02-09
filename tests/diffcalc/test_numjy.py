@@ -19,10 +19,10 @@ def meq_(a, b):
     ok_((a == b).all(), '\n%s\n  !=\n%s' % (a, b))
 
 
-class BaseTest():
+class BaseMatrixTest():
 
     def m(self, args):
-        raise Exception("Abstract")
+        raise NotImplementedError()
 
     def test__init__(self):
         m = self.m([[1, 2], [3, 4]])
@@ -130,16 +130,42 @@ class BaseTest():
         meq_(self.m('1 2; 3 4').T,
              self.m('1 3; 2 4'))
 
+
+class BaseLinalgTest():
+
+    def matrix(self, args):
+        raise NotImplementedError()
+
+    def norm(self, args):
+        raise NotImplementedError()
+
+    def test_norm_frobenius(self):
+        eq_(self.norm(self.matrix('1 1 1; 1 1 1; 1 1 1')), 3)
+        eq_(self.norm(self.matrix('1 2 3; 4 5 6; 7 8 9')), 16.88194301613413)
+
 #------------------------------------------------------------------------------ 
 # numpy
 #------------------------------------------------------------------------------ 
 
 if NUMPY_AVAILABLE:
 
-    class TestNumpy(BaseTest):
+    class TestMatrixNumpy(BaseMatrixTest):
 
         def m(self, args):
             return numpy.matrix(args)
+
+
+    class TestLinalgNumpy(BaseLinalgTest):
+
+        def matrix(self, args):
+            return numpy.matrix(args)
+
+        def norm(self, args):
+            return numpy.linalg.norm(args)
+
+        def test_norm_frobenius(self):
+            eq_(self.norm(self.matrix('1 1 1; 1 1 1; 1 1 1')), 3)
+            eq_(self.norm(self.matrix('1 2 3; 4 5 6; 7 8 9')), 16.881943016134134) #  extra decimal place!
 
 #------------------------------------------------------------------------------ 
 # numjy
@@ -147,10 +173,11 @@ if NUMPY_AVAILABLE:
 
 if JAMA_AVAILABLE:
 
-    from diffcalc import numjy
+    
+    import numjy
 
 
-    class TestNumjy(BaseTest):
+    class TestMatrixNumjy(BaseMatrixTest):
 
         def m(self, args):
             return numjy.matrix(args)
@@ -166,3 +193,11 @@ if JAMA_AVAILABLE:
 
         def test__div__(self):
             raise SkipTest()
+
+    class TestLinalgNumjy(BaseLinalgTest):
+
+        def matrix(self, args):
+            return numjy.matrix(args)
+
+        def norm(self, args):
+            return numjy.linalg.norm(args)
