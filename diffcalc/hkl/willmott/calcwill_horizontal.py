@@ -168,8 +168,8 @@ class ParameterManagerConstraintAdapter(object):
 
 class WillmottHorizontalCalculator(HklCalculatorBase):
 
-    def __init__(self, ubcalc, geometry, hardware,
-                  raiseExceptionsIfAnglesDoNotMapBackToHkl=True, constraints=None):
+    def __init__(self, ubcalc, geometry, hardware, constraints,
+                  raiseExceptionsIfAnglesDoNotMapBackToHkl=True):
         """"
         Where constraints.reference is a one element dict with the key
         either ('betain', 'betaout' or 'equal') and the value a number or None

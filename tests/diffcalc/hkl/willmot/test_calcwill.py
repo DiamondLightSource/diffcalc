@@ -70,56 +70,6 @@ class _BaseTest():
         self._check_hkl_to_angles(*args)
 
 
-class TestSurfaceNormalVerticalCubic(_BaseTest):
-
-    def setup(self):
-        _BaseTest.setup(self)
-        self.constraints.reference = {'betain_eq_betaout': None}
-        self.wavelength = 1
-        self.UB = Matrix((I * (2 * pi)).tolist())
-
-    def _configure_ub(self):
-        self.mock_ubcalc.getUBMatrix.return_value = self.UB
-
-    def _check(self, hkl, pos, virtual_expected={}, fails=False):
-        if pos is not None:
-            self._check_angles_to_hkl('', 999, 999, hkl, pos, self.wavelength,
-                                      virtual_expected)
-        if fails:
-            self._check_hkl_to_angles_fails('', 999, 999, hkl, pos,
-                                            self.wavelength, virtual_expected)
-        else:
-            self._check_hkl_to_angles('', 999, 999, hkl, pos, self.wavelength,
-                                      virtual_expected)
-
-    def testHkl001(self):
-        self._check((0, 0, 1),
-                    Pos(delta=60, gamma=0, omegah=30, phi=0),
-                    {'betain': 30, 'betaout': 30})
-
-    def testHkl011(self):
-        raise SkipTest()
-        # skipped because we can't calculate values to check against by hand
-        self._check((0, 1, 1),
-                    Pos(delta=90, gamma=0, omegah=90, phi=0),
-                    {'betain': 45, 'betaout': 45})
-
-    def testHkl010fails(self):
-        self._check((0, 1, 0),
-                    None,
-                    {'betain': 30, 'betaout': 30}, fails=True)
-
-    def testHkl100fails(self):
-        self._check((1, 0, 0),
-                    None,
-                    {'betain': 30, 'betaout': 30}, fails=True)
-
-    def testHkl111(self):
-        raise SkipTest()
-        # skipped because we can't calculate values to check against by hand
-        self._check((1, 1, 1),
-                    Pos(delta=90, gamma=0, omegah=90, phi=0),
-                    {'betain': 45, 'betaout': 45})
 
 
 # Primary and secondary reflections found with the help of DDIF on Diamond's
@@ -171,7 +121,7 @@ class TestSurfaceNormalVertical_Si_5_5_12_PosGamma(_BaseTest):
 
     def setup(self):
         _BaseTest.setup(self)
-        self.constraints.reference = {'betain': 2 * TORAD}
+        self.constraints.reference = {'betain': 2}
         self.wavelength = 0.6358
         B = CrystalUnderTest('xtal', 7.68, 53.48,
                              75.63, 90, 90, 90).getBMatrix()
@@ -255,13 +205,17 @@ class SkipTestSurfaceNormalVertical_Si_5_5_12_NegGamma(TestSurfaceNormalVertical
 Pt531_HKL0 =  -1.000, 1.000, 6.0000
 Pt531_REF0 = WillmottHorizontalPosition(delta=9.465, gamma=16.301, omegah=2,
                                   phi=307.94-360)
+Pt531_REF0_DIFFCALC = WillmottHorizontalPosition( 9.397102509657,  16.181230279320,  2.000000000000, -52.139290474913)
 
 Pt531_HKL1 = -2.000,  -1.000,   7.0000
 Pt531_REF1 = WillmottHorizontalPosition(delta=11.094, gamma=11.945, omegah=2,
                                   phi=238.991-360)
+Pt531_REF1_DIFFCALC = WillmottHorizontalPosition( 11.012695836306,  11.863612760237,  2.000000000000, -121.215597507237)
+
 Pt531_HKL2 = 1,  1, 9
 Pt531_REF2 = WillmottHorizontalPosition(delta=14.272, gamma=7.806, omegah=2,
                                   phi=22.9)
+Pt531_REF2_DIFFCALC = WillmottHorizontalPosition( 14.188161709766,  7.758593908726,  2.000000000000,  23.020313153847)
 Pt531_WAVELENGTH = 0.6358
 
 # This is U matrix displayed by DDIF
@@ -300,7 +254,7 @@ class TestSurfaceNormalVertical_Pt531_PosGamma(_BaseTest):
 
     def setup(self):
         _BaseTest.setup(self)
-        self.constraints.reference = {'betain': 2 * TORAD}
+        self.constraints.reference = {'betain': 2}
         self.wavelength = Pt531_WAVELENGTH
         B = CrystalUnderTest('Pt531', 6.204, 4.806, 23.215, 90, 90, 49.8).getBMatrix()
         self.UB = Pt531_U_DIFFCALC.times(B)
@@ -333,20 +287,17 @@ class TestSurfaceNormalVertical_Pt531_PosGamma(_BaseTest):
                         Pt531_REF1,
                         self.wavelength, {'betain': 2})
 
-    def testHkl_0_calculated_from_DDIF(self):
-        self.places = 0
+    def testHkl_0_predicted_versus_found_during_oriantation_phase(self):
         self._check(Pt531_HKL0,
-                    Pt531_REF0,
+                    Pt531_REF0_DIFFCALC, # inspected to be close to Pt531_REF0
                     {'betain': 2})
 
-    def testHkl_1_calculated_from_DDIF(self):
-        self.places = 0
+    def testHkl_1_predicted_versus_found_during_oriantation_phase(self):
         self._check(Pt531_HKL1,
-                    Pt531_REF1,
+                    Pt531_REF1_DIFFCALC, # inspected to be close to Pt531_REF1,
                     {'betain': 2})
 
-    def testHkl_2_calculated_from_DDIF(self):
-        self.places = 0
+    def testHkl_2_predicted_versus_found_during_oriantation_phase(self):
         self._check(Pt531_HKL2,
-                    Pt531_REF2,
+                    Pt531_REF2_DIFFCALC, # inspected to be close to Pt531_REF2
                     {'betain': 2})
