@@ -1,8 +1,4 @@
 from diffcalc.utils import AbstractPosition
-try:
-    from Jama import Matrix
-except ImportError:
-    from diffcalc.npadaptor import Matrix
 from math import pi
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -47,9 +43,10 @@ class VliegPosition(AbstractPosition):
         return pos
 
     def nearlyEquals(self, pos2, maxnorm):
-        pos1 = Matrix([[self.alpha, self.delta, self.gamma, self.omega, self.chi, self.phi]])
-        pos2 = Matrix([[pos2.alpha, pos2.delta, pos2.gamma, pos2.omega, pos2.chi, pos2.phi]])
-        return pos1.minus(pos2).normF() <= maxnorm
+        for a, b in zip(self.totuple(), pos2.totuple()):
+            if abs(a - b) > maxnorm:
+                return False
+        return True
     
     def totuple(self):
         return (self.alpha, self.delta, self.gamma, self.omega, self.chi, self.phi)

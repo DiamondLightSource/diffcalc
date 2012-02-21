@@ -5,6 +5,7 @@ from diffcalc.geometry.fourc import fourc
 from diffcalc.utils import nearlyEqual, norm1
 from math import pi
 import unittest
+from diffcalc.tools import meq_, mneq_
 try:
     from numpy import matrix
 except ImportError:
@@ -42,8 +43,8 @@ class TestSimulatedCrystalCounter(unittest.TestCase):
         self.assertEquals(self.scc.phiMissmount, 0.)
 
     def testCalcUB(self):
-        UB = [[2 * pi, 0, 0], [0, 2 * pi, 0], [0, 0, 2 * pi]]
-        self.assert_(norm1(self.scc.UB - matrix(UB)) <= .0001)
+        UB = matrix([[2 * pi, 0, 0], [0, 2 * pi, 0], [0, 0, 2 * pi]])
+        mneq_(self.scc.UB, UB)
 
     def testGetHkl(self):
         self.diff.pos = [60, 30, 0, 0]

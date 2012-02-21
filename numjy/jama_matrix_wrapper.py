@@ -11,6 +11,8 @@ class matrix(object):
                 l.append([float(element)
                           for element in row.replace(',', ' ').split()])
             self.m = Jama.Matrix(l)
+        elif isinstance(a, matrix):
+            self.m = Jama.Matrix(a.m)
         else:
             self.m = Jama.Matrix(a)
 
@@ -44,6 +46,9 @@ class matrix(object):
                 row.append(self[i, j])
             l.append(row)
         return l
+
+    def sum(self):
+        return sum(sum(row) for row in self.m.array)
 
     @property
     def I(self):

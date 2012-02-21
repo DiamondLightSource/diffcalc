@@ -51,7 +51,7 @@ class GdaLikeScannable(object):
         
         result = []
         for field, format in zip(pos, self.getOutputFormat()):
-            if field == None:
+            if field is None:
                 result.append('???')
             else:
                 s = (format % field)

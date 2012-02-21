@@ -63,11 +63,11 @@ def cross3(x, y):
 
 def dot3(x, y):
     """z = dot3(x ,y) -- where x, y are 3*1 Jama matrices"""
-    if isinstance(x, matrix):  #TODO: Remove Jama version
-        return x[0, 0] * y[0, 0] +  x[1, 0] * y[1, 0] +  x[2, 0] * y[2, 0]
+    return x[0, 0] * y[0, 0] +  x[1, 0] * y[1, 0] +  x[2, 0] * y[2, 0]
 
 # TODO: Remove, used only by messy tests
 def norm1(m):
+    1/0
     """Returns maximum column sum."""
     return m.sum(axis=0).max()
 

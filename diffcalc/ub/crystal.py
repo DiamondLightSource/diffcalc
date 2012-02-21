@@ -76,7 +76,7 @@ class CrystalUnderTest:
         '''    Returns lattice name and all set and calculated parameters'''
         
         # Assume that if name is set, everything has been calculated
-        if self._name == None:
+        if self._name is None:
             return "   none specified\n" 
         
         b = self._bMatrix

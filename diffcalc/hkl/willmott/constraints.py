@@ -1,5 +1,6 @@
 from diffcalc.utils import DiffcalcException
 
+
 def filter_dict(d, keys):
     """Return a copy of d containing only keys that are in keys"""
     ##return {k: d[k] for k in keys} # requires Python 2.6
@@ -11,15 +12,13 @@ valueless_constraints = ('bin_eq_bout')
 all_constraints = ref_constraints
 
 
-
-
 class WillmottConstraintManager(object):
     """Constraints in degrees.
     """
 
     def __init__(self):
-        self._constrained = {'bin_eq_bout': None} # dictionary of constrained values, may be
-    
+        self._constrained = {'bin_eq_bout': None}
+
     @property
     def available(self):
         """list of all available constraints"""
@@ -29,22 +28,22 @@ class WillmottConstraintManager(object):
     def all(self):
         """dictionary of all constrained values"""
         return self._constrained.copy()
-    
-    @property    
+
+    @property
     def reference(self):
         """dictionary of constrained reference circles"""
         return filter_dict(self.all, ref_constraints)
-    
+
     @property
     def constrained_names(self):
         """ordered tuple of constained circles"""
         names = self.all.keys()
         names.sort(key=lambda name:list(all_constraints).index(name))
         return tuple(names)
-    
+
     def is_constrained(self, name):
         return self._constrained.has_key(name)
-        
+
     def get_value(self, name):
         return self._constrained[name]
 ###
@@ -55,7 +54,7 @@ class WillmottConstraintManager(object):
         # headings
         lines = ['    ' + 'REF'.ljust(max_name_width)]
         lines.append('    ' + '=' * max_name_width + ' ')
-        
+
         # constraint rows
         for n_row in range(num_rows):
             cells = []
@@ -66,7 +65,7 @@ class WillmottConstraintManager(object):
             lines.append(''.join(cells))
         lines.append
         return '\n'.join(lines)
-    
+
     def _report_constraints(self):
         if not self.reference:
             return "!!! No reference constraint set"
@@ -78,16 +77,16 @@ class WillmottConstraintManager(object):
                 return "!!! %s: ---" % name
             else:
                 return "    %s: %.4f" % (name, val)
-            
+
     def _label_constraint(self, name):
         if name == '':
-            label = '    '      
+            label = '    '
         elif (self.is_constrained(name) and (self.get_value(name) is None) and
             name not in valueless_constraints):
             label = 'o-> '
         elif self.is_constrained(name):
-            label = '--> ' 
-        else: 
+            label = '--> '
+        else:
             label = '    '
         return label
 ###
@@ -98,7 +97,7 @@ class WillmottConstraintManager(object):
             return self._constrain_reference(name)
         else:
             raise DiffcalcException('%s is not a valid constraint name')
-    
+
     def _constrain_reference(self, name):
         if self.reference:
             constrained_name = self.reference.keys()[0]
@@ -107,7 +106,7 @@ class WillmottConstraintManager(object):
             return '%s constraint replaced.' % constrained_name.capitalize()
         else:
             self._constrained[name] = None
-    
+
     def unconstrain(self, name):
         if self._constrained.has_key(name):
             del self._constrained[name]
@@ -132,4 +131,4 @@ class WillmottConstraintManager(object):
         old = str(old_value) if old_value is not None else '---'
         self._constrained[name] = float(value)
         new = str(value)
-        return "%(name)s : %(old)s --> %(new)s" % locals() 
+        return "%(name)s : %(old)s --> %(new)s" % locals()

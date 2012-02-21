@@ -1,9 +1,8 @@
-
 try:
-    from Jama import Matrix
+    from numpy import matrix
 except ImportError:
-    from diffcalc.npadaptor import Matrix
-
+    from numjy import matrix
+    
 from diffcalc.tools import assert_almost_equal, assert_array_almost_equal, \
     assert_2darray_almost_equal, assert_matrix_almost_equal, \
     assert_dict_almost_equal
@@ -80,15 +79,15 @@ class test_assert_2darray_almost_equal():
 class test_assert_matrix_almost_equal(): 
 
     def test__passes(self):
-        assert_matrix_almost_equal(Matrix([[1, 2], [3, 4]]),
-                                   Matrix([[1.00000001, 2], [3, 4]]))
-        assert_matrix_almost_equal(Matrix([[1, 2], [3, 4]]),
-                                   Matrix([[1.0000001, 2], [3, 4]]), 6)
+        assert_matrix_almost_equal(matrix([[1, 2], [3, 4]]),
+                                   matrix([[1.00000001, 2], [3, 4]]))
+        assert_matrix_almost_equal(matrix([[1, 2], [3, 4]]),
+                                   matrix([[1.0000001, 2], [3, 4]]), 6)
         
     def test_wrong_length(self):
         try:
-            assert_matrix_almost_equal(Matrix([[1, 2], [3, 4]]),
-                                       Matrix([[1, 2, 3], [4, 5, 6]]))
+            assert_matrix_almost_equal(matrix([[1, 2], [3, 4]]),
+                                       matrix([[1, 2, 3], [4, 5, 6]]))
             assert False
         except AssertionError:
             pass
@@ -96,8 +95,8 @@ class test_assert_matrix_almost_equal():
             
     def test_wrong_value(self):
         try:
-            assert_matrix_almost_equal(Matrix([[1, 2], [3, 4]]),
-                                        Matrix([[1.0000001, 2], [3, 4]]))
+            assert_matrix_almost_equal(matrix([[1, 2], [3, 4]]),
+                                        matrix([[1.0000001, 2], [3, 4]]))
             assert False
         except AssertionError:
             pass

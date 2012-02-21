@@ -1,7 +1,9 @@
 try:
-    from Jama import Matrix
+    from numpy import matrix
+    from numpy.linalg import norm
 except ImportError:
-    from diffcalc.npadaptor import Matrix
+    from numjy import matrix
+    from numjy.linalg import norm
 from diffcalc.geometry.fourc import fourc
 from diffcalc.hkl.vlieg.position  import VliegPosition
 import unittest
@@ -19,7 +21,7 @@ class TestFourCirclePlugin(unittest.TestCase):
     
     def testInternalPositionToPhysicalAngles(self):
         result = self.geometry.internalPositionToPhysicalAngles(VliegPosition(0, 2, 0, 4, 5, 6))
-        self.assert_(Matrix([[2, 4, 5, 6]]).minus(Matrix([list(result)])).normF() < 0.001)
+        self.assert_(norm(matrix([[2, 4, 5, 6]]) - matrix([list(result)])) < 0.001)
         
 #    def testPhysicalAnglesToInternalWrongInput(self):
 #        pos = (1,2,3,4,5)

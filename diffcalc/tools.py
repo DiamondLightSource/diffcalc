@@ -1,4 +1,5 @@
 from nose.tools import assert_almost_equal #@UnresolvedImport
+from nose.tools import ok_
 # This is in there, but is dynamically copied in from unittest.Testcase and is
 # not seen by pydev.
 
@@ -77,4 +78,7 @@ def assert_iterable_almost_equal(first, second, places=7, msg=None, note=None):
             if f != s:
                 raise AssertionError("%r != %r%s" % (f, s, format_note(note)))
         
-matrixeq_ = assert_matrix_almost_equal
+mneq_ = matrixeq_ = assert_matrix_almost_equal
+
+def meq_(a, b):
+    ok_((a == b).all(), '\n%s\n  !=\n%s' % (a, b))

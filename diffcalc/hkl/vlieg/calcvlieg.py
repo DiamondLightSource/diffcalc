@@ -398,7 +398,7 @@ class VliegHklCalculator(HklCalculatorBase):
         """
         (delta, twotheta) = _determineDelta(hklPhiNorm, alpha, gamma) -- computes delta
         for all modes. Also returns twotheta for sanity checking. hklPhiNorm is a 3X1
-        Jama matrix.
+        matrix.
         
         alpha, gamma & delta - in radians.
         h k & l normalised to wavevector and in phi axis coordinates
@@ -416,7 +416,7 @@ class VliegHklCalculator(HklCalculatorBase):
         (omega, chi, phi, psi)=determineNonZAxisSampleAngles(hklPhiNorm, alpha, delta, gamma, sigma, tau)
         where hkl has been normalised by the wavevector and is in the phi Axis
         coordinate frame. All angles in radians. hklPhiNorm is a 3X1
-        Jama matrix
+        matrix
         """
         
         def equation49through59(psi):
@@ -638,7 +638,7 @@ class VliegHklCalculator(HklCalculatorBase):
         """
         Mo = _findMatrixToTransformAIntoB(a, a) --- Finds a particular matrix
         Mo that transforms the unit vector a into the unit vector b. Thats is it finds
-        Mo Mo*a=b. a and b 3x1 Jama matrixes and Mo is a 3x3 Jama matrix.
+        Mo Mo*a=b. a and b 3x1 matrixes and Mo is a 3x3 matrix.
         
         Throws an exception if this is not possible.
             """
@@ -687,7 +687,7 @@ def _findOmegaAndChiToRotateHchiIntoQalpha(h_chi, q_alpha):
     (omega, chi) = _findOmegaAndChiToRotateHchiIntoQalpha(H_chi, Q_alpha)
     
     Solves for omega and chi in OMEGA*CHI*h_chi = q_alpha where h_chi and q_alpha
-    are 3x1 Jama matrices with unit length. Omega and chi are returned in radians.
+    are 3x1 matrices with unit length. Omega and chi are returned in radians.
     
     Throws an exception if this is not possible.
     """

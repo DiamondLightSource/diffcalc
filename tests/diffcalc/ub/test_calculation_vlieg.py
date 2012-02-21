@@ -1,7 +1,7 @@
 from datetime import datetime
 from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
 from diffcalc.hkl.vlieg.position import VliegPosition
-from diffcalc.tools import matrixeq_
+from diffcalc.tools import matrixeq_, mneq_
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.utils import DiffcalcException, norm1
@@ -58,15 +58,15 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
             self.ubcalc.setLattice(sess.name, *sess.lattice)
             self.ubcalc.setUManually(U)        
             # Check the U matrix
-            self.assert_(norm1(self.ubcalc.getUMatrix() - matrix(U)) <= .0001, "wrong U after manually setting U")
+            mneq_(self.ubcalc.getUMatrix(), matrix(U), 4, note="wrong U after manually setting U")
             
             # Check the UB matrix
-            if sess.bmatrix == None:
+            if sess.bmatrix is None:
                 continue
             print "U: ", U
             print "actual ub: ", self.ubcalc.getUBMatrix().tolist()
             print " desired b: ", sess.bmatrix
-            self.assert_(norm1(self.ubcalc.getUBMatrix() - matrix(sess.bmatrix)) <= .0001, "wrong UB matrix after manually setting U")
+            mneq_(self.ubcalc.getUBMatrix(), matrix(sess.bmatrix), 4, note="wrong UB after manually setting U")
 
     def testGetUMatrix(self):
         self.ubcalc.newCalculation('testcalc')
@@ -85,7 +85,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
             self.setUp()
             self.ubcalc.newCalculation('testcalc')
             # Skip this test case unless it contains a umatrix
-            if sess.umatrix == None:
+            if sess.umatrix is None:
                 continue
         
             self.ubcalc.setLattice(sess.name, *sess.lattice)
@@ -97,7 +97,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
             print sess.umatrix
             print "*Returned:"
             print returned
-            self.assert_((norm1(self.ubcalc.getUMatrix() - matrix(sess.umatrix))) < .0001, "wrong U calulated for sess.name=" + sess.name)
+            mneq_(self.ubcalc.getUMatrix(), matrix(sess.umatrix), 4, note="wrong U calulated for sess.name=" + sess.name)
 
     def test__str__(self):
         sess = scenarios.sessions()[0]

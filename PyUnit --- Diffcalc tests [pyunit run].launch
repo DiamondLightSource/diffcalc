@@ -19,5 +19,5 @@
 <stringAttribute key="org.python.pydev.debug.ATTR_INTERPRETER" value="__default"/>
 <stringAttribute key="org.python.pydev.debug.ATTR_PROJECT" value="diffcalc"/>
 <intAttribute key="org.python.pydev.debug.ATTR_RESOURCE_TYPE" value="2"/>
-<stringAttribute key="org.python.pydev.debug.ATTR_UNITTEST_CONFIGURATION_FILE" value="/home/zrb13439/gda/diffcalc/tests/diffcalc/hkl/vlieg/test_calcvlieg.py|TestVliegCoreMathBits.SKIP_test__findOmegaAndChiToRotateHchiIntoQalpha_WithRandomValues&#10;/home/zrb13439/gda/diffcalc/tests/diffcalc/hkl/vlieg/test_calcvlieg.py|TestVliegCoreMathBits.test__findOmegaAndChiToRotateHchiIntoQalpha_WithIntegerValues&#10;/home/zrb13439/gda/diffcalc/tests/diffcalc/hkl/vlieg/test_calcvlieg.py|TestVliegCoreMathBits.test__findOmegaAndChiToRotateHchiIntoQalpha_WithTrickyOnes&#10;"/>
+<stringAttribute key="org.python.pydev.debug.ATTR_UNITTEST_CONFIGURATION_FILE" value="/home/zrb13439/gda/diffcalc/tests/diffcalc/test_diffractioncalculator.py|TestDiffractionCalculatorHklWithDataSess2Calc0.test_hklToAngles&#10;/home/zrb13439/gda/diffcalc/tests/diffcalc/test_diffractioncalculator.py|TestDiffractionCalculatorHklWithDataSess3Calc0.test_hklToAngles&#10;/home/zrb13439/gda/diffcalc/tests/diffcalc/ub/test_commands.py|TestUbCommands.testCalcub&#10;"/>
 </launchConfiguration>

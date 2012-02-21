@@ -12,7 +12,7 @@ from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry, \
     SixCircleGeometry
 from diffcalc.hardware.dummy import DummyHardwareMonitorPlugin
 from diffcalc.hardware.scannable import ScannableHardwareMonitorPlugin
-from diffcalc.tools import assert_array_almost_equal
+from diffcalc.tools import assert_array_almost_equal, mneq_
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.utils import DiffcalcException, MockRawInput, norm1
 from tests.diffcalc import scenarios
@@ -77,8 +77,7 @@ class BaseTestDiffractionCalculatorWithData():
         self.d.ubcommands.calcub()
         
         # check the ubcalculation is okay before continuing (useful to check for typos!)        
-        self.assert_(norm1(self.d._ubcalc.getUBMatrix() - (matrix(s.umatrix) * (matrix(s.bmatrix)))) <= .0001, \
-                                                         "wrong UB matrix after calculating U")
+        mneq_(self.d._ubcalc.getUBMatrix(), matrix(s.umatrix) * matrix(s.bmatrix), 4, note="wrong UB matrix after calculating U")
         # Test each hkl/position pair
         for idx in range(len(c.hklList)):
             hkl = c.hklList[idx]
@@ -105,8 +104,7 @@ class BaseTestDiffractionCalculatorWithData():
         r = s.ref2; self.d.ubcommands.addref(r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
         self.d.ubcommands.calcub()
         # check the ubcalculation is okay before continuing (useful to check for typos!)        
-        self.assert_(norm1(self.d._ubcalc.getUBMatrix() - (matrix(s.umatrix) * (matrix(s.bmatrix)))) <= .0001, \
-                                                         "wrong UB matrix after calculating U")
+        mneq_(self.d._ubcalc.getUBMatrix(),matrix(s.umatrix) * matrix(s.bmatrix), 4, note="wrong UB matrix after calculating U")
     
         ## setup calculation info
         self.d.hklcommands.hklmode(c.modeNumber)
@@ -125,8 +123,7 @@ class BaseTestDiffractionCalculatorWithData():
             expectedAnglesString = ("%f " * len(expectedangles)) % expectedangles
             anglesString = ("%f " * len(angles)) % angles    
             namesString = ("%s " * len(self.hardware.getPhysicalAngleNames())) % self.hardware.getPhysicalAngleNames()
-            self.assert_(norm1(matrix([list(expectedangles)]) - (matrix([list(angles)]))) <= .03, \
-                        "wrong position calcualted for TestScenario=%s, AngleTestScenario=%s, hkl=%f %f %f:\n                       { %s }\n  expected pos=%s\n  returned pos=%s "\
+            mneq_(matrix([list(expectedangles)]), matrix([list(angles)]), 2, note="wrong position calcualted for TestScenario=%s, AngleTestScenario=%s, hkl=%f %f %f:\n                       { %s }\n  expected pos=%s\n  returned pos=%s "\
                         % (s.name, c.tag, h, k, l, namesString, expectedAnglesString, anglesString))
             del params
     
@@ -154,8 +151,7 @@ class BaseTestDiffractionCalculatorWithData():
         self.d.ubcommands.calcub()
         
         # check the ubcalculation is okay before continuing (useful to check for typos!)        
-        self.assert_(norm1(self.d._ubcalc.getUBMatrix() - (matrix(s.umatrix) * (matrix(s.bmatrix)))) <= .0001, \
-                                                         "wrong UB matrix after calculating U")
+        mneq_(self.d._ubcalc.getUBMatrix(), (matrix(s.umatrix) * (matrix(s.bmatrix))), 4, note="wrong UB matrix after calculating U")
         self.hardware.setEnergy(c.energy)
         # Test each hkl/position pair
         for idx in range(len(c.hklList)):
@@ -419,7 +415,7 @@ class SixcGammaOnBaseTest(TestSixcBase):
         self.d.checkub()
         res = self.d._ubcalc.getUMatrix()
         des = matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-        self.assert_(norm1(res - des) <= .0001)
+        mneq_(res, des, 4)
         print "***"
         self.d.ubcommands.ub()
         print "***"

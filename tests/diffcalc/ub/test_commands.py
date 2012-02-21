@@ -1,6 +1,6 @@
 from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
 from diffcalc.hardware.dummy import DummyHardwareMonitorPlugin
-from diffcalc.tools import assert_iterable_almost_equal
+from diffcalc.tools import assert_iterable_almost_equal, mneq_
 from diffcalc.ub.commands import UbCommands
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.utils import DiffcalcException, MockRawInput, norm1
@@ -303,8 +303,7 @@ class TestUbCommands(unittest.TestCase):
         r = s.ref1; self.ubcommands.addref(r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
         r = s.ref2; self.ubcommands.addref(r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
         self.ubcommands.calcub()
-        self.assert_(norm1(self.ubcalc.getUBMatrix() - (matrix(s.umatrix) * (matrix(s.bmatrix)))) <= .0001, \
-                                                         "wrong UB matrix after calculating U")    
+        mneq_(self.ubcalc.getUBMatrix(), matrix(s.umatrix) * matrix(s.bmatrix), 4, note="wrong UB matrix after calculating U")    
 
     def testC2th(self):
         self.ubcommands.newub('testcalcub')

@@ -1,8 +1,4 @@
 from diffcalc.utils import AbstractPosition
-try:
-    from Jama import Matrix
-except ImportError:
-    from diffcalc.npadaptor import Matrix
 
 from math import pi
 

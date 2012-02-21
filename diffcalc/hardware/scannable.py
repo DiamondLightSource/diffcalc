@@ -22,7 +22,7 @@ class ScannableHardwareMonitorPlugin(HardwareMonitorPlugin):
 	def getEnergy(self):
 		"""energy = getEnergy() -- returns energy in kEv (NOT eV!) """
 		energy = self.energyhw.getPosition() * self.energyScannableMultiplierToGetKeV
-		if energy == None:
+		if energy is None:
 			raise DiffcalcException("Energy has not been set")
 		return energy 
 

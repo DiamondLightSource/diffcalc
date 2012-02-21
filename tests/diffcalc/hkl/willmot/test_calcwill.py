@@ -19,9 +19,9 @@ from tests.diffcalc.hkl.vlieg.test_calcvlieg import createMockUbcalc, \
     createMockDiffractometerGeometry
 
 try:
-    from Jama import Matrix
+    from numpy import matrix
 except ImportError:
-    from diffcalc.npadaptor import Matrix
+    from numjy import matrix
 
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -85,12 +85,12 @@ Si_5_5_12_REF1 = WillmottHorizontalPosition(delta=11.292, gamma=2.844, omegah=2,
 Si_5_5_12_WAVELENGTH = 0.6358
 
 # This is U matrix displayed by DDIF
-U_FROM_DDIF = Matrix([[0.233140, 0.510833, 0.827463],
+U_FROM_DDIF = matrix([[0.233140, 0.510833, 0.827463],
                       [-0.65596, -0.545557, 0.521617],
                       [0.717888, -0.664392, 0.207894]])
 
 # This is the version that Diffcalc comes up with ( see following test)
-Si_5_5_12_U_DIFFCALC = Matrix([[-0.7178876, 0.6643924, -0.2078944],
+Si_5_5_12_U_DIFFCALC = matrix([[-0.7178876, 0.6643924, -0.2078944],
                      [-0.6559596, -0.5455572, 0.5216170],
                      [0.2331402, 0.5108327, 0.8274634]])
 
@@ -125,7 +125,7 @@ class TestSurfaceNormalVertical_Si_5_5_12_PosGamma(_BaseTest):
         self.wavelength = 0.6358
         B = CrystalUnderTest('xtal', 7.68, 53.48,
                              75.63, 90, 90, 90).getBMatrix()
-        self.UB = Si_5_5_12_U_DIFFCALC.times(B)
+        self.UB = Si_5_5_12_U_DIFFCALC * B
         diffcalc.hkl.willmott.calcwill_horizontal.CHOOSE_POSITIVE_GAMMA = True
 
     def _configure_ub(self):
@@ -192,7 +192,7 @@ class SkipTestSurfaceNormalVertical_Si_5_5_12_NegGamma(TestSurfaceNormalVertical
         self.wavelength = 0.6358
         B = CrystalUnderTest('xtal', 7.68, 53.48,
                              75.63, 90, 90, 90).getBMatrix()
-        self.UB = Si_5_5_12_U_DIFFCALC.times(B)
+        self.UB = Si_5_5_12_U_DIFFCALC * B
         diffcalc.hkl.willmott.calcwill_horizontal.CHOOSE_POSITIVE_GAMMA = False
         
         
@@ -219,12 +219,12 @@ Pt531_REF2_DIFFCALC = WillmottHorizontalPosition( 14.188161709766,  7.7585939087
 Pt531_WAVELENGTH = 0.6358
 
 # This is U matrix displayed by DDIF
-U_FROM_DDIF = Matrix([[-0.00312594,  -0.00063417,   0.99999491],
+U_FROM_DDIF = matrix([[-0.00312594,  -0.00063417,   0.99999491],
                       [0.99999229,  -0.00237817,   0.00312443],
                       [0.00237618,   0.99999697,   0.00064159]])
 
 # This is the version that Diffcalc comes up with ( see following test)
-Pt531_U_DIFFCALC = Matrix([[-0.0023763, -0.9999970, -0.0006416],
+Pt531_U_DIFFCALC = matrix([[-0.0023763, -0.9999970, -0.0006416],
                            [ 0.9999923, -0.0023783,  0.0031244],
                            [-0.0031259, -0.0006342,  0.9999949]])
 
@@ -257,7 +257,7 @@ class TestSurfaceNormalVertical_Pt531_PosGamma(_BaseTest):
         self.constraints.reference = {'betain': 2}
         self.wavelength = Pt531_WAVELENGTH
         B = CrystalUnderTest('Pt531', 6.204, 4.806, 23.215, 90, 90, 49.8).getBMatrix()
-        self.UB = Pt531_U_DIFFCALC.times(B)
+        self.UB = Pt531_U_DIFFCALC * B
         diffcalc.hkl.willmott.calcwill_horizontal.CHOOSE_POSITIVE_GAMMA = True
 
     def _configure_ub(self):

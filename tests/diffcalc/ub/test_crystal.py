@@ -1,4 +1,4 @@
-from diffcalc.tools import assert_dict_almost_equal
+from diffcalc.tools import assert_dict_almost_equal, mneq_
 from diffcalc.ub.crystal import CrystalUnderTest
 from tests.diffcalc import scenarios
 import unittest
@@ -25,14 +25,14 @@ class TestCrystalUnderTest(unittest.TestCase):
     def testGetBMatrix(self):
         # Check the calculated B Matrix
         for sess in scenarios.sessions():
-            if sess.bmatrix == None:
+            if sess.bmatrix is None:
                 continue    
             cut = CrystalUnderTest('tc', *sess.lattice)
             desired = matrix(sess.bmatrix)
             print desired.tolist()
             answer = cut.getBMatrix()
             print answer.tolist()
-            self.assert_((norm1(answer - desired)) < .0001, "Incorrect B matrix calculation for scenario.name=" + sess.name)
+            mneq_(answer, desired, 4, note="Incorrect B matrix calculation for scenario.name=" + sess.name)
 
     def test__str__(self):
         cut = CrystalUnderTest("HCl", 1, 2, 3, 4, 5, 6)

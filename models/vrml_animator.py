@@ -75,7 +75,7 @@ class Animator(object):
         print "    axes : " + ' '.join(axisnames)
         # Create viewer
         self.myWindow = SoGui.init(sys.argv[0])
-        if self.myWindow == None: sys.exit(1)
+        if self.myWindow is None: sys.exit(1)
         viewer = SoGuiExaminerViewer(self.myWindow)
         # load file into scene
         input = SoInput()

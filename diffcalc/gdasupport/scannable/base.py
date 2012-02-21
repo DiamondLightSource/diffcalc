@@ -27,7 +27,7 @@ class ScannableGroup(PseudoDevice):
             position = list(position)
             current = self.getPosition()
             for idx, val in enumerate(position):
-                if val == None:
+                if val is None:
                     position[idx] = current[idx]
         
         for scn, pos in zip(self.__motors, position):

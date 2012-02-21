@@ -21,6 +21,7 @@ SMALL = 1e-10
 
 TEMPORARY_CONSTRAINTS_DICT_RAD = {'betain': 2 * TORAD}
 
+
 def x_rotation(th):
     return matrix(((1, 0, 0), (0, cos(th), -sin(th)), (0, sin(th), cos(th))))
 
@@ -55,7 +56,8 @@ def calc_PHI(phi):
 
 
 def angles_to_hkl_phi(delta, gamma, omegah, phi):
-    """Calculate hkl matrix in phi frame in units of 2*pi/lambda"""
+    """Calculate hkl matrix in phi frame in units of 2*pi/lambda
+    """
     DELTA, GAMMA, OMEGAH, PHI = create_matrices(delta, gamma, omegah, phi)
     H_lab = (GAMMA * DELTA - I) * matrix([[0], [1], [0]])                # (43)
     H_phi = PHI.I * OMEGAH.I * H_lab                                     # (44)
@@ -63,7 +65,8 @@ def angles_to_hkl_phi(delta, gamma, omegah, phi):
 
 
 def angles_to_hkl(delta, gamma, omegah, phi, wavelength, UB):
-    """Calculate hkl matrix in reprical lattice space in units of 1/Angstrom"""
+    """Calculate hkl matrix in reprical lattice space in units of 1/Angstrom
+    """
     H_phi = angles_to_hkl_phi(delta, gamma, omegah, phi) * 2 * pi / wavelength
     hkl = UB.I * H_phi                                                    # (5)
     return hkl
@@ -72,10 +75,10 @@ def angles_to_hkl(delta, gamma, omegah, phi, wavelength, UB):
 class WillmottHorizontalPosition(AbstractPosition):
 
     def __init__(self, delta=None, gamma=None, omegah=None, phi=None):
-        self.delta = delta # diff1vdelta
-        self.gamma = gamma # diff1vgamma
-        self.omegah = omegah # i07 --> diff1halpha
-        self.phi = phi # diff1homega
+        self.delta = delta
+        self.gamma = gamma
+        self.omegah = omegah
+        self.phi = phi
 
     def clone(self):
         return WillmottHorizontalPosition(self.delta, self.gamma, self.omegah,
@@ -105,12 +108,10 @@ class WillmottHorizontalPosition(AbstractPosition):
 class WillmottHorizontalGeometry(DiffractometerGeometryPlugin):
 
     def __init__(self):
-        DiffractometerGeometryPlugin.__init__(self,
-                    name='willmott_horizontal',
-                    supportedModeGroupList=[],
-                    fixedParameterDict={},
-                    gammaLocation='base'
-                    )
+        DiffractometerGeometryPlugin.__init__(self, name='willmott_horizontal',
+                                              supportedModeGroupList=[],
+                                              fixedParameterDict={},
+                                              gammaLocation='base')
 
     def physicalAnglesToInternalPosition(self, physicalAngles):
         assert (len(physicalAngles) == 4), "Wrong length of input list"
@@ -118,9 +119,10 @@ class WillmottHorizontalGeometry(DiffractometerGeometryPlugin):
 
     def internalPositionToPhysicalAngles(self, internalPosition):
         return internalPosition.totuple()
-    
+
     def create_position(self, delta, gamma, omegah, phi):
         return WillmottHorizontalPosition(delta, gamma, omegah, phi)
+
 
 class WillmottHorizontalUbCalcStrategy(PaperSpecificUbCalcStrategy):
 
@@ -130,61 +132,59 @@ class WillmottHorizontalUbCalcStrategy(PaperSpecificUbCalcStrategy):
 
 
 class DummyConstraints(object):
-    
-    @property    
+
+    @property
     def reference(self):
         """dictionary of constrained reference circles"""
         return TEMPORARY_CONSTRAINTS_DICT_RAD
-    
 
-class ParameterManagerConstraintAdapter(object):
+
+class ConstraintAdapter(object):
 
     def __init__(self, constraints):
         self._constraints = constraints
 
     def getParameterDict(self):
         names = self._constraints.available
-        return dict(zip(names, [None]*len(names)))
-    
+        return dict(zip(names, [None] * len(names)))
+
     def setParameter(self, name, value):
         self._constraints.set(name, value)
-        
+
     def getParameter(self, name):
         if name in self._constraints.all:
             val = self._constraints.get_value(name)
             return 999 if val is None else val
         else:
             return 999
-    
+
     def updateTrackedParameters(self):
         pass
-    
-    
+
 
 class WillmottHorizontalCalculator(HklCalculatorBase):
 
     def __init__(self, ubcalc, geometry, hardware, constraints,
-                  raiseExceptionsIfAnglesDoNotMapBackToHkl=True):
+                 raiseExceptionsIfAnglesDoNotMapBackToHkl=True):
         """"
-        Where constraints.reference is a one element dict with the key
-        either ('betain', 'betaout' or 'equal') and the value a number or None
-        for 'betain_eq_betaout'
+        Where constraints.reference is a one element dict with the key either
+        ('betain', 'betaout' or 'equal') and the value a number or None for
+        'betain_eq_betaout'
         """
 
         HklCalculatorBase.__init__(self, ubcalc, geometry, hardware,
                                    raiseExceptionsIfAnglesDoNotMapBackToHkl)
 
-        
         if constraints is not None:
             self.constraints = constraints
-            self.parameter_manager = ParameterManagerConstraintAdapter(constraints)
+            self.parameter_manager = ConstraintAdapter(constraints)
         else:
             self.constraints = DummyConstraints()
             self.parameter_manager = DummyParameterManager()
-        
+
     @property
     def _UB(self):
-        return matrix(self._ubcalc.getUBMatrix().array)  # Jama to numpy matrix
+        return self._ubcalc.getUBMatrix()
 
     def _anglesToHkl(self, pos, wavelength):
         """
@@ -192,7 +192,7 @@ class WillmottHorizontalCalculator(HklCalculatorBase):
         """
         hkl_matrix = angles_to_hkl(pos.delta, pos.gamma, pos.omegah, pos.phi,
                              wavelength, self._UB)
-        return hkl_matrix[0,0], hkl_matrix[1,0], hkl_matrix[2,0],
+        return hkl_matrix[0, 0], hkl_matrix[1, 0], hkl_matrix[2, 0],
 
     def _anglesToVirtualAngles(self, pos, wavelength):
         """
@@ -231,7 +231,7 @@ class WillmottHorizontalCalculator(HklCalculatorBase):
 
         if not self.constraints.reference:
             raise ValueError("No reference constraint has been constrained.")
-        
+
         ref_name, ref_value = self.constraints.reference.items()[0]
         if ref_value is not None:
             ref_value *= TORAD

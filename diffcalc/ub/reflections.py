@@ -97,7 +97,7 @@ class ReflectionList:
         #    result += "<<empty>>"
         for n in range(len(self._reflist)):
             ([h, k, l], externalAngles, energy, tag, _) = self.getReflectionInExternalAngles(n + 1)
-            if tag == None:
+            if tag is None:
                 tag = ""
             format = "   %-2d %-6.3f %-4.2f %-4.2f %-4.2f  " + "%-8.4f " * len(circleNames) + " %-s\n"
             values = (n + 1, energy, h, k, l) + externalAngles + (tag,)
@@ -112,7 +112,7 @@ class ReflectionList:
         for n in range(len(self._reflist)):
             ref = self._reflist[n]
             pos = ref.pos
-            if ref.tag == None:
+            if ref.tag is None:
                 tag = ""
             else:
                 tag = ref.tag

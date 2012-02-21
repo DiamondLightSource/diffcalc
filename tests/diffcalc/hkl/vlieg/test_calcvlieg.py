@@ -60,7 +60,7 @@ class TestVliegCoreMathBits(unittest.TestCase):
         self.assertRaises(DiffcalcException, check, False, DiffcalcException('dce'))
         
         def acallable(toPrint=None):
-            if toPrint == None:
+            if toPrint is None:
                 print "Not throwing exception"
             else:
                 print toPrint

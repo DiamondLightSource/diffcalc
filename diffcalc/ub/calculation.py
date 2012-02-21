@@ -163,14 +163,14 @@ class UBCalculation:
             result = "UBCalc:     %s\n" % self._name
             result += "======\n\n"
             result += "Crystal\n-------\n"
-            if self._crystal == None:
+            if self._crystal is None:
                 result += "   none specified\n"
             else:
                 result += self._crystal.__str__()
             result += "\nReflections\n-----------\n"
             result += self._reflist.__str__()
             result += "\nUB matrix\n---------\n"
-            if self._UB == None:
+            if self._UB is None:
                 result += "   none calculated"
             else:
                 ub = self._UB
@@ -226,7 +226,7 @@ class UBCalculation:
         
     def _setLattice(self, name, a, b, c, alpha, beta, gamma):
         """setLattice( name, a,b,c,alpha,beta,gamma ) -- set lattice parameters in degrees"""
-        if self._name == None:
+        if self._name is None:
             raise DiffcalcException("Cannot set lattice until a UBCalcaluation has been started with newubcalc")
         self._crystal = CrystalUnderTest(name, a, b, c, alpha, beta, gamma)
         # Clear U and UB if these exist
@@ -265,7 +265,7 @@ class UBCalculation:
 ### Reflections ###
         
     def dispReflectionList(self):
-        if self._reflist == None:
+        if self._reflist is None:
             return "No UBCalculation loaded"
         else:
             return self._reflist.toStringWithExternalAngles()
@@ -275,7 +275,7 @@ class UBCalculation:
         
         position is in degrees and in the systems internal representation.
         """
-        if self._reflist == None:
+        if self._reflist is None:
             raise DiffcalcException("No UBCalculation loaded")
         self._reflist.addReflection(h, k, l, position, energy, tag, time)
         self.save() # incase autocalculateUbAndReport fails    
@@ -290,7 +290,7 @@ class UBCalculation:
         
         position is in degrees and in the systems internal representation.
         """
-        if self._reflist == None:
+        if self._reflist is None:
             raise DiffcalcException("No UBCalculation loaded")
         self._reflist.editReflection(num, h, k, l, position, energy, tag, time)
         
@@ -320,12 +320,12 @@ class UBCalculation:
     def _autocalculateUbAndReport(self):
         if len(self._reflist) < 2:
             pass
-        elif self._crystal == None:
+        elif self._crystal is None:
             print "Not calculating UB matrix as no lattice parameters have been specified."
         elif not self._okayToAutoCalculateUB:
             print "Not calculating UB matrix as it has been manually set. Use 'calcub' to explicitly recalculate it."
         else: # okay to autocalculate
-            if self._UB == None:
+            if self._UB is None:
                 print "Calculating UB matrix."
             else:
                 print "Recalculating UB matrix."
@@ -346,10 +346,10 @@ class UBCalculation:
             raise  ValueError("Expects 3*3 matrix")
         
         self._U = m
-        if self._crystal == None:
+        if self._crystal is None:
             raise DiffcalcException("A crystal must be specified before manually setting U")
         self._UB = self._U * self._crystal.getBMatrix()
-        if self._UB == None:
+        if self._UB is None:
             print "Calculating UB matrix."
         else:
             print "Recalculating UB matrix."
@@ -382,15 +382,15 @@ the orientation reflections are modified."""
 
         
     def getUMatrix(self):
-        if self._U == None:
+        if self._U is None:
             raise DiffcalcException("No U matrix has been calculated during this ub calculation")
         return self._U
         
     def getUBMatrix(self):
-        if self._UB == None:
+        if self._UB is None:
             raise DiffcalcException("No UB matrix has been calculated during this ub calculation")
         if self._geometry.mirrorInXzPlane:
-            return MIRROR.times(self._UB)
+            return MIRROR * self._UB
         else:
             return self._UB
     
@@ -411,15 +411,15 @@ the orientation reflections are modified."""
         self._ubSetManually = False
         
         # Get hkl and angle values for the first two refelctions
-        if self._reflist == None:
+        if self._reflist is None:
             raise DiffcalcException("Cannot calculate a u matrix until a UBCalcaluation has been started with newub")
         try:
             (h1, pos1, _, _, _) = self._reflist.getReflection(1)
             (h2, pos2, _, _, _) = self._reflist.getReflection(2)
         except IndexError:
             raise DiffcalcException("Two reflections are required to calculate a u matrix")
-        h1 = matrix([h1]).transpose() # row->column
-        h2 = matrix([h2]).transpose()
+        h1 = matrix([h1]).T # row->column
+        h2 = matrix([h2]).T
         pos1.changeToRadians()
         pos2.changeToRadians()
         
@@ -492,7 +492,7 @@ the orientation reflections are modified."""
         # Algorithm from http://www.j3d.org/matrix_faq/matrfaq_latest.html
         
         # Get hkl and angle values for the first two refelctions
-        if self._reflist == None:
+        if self._reflist is None:
             raise DiffcalcException("Cannot calculate a u matrix until a UBCalcaluation has been started with newub")
         try:
             (h, pos, _, _, _) = self._reflist.getReflection(1)
@@ -540,7 +540,7 @@ the orientation reflections are modified."""
 
 
 
-        if self._UB == None:
+        if self._UB is None:
             print "Calculating UB matrix from the first reflection only."
         else:
             print "Recalculating UB matrix from the first reflection only."
@@ -572,7 +572,7 @@ the orientation reflections are modified."""
 #        '''
 #        Saves the current lattice as name. Uses curent current name if none given.
 #        '''
-#        if name == None:
+#        if name is None:
 #            name = self.__latticeName
 #            
 #        self.__library.addCrystal(name, (self.__a, self.__b, self.__c, self.__alpha, self.__beta, self.__gamma))

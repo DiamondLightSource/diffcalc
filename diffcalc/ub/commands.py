@@ -290,7 +290,7 @@ class UbCommands(object):
         """
         if U is None:
             U = self._promptFor3x3MatrixDefaultingToIdentity()
-            if U == None:
+            if U is None:
                 return # an error will have been printed or thrown
         if self.__is3x3TupleOrList(U):
             self._ubcalc.setUManually(U)
@@ -303,7 +303,7 @@ class UbCommands(object):
         """setub [((,,),(,,),(,,))] -- manually set ub matrix"""
         if UB is None:
             UB = self._promptFor3x3MatrixDefaultingToIdentity()
-            if UB == None:
+            if UB is None:
                 return # an error will have been printed or thrown
         if self.__is3x3TupleOrList(UB):
             self._ubcalc.setUBManually(UB)

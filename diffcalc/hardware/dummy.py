@@ -23,13 +23,13 @@ class DummyHardwareMonitorPlugin(HardwareMonitorPlugin):
         
     def getEnergy(self):
         """energy = getEnergy() -- returns energy in kEv  """
-        if self.energy == None:
+        if self.energy is None:
             raise DiffcalcException("Energy has not been set in DummySoftwareMonitor")
         return self.energy * self.energyScannableMultiplierToGetKeV
 
     def getWavelength(self):
         """wavelength = getWavelength() -- returns wavelength in Angstroms   """
-        if self.energy == None:
+        if self.energy is None:
             raise DiffcalcException("Energy has not been set in DummySoftwareMonitor")
         return self.wavelength
         

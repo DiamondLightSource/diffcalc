@@ -8,12 +8,9 @@ from math import pi
 from mock import Mock
 
 try:
-    from Jama import Matrix
+    from numpy import matrix
 except ImportError:
-    from diffcalc.npadaptor import Matrix
-
-
-
+    from numjy import matrix
 #newub 'cubic'                   <-->  reffile('cubic) 
 #setlat 'cubic' 1 1 1 90 90 90   <-->  latt([1,1,1,90,90,90])
 #pos wl 1                        <-->  BLi.setWavelength(1)
@@ -29,11 +26,11 @@ except ImportError:
 def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
     return VliegPosition(mu, delta, gamma, eta, chi, phi)
 
-UB1 = Matrix(
+UB1 = matrix(
              ((0.9996954135095477, -0.01745240643728364, -0.017449748351250637),
               (0.01744974835125045, 0.9998476951563913, -0.0003045864904520898),
               (0.017452406437283505, -1.1135499981271473e-16, 0.9998476951563912))
-             ).times(2 * pi)
+             ) * (2 * pi)
              
 EN1 = 12.39842
 REF1a = posFromI16sEuler(1, 1, 30, 0, 60, 0)

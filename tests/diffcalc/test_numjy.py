@@ -1,6 +1,6 @@
 from nose.tools import eq_, ok_, assert_almost_equal  # @UnresolvedImport
 from nose.plugins.skip import SkipTest
-from diffcalc.tools import assert_2darray_almost_equal
+from diffcalc.tools import assert_2darray_almost_equal, meq_
 
 try:
     import numpy
@@ -13,10 +13,6 @@ try:
     __NUMJY_AVAILABLE__ = True
 except ImportError:
     __NUMJY_AVAILABLE__ = False
-
-
-def meq_(a, b):
-    ok_((a == b).all(), '\n%s\n  !=\n%s' % (a, b))
 
 
 class _TestNumpyMatrix():
@@ -129,6 +125,9 @@ class _TestNumpyMatrix():
     def test_T(self):
         meq_(self.m('1 2; 3 4').T,
              self.m('1 3; 2 4'))
+
+    def test_sum(self):
+        eq_(self.m('1 2; 3 4').sum(), 10)
 
 
 class _TestLinalg():

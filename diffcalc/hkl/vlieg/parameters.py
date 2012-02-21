@@ -44,7 +44,7 @@ class VliegParameterManager(object):
             if self.isParameterTracked(name):
                 flags += ' (tracking hardware)'
             value = self._parameters[name]
-            if value == None:
+            if value is None:
                 value = '---'
             else:
                 value = float(value)
@@ -57,7 +57,7 @@ class VliegParameterManager(object):
         for name in self.getUserChangableParametersForMode(self._modeSelector.getMode()):
             flags = ""
             value = self._parameters[name]
-            if value == None:
+            if value is None:
                 value = '---'
             else:
                 value = float(value)
@@ -72,7 +72,7 @@ class VliegParameterManager(object):
         returns a list of parameters names used in this mode for this diffractometer
         geometry. Checks current mode if no mode specified.
         """
-        if mode == None:
+        if mode is None:
             mode = self._mode
         result = []
         for name in self._parameterDisplayOrder:
@@ -143,7 +143,7 @@ class VliegParameterManager(object):
         """Returns true if parameter is used in a mode (current mode if none specified),
         AND if it is not locked by the diffractometer geometry
         """
-        if mode == None:
+        if mode is None:
             mode = self._modeSelector.getMode()
         return (mode.usesParameter(name) and not self._geometry.isParameterFixed(name))   
 

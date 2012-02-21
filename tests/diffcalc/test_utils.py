@@ -92,8 +92,8 @@ class TestPosition(unittest.TestCase):
     def testNearlyEquals(self):
         pos1 = VliegPosition(1, 2, 3, 4, 5, 6)
         pos2 = VliegPosition(1.1, 2.1, 3.1, 4.1, 5.1, 6.1)
-        self.assert_(pos1.nearlyEquals(pos2, 0.3))
-        self.assert_(not pos1.nearlyEquals(pos2, 0.2))
+        self.assert_(pos1.nearlyEquals(pos2, 0.11))
+        self.assert_(not pos1.nearlyEquals(pos2, 0.1))
         
     def testClone(self):
         pos = VliegPosition(1, 2, 3, 4., 5., 6.)

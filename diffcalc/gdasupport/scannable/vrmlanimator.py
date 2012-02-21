@@ -42,7 +42,7 @@ class LinearProfile(object):
         self.start_time = time.time()
         
     def getPosition(self):
-        if self.start_time == None:
+        if self.start_time is None:
             return self.start
         if not self.isMoving():
             return self.end
@@ -104,12 +104,12 @@ class VrmlModelDriver(DottedAccessScannableMotionBase):
         self.rawAsynchronousMoveTo(self.__last_target)
         
     def isBusy(self):
-        if self.move_thread == None:
+        if self.move_thread is None:
             return False
         return self.move_thread.profile.isMoving()
     
     def rawGetPosition(self):
-        if self.move_thread == None:
+        if self.move_thread is None:
             return self.__last_target
         else:
             return self.move_thread.profile.getPosition()
@@ -121,7 +121,7 @@ class VrmlModelDriver(DottedAccessScannableMotionBase):
             print self.name + ".rawAsynchronousMoveTo(%s)" % `targetList`
         
         for i, target in enumerate(targetList):
-            if target == None:
+            if target is None:
                 targetList[i] = self.__last_target[i]
         profile = LinearProfile(self.speed, self.t_accel, self.__last_target, targetList)
         self.move_thread = MoveThread(profile, self.socketfile, self.inputNames)
