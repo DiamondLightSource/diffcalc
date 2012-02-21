@@ -1,17 +1,19 @@
 from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator, \
     _findOmegaAndChiToRotateHchiIntoQalpha, check
 from diffcalc.hkl.vlieg.matrices import createVliegMatrices
-from diffcalc.utils import DiffcalcException
+from diffcalc.utils import DiffcalcException, norm1
 from math import pi
 from mock import Mock
 from tests.diffcalc import scenarios
 import random
 import unittest
 try:
-    from Jama import Matrix
+    from numpy import matrix
+    from numpy.linalg import norm
 except ImportError:
-    from diffcalc.npadaptor import Matrix
-
+    from numjy import matrix
+    from numjy.linalg import norm
+    
 TORAD = pi / 180
 TODEG = 180 / pi
 
@@ -88,24 +90,24 @@ class TestVliegCoreMathBits(unittest.TestCase):
             self.try__findOmegaAndChiToRotateHchiIntoQalpha(omega, chi)
 
     def try__findOmegaAndChiToRotateHchiIntoQalpha(self, omega, chi):
-        h_chi = Matrix([ [1], [1], [1]])
-        h_chi = h_chi.times(1 / h_chi.norm1())
+        h_chi = matrix([ [1], [1], [1]])
+        h_chi = h_chi * (1 / norm(h_chi))
         [_, _, _, OMEGA, CHI, _] = createVliegMatrices(None, None, None, omega * TORAD, chi * TORAD, None)
-        q_alpha = OMEGA.times(CHI).times(h_chi)
+        q_alpha = OMEGA * CHI  * h_chi 
         try:
             omega_calc, chi_calc = _findOmegaAndChiToRotateHchiIntoQalpha(h_chi, q_alpha)
         except ValueError, e:
             raise ValueError(str(e) + "\n, resulting from test where omega:%f chi%f" % (self.omega, self.chi))
         [_, _, _, OMEGA, CHI, _] = createVliegMatrices(None, None, None, omega_calc, chi_calc, None)
-        self.assertArraysNearlyEqual(OMEGA.times(CHI).times(h_chi), q_alpha, .000001, "omega: %f chi:%f" % (omega, chi))
+        self.assertArraysNearlyEqual(OMEGA * CHI  * h_chi , q_alpha, .000001, "omega: %f chi:%f" % (omega, chi))
 
     def assertArraysNearlyEqual(self, first, second, tolerance, contextString=''):
         """Fail if the norm of the difference between two arrays is greater than
            the given tolerance.
         """
-        diff = first.minus(second)
-        if diff.normF() >= tolerance:
-            raise self.failureException, ('\n%s !=\n %s\ncontext: %s' % (`first.array`, `second.array`, contextString))
+        diff = first - second 
+        if norm(diff) >= tolerance:
+            raise self.failureException, ('\n%s !=\n %s\ncontext: %s' % (`first.tolist()`, `second.tolist()`, contextString))
 
 
 
@@ -120,7 +122,7 @@ class BaseTestHklCalculator():
         self.setSessionAndCalculation()
 
     def testAnglesToHkl(self):
-        mockUbcalc = createMockUbcalc(Matrix(self.sess.umatrix).times(Matrix(self.sess.bmatrix)))
+        mockUbcalc = createMockUbcalc(matrix(self.sess.umatrix) * matrix(self.sess.bmatrix ))
                                 
         self.ac = VliegHklCalculator(mockUbcalc, createMockDiffractometerGeometry(), createMockHardwareMonitor())
         self.ac.raiseExceptionsIfAnglesDoNotMapBackToHkl = True
@@ -129,14 +131,14 @@ class BaseTestHklCalculator():
         (hklactual1, params) = self.ac.anglesToHkl(self.sess.ref1.pos, self.sess.ref1.wavelength)
         del params
         (hklactual2, params) = self.ac.anglesToHkl(self.sess.ref2.pos, self.sess.ref2.wavelength)
-        self.assert_(Matrix([hklactual1]).minus(Matrix([self.sess.ref1calchkl])).normF() <= .0003, "wrong hkl calcualted from ref1 angles for scenario.names.name=" + self.sess.name)
-        self.assert_(Matrix([hklactual2]).minus(Matrix([self.sess.ref2calchkl])).normF() <= .0003, "wrong hkl calcualted from ref2 angles for scenario.names.name=" + self.sess.name)
+        self.assert_(norm(matrix([hklactual1]) - matrix([self.sess.ref1calchkl])) <= .0003, "wrong hkl calcualted from ref1 angles for scenario.names.name=" + self.sess.name)
+        self.assert_(norm(matrix([hklactual2]) - matrix([self.sess.ref2calchkl])) <= .0003, "wrong hkl calcualted from ref2 angles for scenario.names.name=" + self.sess.name)
 
         # ... znd in each calculation through the hkl/posiiont pairs
         if self.calc:
             for hkl, pos, param in zip(self.calc.hklList, self.calc.posList, self.calc.paramList):
                 (hkl_actual, params) = self.ac.anglesToHkl(pos, self.calc.wavelength)
-                self.assert_(Matrix([hkl_actual]).minus(Matrix([hkl])).normF() <= .0003, \
+                self.assert_(norm(matrix([hkl_actual]) - matrix([hkl])) <= .0003, \
                             "wrong hkl calcualted for scenario.name=%s, calculation.tag=%s\n  expected hkl=(%f,%f,%f)\ncalculated hkl=(%f,%f,%f)" % (self.sess.name, self.calc.tag, hkl[0], hkl[1], hkl[2], hkl_actual[0], hkl_actual[1], hkl_actual[2]))
                 print "***anglesToHkl***"
                 print "*** ", str(hkl), " ***"
@@ -146,7 +148,7 @@ class BaseTestHklCalculator():
     def testHklToAngles(self):
         if self.calc:
             # Configure the angle calculator for this session scenario
-            mockUbcalc = createMockUbcalc(Matrix(self.sess.umatrix).times(Matrix(self.sess.bmatrix)))
+            mockUbcalc = createMockUbcalc(matrix(self.sess.umatrix) * matrix(self.sess.bmatrix ))
             hw = createMockHardwareMonitor()
             ac = VliegHklCalculator(mockUbcalc, createMockDiffractometerGeometry(), hw)
             ac.raiseExceptionsIfAnglesDoNotMapBackToHkl = True

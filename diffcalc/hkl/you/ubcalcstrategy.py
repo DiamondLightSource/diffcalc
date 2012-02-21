@@ -1,11 +1,12 @@
 from diffcalc.ub.calculation import PaperSpecificUbCalcStrategy
 from diffcalc.hkl.you.matrices import createYouMatrices
 try:
-    from Jama import Matrix
+    from numpy import matrix
 except ImportError:
-    from diffcalc.npadaptor import Matrix
+    from numjy import matrix
 
-I = Matrix.identity(3, 3)
+I = matrix('1 0 0; 0 1 0; 0 0 1')
+y = matrix('0; 1; 0')
 
 class YouUbCalcStrategy(PaperSpecificUbCalcStrategy):
     
@@ -13,6 +14,6 @@ class YouUbCalcStrategy(PaperSpecificUbCalcStrategy):
         
         [MU, DELTA, NU, ETA, CHI, PHI] = createYouMatrices(*pos.totuple())
         # Equation 12: Compute the momentum transfer vector in the lab  frame
-        q_lab = ((NU.times(DELTA)).minus(I)).times(Matrix([[0], [1], [0]]))
+        q_lab = (NU * DELTA - I) * y
         # Transform this into the phi frame. 
-        return PHI.inverse().times(CHI.inverse()).times(ETA.inverse()).times(MU.inverse()).times(q_lab)
+        return PHI.I * CHI.I * ETA.I * MU.I * q_lab 

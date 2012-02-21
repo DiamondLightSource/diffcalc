@@ -63,7 +63,7 @@ class SimulatedCrystalCounter(PseudoDevice):
         
     def calcUB(self):
         [_, _, _, _, CHI, PHI] = createVliegMatrices(None, None, None, None, self.chiMissmount * TORAD, self.phiMissmount * TORAD)
-        self.UB = CHI.times(PHI).times(self.cut.getBMatrix())
+        self.UB = CHI * PHI  * self.cut.getBMatrix( )
 
     def asynchronousMoveTo(self, exposureTime):
         self.exposureTime = exposureTime
@@ -98,7 +98,7 @@ class SimulatedCrystalCounter(PseudoDevice):
         s += self.cut.__str__()
         s += "chi orientation: %s\n" % self.chiMissmount
         s += "phi orientation: %s\n" % self.phiMissmount
-        ub = self.UB.getArray()
+        ub = self.UB.tolist()
         s += "UB:\n"
         s += "       % 18.13f% 18.13f% 18.12f\n" % (ub[0][0], ub[0][1], ub[0][2])
         s += "     % 18.13f% 18.13f% 18.12f\n" % (ub[1][0], ub[1][1], ub[1][2])

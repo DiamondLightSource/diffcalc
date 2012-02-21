@@ -9,9 +9,9 @@ config/var/crystals.xml .
 
 from math import pi, cos, sin, acos, sqrt
 try:
-    from Jama import Matrix
+    from numpy import matrix
 except ImportError:
-    from diffcalc.npadaptor import Matrix
+    from numjy import matrix
 
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -49,7 +49,7 @@ class CrystalUnderTest:
 
         # Calculate the BMatrix from the direct and reciprical lattice parameters.
         # Reference: Busang and Levy (1967)
-        self._bMatrix = Matrix([[self._b1, self._b2 * cos(self._beta3), self._b3 * cos(self._beta2)],
+        self._bMatrix = matrix([[self._b1, self._b2 * cos(self._beta3), self._b3 * cos(self._beta2)],
                                  [0.0, self._b2 * sin(self._beta3), -self._b3 * sin(self._beta2) * cos(self._alpha1)],
                                 [0.0, 0.0, 2 * pi / self._a3]])
 
@@ -79,7 +79,7 @@ class CrystalUnderTest:
         if self._name == None:
             return "   none specified\n" 
         
-        b = self._bMatrix.getArray() #Convert to regular (actually java!) array
+        b = self._bMatrix
         
         result = "   crystal:       %s\n\n" % self._name
         result += "   lattice:                a ,b ,c  = % 9.5f, % 9.5f, % 9.5f\n" % (self._a1, self._a2, self._a3)
@@ -88,9 +88,9 @@ class CrystalUnderTest:
         result += "   reciprical:          b1, b2, b3  = % 9.5f, % 9.5f, % 9.5f\n" % (self._b1, self._b2, self._b3)
         result += "               beta1, beta2, beta3  = % 9.5f, % 9.5f, % 9.5f\n" % (self._beta1, self._beta2, self._beta3)
         result += "\n"
-        result += "   B matrix:   % 18.13f% 18.13f% 18.12f\n" % (b[0][0], b[0][1], b[0][2])
-        result += "               % 18.13f% 18.13f% 18.12f\n" % (b[1][0], b[1][1], b[1][2])
-        result += "               % 18.13f% 18.13f% 18.12f\n" % (b[2][0], b[2][1], b[2][2])    
+        result += "   B matrix:   % 18.13f% 18.13f% 18.12f\n" % (b[0, 0], b[0, 1], b[0, 2])
+        result += "               % 18.13f% 18.13f% 18.12f\n" % (b[1, 0], b[1, 1], b[1, 2])
+        result += "               % 18.13f% 18.13f% 18.12f\n" % (b[2, 0], b[2, 1], b[2, 2])    
         return result
     
     def getLattice(self):

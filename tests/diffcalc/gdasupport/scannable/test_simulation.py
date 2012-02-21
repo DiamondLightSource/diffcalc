@@ -2,13 +2,13 @@
 from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter, \
     Gaussian
 from diffcalc.geometry.fourc import fourc
-from diffcalc.utils import nearlyEqual
+from diffcalc.utils import nearlyEqual, norm1
 from math import pi
 import unittest
 try:
-    from Jama import Matrix
+    from numpy import matrix
 except ImportError:
-    from diffcalc.npadaptor import Matrix
+    from numjy import matrix
 
 
 class MockScannable(object):
@@ -43,7 +43,7 @@ class TestSimulatedCrystalCounter(unittest.TestCase):
 
     def testCalcUB(self):
         UB = [[2 * pi, 0, 0], [0, 2 * pi, 0], [0, 0, 2 * pi]]
-        self.assert_(self.scc.UB.minus(Matrix(UB)).norm1() <= .0001)
+        self.assert_(norm1(self.scc.UB - matrix(UB)) <= .0001)
 
     def testGetHkl(self):
         self.diff.pos = [60, 30, 0, 0]

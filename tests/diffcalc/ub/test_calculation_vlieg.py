@@ -2,20 +2,20 @@ from datetime import datetime
 from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
 from diffcalc.hkl.vlieg.position import VliegPosition
 from diffcalc.tools import matrixeq_
-from diffcalc.ub.calculation import UBCalculation, matrixTo3x3ListOfLists
+from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.persistence import UbCalculationNonPersister
-from diffcalc.utils import DiffcalcException
+from diffcalc.utils import DiffcalcException, norm1
 from math import cos, sin, pi
 from mock import Mock
 from tests.diffcalc import scenarios
 import unittest
 from diffcalc.hkl.vlieg.ubcalcstrategy import VliegUbCalcStrategy
 try:
-    from Jama import Matrix
+    from numpy import matrix
 except ImportError:
-    from diffcalc.npadaptor import Matrix
+    from numjy import matrix
 
-I = Matrix(((1, 0, 0), (0, 1, 0), (0, 0, 1)))
+I = matrix('1 0 0; 0 1 0; 0 0 1')
 TORAD = pi / 180
 
 class MockMonitor(object):
@@ -58,15 +58,15 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
             self.ubcalc.setLattice(sess.name, *sess.lattice)
             self.ubcalc.setUManually(U)        
             # Check the U matrix
-            self.assert_(self.ubcalc.getUMatrix().minus(Matrix(U)).norm1() <= .0001, "wrong U after manually setting U")
+            self.assert_(norm1(self.ubcalc.getUMatrix() - matrix(U)) <= .0001, "wrong U after manually setting U")
             
             # Check the UB matrix
             if sess.bmatrix == None:
                 continue
             print "U: ", U
-            print "actual ub: ", self.ubcalc.getUBMatrix().getArray()
+            print "actual ub: ", self.ubcalc.getUBMatrix().tolist()
             print " desired b: ", sess.bmatrix
-            self.assert_(self.ubcalc.getUBMatrix().minus(Matrix(sess.bmatrix)).norm1() <= .0001, "wrong UB matrix after manually setting U")
+            self.assert_(norm1(self.ubcalc.getUBMatrix() - matrix(sess.bmatrix)) <= .0001, "wrong UB matrix after manually setting U")
 
     def testGetUMatrix(self):
         self.ubcalc.newCalculation('testcalc')
@@ -92,12 +92,12 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
             self.ubcalc.addReflection(sess.ref1.h, sess.ref1.k, sess.ref1.l, sess.ref1.pos, sess.ref1.energy, sess.ref1.tag, sess.time)
             self.ubcalc.addReflection(sess.ref2.h, sess.ref2.k, sess.ref2.l, sess.ref2.pos, sess.ref2.energy, sess.ref2.tag, sess.time)
             self.ubcalc.calculateUB()
-            returned = self.ubcalc.getUMatrix().getArray()
+            returned = self.ubcalc.getUMatrix().tolist()
             print "*Required:"
             print sess.umatrix
             print "*Returned:"
             print returned
-            self.assert_(self.ubcalc.getUMatrix().minus(Matrix(sess.umatrix)).norm1() < .0001, "wrong U calulated for sess.name=" + sess.name)
+            self.assert_((norm1(self.ubcalc.getUMatrix() - matrix(sess.umatrix))) < .0001, "wrong U calulated for sess.name=" + sess.name)
 
     def test__str__(self):
         sess = scenarios.sessions()[0]
@@ -160,7 +160,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
         self.ubcalc.addReflection(sess.ref2.h, sess.ref2.k, sess.ref2.l, sess.ref2.pos, sess.ref2.energy, sess.ref2.tag, sess.time)
         self.ubcalc.setUManually([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         state = self.ubcalc.getState()
-        self.assertEqual(matrixTo3x3ListOfLists(self.ubcalc.getUMatrix()), state['u'])
+        self.assertEqual(self.ubcalc.getUMatrix().tolist(), state['u'])
         expectedState = self.getSess1State()
         expectedState['u'] = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
         self.assertEquals(expectedState, state)
@@ -171,7 +171,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
         self.ubcalc.newCalculation('unwanted one')
         self.ubcalc.restoreState(setState)
         
-        self.assertEquals([[1, 2, 3], [4, 5, 6], [7, 8, 9]], matrixTo3x3ListOfLists(self.ubcalc.getUMatrix()))
+        self.assertEquals([[1, 2, 3], [4, 5, 6], [7, 8, 9]], self.ubcalc.getUMatrix().tolist())
 
         
     def testGetStateWithManualUB(self):
@@ -182,7 +182,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
         self.ubcalc.addReflection(sess.ref2.h, sess.ref2.k, sess.ref2.l, sess.ref2.pos, sess.ref2.energy, sess.ref2.tag, sess.time)
         self.ubcalc.setUBManually([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         state = self.ubcalc.getState()
-        self.assertEqual(matrixTo3x3ListOfLists(self.ubcalc.getUBMatrix()), state['ub'])
+        self.assertEqual(self.ubcalc.getUBMatrix().tolist(), state['ub'])
         expectedState = self.getSess1State()
         expectedState['ub'] = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
         self.assertEquals(expectedState, state)
@@ -192,7 +192,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
         setState['ub'] = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
         self.ubcalc.newCalculation('unwanted one')
         self.ubcalc.restoreState(setState)
-        self.assertEquals([[1, 2, 3], [4, 5, 6], [7, 8, 9]], matrixTo3x3ListOfLists(self.ubcalc.getUBMatrix()))
+        self.assertEquals([[1, 2, 3], [4, 5, 6], [7, 8, 9]], self.ubcalc.getUBMatrix().tolist())
 
      
 
@@ -213,15 +213,15 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
 
 def x_rotation(mu_or_alpha):
     mu_or_alpha *= TORAD
-    return Matrix(((1, 0, 0), (0, cos(mu_or_alpha), -sin(mu_or_alpha)), (0, sin(mu_or_alpha), cos(mu_or_alpha))))
+    return matrix(((1, 0, 0), (0, cos(mu_or_alpha), -sin(mu_or_alpha)), (0, sin(mu_or_alpha), cos(mu_or_alpha))))
 
 def y_rotation(chi):
     chi *= TORAD
-    return Matrix(((cos(chi), 0, sin(chi)), (0, 1, 0), (-sin(chi), 0, cos(chi))))
+    return matrix(((cos(chi), 0, sin(chi)), (0, 1, 0), (-sin(chi), 0, cos(chi))))
 
 def z_rotation(th):
     eta = -th * TORAD
-    return Matrix(((cos(eta), sin(eta), 0), (-sin(eta), cos(eta), 0), (0, 0, 1)))
+    return matrix(((cos(eta), sin(eta), 0), (-sin(eta), cos(eta), 0), (0, 0, 1)))
 
 CUBIC_EN = 12.39842
 CUBIC = (1, 1, 1, 90, 90, 90)
@@ -290,7 +290,7 @@ class TestUBCalcWithCubicTwoRef(TestUBCalcWithCubic):
             yield self.check, testname, ref1, ref2, u
             
     def test_with_zy_mismount(self):
-        U = z_rotation(ROT).times(y_rotation(ROT))
+        U = z_rotation(ROT) * y_rotation(ROT)
         href = ((1, 0, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=0-ROT, phi=0+ROT))
         lref = ((0, 0, 1), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=90-ROT, phi=ROT)) # chi degenerate
         pairs = (("hl", href, lref, U),
@@ -355,7 +355,7 @@ class TestUBCalcWithcubicOneRef(TestUBCalcWithCubic):
             
 # Probably lost cause, conclusion is be careful and return the angle and direction of resulting u matrix
 #    def test_with_zy_mismount(self):
-#        U = z_rotation(ROT).times(y_rotation(ROT))
+#        U = z_rotation(ROT) * y_rotation(ROT )
 #        href = ((1, 0, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=0-ROT, phi=0+ROT))
 #        kref = ((0, 1, 0), VliegPosition(alpha=0, delta=60, gamma=0, omega=30+90, chi=90-ROT, phi=0+ROT))
 #        lref = ((0, 0, 1), VliegPosition(alpha=0, delta=60, gamma=0, omega=30, chi=90-ROT, phi=ROT)) # chi degenerate

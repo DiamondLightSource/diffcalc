@@ -1,11 +1,12 @@
 from diffcalc.ub.calculation import PaperSpecificUbCalcStrategy
 from diffcalc.hkl.vlieg.matrices import createVliegMatrices
 try:
-    from Jama import Matrix
+    from numpy import matrix
 except ImportError:
-    from diffcalc.npadaptor import Matrix
+    from numjy import matrix
 
-I = Matrix.identity(3, 3)
+I = matrix('1 0 0; 0 1 0; 0 0 1')
+y = matrix('0; 1; 0')
 
 class VliegUbCalcStrategy(PaperSpecificUbCalcStrategy):
     
@@ -14,6 +15,6 @@ class VliegUbCalcStrategy(PaperSpecificUbCalcStrategy):
         [ALPHA, DELTA, GAMMA, OMEGA, CHI, PHI] = createVliegMatrices(
            pos.alpha, pos.delta, pos.gamma, pos.omega, pos.chi, pos.phi)
         
-        u1a = ((DELTA.times(GAMMA)).minus(ALPHA.inverse())).times(Matrix([[0], [1], [0]]))
-        u1p = (PHI.inverse()).times(CHI.inverse()).times(OMEGA.inverse()).times(u1a)
+        u1a = (DELTA * GAMMA - ALPHA.I) * y 
+        u1p = PHI.I * CHI.I  * OMEGA.I  * u1a 
         return u1p

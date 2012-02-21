@@ -3,7 +3,7 @@ from diffcalc.hardware.dummy import DummyHardwareMonitorPlugin
 from diffcalc.tools import assert_iterable_almost_equal
 from diffcalc.ub.commands import UbCommands
 from diffcalc.ub.persistence import UbCalculationNonPersister
-from diffcalc.utils import DiffcalcException, MockRawInput
+from diffcalc.utils import DiffcalcException, MockRawInput, norm1
 from tests.diffcalc import scenarios
 import diffcalc.utils # @UnusedImport
 import unittest
@@ -11,9 +11,9 @@ from diffcalc.ub.calculation import UBCalculation
 from diffcalc.hkl.vlieg.ubcalcstrategy import VliegUbCalcStrategy
 
 try:
-    from Jama import Matrix
+    from numpy import matrix
 except ImportError:
-    from diffcalc.npadaptor import Matrix
+    from numjy import matrix
 
 def prepareRawInput(listOfStrings):
     diffcalc.utils.raw_input = MockRawInput(listOfStrings)
@@ -256,13 +256,13 @@ class TestUbCommands(unittest.TestCase):
         
         prepareRawInput(['1 2 3', '4 5 6', '7 8 9'])
         self.ubcommands.setu()
-        a = self.ubcalc.getUMatrix().getArray()
+        a = self.ubcalc.getUMatrix().tolist()
         self.assertEquals([ list(a[0]), list(a[1]), list(a[2])], [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         
         prepareRawInput(['', ' 9 9.9 99', ''])
         self.ubcommands.setu()
         
-        a = self.ubcalc.getUMatrix().getArray()
+        a = self.ubcalc.getUMatrix().tolist()
         self.assertEquals([ list(a[0]), list(a[1]), list(a[2])], [[1, 0, 0], [9, 9.9, 99], [0, 0, 1]])
         
     def testSetub(self):
@@ -283,12 +283,12 @@ class TestUbCommands(unittest.TestCase):
         
         prepareRawInput(['1 2 3', '4 5 6', '7 8 9'])
         self.ubcommands.setub()
-        a = self.ubcalc.getUBMatrix().getArray()
+        a = self.ubcalc.getUBMatrix().tolist()
         self.assertEquals([ list(a[0]), list(a[1]), list(a[2])], [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         
         prepareRawInput(['', ' 9 9.9 99', ''])
         self.ubcommands.setub()
-        a = self.ubcalc.getUBMatrix().getArray()
+        a = self.ubcalc.getUBMatrix().tolist()
         self.assertEquals([ list(a[0]), list(a[1]), list(a[2])], [[1, 0, 0], [9, 9.9, 99], [0, 0, 1]])
     
     def testCalcub(self):        
@@ -303,7 +303,7 @@ class TestUbCommands(unittest.TestCase):
         r = s.ref1; self.ubcommands.addref(r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
         r = s.ref2; self.ubcommands.addref(r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
         self.ubcommands.calcub()
-        self.assert_(self.ubcalc.getUBMatrix().minus(Matrix(s.umatrix).times(Matrix(s.bmatrix))).norm1() <= .0001, \
+        self.assert_(norm1(self.ubcalc.getUBMatrix() - (matrix(s.umatrix) * (matrix(s.bmatrix)))) <= .0001, \
                                                          "wrong UB matrix after calculating U")    
 
     def testC2th(self):

@@ -21,14 +21,14 @@ from diffcalc.hkl.you.ubcalcstrategy import YouUbCalcStrategy
 from diffcalc.geometry.sixc import SixCircleYouGeometry
 
 try:
-    from Jama import Matrix
+    from numpy import matrix
 except ImportError:
-    from diffcalc.npadaptor import Matrix
+    from numjy import matrix
 
 TORAD = pi / 180
 TODEG = 180 / pi
+I = matrix('1 0 0; 0 1 0; 0 0 1')
 
-I = Matrix.identity(3, 3)
 
 class SkipTestSurfaceNormalVerticalCubic(_BaseTest):
 
@@ -37,7 +37,7 @@ class SkipTestSurfaceNormalVerticalCubic(_BaseTest):
         _BaseTest.setup(self)
         self.constraints._constrained = {'a_eq_b': None, 'mu':-pi / 2, 'eta':0}
         self.wavelength = 1
-        self.UB = I.times(2 * pi)
+        self.UB = I * 2 * pi 
 
     def _configure_ub(self):
         self.mock_ubcalc.getUBMatrix.return_value = self.UB
@@ -119,7 +119,7 @@ ENERGY = 12.39842 / WAVELENGTH
 
 
 # This is the version that Diffcalc comes up with ( see following test)
-U_DIFFCALC = Matrix([[-0.7178876, 0.6643924, -0.2078944],
+U_DIFFCALC = matrix([[-0.7178876, 0.6643924, -0.2078944],
                      [-0.6559596, -0.5455572, 0.5216170],
                      [0.2331402, 0.5108327, 0.8274634]])
 
@@ -187,7 +187,7 @@ class TestFixedMuEta(_BaseTest):
         self.wavelength = 0.6358
         B = CrystalUnderTest('xtal', 7.68, 53.48,
                              75.63, 90, 90, 90).getBMatrix()
-        self.UB = U_DIFFCALC.times(B)
+        self.UB = U_DIFFCALC * B 
         self._configure_limits()
 
 
@@ -349,12 +349,12 @@ Pt531_REF2 = WillmottHorizontalPosition(delta=14.1881617, gamma= -7.7585939, ome
 Pt531_WAVELENGTH = 0.6358
 
 # This is U matrix displayed by DDIF
-U_FROM_DDIF = Matrix([[-0.00312594, -0.00063417, 0.99999491],
+U_FROM_DDIF = matrix([[-0.00312594, -0.00063417, 0.99999491],
                       [0.99999229, -0.00237817, 0.00312443],
                       [0.00237618, 0.99999697, 0.00064159]])
 
 # This is the version that Diffcalc comes up with ( see following test)
-Pt531_U_DIFFCALC = Matrix([[-0.0023763, -0.9999970, -0.0006416],
+Pt531_U_DIFFCALC = matrix([[-0.0023763, -0.9999970, -0.0006416],
                            [ 0.9999923, -0.0023783, 0.0031244],
                            [-0.0031259, -0.0006342, 0.9999949]])
 
@@ -393,7 +393,7 @@ class Test_Pt531_FixedMuChi(_BaseTest):
 #        self.constraints._constrained = {'alpha': 2 * TORAD, 'mu':-pi/2, 'eta':0}
         self.wavelength = Pt531_WAVELENGTH
         B = CrystalUnderTest('Pt531', 6.204, 4.806, 23.215, 90, 90, 49.8).getBMatrix()
-        self.UB = Pt531_U_DIFFCALC.times(B)
+        self.UB = Pt531_U_DIFFCALC * B 
         self._configure_limits()
 
 

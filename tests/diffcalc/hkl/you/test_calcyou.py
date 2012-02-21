@@ -12,13 +12,13 @@ from tests.diffcalc.hkl.vlieg.test_calcvlieg import createMockDiffractometerGeom
 from diffcalc.hkl.you.position import YouPosition as Pos
 
 try:
-    from Jama import Matrix
+    from numpy import matrix
 except ImportError:
-    from diffcalc.npadaptor import Matrix
+    from numjy import matrix
 
 TORAD = pi / 180
 TODEG = 180 / pi
-I = Matrix.identity(3, 3)
+I = matrix('1 0 0; 0 1 0; 0 0 1')
 
 class Pair:
     
@@ -49,8 +49,8 @@ class _BaseTest():
     def _configure_ub(self):
         ZROT = z_rotation(self.zrot * TORAD)  # -PHI
         YROT = y_rotation(self.yrot * TORAD)  # +CHI
-        U = ZROT.times(YROT) 
-        UB = U.times(self.B)
+        U = ZROT * YROT  
+        UB = U * self.B 
         self.mock_ubcalc.getUBMatrix.return_value = UB
 
     def _check_hkl_to_angles(self, testname, zrot, yrot, hkl, pos_expected, wavelength, virtual_expected={}):
@@ -84,7 +84,7 @@ class _TestCubic(_BaseTest):
     
     def setup(self):
         _BaseTest.setup(self)
-        self.B = I.times(2 * pi)
+        self.B = I * 2 * pi 
 
 
 class _TestCubicVertical(_TestCubic):
@@ -228,15 +228,15 @@ class TestAgainstSpecSixcB16_270608(_BaseTest):
     def setup(self):
         _BaseTest.setup(self)
         
-        U = Matrix(((0.997161, -0.062217, 0.042420),
+        U = matrix(((0.997161, -0.062217, 0.042420),
                     (0.062542, 0.998022, -0.006371),
                     (-0.041940, 0.009006, 0.999080)))
         
-        B = Matrix(((1.636204, 0, 0),
+        B = matrix(((1.636204, 0, 0),
                     (0, 1.636204, 0),
                     (0, 0, 1.156971)))
         
-        self.UB = U.times(B)
+        self.UB = U * B 
         self.constraints._constrained = {'a_eq_b': None, 'mu':0, 'nu' : 0}
         self.places = 2 # TODO: the Vlieg code got this to 3 decimal places
         
@@ -281,9 +281,9 @@ class SkipTestThreeTwoCircleForDiamondI06andI10(_BaseTest):
         self.wavelength = 12.39842 / 1.650
         
     def _configure_ub(self):
-        U = Matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        U = matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
         B = CrystalUnderTest('xtal', 5.34, 5.34, 13.2, 90, 90, 90).getBMatrix()
-        self.mock_ubcalc.getUBMatrix.return_value =  U.times(B)
+        self.mock_ubcalc.getUBMatrix.return_value =  U * B 
 
     def testHkl001(self):
         hkl = (0, 0, 1) 
@@ -313,7 +313,7 @@ class TestFixedChiPhiPsiMode_DiamondI07ExampleSurfaceNormalHorizontal(_TestCubic
         self.mock_hardware.setLowerLimit('nu', 0)
         self.constraints._constrained = {'chi':0, 'phi':0, 'a_eq_b':None}
         self.wavelength = 1
-        self.UB = I.times(2 * pi)
+        self.UB = I * 2 * pi 
         self.places = 4
         
     def _configure_ub(self):
@@ -386,7 +386,7 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
         self.mock_hardware.setLowerLimit('nu', 0)
         self.constraints._constrained = {'chi':90 * TORAD, 'phi':0, 'a_eq_b':None}
         self.wavelength = 1
-        self.UB = I.times(2 * pi)
+        self.UB = I * 2 * pi 
         self.places = 4
         
         self.mock_hardware.setLowerLimit('mu', None)

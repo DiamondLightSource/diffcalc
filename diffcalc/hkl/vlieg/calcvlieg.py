@@ -7,9 +7,11 @@ from diffcalc.hkl.vlieg.position import VliegPosition
 from diffcalc.hkl.vlieg.parameters import VliegParameterManager
 from diffcalc.hkl.vlieg.modes import ModeSelector
 try:
-    from Jama import Matrix
+    from numpy import matrix
+    from numpy.linalg import norm
 except ImportError:
-    from diffcalc.npadaptor import Matrix
+    from numjy import matrix
+    from numjy.linalg import norm
     
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -18,6 +20,7 @@ transformC = TransformCInRadians()
 
 PREFER_POSITIVE_CHI_SOLUTIONS = True
 
+I = matrix('1 0 0; 0 1 0; 0 0 1')
 # TODO: Remove (really nasty) check function
 def check(condition, ErrorOrStringOrCallable, *args):
     """fail = check(condition, ErrorOrString) -- if condition is false raises the Exception
@@ -52,13 +55,13 @@ def vliegAnglesToHkl(pos, wavelength, UBMatrix):
 
     # Create the plane normal vector in the alpha axis coordinate frame
     # qa = H = Kf-Ki = (DELTA*GAMMA - ALPHA^-1)*(0,wavevector,0)
-    qa = ((DELTA.times(GAMMA)).minus(ALPHA.inverse())).times(Matrix([[0], [wavevector], [0]]))
-###    qa = Matrix([[ sin(pos.delta)*cos(pos.gamma) ], [ cos(pos.delta)*cos(pos.gamma) - cos(pos.alpha) ],[ sin(pos.gamma) + sin(pos.alpha) ]]).times(wavevector)
+    qa = ((DELTA * GAMMA ) - ALPHA.I ) * matrix([[0], [wavevector], [0]] )
+###    qa = matrix([[ sin(pos.delta)*cos(pos.gamma) ], [ cos(pos.delta)*cos(pos.gamma) - cos(pos.alpha) ],[ sin(pos.gamma) + sin(pos.alpha) ]]) * wavevector 
 
     # Transform the plane normal vector from the alpha frame to reciprical lattice frame. 
-    hkl = UBMatrix.inverse().times(PHI.inverse()).times(CHI.inverse()).times(OMEGA.inverse()).times(qa)
+    hkl = UBMatrix.I * PHI.I  * CHI.I  * OMEGA.I  * qa 
     
-    return ((hkl.get(0, 0), hkl.get(1, 0), hkl.get(2, 0)))    
+    return ((hkl[0, 0] , hkl[1, 0] , hkl[2, 0] ))    
 
 
 class VliegHklCalculator(HklCalculatorBase):
@@ -90,28 +93,28 @@ class VliegHklCalculator(HklCalculatorBase):
             pos.alpha, pos.delta, pos.gamma, pos.omega, pos.chi, pos.phi)
         [SIGMA, TAU] = createVliegsSurfaceTransformationMatrices(self._getSigma()*TORAD, self._getTau()*TORAD)
         
-        S = TAU.times(SIGMA)
-        y_vector = Matrix([[0], [1], [0]])
+        S = TAU * SIGMA 
+        y_vector = matrix([[0], [1], [0]])
         
         # Calculate Bin from equation 15:
-        surfacenormal_alpha = OMEGA.times(CHI).times(PHI).times(S).times(Matrix([[0], [0], [1]]))
-        incoming_alpha = ALPHA.inverse().times(y_vector) 
+        surfacenormal_alpha = OMEGA * CHI  * PHI  * S  * matrix([[0], [0], [1]] )
+        incoming_alpha = ALPHA.I * y_vector  
         minusSinBetaIn = dot3(surfacenormal_alpha, incoming_alpha)
         Bin = asin(bound(-minusSinBetaIn))
         
         # Calculate Bout from equation 16:
         #  surfacenormal_alpha has just ben calculated
-        outgoing_alpha = DELTA.times(GAMMA).times(y_vector)
+        outgoing_alpha = DELTA * GAMMA  * y_vector 
         sinBetaOut = dot3(surfacenormal_alpha, outgoing_alpha)
         Bout = asin(bound(sinBetaOut))
         
         # Calculate 2theta from equation 25:
 
-        cosTwoTheta = dot3(ALPHA.times(DELTA).times(GAMMA).times(y_vector), y_vector)
+        cosTwoTheta = dot3(ALPHA * DELTA  * GAMMA  * y_vector , y_vector)
         twotheta = acos(bound(cosTwoTheta))
         # FUDGE azimuth calculation (aka psi)
 #        h, k, l = self.vliegAnglesToHkl(pos, wavelength)
-#        hklPhiNorm = self._getUBMatrix().times(Matrix([[h],[k],[l]]))
+#        hklPhiNorm = self._getUBMatrix() * Matrix([[h],[k],[l]] )
 #        psi = self.__determinePsiForGivenBin(hklPhiNorm, pos.alpha, pos.delta, pos.gamma, Bin)
         psi = self._anglesToPsi(pos, wavelength)
         
@@ -149,10 +152,10 @@ class VliegHklCalculator(HklCalculatorBase):
         
         # Normalise hkl
         wavevector = 2 * pi / wavelength
-        hklNorm = Matrix([ [h / wavevector], [k / wavevector], [l / wavevector]])
+        hklNorm = matrix([ [h / wavevector], [k / wavevector], [l / wavevector]])
         
         # Compute hkl in phi axis coordinate frame
-        hklPhiNorm = self._getUBMatrix().times(hklNorm)
+        hklPhiNorm = self._getUBMatrix() * hklNorm 
         
         # Determine Bin and Bout
         if self._getMode().name == '4cPhi':
@@ -205,12 +208,12 @@ class VliegHklCalculator(HklCalculatorBase):
         
         # Normalise hkl
         wavevector = 2 * pi / wavelength
-        hkl = Matrix([ [h], [k], [l]])
-        hklNorm = hkl.times(1.0 / wavevector)
+        hkl = matrix([ [h], [k], [l]])
+        hklNorm = hkl * (1.0 / wavevector) 
         
         # Compute hkl in phi axis coordinate frame
-        hklPhi = self._getUBMatrix().times(hkl)
-        hklPhiNorm = self._getUBMatrix().times(hklNorm)
+        hklPhi = self._getUBMatrix() * hkl 
+        hklPhiNorm = self._getUBMatrix() * hklNorm 
         
         # Determine Chi and Phi (Equation 29):
         pos.phi = -self._getTau()*TORAD
@@ -220,10 +223,10 @@ class VliegHklCalculator(HklCalculatorBase):
         [ALPHA, DELTA, GAMMA, OMEGA, CHI, PHI] = createVliegMatrices(\
                 None, None, None, None, pos.chi, pos.phi)
         del ALPHA, DELTA, GAMMA, OMEGA
-        Hw = CHI.times(PHI).times(hklPhi)
+        Hw = CHI * PHI  * hklPhi 
 
         # Determine Bin and Bout:
-        (Bin, Bout) = self._determineBinAndBoutInZaxisModes(Hw.get(2, 0) / wavevector)
+        (Bin, Bout) = self._determineBinAndBoutInZaxisModes(Hw[2, 0]  / wavevector)
         
         # Determine Alpha and Gamma (Equation 32):
         pos.alpha = Bin
@@ -235,8 +238,8 @@ class VliegHklCalculator(HklCalculatorBase):
         # Determine Omega:
         delta = pos.delta
         gamma = pos.gamma
-        d1 = Hw.get(1, 0) * sin(delta) * cos(gamma) - Hw.get(0, 0) * (cos(delta) * cos(gamma) - cos(pos.alpha))
-        d2 = Hw.get(0, 0) * sin(delta) * cos(gamma) + Hw.get(1, 0) * (cos(delta) * cos(gamma) - cos(pos.alpha))
+        d1 = Hw[1, 0]  * sin(delta) * cos(gamma) - Hw[0, 0]  * (cos(delta) * cos(gamma) - cos(pos.alpha))
+        d2 = Hw[0, 0]  * sin(delta) * cos(gamma) + Hw[1, 0]  * (cos(delta) * cos(gamma) - cos(pos.alpha))
         
         if fabs(d2) < 1e-30:
             pos.omega = sign(d1) * sign(d2) * pi / 2.0
@@ -260,9 +263,9 @@ class VliegHklCalculator(HklCalculatorBase):
         # RHS (1/K)(S^-1*U*B*H)_3 where H/K = hklNorm
         UB = self._getUBMatrix()
         [SIGMA, TAU] = createVliegsSurfaceTransformationMatrices(self._getSigma()*TORAD, self._getTau()*TORAD)
-        #S = SIGMA.times(TAU)
-        S = TAU.times(SIGMA)
-        RHS = S.inverse().times(UB).times(hklNorm).get(2, 0)
+        #S = SIGMA * TAU 
+        S = TAU * SIGMA 
+        RHS = (S.I * UB  * hklNorm)[2, 0] 
         
         if self._getMode().name in BinModes:
             Bin = self._getParameter('betain')
@@ -351,25 +354,25 @@ class VliegHklCalculator(HklCalculatorBase):
         ## Solve equation 34 for one possible Y, Yo
         # Calculate surface normal in phi frame
         [SIGMA, TAU] = createVliegsSurfaceTransformationMatrices(self._getSigma()*TORAD, self._getTau()*TORAD)
-        S = TAU.times(SIGMA)
-        surfaceNormalPhi = S.times(Matrix([[0], [0], [1]]))
+        S = TAU * SIGMA 
+        surfaceNormalPhi = S * matrix([[0], [0], [1]] )
         # Compute beta in vector
-        BetaVector = Matrix([[0], [-sin(Bin)], [cos(Bin)]])
+        BetaVector = matrix([[0], [-sin(Bin)], [cos(Bin)]])
         # Find Yo
         Yo = self._findMatrixToTransformAIntoB(surfaceNormalPhi, BetaVector)
 
         ## Calculate Hv from equation 39
-        Z = Matrix([[1, 0, 0], \
+        Z = matrix([[1, 0, 0], \
                     [0, cos(Bin), sin(Bin)], \
                     [0, -sin(Bin), cos(Bin)] ])
-        Hv = Z.times(Yo).times(hklPhiNorm)
+        Hv = Z * Yo  * hklPhiNorm 
         # Fixed gamma:
         if self._getMode().group == 'fivecFixedGamma':
             gamma = self._getParameter(self._getGammaParameterName())
             check(gamma != None, "gamma parameter must be set in fivecFixedGamma modes")    
             gamma = gamma * TORAD            
-            H2 = hklPhiNorm.get(0, 0) ** 2 + hklPhiNorm.get(1, 0) ** 2 + hklPhiNorm.get(2, 0) ** 2
-            a = -(0.5 * H2 * sin(Bin) - Hv.get(2, 0))
+            H2 = hklPhiNorm[0, 0]  ** 2 + hklPhiNorm[1, 0]  ** 2 + hklPhiNorm[2, 0]  ** 2
+            a = -(0.5 * H2 * sin(Bin) - Hv[2, 0] )
             b = -(1.0 - 0.5 * H2) * cos(Bin)
             c = cos(Bin) * sin(gamma)
             check((b * b + a * a - c * c) >= 0, 'Could not solve for alpha')
@@ -380,8 +383,8 @@ class VliegHklCalculator(HklCalculatorBase):
             alpha = self._getParameter('alpha')
             check(alpha != None, "alpha parameter must be set in fivecFixedAlpha modes")
             alpha = alpha * TORAD
-            H2 = hklPhiNorm.get(0, 0) ** 2 + hklPhiNorm.get(1, 0) ** 2 + hklPhiNorm.get(2, 0) ** 2
-            t0 = (2 * cos(alpha) * Hv.get(2, 0) - sin(Bin) * cos(alpha) * H2 + cos(Bin) * sin(alpha) * H2 - 2 * cos(Bin) * sin(alpha)) / (cos(Bin) * 2.0)
+            H2 = hklPhiNorm[0, 0]  ** 2 + hklPhiNorm[1, 0]  ** 2 + hklPhiNorm[2, 0]  ** 2
+            t0 = (2 * cos(alpha) * Hv[2, 0]  - sin(Bin) * cos(alpha) * H2 + cos(Bin) * sin(alpha) * H2 - 2 * cos(Bin) * sin(alpha)) / (cos(Bin) * 2.0)
             check(abs(t0) <= 1, "Cannot compute gamma: sin(gamma)>1")
             gamma = asin(t0);
         else:
@@ -400,9 +403,9 @@ class VliegHklCalculator(HklCalculatorBase):
         alpha, gamma & delta - in radians.
         h k & l normalised to wavevector and in phi axis coordinates
         """
-        h = hklPhiNorm.get(0, 0)
-        k = hklPhiNorm.get(1, 0)
-        l = hklPhiNorm.get(2, 0)
+        h = hklPhiNorm[0, 0] 
+        k = hklPhiNorm[1, 0] 
+        l = hklPhiNorm[2, 0] 
         # See Vlieg section 5 (with K=1)
         cosdelta = (1 + sin(gamma) * sin(alpha) - (h * h + k * k + l * l) / 2) / (cos(gamma) * cos(alpha))
         costwotheta = cos(alpha) * cos(gamma) * bound(cosdelta) - sin(alpha) * sin(gamma)
@@ -419,33 +422,33 @@ class VliegHklCalculator(HklCalculatorBase):
         def equation49through59(psi):
             # equation 49 R = (D^-1)*PI*D*Ro
             PSI = createVliegsPsiTransformationMatrix(psi)
-            R = D.inverse().times(PSI).times(D).times(Ro)
+            R = D.I * PSI  * D  * Ro 
             
             # eq 57: extract omega from R    
-            if abs(R.get(0, 2)) < 1e-20:
-                omega = -sign(R.get(1, 2)) * sign(R.get(0, 2)) * pi / 2
+            if abs(R[0, 2] ) < 1e-20:
+                omega = -sign(R[1, 2] ) * sign(R[0, 2] ) * pi / 2
             else:
-                omega = -atan2(R.get(1, 2), R.get(0, 2));
+                omega = -atan2(R[1, 2] , R[0, 2] );
             
             # eq 58: extract chi from R
-            sinchi = sqrt(pow(R.get(0, 2), 2) + pow(R.get(1, 2), 2));
+            sinchi = sqrt(pow(R[0, 2] , 2) + pow(R[1, 2] , 2));
             sinchi = bound(sinchi)
             check(abs(sinchi) <= 1, 'could not compute chi')
             # (there are two roots to this equation, but only the first is also a solution to R33=cos(chi))
             chi = asin(sinchi)
             
             # eq 59: extract phi from R
-            if abs(R.get(2, 0)) < 1e-20:
-                phi = sign(R.get(2, 1)) * sign(R.get(2, 1)) * pi / 2
+            if abs(R[2, 0] ) < 1e-20:
+                phi = sign(R[2, 1] ) * sign(R[2, 1] ) * pi / 2
             else:
-                phi = atan2(-R.get(2, 1), -R.get(2, 0))
+                phi = atan2(-R[2, 1] , -R[2, 0] )
             return omega, chi, phi
 
         def checkSolution(omega, chi, phi):
             _, _, _, OMEGA, CHI, PHI = createVliegMatrices(None, None, None, omega, chi, phi)
-            R = OMEGA.times(CHI).times(PHI)
-            RtimesH_phi = R.times(H_phi)
-            print "R*H_phi=%s, Q_alpha=%s" % (R.times(H_phi).array, Q_alpha.array)
+            R = OMEGA * CHI  * PHI 
+            RtimesH_phi = R * H_phi 
+            print "R*H_phi=%s, Q_alpha=%s" % (R * H_phi.tolist(), Q_alpha.tolist())
             return not differ(RtimesH_phi, Q_alpha, .0001)
 
         
@@ -458,14 +461,14 @@ class VliegHklCalculator(HklCalculatorBase):
         ## Find Ro, one possible solution to equation 46: R*H_phi=Q_alpha
         
         # Normalise hklPhiNorm (As it is currently normalised only to the wavevector)
-        norm = hklPhiNorm.normF()
-        check(norm >= 1e-10, "reciprical lattice vector too close to zero")
-        H_phi = hklPhiNorm.times(1 / norm)
+        normh = norm(hklPhiNorm)
+        check(normh >= 1e-10, "reciprical lattice vector too close to zero")
+        H_phi = hklPhiNorm * (1 / normh)
 
         # Create Q_alpha from equation 47, (it comes normalised)
 #        Q_alpha_norm = Matrix([[ sin(delta)*cos(gamma) ], [ cos(delta)*cos(gamma) - cos(alpha) ],[ sin(gamma) + sin(alpha) ]])
-        Q_alpha = ((DELTA.times(GAMMA)).minus(ALPHA.inverse())).times(Matrix([[0], [1], [0]]))
-        Q_alpha = Q_alpha.times(1 / Q_alpha.normF())
+        Q_alpha = ((DELTA * GAMMA ) - ALPHA.I ) * matrix([[0], [1], [0]] )
+        Q_alpha = Q_alpha * (1 / norm(Q_alpha))
         
 
         
@@ -473,7 +476,7 @@ class VliegHklCalculator(HklCalculatorBase):
             ### Use the fixed value of phi as the final constraint ###
             phi = self._getParameter('phi') * TORAD
             _, _, _, _, _, PHI = createVliegMatrices(None, None, None, None, None, phi)
-            H_chi = PHI.times(H_phi)
+            H_chi = PHI * H_phi 
             omega, chi = _findOmegaAndChiToRotateHchiIntoQalpha(H_chi, Q_alpha)
             return (omega, chi, phi, None) # psi = None as not calculated
         else:
@@ -483,23 +486,23 @@ class VliegHklCalculator(HklCalculatorBase):
             Ro = self._findMatrixToTransformAIntoB(H_phi, Q_alpha)
             
             ## equation 50: Find a solution D to D*Q=norm(Q)*[[1],[0],[0]])
-            D = self._findMatrixToTransformAIntoB(Q_alpha, Matrix([[1], [0], [0]]))
+            D = self._findMatrixToTransformAIntoB(Q_alpha, matrix([[1], [0], [0]]))
             
             ## Find psi and create PSI
             
             # eq 54: compute u=D*Ro*S*[[0],[0],[1]], the surface normal in psi frame
             [SIGMA, TAU] = createVliegsSurfaceTransformationMatrices(self._getSigma()*TORAD, self._getTau()*TORAD)
-            #S = SIGMA.times(TAU)
-            S = TAU.times(SIGMA)
-            ([u1], [u2], [u3]) = D.times(Ro).times(S).times(Matrix([[0], [0], [1]])).getArray()
+            #S = SIGMA * TAU 
+            S = TAU * SIGMA 
+            ([u1], [u2], [u3]) = (D * Ro  * S  * matrix([[0], [0], [1]] )).tolist() # TODO: tody
             # If u points along 100, then any psi is a solution. Choose 0.
             if not differ([u1, u2, u3], [1, 0, 0], 1e-9):
                 psi = 0
                 omega, chi, phi = equation49through59(psi)
             else:
                 # equation 53: V=A*(D^-1)
-                V = ALPHA.times(D.inverse())
-                v21 = V.get(1, 0); v22 = V.get(1, 1); v23 = V.get(1, 2)
+                V = ALPHA * D.I 
+                v21 = V[1, 0] ; v22 = V[1, 1] ; v23 = V[1, 2] 
                 # equation 55
                 a = v22 * u2 + v23 * u3
                 b = v22 * u3 - v23 * u2
@@ -540,39 +543,39 @@ class VliegHklCalculator(HklCalculatorBase):
         
         # Create Q_alpha from equation 47, (it comes normalised)
 #        Q_alpha_norm = Matrix([[ sin(delta)*cos(gamma) ], [ cos(delta)*cos(gamma) - cos(alpha) ],[ sin(gamma) + sin(alpha) ]])
-        Q_alpha = ((DELTA.times(GAMMA)).minus(ALPHA.inverse())).times(Matrix([[0], [1], [0]]))
-        Q_alpha = Q_alpha.times(1 / Q_alpha.normF())
+        Q_alpha = ((DELTA * GAMMA ) - ALPHA.I ) * matrix([[0], [1], [0]] )
+        Q_alpha = Q_alpha * (1 / norm(Q_alpha))
         
             
         # Finh H_phi
         h, k, l = self._anglesToHkl(pos, wavelength)
-        H_phi = self._getUBMatrix().times(Matrix([[h], [k], [l]]))
-        norm = H_phi.normF()
-        check(norm >= 1e-10, "reciprical lattice vector too close to zero")
-        H_phi = H_phi.times(1 / norm)
+        H_phi = self._getUBMatrix() * matrix([[h], [k], [l]] )
+        normh = norm(H_phi)
+        check(normh >= 1e-10, "reciprical lattice vector too close to zero")
+        H_phi = H_phi * (1 / normh)
         
         # Find a solution Ro to Ro*H_phi=Q_alpha
         # This the reference solution with zero azimuth (psi)
         Ro = self._findMatrixToTransformAIntoB(H_phi, Q_alpha)
         
         # equation 48:
-        R = OMEGA.times(CHI).times(PHI)
+        R = OMEGA * CHI  * PHI 
         
         ## equation 50: Find a solution D to D*Q=norm(Q)*[[1],[0],[0]])
-        D = self._findMatrixToTransformAIntoB(Q_alpha, Matrix([[1], [0], [0]]))
+        D = self._findMatrixToTransformAIntoB(Q_alpha, matrix([[1], [0], [0]]))
             
         # solve equation 49 for psi
         # D*R = PSI*D*Ro
         # D*R*(D*Ro)^-1 = PSI
-        PSI = D.times(R).times(D.times(Ro).inverse())
+        PSI = D * R * ((D * Ro).I)
         
         # Find psi within PSI as defined in equation 51
-        PSI_23 = PSI.get(1, 2)
-        PSI_33 = PSI.get(2, 2)
+        PSI_23 = PSI[1, 2] 
+        PSI_33 = PSI[2, 2] 
 ###        psi = atan2(bound(PSI_23), bound(PSI_33))  #(use atan to cunningly choose the right roots)
         psi = atan2(PSI_23, PSI_33)  #(use atan to cunningly choose the right roots)
 
-        #print "PSI: ", PSI.array
+        #print "PSI: ", PSI.tolist()
         return psi
         
         
@@ -597,12 +600,12 @@ class VliegHklCalculator(HklCalculatorBase):
 #        # Normalise hklPhiNorm (As it is currently normalised only to the wavevector)
 #        norm = hklPhiNorm.normF()
 #        check(norm >= 1e-10, "reciprical lattice vector too close to zero")
-#        H_phi = hklPhiNorm.times(1/norm)
+#        H_phi = hklPhiNorm * 1/norm 
 #
 #        # Create Q_alpha from equation 47, (it comes normalised)
 ##        Q_alpha_norm = Matrix([[ sin(delta)*cos(gamma) ], [ cos(delta)*cos(gamma) - cos(alpha) ],[ sin(gamma) + sin(alpha) ]])
-#        Q_alpha = ( (DELTA.times(GAMMA)).minus(ALPHA.inverse()) ).times(Matrix([[0],[1],[0]]))
-#        Q_alpha = Q_alpha.times(1/Q_alpha.normF())
+#        Q_alpha = ( (DELTA * GAMMA ) - ALPHA.I  ) * Matrix([[0],[1],[0]] )
+#        Q_alpha = Q_alpha * 1/Q_alpha.normF( )
 #        
 #        # Find a solution Ro to Ro*H_phi=Q_alpha
 #        Ro = self._findMatrixToTransformAIntoB(H_phi, Q_alpha)
@@ -614,13 +617,13 @@ class VliegHklCalculator(HklCalculatorBase):
 #        
 #        # eq 54: compute u=D*Ro*S*[[0],[0],[1]], the surface normal in psi frame
 #        [SIGMA, TAU] = createVliegsSurfaceTransformationMatrices(self._getSigma()*TORAD, self._getTau()*TORAD)
-#        #S = SIGMA.times(TAU)
-#        S=TAU.times(SIGMA)
-#        ([u1], [u2], [u3]) = D.times(Ro).times(S).times(Matrix([[0],[0],[1]])).getArray()
+#        #S = SIGMA * TAU 
+#        S=TAU * SIGMA 
+#        ([u1], [u2], [u3]) = D * Ro  * S  * Matrix([[0],[0],[1]] ).tolist()
 #
 #        # equation 53: V=A*(D^-1)
-#        V = ALPHA.times(D.inverse())
-#        v21 = V.get(1,0); v22 = V.get(1,1); v23 = V.get(1,2)
+#        V = ALPHA * D.I 
+#        v21 = V[1,0] ; v22 = V[1,1] ; v23 = V[1,2] 
 #        # equation 55
 #        a = v22*u2 + v23*u3
 #        b = v22*u3 - v23*u2
@@ -650,32 +653,32 @@ class VliegHklCalculator(HklCalculatorBase):
         try:
             cosxi = bound(cosxi)
         except ValueError:
-            raise Exception("Could not compute cos(xi), vectors a=%f and b=%f must be of unit length" % (a.normF(), b.normF()))
+            raise Exception("Could not compute cos(xi), vectors a=%f and b=%f must be of unit length" % (norm(a), norm(b)))
         xi = acos(cosxi)
     
         # Mo is identity matrix if xi zero (math below would blow up)
         if abs(xi) < 1e-10:
-            return Matrix.identity(3, 3)
+            return I
     
         # equation A3: c=cross(a,b)/sin(xi)
-        c = cross3(a, b).times(1 / sin(xi))
+        c = cross3(a, b) * (1 / sin(xi))
     
         # equation A4: find D matrix that transforms a into the coordinate frame
         # x = a; y = c x a; z = c. */
-        a1 = a.get(0, 0); a2 = a.get(1, 0); a3 = a.get(2, 0);
-        b1 = b.get(0, 0); b2 = b.get(1, 0); b3 = b.get(2, 0); del b1, b2, b3
-        c1 = c.get(0, 0); c2 = c.get(1, 0); c3 = c.get(2, 0);
-        D = Matrix([ [a1 , a2 , a3 ], \
+        a1 = a[0, 0] ; a2 = a[1, 0] ; a3 = a[2, 0] ;
+        b1 = b[0, 0] ; b2 = b[1, 0] ; b3 = b[2, 0] ; del b1, b2, b3
+        c1 = c[0, 0] ; c2 = c[1, 0] ; c3 = c[2, 0] ;
+        D = matrix([ [a1 , a2 , a3 ], \
                 [c2 * a3 - c3 * a2, c3 * a1 - c1 * a3 , c1 * a2 - c2 * a1], \
                 [c1, c2, c3] ])
     
         # equation A5: create Xi to rotate by xi about z-axis
-        XI = Matrix([[cos(xi), -sin(xi), 0], \
+        XI = matrix([[cos(xi), -sin(xi), 0], \
                     [sin(xi), cos(xi), 0], \
                     [0 , 0 , 1]])
     
         # eq A6: compute Mo
-        return D.inverse().times(XI).times(D)
+        return D.I * XI  * D 
 
 
 
@@ -723,12 +726,12 @@ def _findOmegaAndChiToRotateHchiIntoQalpha(h_chi, q_alpha):
         return abs(shift(a) - shift(b)) < .0000001
 
     # 1. Compute some solutions
-    h_chi1 = h_chi.get(0, 0) 
-    h_chi2 = h_chi.get(1, 0) 
-    h_chi3 = h_chi.get(2, 0) 
-    q_alpha1 = q_alpha.get(0, 0)
-    q_alpha2 = q_alpha.get(1, 0)
-    q_alpha3 = q_alpha.get(2, 0)
+    h_chi1 = h_chi[0, 0]  
+    h_chi2 = h_chi[1, 0]  
+    h_chi3 = h_chi[2, 0]  
+    q_alpha1 = q_alpha[0, 0] 
+    q_alpha2 = q_alpha[1, 0] 
+    q_alpha3 = q_alpha[2, 0] 
     
     try:
         # a) Solve for chi using Equation 3
@@ -747,7 +750,7 @@ def _findOmegaAndChiToRotateHchiIntoQalpha(h_chi, q_alpha):
         eq2omega21, eq2omega22 = solve(A, h_chi2, q_alpha2)
 
     except ValueError, e:
-        raise ValueError(str(e) + ":\nProblem in fixed-phi calculation for:\nh_chi: " + str(h_chi.array) + " q_alpha: " + str(q_alpha.array))
+        raise ValueError(str(e) + ":\nProblem in fixed-phi calculation for:\nh_chi: " + str(h_chi.tolist()) + " q_alpha: " + str(q_alpha.tolist()))
                 
     # 2. Choose values of chi and omega that are solutions to equations 1 and 2:
     solutions = []
@@ -770,7 +773,7 @@ def _findOmegaAndChiToRotateHchiIntoQalpha(h_chi, q_alpha):
 #    print "*"
     
     if len(solutions) == 0:
-        e = "h_chi: " + str(h_chi.array) + " q_alpha: " + str(q_alpha.array)
+        e = "h_chi: " + str(h_chi.tolist()) + " q_alpha: " + str(q_alpha.tolist())
         e = e + '\n' + "chi1:%4f eq1omega11:%4f eq1omega12:%4f eq2omega11:%4f eq2omega12:%4f" % (chi1 * TODEG, eq1omega11 * TODEG, eq1omega12 * TODEG, eq2omega11 * TODEG, eq2omega12 * TODEG)
         e = e + '\n' + "chi2:%4f eq1omega21:%4f eq1omega22:%4f eq2omega21:%4f eq2omega22:%4f" % (chi2 * TODEG, eq1omega21 * TODEG, eq1omega22 * TODEG, eq2omega21 * TODEG, eq2omega22 * TODEG)
         raise Exception("Could not find simultaneous solution for this fixed phi mode problem\n" + e)

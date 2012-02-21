@@ -2,6 +2,11 @@ from nose.tools import assert_almost_equal #@UnresolvedImport
 # This is in there, but is dynamically copied in from unittest.Testcase and is
 # not seen by pydev.
 
+try:
+    from numpy import matrix
+except ImportError:
+    from numjy import matrix
+    
 def format_note(note):
     return " # %s" % note if note else ""
 
@@ -26,15 +31,21 @@ def assert_2darray_almost_equal(first, second, places=7, msg=None, note=None):
             assert_almost_equal(f, s, places, msg or message)
 
 def format_2darray(array, places):
-    format = '% .' + str(places) + 'f'
+    fmt = '% .' + str(places) + 'f'
     s = ""
     for row in array:
-        line = [format%el for el in row]
+        line = [fmt % el for el in row]
         s += '[' + ', '.join(line) + ']\n'
     return s
 
+def _array(m):
+    if isinstance(m, matrix):  # numpy
+        return m.tolist()
+    else:                       # assume Jama
+        return m.array
+
 def assert_matrix_almost_equal(first, second, places=7, msg=None, note=None):
-    assert_2darray_almost_equal(first.array, second.array, places, msg)
+    assert_2darray_almost_equal(_array(first), _array(second), places, msg)
 
  
 def assert_dict_almost_equal(first, second, places=7, msg=None, note=None):

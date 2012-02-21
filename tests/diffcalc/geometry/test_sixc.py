@@ -1,9 +1,12 @@
 from diffcalc.hkl.vlieg.position import VliegPosition
 from diffcalc.hkl.vlieg.matrices import createVliegMatrices
+
 try:
-    from Jama import Matrix
+    from numpy import matrix
+    from numpy.linalg import norm
 except ImportError:
-    from diffcalc.npadaptor import Matrix #@UnusedImport
+    from numjy import matrix
+    from numjy.linalg import norm
     
 from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry, gammaOnArmToBase, \
     gammaOnBaseToArm, SixCircleGeometry
@@ -17,12 +20,6 @@ random.seed() # uses time
 TORAD = pi / 180
 TODEG = 180 / pi
 
-
-try:
-    from Jama import Matrix
-except ImportError:
-    from diffcalc.npadaptor import Matrix
-    
 
 class TestSixCirclePlugin(unittest.TestCase):
     
@@ -39,7 +36,7 @@ class TestSixCirclePlugin(unittest.TestCase):
     def testInternalPositionToPhysicalAngles(self):
         pos = [0, 0, 0, 0, 0, 0]    
         result = self.geometry.internalPositionToPhysicalAngles(VliegPosition(*pos))
-        self.assert_(Matrix([pos]).minus(Matrix([result])).normF() < 0.001)
+        self.assert_(norm(matrix([pos]) -matrix([result])) < 0.001)
 
     def testGammaOn(self):
         self.assert_(self.geometry.gammaLocation(), 'base')
@@ -81,7 +78,7 @@ class TestSixCircleGammaOnArmGeometry(unittest.TestCase):
     def testInternalPositionToPhysicalAngles(self):
         pos = [1, 2, 3, 4, 5, 6]    
         result = self.geometry.internalPositionToPhysicalAngles(VliegPosition(*pos))
-        self.assert_(Matrix([pos]).minus(Matrix([result])).normF() < 0.001)
+        self.assert_(norm(matrix([pos]) - matrix([result])) < 0.001)
         
 #    def testPhysicalAnglesToInternalWrongInput(self):
 #        pos = (1,2,3,4,5)
@@ -103,17 +100,17 @@ class TestSixCircleGammaOnArmGeometry(unittest.TestCase):
         self.assertEqual(self.geometry.isParamaterUnchangable('made up parameter'), False)
 
 
-y_vector = Matrix([[0], [1], [0]])
+y_vector = matrix([[0], [1], [0]])
 
 TOLERANCE = 1e-5
 
 def armAnglesToLabVector(alpha, delta, gamma):
     [ALPHA, DELTA, GAMMA, _, _, _] = createVliegMatrices(alpha, delta, gamma, None, None, None)
-    return ALPHA.times(DELTA).times(GAMMA).times(y_vector)
+    return ALPHA * DELTA  * GAMMA  * y_vector 
 
 def baseAnglesToLabVector(delta, gamma):
     [_, DELTA, GAMMA, _, _, _] = createVliegMatrices(None, delta, gamma, None, None, None)
-    return GAMMA.times(DELTA).times(y_vector)
+    return GAMMA * DELTA  * y_vector 
 
 
 def checkGammaOnArmToBase(alpha, deltaA, gammaA):

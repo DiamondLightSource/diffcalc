@@ -10,11 +10,6 @@ try:
 except ImportError:
     from numjy import matrix
 
-try:
-    from Jama import Matrix
-except ImportError:
-    from diffcalc.npadaptor import Matrix
-
 logger = logging.getLogger("diffcalc.hkl.willmot.calcwill")
 
 CHOOSE_POSITIVE_GAMMA = True
@@ -131,7 +126,7 @@ class WillmottHorizontalUbCalcStrategy(PaperSpecificUbCalcStrategy):
 
     def calculate_q_phi(self, pos):
         H_phi = angles_to_hkl_phi(*pos.totuple())
-        return Matrix(H_phi.tolist())
+        return matrix(H_phi.tolist())
 
 
 class DummyConstraints(object):

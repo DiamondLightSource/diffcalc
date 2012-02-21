@@ -1,15 +1,17 @@
 try:
-    from Jama import Matrix
-except ImportError:
-    from diffcalc.npadaptor import Matrix
-try:
     from gda.jython.commands.InputCommands import requestInput as raw_input
 except ImportError:
     pass # raw_input won't work in the gda so use this instead (if it is there)
 from math import cos, sin, pi, acos
 
+try:
+    from numpy import matrix
+    from numpy.linalg import norm
+except ImportError:
+    from numjy import matrix
+    from numjy.linalg import norm
 
-MIRROR = Matrix([[1, 0, 0],
+MIRROR = matrix([[1, 0, 0],
                  [0, -1, 0],
                  [0, 0, 1]
                 ])
@@ -55,28 +57,36 @@ class AbstractPosition(object):
 
 def cross3(x, y):
     """z = cross3(x ,y) -- where x, y & z are 3*1 Jama matrices"""
-    [[x1], [x2], [x3]] = x.getArray()
-    [[y1], [y2], [y3]] = y.getArray()
-    return Matrix([[x2 * y3 - x3 * y2], [x3 * y1 - x1 * y3], [x1 * y2 - x2 * y1]])
+    [[x1], [x2], [x3]] = x.tolist()
+    [[y1], [y2], [y3]] = y.tolist()
+    return matrix([[x2 * y3 - x3 * y2], [x3 * y1 - x1 * y3], [x1 * y2 - x2 * y1]])
 
 def dot3(x, y):
     """z = dot3(x ,y) -- where x, y are 3*1 Jama matrices"""
-    [[x1], [x2], [x3]] = x.getArray()
-    [[y1], [y2], [y3]] = y.getArray()
-    return x1 * y1 + x2 * y2 + x3 * y3
+    if isinstance(x, matrix):  #TODO: Remove Jama version
+        return x[0, 0] * y[0, 0] +  x[1, 0] * y[1, 0] +  x[2, 0] * y[2, 0]
+
+# TODO: Remove, used only by messy tests
+def norm1(m):
+    """Returns maximum column sum."""
+    return m.sum(axis=0).max()
+
 
 def angle_between_vectors(a, b):
-    costheta = dot3(a.times(1 / a.normF()), b.times(1 / b.normF()))
+    if isinstance(a, matrix):
+        costheta = dot3(a * (1 / norm(a)), b * (1 / norm(b)))
+    else: #TODO: Remove Jama version
+        costheta = dot3(a.times(1 / a.normF()), b.times(1 / b.normF()))
     return acos(bound(costheta))
 
 def x_rotation(th):
-    return Matrix(((1, 0, 0), (0, cos(th), -sin(th)), (0, sin(th), cos(th))))
+    return matrix(((1, 0, 0), (0, cos(th), -sin(th)), (0, sin(th), cos(th))))
 
 def y_rotation(th):
-    return Matrix(((cos(th), 0, sin(th)), (0, 1, 0), (-sin(th), 0, cos(th))))
+    return matrix(((cos(th), 0, sin(th)), (0, 1, 0), (-sin(th), 0, cos(th))))
 
 def z_rotation(th):
-    return Matrix(((cos(th), -sin(th), 0), (sin(th), cos(th), 0), (0, 0, 1)))
+    return matrix(((cos(th), -sin(th), 0), (sin(th), cos(th), 0), (0, 0, 1)))
 
 ## Math
 
@@ -107,12 +117,12 @@ def nearlyEqual(first, second, tolerance):
     if type(first) in (int, float):
         return abs(first - second) <= tolerance
     
-    if type(first) != type(Matrix([[1]])):
+    if type(first) != type(matrix([[1]])):
         # lists
-        first = Matrix([list(first)])
-        second = Matrix([list(second)])
-    diff = first.minus(second)
-    return diff.normF() <= tolerance
+        first = matrix([list(first)])
+        second = matrix([list(second)])
+    diff = first - (second)
+    return norm(diff) <= tolerance
 
 def radiansEquivilant(first, second, tolerance):
     if abs(first - second) <= tolerance:
@@ -143,15 +153,15 @@ def differ(first, second, tolerance):
         first = [first]
         second = [second]
         nonArray = True
-    if not isinstance(first, Matrix):
-        first = Matrix([list(first)])
-    if not isinstance(second, Matrix):
-        second = Matrix([list(second)])
-    diff = first.minus(second)
-    if diff.normF() >= tolerance:
+    if not isinstance(first, matrix):
+        first = matrix([list(first)])
+    if not isinstance(second, matrix):
+        second = matrix([list(second)])
+    diff = first - second
+    if norm(diff) >= tolerance:
         if nonArray:
-            return '%s!=%s' % (`first.array[0][0]`, `second.array[0][0]`)
-        return '%s!=%s' % (`tuple(first.array[0])`, `tuple(second.array[0])`)
+            return '%s!=%s' % (`first.tolist()[0][0]`, `second.tolist()[0][0]`)
+        return '%s!=%s' % (`tuple(first.tolist()[0])`, `tuple(second.tolist()[0])`)
     return False
 
 ### user input

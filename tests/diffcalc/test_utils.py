@@ -52,13 +52,13 @@ class TestUtils(unittest.TestCase):
         self.assertEquals(getInputWithDefault('enter a thing', 'default'), [1.0, 2.0, 3.1])
     
     def testDiffer(self):
-        self.assertEquals(differ([1, 2, 3], [1, 2, 3], .000000000000000001), False)
+        self.assertEquals(differ([1., 2., 3.], [1., 2., 3.], .000000000000000001), False)
         self.assertEquals(differ(1, 1.0, .000000000000000001), False)
-        self.assertEquals(differ([2, 4, 6], [1, 2, 3], .1) , '(2.0, 4.0, 6.0)!=(1.0, 2.0, 3.0)')
+        self.assertEquals(differ([2., 4., 6.], [1., 2., 3.], .1) , '(2.0, 4.0, 6.0)!=(1.0, 2.0, 3.0)')
         
-        self.assertEquals(differ(1, 1.2, .2), False)
-        self.assertEquals(differ(1, 1.2, .1999999999999), '1.0!=1.2')
-        self.assertEquals(differ(1, 1.2, 1.20000000000001), False)
+        self.assertEquals(differ(1., 1.2, .2), False)
+        self.assertEquals(differ(1., 1.2, .1999999999999), '1.0!=1.2')
+        self.assertEquals(differ(1., 1.2, 1.20000000000001), False)
 
     def testNearlyEqual(self):
         self.assertEquals(nearlyEqual([1, 2, 3], [1, 2, 3], .000000000000000001), True)

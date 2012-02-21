@@ -1,0 +1,47 @@
+Take a six circle diffractometer with angles:
+
+delta, nu, mu, eta, chi, phi
+
+and virtual angles:
+
+qaz, naz, psi, alpha, beta.
+
+Many combinations of these can be constrained:
+
+
+constrain
+>>> con nu
+>>> con psi
+>>> con mu
+>>> con nu mu a_eq_b
+
+real angles are always constrained to there last set position. If they are too far from here
+an error will result.
+
+>>> pos nu 0 (moves, parameter tracks last set value (actually checks it when hkl moved))
+>>> pos psi 90 (does not move, sets parameter in diffcalc)
+>>> pos mu 0 (moves)
+>>> pos hkl [1 0 0] (moves based on last set nu, psi, mu)
+>>> pos betain --> Exception, not constrained
+
+moving a virtual angle simply sets it to efftec the next hkl move
+
+Here we need onlu con, uncon and pos.
+
+......
+
+However it would be nice to be able to pos betain for example and have it change
+betain while staying on the same reflection. This might be enabled by locking the
+the current hkl position. It would be trick to make this work with the physical angles though.
+
+>>> lock hkl
+>>> pos psi 90 (moves immediately)
+>>> scan psi 0 90 1 (scans, moving immediately)
+>>> pos mu 0 (does not move immediately) (could work by listening to target positions, and triggering move when complete)
+>>> pos c(mu) moves
+>>> pos mu_c moves
+
+Only one thing would be varyable at a time unless they are put in a CoordinatedMotionGroup,
+which would be hard for the real motors)
+
+

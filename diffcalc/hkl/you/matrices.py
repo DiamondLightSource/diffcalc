@@ -1,4 +1,18 @@
-from diffcalc.utils import x_rotation, z_rotation, y_rotation
+from math import cos, sin
+try:
+    from numpy import matrix
+except ImportError:
+    from numjy import matrix
+
+def x_rotation(th):
+    return matrix(((1, 0, 0), (0, cos(th), -sin(th)), (0, sin(th), cos(th))))
+
+def y_rotation(th):
+    return matrix(((cos(th), 0, sin(th)), (0, 1, 0), (-sin(th), 0, cos(th))))
+
+def z_rotation(th):
+    return matrix(((cos(th), -sin(th), 0), (sin(th), cos(th), 0), (0, 0, 1)))
+
 def createYouMatrices(mu=None, delta=None, nu=None, eta=None, chi=None, phi=None):
     """    
     Return transformation matrices from H. You's paper.

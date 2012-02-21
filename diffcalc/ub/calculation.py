@@ -3,21 +3,17 @@ from diffcalc.ub.persistence import UBCalculationPersister
 from diffcalc.ub.reflections import ReflectionList
 from diffcalc.utils import DiffcalcException, MIRROR, cross3, dot3
 from math import acos, cos, sin, pi
+
 try:
-    from Jama import Matrix
+    from numpy import matrix, hstack
+    from numpy.linalg import norm
 except ImportError:
-    from diffcalc.npadaptor import Matrix
+    from numjy import matrix, hstack
+    from numjy.linalg import norm
 
 SMALL = 1e-7
 
 TODEG = 180/pi
-
-def matrixTo3x3ListOfLists(m):
-    r = list(m.array)
-    r[0] = list(r[0])
-    r[1] = list(r[1])
-    r[2] = list(r[2])
-    return r
 
 
 class PaperSpecificUbCalcStrategy(object):
@@ -127,12 +123,12 @@ class UBCalculation:
             state['reflist'] = None    
         
         if self._uSetManually:
-            state['u'] = matrixTo3x3ListOfLists(self._U)
+            state['u'] = self._U.tolist()
         else:
             state['u'] = None
         
         if self._ubSetManually:
-            state['ub'] = matrixTo3x3ListOfLists(self._UB)
+            state['ub'] = self._UB.tolist()
         else:
             state['ub'] = None
         
@@ -177,10 +173,10 @@ class UBCalculation:
             if self._UB == None:
                 result += "   none calculated"
             else:
-                ub = self._UB.getArray()
-                result += "\t       % 18.13f% 18.13f% 18.12f\n" % (ub[0][0], ub[0][1], ub[0][2])
-                result += "\t       % 18.13f% 18.13f% 18.12f\n" % (ub[1][0], ub[1][1], ub[1][2])
-                result += "\t       % 18.13f% 18.13f% 18.12f\n" % (ub[2][0], ub[2][1], ub[2][2])
+                ub = self._UB
+                result += "\t       % 18.13f% 18.13f% 18.12f\n" % (ub[0, 0], ub[0, 1], ub[0, 2])
+                result += "\t       % 18.13f% 18.13f% 18.12f\n" % (ub[1, 0], ub[1, 1], ub[1, 2])
+                result += "\t       % 18.13f% 18.13f% 18.12f\n" % (ub[2, 0], ub[2, 1], ub[2, 2])
                 if self._geometry.mirrorInXzPlane:
                     print "   (The effect of the configured mirror is not shown here)"
             result += "\n     Sigma: %f\n" % self._sigma
@@ -339,20 +335,20 @@ class UBCalculation:
         return self._reflist
 ### Calculations ###
 
-    def setUManually(self, matrix):
+    def setUManually(self, m):
         """Manually sets U. matrix must be 3*3 Jama or python matrix.
         Turns off aution UB calcualtion."""
         
         # Check matrix is a 3*3 Jama matrix
-        if matrix.__class__ != Matrix:
-            matrix = Matrix(matrix) # assume its a python matrix
-        if matrix.getRowDimension() != 3 or matrix.getColumnDimension() != 3:
+        if m.__class__ != matrix:
+            m = matrix(m) # assume its a python matrix
+        if m.shape[0] != 3 or m.shape[1] != 3:
             raise  ValueError("Expects 3*3 matrix")
         
-        self._U = matrix
+        self._U = m
         if self._crystal == None:
             raise DiffcalcException("A crystal must be specified before manually setting U")
-        self._UB = self._U.times(self._crystal.getBMatrix())
+        self._UB = self._U * self._crystal.getBMatrix()
         if self._UB == None:
             print "Calculating UB matrix."
         else:
@@ -365,17 +361,17 @@ the orientation reflections are modified."""
         self.save()
         
         
-    def setUBManually(self, matrix):
+    def setUBManually(self, m):
         """Manually sets UB. matrix must be 3*3 Jama or python matrix.
         Turns off aution UB calcualtion."""
         
         # Check matrix is a 3*3 Jama matrix
-        if matrix.__class__ != Matrix:
-            matrix = Matrix(matrix) # assume its a python matrix
-        if matrix.getRowDimension() != 3 or matrix.getColumnDimension() != 3:
+        if m.__class__ != matrix:
+            m = matrix(m) # assume its a python matrix
+        if m.shape[0] != 3 or m.shape[1] != 3:
             raise  ValueError("Expects 3*3 matrix")
         
-        self._UB = matrix
+        self._UB = m
         self._okayToAutoCalculateUB = False
         self._uSetManually = False
         self._ubSetManually = True
@@ -422,15 +418,15 @@ the orientation reflections are modified."""
             (h2, pos2, _, _, _) = self._reflist.getReflection(2)
         except IndexError:
             raise DiffcalcException("Two reflections are required to calculate a u matrix")
-        h1 = Matrix([h1]).transpose() # row->column
-        h2 = Matrix([h2]).transpose()
+        h1 = matrix([h1]).transpose() # row->column
+        h2 = matrix([h2]).transpose()
         pos1.changeToRadians()
         pos2.changeToRadians()
         
         # Compute the two reflections' reciprical lattice vectors in the cartesian crystal frame        
         B = self._crystal.getBMatrix()
-        h1c = B.times(h1)
-        h2c = B.times(h2)
+        h1c = B * h1 
+        h2c = B * h2 
         
         # Build the plane normal directions in alpha-axis coordinate frame
         #u1a = Matrix([[ sin(pos1.delta)*cos(pos1.gamma) ], \
@@ -457,36 +453,36 @@ the orientation reflections are modified."""
         SMALL = 1e-4 # Taken from Vlieg's code
         e = DiffcalcException("Invalid orientation reflection(s)")
         
-        d = t1c.normF(); t1c = t1c.times(1 / d);
+        d = norm(t1c); t1c = t1c * (1 / d)
         if d < SMALL: raise e
-        d = t2c.normF(); t2c = t2c.times(1 / d); #TODO: should be no need to normalise
+        d = norm(t2c); t2c = t2c * (1 / d) #TODO: should be no need to normalise
         if d < SMALL: raise e
-        d = t3c.normF(); t3c = t3c.times(1 / d);
+        d = norm(t3c); t3c = t3c * (1 / d)
         if d < SMALL: raise e
         
-        d = t1p.normF(); t1p = t1p.times(1 / d);
+        d = norm(t1p); t1p = t1p * (1 / d)
         if d < SMALL: raise e
-        d = t2p.normF(); t2p = t2p.times(1 / d); #TODO: should be no need to normalise
+        d = norm(t2p); t2p = t2p * (1 / d) #TODO: should be no need to normalise
         if d < SMALL: raise e
-        d = t3p.normF(); t3p = t3p.times(1 / d);
+        d = norm(t3p); t3p = t3p * (1 / d)
         if d < SMALL: raise e
     
         # Create Tc and Tp
-        Tc = Matrix(3, 3)
-        Tc.setMatrix([0, 1, 2], [0], t1c)
-        Tc.setMatrix([0, 1, 2], [1], t2c)
-        Tc.setMatrix([0, 1, 2], [2], t3c)
+        Tc = hstack([t1c, t2c, t3c])
+#        Tc.setMatrix([0, 1, 2], [0], t1c)
+#        Tc.setMatrix([0, 1, 2], [1], t2c)
+#        Tc.setMatrix([0, 1, 2], [2], t3c)
         
-        Tp = Matrix(3, 3)
-        Tp.setMatrix([0, 1, 2], [0], t1p)
-        Tp.setMatrix([0, 1, 2], [1], t2p)
-        Tp.setMatrix([0, 1, 2], [2], t3p)
+        Tp = hstack([t1p, t2p, t3p])
+#        Tp.setMatrix([0, 1, 2], [0], t1p)
+#        Tp.setMatrix([0, 1, 2], [1], t2p)
+#        Tp.setMatrix([0, 1, 2], [2], t3p)
     
         # Compute orientation matrix (!)
-        self._U = Tp.times(Tc.inverse())
+        self._U = Tp * Tc.I
         
         # Compute UB matrix
-        self._UB = self._U.times(B)
+        self._UB = self._U * B 
 
         self.save()
     
@@ -503,44 +499,44 @@ the orientation reflections are modified."""
         except IndexError:
             raise DiffcalcException("One reflection is required to calculate a u matrix")
         
-        h = Matrix([h]).transpose() # row->column
+        h = matrix([h]).T # row->column
         pos.changeToRadians()
         B = self._crystal.getBMatrix()
-        h_crystal = B.times(h)
-        h_crystal = h_crystal.times(1 / h_crystal.normF())
+        h_crystal = B * h 
+        h_crystal = h_crystal * (1 / norm(h_crystal))
         
         q_measured_phi = self._strategy.calculate_q_phi(pos)
-        q_measured_phi = q_measured_phi.times(1 / q_measured_phi.normF())
+        q_measured_phi = q_measured_phi * (1 / norm(q_measured_phi))
         
         rotation_axis = cross3( h_crystal, q_measured_phi)
-        rotation_axis = rotation_axis.times(1 / rotation_axis.normF())
+        rotation_axis = rotation_axis * (1 / norm(rotation_axis))
         
         cos_rotation_angle = dot3(h_crystal, q_measured_phi)
         rotation_angle = acos(cos_rotation_angle)
         
-        uvw = rotation_axis.transpose().array[0]
+        uvw = rotation_axis.T.tolist()[0]  # TODO: cleanup
         print "resulting U angle: %.5f deg" % (rotation_angle * TODEG)
         print "resulting U axis direction: [%s]" % (', '.join(['% .5f'%el for el in uvw]))
 
         u, v, w = uvw
         rcos = cos(rotation_angle);
         rsin = sin(rotation_angle);
-        matrix = [[0,0,0],[0,0,0],[0,0,0]]
-        matrix[0][0] =      rcos + u*u*(1-rcos)
-        matrix[1][0] =  w * rsin + v*u*(1-rcos)
-        matrix[2][0] = -v * rsin + w*u*(1-rcos)
-        matrix[0][1] = -w * rsin + u*v*(1-rcos)
-        matrix[1][1] =      rcos + v*v*(1-rcos)
-        matrix[2][1] =  u * rsin + w*v*(1-rcos)
-        matrix[0][2] =  v * rsin + u*w*(1-rcos)
-        matrix[1][2] = -u * rsin + v*w*(1-rcos)
-        matrix[2][2] =      rcos + w*w*(1-rcos)
+        m = [[0,0,0],[0,0,0],[0,0,0]] # TODO: tidy
+        m[0][0] =      rcos + u*u*(1-rcos)
+        m[1][0] =  w * rsin + v*u*(1-rcos)
+        m[2][0] = -v * rsin + w*u*(1-rcos)
+        m[0][1] = -w * rsin + u*v*(1-rcos)
+        m[1][1] =      rcos + v*v*(1-rcos)
+        m[2][1] =  u * rsin + w*v*(1-rcos)
+        m[0][2] =  v * rsin + u*w*(1-rcos)
+        m[1][2] = -u * rsin + v*w*(1-rcos)
+        m[2][2] =      rcos + w*w*(1-rcos)
        
         # Set orientation matrix (!)
-        self._U = Matrix(matrix)
+        self._U = matrix(m)
         
         # Compute UB matrix
-        self._UB = self._U.times(B)
+        self._UB = self._U * B
 
 
 

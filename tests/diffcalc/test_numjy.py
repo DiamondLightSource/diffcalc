@@ -19,7 +19,7 @@ def meq_(a, b):
     ok_((a == b).all(), '\n%s\n  !=\n%s' % (a, b))
 
 
-class BaseMatrixTest():
+class _TestNumpyMatrix():
 
     def m(self, args):
         raise NotImplementedError()
@@ -129,9 +129,12 @@ class BaseMatrixTest():
     def test_T(self):
         meq_(self.m('1 2; 3 4').T,
              self.m('1 3; 2 4'))
+        
+#    def test_dot(self):
+#        assert_almost_equal(self.m('1 2').dot(self.m('3; 4')), 0)
 
 
-class BaseLinalgTest():
+class _TestLinalg():
 
     def matrix(self, args):
         raise NotImplementedError()
@@ -140,22 +143,37 @@ class BaseLinalgTest():
         raise NotImplementedError()
 
     def test_norm_frobenius(self):
-        eq_(self.norm(self.matrix('1 1 1; 1 1 1; 1 1 1')), 3)
-        eq_(self.norm(self.matrix('1 2 3; 4 5 6; 7 8 9')), 16.88194301613413)
+        m1 = self.matrix('1 1 1; 1 1 1; 1 1 1')
+        assert_almost_equal(self.norm(m1), 3, places=13)
+        m2 = self.matrix('1 2 3; 4 5 6; 7 8 9')
+        assert_almost_equal(self.norm(m2), 16.881943016134134, places=13)
 
+
+class _TestNumpy():
+
+    def matrix(self, args):
+        raise NotImplementedError()
+
+    def dot(self, *args):
+        raise NotImplementedError()
+    
+#    def test_dot(self):
+#        row1 = self.matrix('1; 2; 3')
+#        row2 = self.matrix('4; 5; 6')
+#        assert_almost_equal(self.dot(row1, row2), 0)
 #------------------------------------------------------------------------------ 
 # numpy
 #------------------------------------------------------------------------------ 
 
 if NUMPY_AVAILABLE:
 
-    class TestMatrixNumpy(BaseMatrixTest):
+    class TestNumpyMatrix(_TestNumpyMatrix):
 
         def m(self, args):
             return numpy.matrix(args)
 
 
-    class TestLinalgNumpy(BaseLinalgTest):
+    class TestLinalgNumpy(_TestLinalg):
 
         def matrix(self, args):
             return numpy.matrix(args)
@@ -163,10 +181,18 @@ if NUMPY_AVAILABLE:
         def norm(self, args):
             return numpy.linalg.norm(args)
 
-        def test_norm_frobenius(self):
-            eq_(self.norm(self.matrix('1 1 1; 1 1 1; 1 1 1')), 3)
-            eq_(self.norm(self.matrix('1 2 3; 4 5 6; 7 8 9')), 16.881943016134134) #  extra decimal place!
 
+    class TestNumpy(_TestNumpy):
+
+        def matrix(self, args):
+            return numpy.matrix(args)
+
+        def dot(self, a, b):
+            print a
+            print b
+            return numpy.dot(a, b)
+        
+        
 #------------------------------------------------------------------------------ 
 # numjy
 #------------------------------------------------------------------------------ 
@@ -177,7 +203,7 @@ if JAMA_AVAILABLE:
     import numjy
 
 
-    class TestMatrixNumjy(BaseMatrixTest):
+    class BaseTestNumjyMatrix(_TestNumpyMatrix):
 
         def m(self, args):
             return numjy.matrix(args)
@@ -194,7 +220,7 @@ if JAMA_AVAILABLE:
         def test__div__(self):
             raise SkipTest()
 
-    class TestLinalgNumjy(BaseLinalgTest):
+    class TestLinalgNumjy(_TestLinalg):
 
         def matrix(self, args):
             return numjy.matrix(args)

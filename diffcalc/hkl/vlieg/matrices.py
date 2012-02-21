@@ -2,10 +2,10 @@ from diffcalc.utils import x_rotation, z_rotation, y_rotation
 from math import cos, sin
 
 try:
-    from Jama import Matrix
+    from numpy import matrix
 except ImportError:
-    from diffcalc.npadaptor import Matrix
-    
+    from numjy import matrix
+        
 def calcALPHA(alpha):
     return x_rotation(alpha)
 
@@ -42,11 +42,11 @@ def createVliegsSurfaceTransformationMatrices(sigma, tau):
     """[SIGMA, TAU] = createVliegsSurfaceTransformationMatrices(sigma, tau)
     angles in radians
     """
-    SIGMA = Matrix([[cos(sigma), 0, sin(sigma)], \
+    SIGMA = matrix([[cos(sigma), 0, sin(sigma)], \
                     [0, 1, 0], \
                     [-sin(sigma), 0, cos(sigma)] ])
         
-    TAU = Matrix([[cos(tau), sin(tau) , 0], \
+    TAU = matrix([[cos(tau), sin(tau) , 0], \
                   [-sin(tau), cos(tau), 0], \
                   [0, 0, 1] ])
     return(SIGMA, TAU)
@@ -55,6 +55,6 @@ def createVliegsPsiTransformationMatrix(psi):
     """PSI = createPsiTransformationMatrices(psi)
     angles in radians
     """
-    return Matrix([[1, 0, 0], \
+    return matrix([[1, 0, 0], \
                    [0, cos(psi), sin(psi)], \
                    [0, -sin(psi), cos(psi) ]])

@@ -4,16 +4,16 @@ from diffcalc.hkl.you.calcyou import youAnglesToHkl
 from math import pi
 
 try:
-    from Jama import Matrix
+    from numpy import matrix
 except ImportError:
-    from diffcalc.npadaptor import Matrix
+    from numjy import matrix
 
 TORAD = pi / 180
 TODEG = 180 / pi
 
 
 
-I = Matrix.identity(3, 3)
+I = matrix('1 0 0; 0 1 0; 0 0 1')
 
 
 def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
@@ -22,11 +22,11 @@ def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
 class TestAnglesToHkl_I16Examples():
     
     def __init__(self):
-        self.UB1 = Matrix(
+        self.UB1 = matrix(
              ((0.9996954135095477, -0.01745240643728364, -0.017449748351250637),
               (0.01744974835125045, 0.9998476951563913, -0.0003045864904520898),
               (0.017452406437283505, -1.1135499981271473e-16, 0.9998476951563912))
-            ).times(2 * pi)
+            ) * (2 * pi)
         self.WL1 = 1 # Angstrom
 
     def test_anglesToHkl_mu_0_gam_0(self):

@@ -11,9 +11,9 @@ from tests.diffcalc.hardware.test_plugin import SimpleHardwareMonitorPlugin
 from diffcalc.utils import DiffcalcException
 
 try:
-    from Jama import Matrix
+    from numpy import matrix
 except ImportError:
-    from diffcalc.npadaptor import Matrix
+    from numjy import matrix
 
 def isnan(n):
     # math.isnan was introduced only in python 2.6 and is not in Jython (2.5.2)
@@ -22,13 +22,17 @@ def isnan(n):
     except AttributeError:
         return n != n # for Jython
 
+try:
+    from numpy import matrix
+except ImportError:
+    from numjy import matrix
 
 TORAD=pi/180
 TODEG=180/pi
 
-x = Matrix([[1], [0], [0]])   
-y = Matrix([[0], [1], [0]])   
-z = Matrix([[0], [0], [1]])
+x = matrix('1; 0; 0')   
+y = matrix('0; 1; 0')   
+z = matrix('0; 0; 1')
 
 
 class Test_anglesToVirtualAngles():
@@ -81,7 +85,7 @@ class Test_anglesToVirtualAngles():
     #alpha
     def test_defaultReferenceValue(self):
         # The following tests depemd on this
-        assert_matrix_almost_equal(self.calc.n_phi, Matrix([[0],[0],[1]]))
+        assert_matrix_almost_equal(self.calc.n_phi, matrix([[0],[0],[1]]))
 
     def test_alpha0(self):
         self.check_angle('alpha', 0, mu=0, eta=0, chi=0, phi=0)
@@ -197,25 +201,25 @@ class Test_anglesToVirtualAngles():
 class Test_calc_theta():
     
     def setup(self):
-        self.calc = YouHklCalculator(createMockUbcalc(I.times(2*pi)),
+        self.calc = YouHklCalculator(createMockUbcalc(I * 2 * pi),
                                      createMockDiffractometerGeometry(),
                                      createMockHardwareMonitor(),
                                      None)
         self.e = 12.398420 # 1 Angstrom
     
     def test_100(self):
-        h_phi = Matrix([[1],[0],[0]])
-        assert_almost_equal(self.calc._calc_theta(h_phi.times(2*pi), 1)*TODEG, 30)
+        h_phi = matrix([[1],[0],[0]])
+        assert_almost_equal(self.calc._calc_theta(h_phi * 2 * pi, 1)*TODEG, 30)
     
     @raises(DiffcalcException)
     def test_too_short(self):
-        h_phi = Matrix([[1],[0],[0]])
-        self.calc._calc_theta(h_phi.times(0), 1)
+        h_phi = matrix([[1],[0],[0]])
+        self.calc._calc_theta(h_phi * 0, 1)
         
     @raises(DiffcalcException)
     def test_too_long(self):
-        h_phi = Matrix([[1],[0],[0]])
-        self.calc._calc_theta(h_phi.times(2*pi), 10)
+        h_phi = matrix([[1],[0],[0]])
+        self.calc._calc_theta(h_phi * 2 * pi, 10)
      
         
 
@@ -395,7 +399,7 @@ class Test_calc_remaining_sample_angles_given_one():
 
     def test_constrain_eta_20_with_theta_20(self):
         theta = 20*TORAD
-        Q_lab = Matrix([[cos(theta)], [-sin(theta)],[0]])
+        Q_lab = matrix([[cos(theta)], [-sin(theta)],[0]])
         self.check('eta', 20, Q_lab=Q_lab, n_lab=z, Q_phi=x, n_phi=z,
                     phi_e=0, chi_e=0, eta_e=20, mu_e=0)
         
@@ -410,7 +414,7 @@ class Test_calc_remaining_sample_angles_given_one():
 
     def test_constrain_chi_90(self):
         raise SkipTest() # mu is off by 180, but youcalc tries +-x and 180+-x anyway
-        self.check('chi', 90, Q_lab=z.times(-1), n_lab=x, Q_phi=x, n_phi=z,
+        self.check('chi', 90, Q_lab=z * (-1), n_lab=x, Q_phi=x, n_phi=z,
                     phi_e=0, chi_e=90, eta_e=0, mu_e=0)
         
     def test_constrain_phi_0(self):
@@ -427,7 +431,7 @@ class Test_calc_remaining_sample_angles_given_one():
         
     def test_constrain_phi_20_with_theta_20(self):
         theta = 20*TORAD
-        Q_lab = Matrix([[cos(theta)], [-sin(theta)],[0]])
+        Q_lab = matrix([[cos(theta)], [-sin(theta)],[0]])
         self.check('phi', 20, Q_lab=Q_lab, n_lab=z, Q_phi=x, n_phi=z,
                     phi_e=20, chi_e=0, eta_e=0, mu_e=0)
 

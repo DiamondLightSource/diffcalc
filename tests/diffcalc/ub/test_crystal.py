@@ -2,10 +2,11 @@ from diffcalc.tools import assert_dict_almost_equal
 from diffcalc.ub.crystal import CrystalUnderTest
 from tests.diffcalc import scenarios
 import unittest
+from diffcalc.utils import norm1
 try:
-    from Jama import Matrix
+    from numpy import matrix
 except ImportError:
-    from diffcalc.npadaptor import Matrix
+    from numjy import matrix
 class TestCrystalUnderTest(unittest.TestCase):
         
     
@@ -27,11 +28,11 @@ class TestCrystalUnderTest(unittest.TestCase):
             if sess.bmatrix == None:
                 continue    
             cut = CrystalUnderTest('tc', *sess.lattice)
-            desired = Matrix(sess.bmatrix)
-            print desired.getArray()
+            desired = matrix(sess.bmatrix)
+            print desired.tolist()
             answer = cut.getBMatrix()
-            print answer.getArray()
-            self.assert_(answer.minus(desired).norm1() < .0001, "Incorrect B matrix calculation for scenario.name=" + sess.name)
+            print answer.tolist()
+            self.assert_((norm1(answer - desired)) < .0001, "Incorrect B matrix calculation for scenario.name=" + sess.name)
 
     def test__str__(self):
         cut = CrystalUnderTest("HCl", 1, 2, 3, 4, 5, 6)
