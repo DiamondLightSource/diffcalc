@@ -1,18 +1,18 @@
-from nose.tools import eq_, ok_, assert_almost_equal #@UnresolvedImport
+from nose.tools import eq_, ok_, assert_almost_equal  # @UnresolvedImport
 from nose.plugins.skip import SkipTest
 from diffcalc.tools import assert_2darray_almost_equal
 
 try:
     import numpy
-    NUMPY_AVAILABLE = True
+    __NUMPY_AVAILABLE__ = True
 except ImportError:
-    NUMPY_AVAILABLE = False
+    __NUMPY_AVAILABLE__ = False
 
 try:
-    import Jama #@UnusedImport
-    JAMA_AVAILABLE = True
+    import numjy
+    __NUMJY_AVAILABLE__ = True
 except ImportError:
-    JAMA_AVAILABLE = False
+    __NUMJY_AVAILABLE__ = False
 
 
 def meq_(a, b):
@@ -129,9 +129,6 @@ class _TestNumpyMatrix():
     def test_T(self):
         meq_(self.m('1 2; 3 4').T,
              self.m('1 3; 2 4'))
-        
-#    def test_dot(self):
-#        assert_almost_equal(self.m('1 2').dot(self.m('3; 4')), 0)
 
 
 class _TestLinalg():
@@ -154,24 +151,22 @@ class _TestNumpy():
     def matrix(self, args):
         raise NotImplementedError()
 
-    def dot(self, *args):
+    def hstack(self, args):
         raise NotImplementedError()
-    
-#    def test_dot(self):
-#        row1 = self.matrix('1; 2; 3')
-#        row2 = self.matrix('4; 5; 6')
-#        assert_almost_equal(self.dot(row1, row2), 0)
-#------------------------------------------------------------------------------ 
-# numpy
-#------------------------------------------------------------------------------ 
 
-if NUMPY_AVAILABLE:
+    def test_hstack(self):
+        v1 = self.matrix('1;2;3')
+        v2 = self.matrix('4;5;6')
+        v3 = self.matrix('7;8;9')
+        meq_(self.hstack([v1, v2, v3]), self.matrix('1,4,7;2,5,8;3,6,9'))
+
+
+if __NUMPY_AVAILABLE__:
 
     class TestNumpyMatrix(_TestNumpyMatrix):
 
         def m(self, args):
             return numpy.matrix(args)
-
 
     class TestLinalgNumpy(_TestLinalg):
 
@@ -181,29 +176,18 @@ if NUMPY_AVAILABLE:
         def norm(self, args):
             return numpy.linalg.norm(args)
 
-
     class TestNumpy(_TestNumpy):
 
         def matrix(self, args):
             return numpy.matrix(args)
 
-        def dot(self, a, b):
-            print a
-            print b
-            return numpy.dot(a, b)
-        
-        
-#------------------------------------------------------------------------------ 
-# numjy
-#------------------------------------------------------------------------------ 
-
-if JAMA_AVAILABLE:
-
-    
-    import numjy
+        def hstack(self, args):
+            return numpy.hstack(args)
 
 
-    class BaseTestNumjyMatrix(_TestNumpyMatrix):
+if __NUMJY_AVAILABLE__:
+
+    class TestNumjyMatrix(_TestNumpyMatrix):
 
         def m(self, args):
             return numjy.matrix(args)
@@ -227,3 +211,14 @@ if JAMA_AVAILABLE:
 
         def norm(self, args):
             return numjy.linalg.norm(args)
+
+        def hstack(self, args):
+            return numjy.hstack(args)
+
+    class TestNumjy(_TestNumpy):
+
+        def matrix(self, args):
+            return numjy.matrix(args)
+
+        def hstack(self, args):
+            return numjy.hstack(args)
