@@ -1,66 +1,79 @@
+import diffcalc.help
 from diffcalc.help import HelpList, UsageHandler
 from diffcalc.hkl.common import sim, getNameFromScannableOrString
-import diffcalc.help
 
 _hklcalcCommandHelp = HelpList()
 
+
 class HklCommand(UsageHandler):
+
     def appendDocLine(self, line):
         _hklcalcCommandHelp.append(line)
 
 
 class VliegHklCommands(object):
-    
+
     def __init__(self, hardware, geometry, hklcalc):
         self._hardware = hardware
         self._geometry = geometry
         self._hklcalc = hklcalc
-        
+
         self._addDynamicHelpLines()
 
     def _addDynamicHelpLines(self):
         angleNames = self._hardware.getPhysicalAngleNames()
-        formatStr = ("[" + "%s, "*len(angleNames))[:-1] + "]"
+        formatStr = ("[" + "%s, " * len(angleNames))[:-1] + "]"
         diffHwName = self._hardware.getDiffHardwareName()
-        _hklcalcCommandHelp.append('pos ' + diffHwName + ' ' + formatStr % angleNames + ' --move diffractometer to Eularian position. Use None to hold a value still')
-        _hklcalcCommandHelp.append('sim ' + diffHwName + ' ' + formatStr % angleNames + '-- simulates moving ' + diffHwName)    
-        _hklcalcCommandHelp.append(diffHwName + '-- shows loads of info about current ' + diffHwName + ' position')
-    
+        _hklcalcCommandHelp.append(
+            'pos ' + diffHwName + ' ' + formatStr % angleNames + ' --move '
+            'diffractometer to Eularian position. Use None to hold a value '
+            'still')
+        _hklcalcCommandHelp.append(
+            'sim ' + diffHwName + ' ' + formatStr % angleNames + '-- simulates'
+            ' moving ' + diffHwName)
+        _hklcalcCommandHelp.append(
+            diffHwName + '-- shows loads of info about current ' + diffHwName +
+            ' position')
+
     def __str__(self):
         return self._hklcalc.__str__()
-    
+
     _hklcalcCommandHelp.append('Diffcalc')
-    
+
     @HklCommand
     def helphkl(self, name=None):
-        """helphkl [command] -- lists all hkl commands, or one if command is given
+        """
+        helphkl [command] -- show help for one or all hkl commands
         """
         if name is None:
             print _hklcalcCommandHelp.getCompleteCommandUsageList()
         else:
             print _hklcalcCommandHelp.getCommandUsageString(str(name))
 
-    _hklcalcCommandHelp.append('helpub [command] -- lists all ub commands, or one if command is given')
-    
+    _hklcalcCommandHelp.append(
+        'helpub [command] -- show help for one or all ub commands')
+
 ### Settings ###
     _hklcalcCommandHelp.append('Calculator')
-    
+
     @HklCommand
     def hklmode(self, num=None):
-        """hklmode [num] -- changes mode or shows current and available modes and all settings
-        """
+        """hklmode [num] -- changes mode or shows current and available modes and all settings""" #@IgnorePep8
+
         if num is None:
             print self._hklcalc.__str__()
         else:
             self._hklcalc.mode_selector.setModeByIndex(int(num))
-            print self._hklcalc.mode_selector.reportCurrentMode() + "\n" + self._hklcalc.parameter_manager.reportParametersUsedInCurrentMode()
-        
+            pm = self._hklcalc.parameter_manager
+            print (self._hklcalc.mode_selector.reportCurrentMode() + "\n" +
+                   pm.reportParametersUsedInCurrentMode())
+
     def _setParameter(self, name, value):
         self._hklcalc.parameter_manager.setParameter(name, value)
-        
+
     def _getParameter(self, name):
         return self._hklcalc.parameter_manager.getParameter(name)
-    
+
     @HklCommand
     def setpar(self, scannable_or_string=None, val=None):
         """setpar [parameter_scannable [val]] -- sets or shows a parameter'
@@ -75,9 +88,9 @@ class VliegHklCommands(object):
             for name in names:
                 print self._representParameter(name)
         else:
-            name = getNameFromScannableOrString(scannable_or_string)            
+            name = getNameFromScannableOrString(scannable_or_string)
             if val is None:
-                self._representParameter(name)        
+                self._representParameter(name)
             else:
                 oldval = self._getParameter(name)
                 self._setParameter(name, float(val))
@@ -89,7 +102,8 @@ class VliegHklCommands(object):
             flags += '(tracking hardware) '
         if self._geometry.isParameterFixed(name):
             flags += '(fixed by geometry) '
-        if not self._hklcalc.parameter_manager.isParameterUsedInSelectedMode(name):
+        pm = self._hklcalc.parameter_manager
+        if not pm.isParameterUsedInSelectedMode(name):
             flags += '(not relevant in this mode) '
         if oldval is None:
             val = self._getParameter(name)
@@ -102,7 +116,8 @@ class VliegHklCommands(object):
             return "%s: %s --> %f %s" % (name, oldval, newval, flags)
 
     def __checkInputAndSetOrShowParameterTracking(self, name, b=None):
-        """ for track-parameter commands: If no args displays parameter settings,
+        """
+        for track-parameter commands: If no args displays parameter settings,
         otherwise sets the tracking switch for the given parameter and displays
         settings.
         """
@@ -117,37 +132,38 @@ class VliegHklCommands(object):
             lastValue = str(lastValue)
         flags = ''
         if self._hklcalc.parameter_manager.isParameterTracked(name):
-            flags += '(tracking hardware)'  
+            flags += '(tracking hardware)'
         print "%s: %s %s" % (name, lastValue, flags)
 
     @HklCommand
     def trackalpha(self, b=None):
-        """trackalpha [boolean] -- determines wether alpha parameter will track alpha axis
-        """
+        """trackalpha [boolean] -- determines wether alpha parameter will track alpha axis""" #@IgnorePep8
         self.__checkInputAndSetOrShowParameterTracking('alpha', b)
 
     @HklCommand
     def trackgamma(self, b=None):
-        """trackgamma [boolean] -- determines wether gamma parameter will track alpha axis
-        """
+        """trackgamma [boolean] -- determines wether gamma parameter will track alpha axis""" #@IgnorePep8
         self.__checkInputAndSetOrShowParameterTracking('gamma', b)
 
     @HklCommand
     def trackphi(self, b=None):
-        """trackphi [boolean] -- determines wether phi parameter will track phi axis"""
+        """trackphi [boolean] -- determines wether phi parameter will track phi axis""" #@IgnorePep8
         self.__checkInputAndSetOrShowParameterTracking('phi', b)
 
 ### Motion ###
 
-    #(Note except for the sim command, these are all implemented by the external euler, and hkl
     _hklcalcCommandHelp.append('Motion')
 
     #TODO: Messy, inconsistant use of square brackets in usage strings.
-    _hklcalcCommandHelp.append('pos hkl [h k l] -- move diffractometer to hkl, or read hkl position. Use None to hold a value still')
+
+    _hklcalcCommandHelp.append(
+        'pos hkl [h k l] -- move diffractometer to hkl, or read hkl position. '
+        'Use None to hold a value still')
 
     _hklcalcCommandHelp.append('sim hkl [h k l] -- simulates moving hkl')
 
-    _hklcalcCommandHelp.append('hkl -- shows loads of info about current hkl position')
+    _hklcalcCommandHelp.append(
+        'hkl -- shows loads of info about current hkl position')
 
     @HklCommand
     def sim(self, scn, hkl):

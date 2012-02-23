@@ -1,12 +1,13 @@
 try:
     from gda.device.scannable import PseudoDevice
 except ImportError:
-    from diffcalc.gdasupport.minigda.scannable.scannable import Scannable as PseudoDevice
+    from diffcalc.gdasupport.minigda.scannable.scannable import \
+        Scannable as PseudoDevice
 
 
 class ScannableGroup(PseudoDevice):
-    "wraps up motors. Simulates motors if non given."
-    def __init__(self, name , motorList):
+
+    def __init__(self, name, motorList):
 
         self.setName(name)
         # Set input format
@@ -14,7 +15,7 @@ class ScannableGroup(PseudoDevice):
         for scn in motorList:
             motorNames.append(scn.getName())
         self.setInputNames(motorNames)
-        # Set output format 
+        # Set output format
         format = []
         for motor in motorList:
             format.append(motor.getOutputFormat()[0])
@@ -29,7 +30,7 @@ class ScannableGroup(PseudoDevice):
             for idx, val in enumerate(position):
                 if val is None:
                     position[idx] = current[idx]
-        
+
         for scn, pos in zip(self.__motors, position):
             scn.asynchronousMoveTo(pos)
 

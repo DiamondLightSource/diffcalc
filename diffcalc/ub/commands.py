@@ -1,9 +1,9 @@
+from math import asin, pi
 from datetime import datetime
+
 from diffcalc.help import HelpList, UsageHandler
 from diffcalc.utils import getInputWithDefault as promptForInput, \
     promptForNumber, promptForList, allnum, isnum
-from math import asin, pi
-
 
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -17,37 +17,35 @@ class UbCommand(UsageHandler):
 
 
 class UbCommands(object):
-    
+
     def __init__(self, hardware, geometry, ubcalc):
         self._hardware = hardware
         self._geometry = geometry
         self._ubcalc = ubcalc
-    
+
     def __str__(self):
         return self._ubcalc.__str__()
-        
 
     _ubcalcCommandHelp.append('Diffcalc')
-    
+
     @UbCommand
     def helpub(self, name=None):
-        """helpub ['command'] -- lists all ub commands, or one if command is given'
-        """
+        """helpub ['command'] -- show help for one or all ub commands"""
         if name is None:
             print _ubcalcCommandHelp.getCompleteCommandUsageList()
         else:
             print _ubcalcCommandHelp.getCommandUsageString(str(name))
-    
-        
-    _ubcalcCommandHelp.append("helphkl ['command'] -- lists all hkl commands, or one if command is given")  
 
-    
+    _ubcalcCommandHelp.append(
+        "helphkl ['command'] -- show help for one or all hkl commands")
+
 ### UB state ###
+
     _ubcalcCommandHelp.append('UB_State')
-    
+
     @UbCommand
     def newub(self, name=None):
-        """newub ['name'] -- starts a new ub calculation with reflectionlist. Will prompt for lattice parameters.
+        """newub ['name'] -- start a new ub calculation.
         """
         if name is None:
             # interactive
@@ -59,15 +57,15 @@ class UbCommands(object):
             self._ubcalc.newCalculation(name)
         else:
             raise TypeError()
-        
+
     @UbCommand
     def loadub(self, name_or_num):
-        """loadub 'name' -- loads an existing ub calculation: lattice and reflection list.
+        """loadub 'name' -- loads an existing ub calculation
         """
         if isinstance(name_or_num, str):
-            self._ubcalc.load(name_or_num) # the calculation name could be resolvable to int
+            self._ubcalc.load(name_or_num)
         self._ubcalc.load(self._ubcalc.listub()[int(name_or_num)])
-    
+
     @UbCommand
     def listub(self):
         """listub -- lists the ub calculations available to load.
@@ -75,11 +73,10 @@ class UbCommands(object):
         print "UB calculations in cross-visit database:"
         for n, name in enumerate(self._ubcalc.listub()):
             print "%2i) %s" % (n, name)
-    
-        
+
     @UbCommand
     def saveubas(self, name):
-        """saveubas 'name' -- saves the ubcalculation with a new name (other changes are autosaved)
+        """saveubas 'name' -- saves the ub calculation with a new name
         """
         if isinstance(name, str):
             # just trying might cause confusion here
@@ -91,7 +88,10 @@ class UbCommands(object):
     def ub(self):
         """ub -- shows the complete state of the ub calculation
         """
-        print self._ubcalc.__str__() + "Wavelength: %f\n    Energy: %f\n" % (float(self._hardware.getWavelength()), float(self._hardware.getEnergy()))
+        wavelength = float(self._hardware.getWavelength())
+        energy = float(self._hardware.getEnergy())
+        print (self._ubcalc.__str__() + "Wavelength: %f\n    Energy: %f\n" %
+               (wavelength, energy))
 
 ### UB lattice ###
     _ubcalcCommandHelp.append('UB_lattice')
@@ -99,15 +99,15 @@ class UbCommands(object):
     @UbCommand
     def setlat(self, name=None, *args):
         """
-        setlat  -- prompts user to enter lattice parameters (in Angstroms and Degrees)
+        setlat  -- interactively enter lattice parameters (Angstroms and Deg)
         setlat name a -- assumes cubic
         setlat name a b -- assumes tetragonal
         setlat name a b c -- assumes ortho
         setlat name a b c gamma -- assumes mon/hex with gam not equal to 90
         setlat name a b c alpha beta gamma -- arbitrary
         """
-        
-        if name is None: # Interactive
+
+        if name is None:  # Interactive
             name = promptForInput(" name")
             a = promptForNumber('    a', 1)
             b = promptForNumber('    b', a)
@@ -116,13 +116,15 @@ class UbCommands(object):
             beta = promptForNumber('beta', 90)
             gamma = promptForNumber('gamma', 90)
             self._ubcalc.setLattice(name, a, b, c, alpha, beta, gamma)
-            
-        elif isinstance(name, str) and len(args) in (1, 2, 3, 4, 6) and allnum(args):
+
+        elif (isinstance(name, str) and
+              len(args) in (1, 2, 3, 4, 6) and
+              allnum(args)):
             # first arg is string and rest are numbers
             self._ubcalc.setLattice(name, *args)
         else:
             raise TypeError()
-    
+
     @UbCommand
     def c2th(self, hkl=None):
         """
@@ -130,8 +132,6 @@ class UbCommands(object):
         """
         wl = self._hardware.getWavelength()
         d = self._ubcalc.getHklPlaneDistance(hkl)
-        # n*lamba = 2d*sin(theta)
-        tmp = wl / (2 * d)
         return 2.0 * asin(wl / (d * 2)) * TODEG
 
 ### Surface stuff ###
@@ -139,11 +139,12 @@ class UbCommands(object):
 
     @UbCommand
     def sigtau(self, sigma=None, tau=None):
-        """sigtau [sigma tau] -- sets sigma and tau'"""
+        """sigtau [sigma tau] -- sets sigma and tau"""
         if sigma is None and tau is None:
             chi = self._hardware.getPositionByName('chi')
             phi = self._hardware.getPositionByName('phi')
-            print "sigma, tau = %f, %f" % (self._ubcalc.getSigma(), self._ubcalc.getTau())
+            _sigma, _tau = self._ubcalc.getSigma(), self._ubcalc.getTau()
+            print "sigma, tau = %f, %f" % (_sigma, _tau)
             print "  chi, phi = %f, %f" % (chi, phi)
             sigma = promptForInput("sigma", -chi)
             tau = promptForInput("  tau", -phi)
@@ -152,25 +153,23 @@ class UbCommands(object):
         else:
             self._ubcalc.setSigma(float(sigma))
             self._ubcalc.setTau(float(tau))
-        
+
 ### UB refelections ###
     _ubcalcCommandHelp.append('UB_reflections')
-    
+
     @UbCommand
     def showref(self):
         """showref -- shows full reflection list"""
         print self._ubcalc.dispReflectionList()
-        
+
     @UbCommand
     def addref(self, *args):
-        """addref -- add reflection interactively
-        addref h k l ['tag'] -- add reflection with hardware position and energy
-        addref h k l (p1,p2...pN) energy ['tag'] -- add reflection with specified position and energy)
-        addref h k l [tag_string] #len=3/4
-        addref h k l (p1,p2...pN) energy [tag_string] #len=5/6
-        Position is that of the external diffractometer in degrees
         """
-        
+        addref -- add reflection interactively
+        addref h k l ['tag'] -- add reflection with current position and energy
+        addref h k l (p1,p2...pN) energy ['tag'] -- add arbitrary reflection
+        """
+
         if len(args) == 0:
             h = promptForNumber('h', 0.)
             k = promptForNumber('k', 0.)
@@ -184,21 +183,27 @@ class UbCommands(object):
             else:
                 currentPos = self._hardware.getPosition()
                 positionList = []
-                for i, angleName in enumerate(self._hardware.getPhysicalAngleNames()):
+                names = self._hardware.getPhysicalAngleNames()
+                for i, angleName in enumerate(names):
                     val = promptForNumber(angleName.rjust(7), currentPos[i])
                     if val is None:
-                        self.handleInputError("Please enter a number, or press Return to accept default!")
+                        self.handleInputError("Please enter a number, or press"
+                                              " Return to accept default!")
                         return
                     positionList.append(val)
                 energy = promptForNumber('energy', self._hardware.getEnergy())
                 if val is None:
-                    self.handleInputError("Please enter a number, or press Return to accept default!")
+                    self.handleInputError("Please enter a number, or press "
+                                          "Return to accept default!")
                     return
-                energy = energy * self._hardware.energyScannableMultiplierToGetKeV
+                muliplier = self._hardware.energyScannableMultiplierToGetKeV
+                energy = energy * muliplier
             tag = promptForInput("tag")
-            if tag == '':tag = None
+            if tag == '':
+                tag = None
             pos = self._geometry.physicalAnglesToInternalPosition(positionList)
-            self._ubcalc.addReflection(h, k, l, pos, energy, tag, datetime.now())
+            self._ubcalc.addReflection(h, k, l, pos, energy, tag,
+                                       datetime.now())
         elif len(args) in (3, 4, 5, 6):
             args = list(args)
             h = args.pop(0)
@@ -207,12 +212,14 @@ class UbCommands(object):
             if not (isnum(h) and isnum(k) and isnum(l)):
                 raise TypeError()
             if len(args) >= 2:
-                pos = self._geometry.physicalAnglesToInternalPosition(args.pop(0))
+                pos = self._geometry.physicalAnglesToInternalPosition(
+                    args.pop(0))
                 energy = args.pop(0)
                 if not isnum(energy):
                     raise TypeError()
             else:
-                pos = self._geometry.physicalAnglesToInternalPosition(self._hardware.getPosition())
+                pos = self._geometry.physicalAnglesToInternalPosition(
+                    self._hardware.getPosition())
                 energy = self._hardware.getEnergy()
             if len(args) == 1:
                 tag = args.pop(0)
@@ -220,59 +227,65 @@ class UbCommands(object):
                     raise TypeError()
             else:
                 tag = None
-            self._ubcalc.addReflection(h, k, l, pos, energy, tag, datetime.now())
+            self._ubcalc.addReflection(h, k, l, pos, energy, tag,
+                                       datetime.now())
         else:
             raise TypeError()
-
-
 
     @UbCommand
     def editref(self, num):
         """editref num -- interactively edit a reflection.
         """
         num = int(num)
-        
+
         # Get old reflection values
-        ([oldh, oldk, oldl], oldExternalAngles, oldEnergy, oldTag, oldT) = self._ubcalc.getReflectionInExternalAngles(num)
-        del oldT # current time will be used.
-        
+        [oldh, oldk, oldl], oldExternalAngles, oldEnergy, oldTag, oldT = \
+            self._ubcalc.getReflectionInExternalAngles(num)
+        del oldT  # current time will be used.
+
         h = promptForNumber('h', oldh)
         k = promptForNumber('k', oldk)
         l = promptForNumber('l', oldl)
         if None in (h, k, l):
             self.handleInputError("h,k and l must all be numbers")
-        reply = promptForInput('update position with current hardware setting', 'n')
+        reply = promptForInput('update position with current hardware setting',
+                               'n')
         if reply in ('y', 'Y', 'yes'):
             positionList = self._hardware.getPosition()
             energy = self._hardware.getEnergy()
         else:
             positionList = []
-            for i, angleName in enumerate(self._hardware.getPhysicalAngleNames()):
+            names = self._hardware.getPhysicalAngleNames()
+            for i, angleName in enumerate(names):
                 val = promptForNumber(angleName.rjust(7), oldExternalAngles[i])
                 if val is None:
-                    self.handleInputError("Please enter a number, or press Return to accept default!")
+                    self.handleInputError("Please enter a number, or press "
+                                          "Return to accept default!")
                     return
                 positionList.append(val)
             energy = promptForNumber('energy', oldEnergy)
             if val is None:
-                self.handleInputError("Please enter a number, or press Return to accept default!")
+                self.handleInputError("Please enter a number, or press Return "
+                                      "to accept default!")
                 return
             energy = energy * self._hardware.energyScannableMultiplierToGetKeV
         tag = promptForInput("tag", oldTag)
-        if tag == '':tag = None
+        if tag == '':
+            tag = None
         pos = self._geometry.physicalAnglesToInternalPosition(positionList)
-        self._ubcalc.editReflection(num, h, k, l, pos, energy, tag, datetime.now())    
-
+        self._ubcalc.editReflection(num, h, k, l, pos, energy, tag,
+                                    datetime.now())
 
     @UbCommand
     def delref(self, num):
         """delref num -- deletes a reflection (numbered from 1)
         """
         self._ubcalc.delReflection(int(num))
-        
+
     @UbCommand
     def swapref(self, num1=None, num2=None):
-        """swapref -- swaps first two reflections used for calulating U matrix
+        """
+        swapref -- swaps first two reflections used for calulating U matrix
         swapref num1 num2 -- swaps two reflections (numbered from 1)
         """
         if num1 is None and num2 is None:
@@ -284,6 +297,7 @@ class UbCommands(object):
 
 ### UB calculations ###
     _ubcalcCommandHelp.append('ub')
+
     @UbCommand
     def setu(self, U=None):
         """setu [((,,),(,,),(,,))] --- manually set u matrix
@@ -291,25 +305,23 @@ class UbCommands(object):
         if U is None:
             U = self._promptFor3x3MatrixDefaultingToIdentity()
             if U is None:
-                return # an error will have been printed or thrown
-        if self.__is3x3TupleOrList(U):
+                return  # an error will have been printed or thrown
+        if self._is3x3TupleOrList(U):
             self._ubcalc.setUManually(U)
         else:
             raise TypeError("U must be given as 3x3 list or tuple")
 
-        
     @UbCommand
     def setub(self, UB=None):
         """setub [((,,),(,,),(,,))] -- manually set ub matrix"""
         if UB is None:
             UB = self._promptFor3x3MatrixDefaultingToIdentity()
             if UB is None:
-                return # an error will have been printed or thrown
-        if self.__is3x3TupleOrList(UB):
+                return  # an error will have been printed or thrown
+        if self._is3x3TupleOrList(UB):
             self._ubcalc.setUBManually(UB)
         else:
             raise TypeError("UB must be given as 3x3 list or tuple")
-
 
     def _promptFor3x3MatrixDefaultingToIdentity(self):
         estring = "Please enter a number, or press Return to accept default!"
@@ -339,11 +351,14 @@ class UbCommands(object):
         """
         self._ubcalc.calculateUBFromPrimaryOnly()
 
-
-    def __is3x3TupleOrList(self, m):
-        if type(m) not in (list, tuple): return False
-        if len(m) != 3: return False
+    def _is3x3TupleOrList(self, m):
+        if type(m) not in (list, tuple):
+            return False
+        if len(m) != 3:
+            return False
         for mrow in m:
-            if type(mrow) not in (list, tuple): return False
-            if len(mrow) != 3: return False
+            if type(mrow) not in (list, tuple):
+                return False
+            if len(mrow) != 3:
+                return False
         return True

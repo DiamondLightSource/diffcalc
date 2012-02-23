@@ -1,18 +1,18 @@
 from nose.tools import eq_, ok_, assert_almost_equal  # @UnresolvedImport
 from nose.plugins.skip import SkipTest
-from diffcalc.tools import assert_2darray_almost_equal, meq_
 
 try:
     import numpy
     __NUMPY_AVAILABLE__ = True
 except ImportError:
     __NUMPY_AVAILABLE__ = False
-
 try:
     import numjy
     __NUMJY_AVAILABLE__ = True
 except ImportError:
     __NUMJY_AVAILABLE__ = False
+
+from diffcalc.tools import assert_2darray_almost_equal, meq_
 
 
 class _TestNumpyMatrix():

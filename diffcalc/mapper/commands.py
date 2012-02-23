@@ -1,48 +1,47 @@
-# from diffcalc.hkl.vlieg.commands import _hklcalcCommandHelp, HklCommand TODO: DANGER!
 from diffcalc.hkl.willmott.commands import _hklcalcCommandHelp, HklCommand
 
+
 def getNameFromScannableOrString(o):
-        try: # it may be a scannable
+        try:  # it may be a scannable
             return o.getName()
         except AttributeError:
             return str(o)
-            
+
 
 class MapperCommands(object):
-    
+
     def __init__(self, geometry, hardware, sector_selector):
         self._sectorSelector = sector_selector
         self._geometry = geometry
         self._hardware = hardware
 
     _hklcalcCommandHelp.append('Angle-Mapper')
-    
+
     @HklCommand
     def mapper(self):
-        """mapper  --- Shows state of angle-mapper sector/transform, limits for auto sector and angle cuts
-        """
+        """mapper  --- Shows state of angle-mapper sector/transform, limits for auto sector and angle cuts""" #@IgnorePep8
         print self._sectorSelector.__repr__()
         print self._hardware.reprSectorLimitsAndCuts()
-    
+
     @HklCommand
     def transforma(self, *args):
         """transforma [on/off/auto/manual] -- configure transform A application
         """
         self._transform('transforma', 'a', args)
-    
-    @HklCommand    
+
+    @HklCommand
     def transformb(self, *args):
         """transformb [on/off/auto/manual] -- configure transform B application
         """
         self._transform('transformb', 'b', args)
-    
-    @HklCommand     
+
+    @HklCommand
     def transformc(self, *args):
         """transformc [on/off/auto/manual] -- configure transform C application
         """
 
         self._transform('transformc', 'c', args)
-        
+
     def _transform(self, commandName, transformName, args):
         if len(args) == 0:
             print self._sectorSelector.__repr__()
@@ -52,7 +51,7 @@ class MapperCommands(object):
             raise TypeError()
         if type(args[0]) is not str:
             raise TypeError()
-        
+
         ss = self._sectorSelector
         if args[0] == 'on':
             ss.addTransorm(transformName)
@@ -64,8 +63,8 @@ class MapperCommands(object):
             ss.removeAutoTransform(transformName)
         else:
             raise TypeError()
-        print self._sectorSelector.__repr__()    
-    
+        print self._sectorSelector.__repr__()
+
     @HklCommand
     def sector(self, sector=None):
         """sector [0-7] -- Select or display sector (a la Spec)
@@ -77,11 +76,10 @@ class MapperCommands(object):
                 raise TypeError()
             self._sectorSelector.setSector(sector)
             print self._sectorSelector.__repr__()
-    
+
     @HklCommand
     def autosector(self, *args):
-        """autosector '[None] [0-7] [0-7]... -- Set sectors that might be automatically selected')
-        """
+        """autosector '[None] [0-7] [0-7]... -- Set sectors that might be automatically selected')""" #@IgnorePep8
         if len(args) == 0:
             print self._sectorSelector.__repr__()
         elif len(args) == 1 and args[0] is None:
@@ -98,8 +96,8 @@ class MapperCommands(object):
 
     @HklCommand
     def setcut(self, scannable_or_string=None, val=None):
-        """setcut [axis_scannable [val]] -- sets cut angle; resulting positions will between the cut and 360 degrees above it
-        setcut [name [val]] -- sets cut angle; resulting positions will between the cut and 360 degrees above it
+        """setcut [axis_scannable [val]] -- sets cut angle
+        setcut [name [val]] -- sets cut angle
         """
         if scannable_or_string is None and val is None:
             print self._hardware.reprSectorLimitsAndCuts()
@@ -110,22 +108,19 @@ class MapperCommands(object):
             else:
                 oldcut = self._hardware.getCuts()[name]
                 self._hardware.setCut(name, float(val))
-                print '%s: %f --> %f' % (name, oldcut, self._hardware.getCuts()[name])
-
+                newcut = self._hardware.getCuts()[name]
+                print '%s: %f --> %f' % (name, oldcut, newcut)
 
     @HklCommand
     def setmin(self, name=None, val=None):
-        """setmin [axis [val]] -- set lower limits used by auto sector code (None to clear)
-        """
+        """setmin [axis [val]] -- set lower limits used by auto sector code (None to clear)""" #@IgnorePep8
         self._setMinOrMax(name, val, self._hardware.setLowerLimit)
-    
+
     @HklCommand
     def setmax(self, name=None, val=None):
-        """setmax [name [val]] -- sets upper limits used by auto sector code (None to clear)
-        """
+        """setmax [name [val]] -- sets upper limits used by auto sector code (None to clear)""" #@IgnorePep8
         self._setMinOrMax(name, val, self._hardware.setUpperLimit)
 
-    
     def _setMinOrMax(self, name, val, setMethod):
         if name is None:
             print self._hardware.reprSectorLimitsAndCuts()

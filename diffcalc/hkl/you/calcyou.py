@@ -1,13 +1,4 @@
-from diffcalc.configurelogging import logging
-from diffcalc.hkl.calcbase import HklCalculatorBase
-from diffcalc.hkl.you.matrices import createYouMatrices, calcMU, calcPHI, \
-    calcCHI
-from diffcalc.hkl.you.position import YouPosition
-from diffcalc.utils import DiffcalcException, bound, \
-    angle_between_vectors, z_rotation, x_rotation
 from math import pi, sin, cos, tan, acos, atan2, asin, sqrt
-from diffcalc.hkl.common import DummyParameterManager
-from diffcalc.utils import cross3
 
 try:
     from numpy import matrix
@@ -15,6 +6,15 @@ try:
 except ImportError:
     from numjy import matrix
     from numjy.linalg import norm
+
+from diffcalc.configurelogging import logging
+from diffcalc.hkl.calcbase import HklCalculatorBase
+from diffcalc.hkl.you.matrices import createYouMatrices, calcMU, calcPHI, \
+    calcCHI
+from diffcalc.hkl.you.position import YouPosition
+from diffcalc.utils import DiffcalcException, bound, angle_between_vectors
+from diffcalc.hkl.common import DummyParameterManager
+from diffcalc.utils import cross3, z_rotation, x_rotation
 
 logger = logging.getLogger("diffcalc.hkl.you.calcyou")
 I = matrix('1 0 0; 0 1 0; 0 0 1')
@@ -184,14 +184,12 @@ class YouHklCalculator(HklCalculatorBase):
         """
         return youAnglesToHkl(pos, wavelength, self._getUBMatrix())
 
-    def _anglesToVirtualAngles(self, pos, wavelength):
+    def _anglesToVirtualAngles(self, pos, _wavelength):
         """Calculate pseudo-angles in radians from position in radians.
 
         Return theta, qaz, alpha, naz, tau, psi and beta in a dictionary.
 
         """
-
-        del wavelength  # TODO: not used
 
         # depends on surface normal n_lab.
         mu, delta, nu, eta, chi, phi = pos.totuple()
@@ -496,8 +494,6 @@ class YouHklCalculator(HklCalculatorBase):
                 '(naz cannot be handled here)')
 
         if constraint_name != 'nu':
-            # TODO: does this calculation of nu suffer the same problems as
-            #       that of delta below
             nu = atan2(sin(2 * theta) * cos(qaz), cos(2 * theta))
 
         if constraint_name != 'delta':
@@ -515,7 +511,7 @@ class YouHklCalculator(HklCalculatorBase):
         """Return phi, chi, eta and mu, given one of these"""
         #                                                         (section 5.3)
         # TODO: Sould return a valid solution, rather than just one that can
-        # be mapped to a correct solution by applying +-x and 180+-x mappings
+        # be mapped to a correct solution by applying +-x and 180+-x mappings?
 
         N_lab = _calc_N(q_lab, n_lab)
         N_phi = _calc_N(q_phi, n_phi)
@@ -536,8 +532,8 @@ class YouHklCalculator(HklCalculatorBase):
                 phi = atan2(V[0, 1], V[0, 0])
                 logger.debug(
                     'Eta and phi cannot be chosen uniquely with chi so close '
-                    'to 0 or 180. Ignoring solution phi=%.3f and eta=%.3f, and '
-                    'returning phi=%.3f and eta=%.3f', phi_orig * TODEG,
+                    'to 0 or 180. Ignoring solution phi=%.3f and eta=%.3f, and'
+                    ' returning phi=%.3f and eta=%.3f', phi_orig * TODEG,
                     eta_orig * TODEG, phi * TODEG, eta * TODEG)
             return phi, chi, eta, mu
 
@@ -548,7 +544,6 @@ class YouHklCalculator(HklCalculatorBase):
             mu = atan2(V[2, 1], V[1, 1])
             chi = atan2(V[0, 2], V[0, 0])
             if is_small(cos(eta)):
-                #TODO: Not likely to happen?
                 raise ValueError(
                     'Chi and mu cannot be chosen uniquely with eta so close '
                     'to +-90.')
@@ -838,7 +833,7 @@ class YouHklCalculator(HklCalculatorBase):
 
     def _generate_possible_solutions(self, values, names, constrained_names):
 
-        individualy_transformed_values = []
+        transformed_values = []
         for value, name in zip(values, names):
             transforms_of_value_within_limits = []
             value_constrained = name in constrained_names
@@ -848,7 +843,7 @@ class YouHklCalculator(HklCalculatorBase):
                     self._hardware.cutAngle(name, transformed_value * TODEG)):
                     transforms_of_value_within_limits.append(
                         cut_at_minus_pi(transformed_value))
-            individualy_transformed_values.append(transforms_of_value_within_limits)
+            transformed_values.append(transforms_of_value_within_limits)
 
         def expand(tuples_so_far, b):
             r = []
@@ -862,4 +857,4 @@ class YouHklCalculator(HklCalculatorBase):
                     r.append(new)
             return r
 
-        return reduce(expand, individualy_transformed_values)
+        return reduce(expand, transformed_values)

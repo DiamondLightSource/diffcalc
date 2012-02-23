@@ -1,14 +1,17 @@
-from diffcalc.configurelogging import logging
-from diffcalc.hkl.calcbase import HklCalculatorBase
-from diffcalc.ub.calculation import PaperSpecificUbCalcStrategy
-from diffcalc.utils import bound, AbstractPosition, DiffcalcException
 from math import pi, asin, acos, atan2, sin, cos, sqrt
-from diffcalc.hkl.common import DummyParameterManager
-from diffcalc.geometry.plugin import DiffractometerGeometryPlugin
+
 try:
     from numpy import matrix
 except ImportError:
     from numjy import matrix
+
+from diffcalc.configurelogging import logging
+from diffcalc.utils import bound, AbstractPosition, DiffcalcException,\
+    x_rotation, z_rotation
+from diffcalc.geometry.plugin import DiffractometerGeometryPlugin
+from diffcalc.ub.calculation import PaperSpecificUbCalcStrategy
+from diffcalc.hkl.calcbase import HklCalculatorBase
+from diffcalc.hkl.common import DummyParameterManager
 
 logger = logging.getLogger("diffcalc.hkl.willmot.calcwill")
 
@@ -20,18 +23,6 @@ I = matrix('1 0 0; 0 1 0; 0 0 1')
 SMALL = 1e-10
 
 TEMPORARY_CONSTRAINTS_DICT_RAD = {'betain': 2 * TORAD}
-
-
-def x_rotation(th):
-    return matrix(((1, 0, 0), (0, cos(th), -sin(th)), (0, sin(th), cos(th))))
-
-
-def y_rotation(th):
-    return matrix(((cos(th), 0, sin(th)), (0, 1, 0), (-sin(th), 0, cos(th))))
-
-
-def z_rotation(th):
-    return matrix(((cos(th), -sin(th), 0), (sin(th), cos(th), 0), (0, 0, 1)))
 
 
 def create_matrices(delta, gamma, omegah, phi):

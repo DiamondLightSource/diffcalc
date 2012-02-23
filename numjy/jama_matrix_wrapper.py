@@ -1,5 +1,6 @@
 import Jama
 
+
 class matrix(object):
 
     def __init__(self, a):
@@ -31,7 +32,7 @@ class matrix(object):
     def __len__(self):
         return self.m.getRowDimension()
 
-    def all(self):  #@ReservedAssignment
+    def all(self):  # @ReservedAssignment
         for row in self.m.array:
             if not all(row):
                 return False
@@ -47,7 +48,7 @@ class matrix(object):
             l.append(row)
         return l
 
-    def sum(self):
+    def sum(self):  # @ReservedAssignment
         return sum(sum(row) for row in self.m.array)
 
     @property
@@ -74,7 +75,7 @@ class matrix(object):
                                    other))
 
     def __div__(self, other):
-        # dividend = other.I if isinstance(other, matrix) else 1. / float(other)
+        # dividend = other.I if isinstance(other, matrix) else 1. /float(other)
         return self.__mul__(1. / float(other))
 
     def __getitem__(self, key):

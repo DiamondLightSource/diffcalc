@@ -1,8 +1,10 @@
 import types
+
 from diffcalc.utils import DiffcalcException
 
 RAISE_EXCEPTIONS_FOR_ALL_ERRORS = False
 DEBUG = False
+
 
 class HelpList:
     class Usage:
@@ -10,23 +12,24 @@ class HelpList:
             self.command = command
             self.argstr = argstr
             self.helpstr = helpstr
-    
+
     def __init__(self):
         self.usageList = []
         self.usageByCommand = {}
-    
+
     def append(self, docLine):
         command, argstr, helpstr = splitDocLine(docLine)
         self.usageList.append(self.Usage(command, argstr, helpstr))
-        if not self.usageByCommand.has_key(command):
+        if not command in self.usageByCommand:
             self.usageByCommand[command] = [len(self.usageList) - 1]
         else:
             self.usageByCommand[command].append(len(self.usageList) - 1)
-        
+
     def _getUsageStringByIndex(self, index):
         usage = self.usageList[index]
         if usage.helpstr == '':
-            return "\n" + usage.command.rjust(14) + "\n" + ("-"*len(usage.command)).rjust(14) + "\n"
+            return ("\n" + usage.command.rjust(14) + "\n" +
+                    ("-" * len(usage.command)).rjust(14) + "\n")
         else:
             result = usage.command.rjust(14) + "  " + usage.argstr
             result = result.ljust(35) + "- "
@@ -41,7 +44,7 @@ class HelpList:
         except KeyError:
             raise IndexError("No help for command %s" % name)
         return result
-    
+
     def getCommandUsageForDoc(self, name):
         result = ""
         try:
@@ -49,17 +52,19 @@ class HelpList:
                 usage = self.usageList[index]
                 if usage.argstr == '':
                     return None
-                result += usage.command + " " + usage.argstr + " --- " + usage.helpstr + "\n"
-            return result.strip()      
+                result += (usage.command + " " + usage.argstr + " --- " +
+                           usage.helpstr + "\n")
+            return result.strip()
         except KeyError:
             return None
-        
+
     def getCompleteCommandUsageList(self):
         result = ""
         for index in range(len(self.usageList)):
             result += self._getUsageStringByIndex(index)
         return result
-    
+
+
 def splitDocLine(docLine):
     name, _, right = docLine.partition(' ')
     args, _, description = right.partition('-- ')
@@ -82,11 +87,12 @@ class UsageHandler(object):
         try:
             return self.command(*args)
         except TypeError, e:
-            # NOTE: TypeErrors resulting from bugs in the core code will be erroneously caught here!
+            # NOTE: TypeErrors resulting from bugs in the core code will be
+            # erroneously caught here!
             if RAISE_EXCEPTIONS_FOR_ALL_ERRORS:
                 print "-" * 80
                 print self.command.__doc__
-                print "-" * 80        
+                print "-" * 80
                 raise e
             else:
                 print 'TypeError : %s' % e.message
@@ -97,8 +103,9 @@ class UsageHandler(object):
                 raise e
             else:
                 print e.args[0]
-            
+
     def __get__(self, obj, ownerClass=None):
-        # ref: http://www.outofwhatbox.com/blog/2010/07/python-decorating-with-class/
+        # ref:
+        #http://www.outofwhatbox.com/blog/2010/07/python-decorating-with-class/
         # Return a wrapper that binds self as a method of obj (!)
         return types.MethodType(self, obj)

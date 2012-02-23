@@ -1,6 +1,6 @@
+import diffcalc.help
 from diffcalc.help import HelpList, UsageHandler
 from diffcalc.hkl.common import sim, getNameFromScannableOrString
-import diffcalc.help
 
 _hklcalcCommandHelp = HelpList()
 

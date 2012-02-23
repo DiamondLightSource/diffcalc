@@ -25,7 +25,7 @@ class WillmottConstraintManager(object):
         return all_constraints
 
     @property
-    def all(self):
+    def all(self):  # @ReservedAssignment
         """dictionary of all constrained values"""
         return self._constrained.copy()
 
@@ -38,19 +38,20 @@ class WillmottConstraintManager(object):
     def constrained_names(self):
         """ordered tuple of constained circles"""
         names = self.all.keys()
-        names.sort(key=lambda name:list(all_constraints).index(name))
+        names.sort(key=lambda name: list(all_constraints).index(name))
         return tuple(names)
 
     def is_constrained(self, name):
-        return self._constrained.has_key(name)
+        return name in self._constrained
 
     def get_value(self, name):
         return self._constrained[name]
-###
+
     def _build_display_table(self):
         constraint_types = (ref_constraints,)
         num_rows = max([len(col) for col in constraint_types])
-        max_name_width = max([len(name) for name in sum(constraint_types[:2], ())])
+        max_name_width = max(
+            [len(name) for name in sum(constraint_types[:2], ())])
         # headings
         lines = ['    ' + 'REF'.ljust(max_name_width)]
         lines.append('    ' + '=' * max_name_width + ' ')
@@ -61,7 +62,7 @@ class WillmottConstraintManager(object):
             for col in constraint_types:
                 name = col[n_row] if n_row < len(col) else ''
                 cells.append(self._label_constraint(name))
-                cells.append(('%-' + `max_name_width` + 's ') % name)
+                cells.append(('%-' + str(max_name_width) + 's ') % name)
             lines.append(''.join(cells))
         lines.append
         return '\n'.join(lines)
@@ -89,9 +90,9 @@ class WillmottConstraintManager(object):
         else:
             label = '    '
         return label
-###
+
     def constrain(self, name):
-        if self.all.has_key(name):
+        if name in self.all:
             return "%s is already constrained." % name.capitalize()
         elif name in ref_constraints:
             return self._constrain_reference(name)
@@ -108,7 +109,7 @@ class WillmottConstraintManager(object):
             self._constrained[name] = None
 
     def unconstrain(self, name):
-        if self._constrained.has_key(name):
+        if name in self._constrained:
             del self._constrained[name]
         else:
             return "%s was not already constrained." % name.capitalize()
@@ -117,15 +118,18 @@ class WillmottConstraintManager(object):
     def _check_constraint_settable(self, name, verb):
         if name not in all_constraints:
             raise DiffcalcException(
-                   "Could not %s %s as this is not an available constraint." % (verb, name))
+                'Could not %(verb)s %(name)s as this is not an available '
+                'constraint.' % locals())
         elif name not in self.all.keys():
             raise DiffcalcException(
-                   "Could not %s %s as this is not currently constrained." % (verb, name))
+                'Could not %(verb)s %(name)s as this is not currently '
+                'constrained.' % locals())
         elif name in valueless_constraints:
             raise DiffcalcException(
-                   "Could not %s %s as this constraint takes no value." % (verb, name))
+                'Could not %(verb)s %(name)s as this constraint takes no '
+                'value.' % locals())
 
-    def set(self, name, value):
+    def set(self, name, value):  # @ReservedAssignment
         self._check_constraint_settable(name, 'set')
         old_value = self.all[name]
         old = str(old_value) if old_value is not None else '---'

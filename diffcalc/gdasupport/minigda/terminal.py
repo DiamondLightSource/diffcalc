@@ -1,16 +1,22 @@
-import sys
 import os
-from diffcalc.gdasupport.minigda.translator import Translator
-from diffcalc.gdasupport.minigda.translator import TranslatorException
-from diffcalc.gdasupport.minigda.translator import TranslatorAliasedCommandsOnly
+import sys
+
+import diffcalc.utils  # @UnusedImport
+from diffcalc.gdasupport.minigda.translator import Translator, \
+    TranslatorException, TranslatorAliasedCommandsOnly
 from diffcalc.gdasupport.minigda.scannable.scannable import Scannable
-import diffcalc.utils #@UnusedImport
+
+
 print "WARNING: minigda.terminal is not well tested"
+#TODO: Replace with ipython
 
 
 def stubAlias(method):
-    raise Exception, "in diffcalc.gdasupport.minigda.Translator alias is not ready. First instantiate a Terminal."
+    raise Exception(
+        "in diffcalc.gdasupport.minigda.Translator alias is not ready. "
+        "First instantiate a Terminal.")
 alias = stubAlias
+
 
 class Terminal(object):
     def __init__(self, mainNamepaceDict):
@@ -19,12 +25,13 @@ class Terminal(object):
         self.recordFile = None
         global alias
         alias = self.translator.alias
-        
+
     def alias(self, name):
         self.translator.alias(name)
-        
+
     def start(self):
-        print "Starting minigda terminal. Type exit or press ctrl-d to return to Python\n"
+        print ("Starting minigda terminal. "
+               "Type exit or press ctrl-d to return to Python\n")
         while 1:
             try:
                 cmd = raw_input('gda>>>')
@@ -36,15 +43,14 @@ class Terminal(object):
             if self.recordFile:
                 self.recordFile.write(cmd + "\n")
             self.processInput(cmd)
-    
+
     def startRecording(self, recordPath):
         self.recordFile = open(recordPath, 'w')
         diffcalc.utils.RECORDFILE = self.recordFile
 
-    
     def evalInMain(self, cmd):
         return eval(cmd, self.mainNamepaceDict)
-    
+
     def execInMain(self, cmd):
         try:
             exec cmd in self.mainNamepaceDict
@@ -54,22 +60,25 @@ class Terminal(object):
             print self.generateErrorReport(sys.exc_info())
             print "## Translator sent: '%s' ##" % cmd
             return True
-    
+
     def generateErrorReport(self, exc_info):
         try:
             # Works in jython from jython code
-            result = exc_info[2].dumpStack() + str(exc_info[0]) + ': ' + str(exc_info[1])
+            result = (exc_info[2].dumpStack() + str(exc_info[0]) + ': ' +
+                      str(exc_info[1]))
         except:
             try:
                 # Works in python
                 import traceback
-                ls = traceback.format_exception(exc_info[0], exc_info[1], exc_info[2])
+                ls = traceback.format_exception(
+                    exc_info[0], exc_info[1], exc_info[2])
                 result = ""
                 for st in ls:
                     result += st
             except:
                 # works in Jython with java code:
-                result = "Exception in Java code: %s" % exc_info[1].getMessage()
+                msg = exc_info[1].getMessage()
+                result = "Exception in Java code: %s" % msg
         return result
 
     def run(self, path=None):
@@ -86,7 +95,8 @@ class Terminal(object):
                     path = os.getcwd() + os.path.sep + path
                     f = open(path, 'r')
                 except IOError:
-                    print "ERROR: No script with abosolute or relative path '%s' could be opened." % path
+                    print ("ERROR: No script with absolute or relative path "
+                           "'%s' could be opened." % path)
                     print "\n" + usage
                     return
         print "Running scipt '%s' ..." % path
@@ -96,12 +106,14 @@ class Terminal(object):
             print ">>>" + line
             res = self.processInput(line)
             if res is not None:
-                print "\nERROR: processing line %d of file %s: '%s'" % (n, path, line)
+                print ("\nERROR: processing line %d of file %s: '%s'" %
+                       (n, path, line))
                 break
         f.close()
-        
+
+
 class TerminalAliasedCommandsOnly(Terminal):
-    
+
     def __init__(self, mainNamepaceDict):
         self.mainNamepaceDict = mainNamepaceDict
         self.translator = TranslatorAliasedCommandsOnly()
@@ -109,12 +121,12 @@ class TerminalAliasedCommandsOnly(Terminal):
 
     def processInput(self, cmd):
         # If this refers to a scannable, just print it.
-        if self.mainNamepaceDict.has_key(cmd):
+        if cmd in self.mainNamepaceDict:
             obj = self.mainNamepaceDict[cmd]
             if isinstance(obj, Scannable):
                 print str(obj)
                 return
-        
+
         try:
             cmd = self.translator.translate(cmd)
         except TranslatorException, e:
@@ -122,4 +134,3 @@ class TerminalAliasedCommandsOnly(Terminal):
             return True
 ##        print 'running translated command: ', cmd
         return self.execInMain(cmd)
-            

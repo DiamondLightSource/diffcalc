@@ -1,3 +1,5 @@
+from nose.tools import eq_ #@UnresolvedImport
+
 try:
     from numpy import matrix
 except ImportError:
@@ -6,8 +8,6 @@ except ImportError:
 from diffcalc.tools import assert_almost_equal, assert_array_almost_equal, \
     assert_2darray_almost_equal, assert_matrix_almost_equal, \
     assert_dict_almost_equal
-from nose.tools import eq_ #@UnresolvedImport
-
 
 
 class test_assert_almost_equal():

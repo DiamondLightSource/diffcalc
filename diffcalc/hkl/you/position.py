@@ -1,23 +1,26 @@
-from diffcalc.utils import AbstractPosition
-
 from math import pi
+
+from diffcalc.utils import AbstractPosition
 
 TORAD = pi / 180
 TODEG = 180 / pi
 
+
 class YouPosition(AbstractPosition):
 
-    def __init__(self, mu=None, delta=None, nu=None, eta=None, chi=None, phi=None):
+    def __init__(self, mu=None, delta=None, nu=None, eta=None, chi=None,
+                 phi=None):
         self.mu = mu
         self.delta = delta
         self.nu = nu
         self.eta = eta
         self.chi = chi
         self.phi = phi
-    
+
     def clone(self):
-        return YouPosition(self.mu, self.delta, self.nu, self.eta, self.chi, self.phi)
-        
+        return YouPosition(self.mu, self.delta, self.nu, self.eta, self.chi,
+                           self.phi)
+
     def changeToRadians(self):
         self.mu *= TORAD
         self.delta *= TORAD
@@ -36,9 +39,7 @@ class YouPosition(AbstractPosition):
 
     def totuple(self):
         return (self.mu, self.delta, self.nu, self.eta, self.chi, self.phi)
-    
+
     def __str__(self):
-        return "YouPosition(mu %s delta: %s nu: %s eta: %s chi: %s  phi: %s)" % \
-              (`self.mu`, `self.delta`, `self.nu`, `self.eta`, `self.chi`, `self.phi`)
-                  
-   
+        return ("YouPosition(mu %r delta: %r nu: %r eta: %r chi: %r  phi: %r)"
+                % self.totuple())

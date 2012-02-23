@@ -1,8 +1,16 @@
 # TODO: class largely copied from test_calcyou
-from diffcalc.geometry.plugin import DiffractometerGeometryPlugin
+
+from math import pi
+from mock import Mock
+from nose.tools import raises
+
+try:
+    from numpy import matrix
+except ImportError:
+    from numjy import matrix
+
 from diffcalc.hkl.willmott.calcwill_horizontal import \
-    WillmottHorizontalPosition, \
-    WillmottHorizontalUbCalcStrategy, WillmottHorizontalCalculator, I, \
+    WillmottHorizontalUbCalcStrategy, WillmottHorizontalCalculator, \
     WillmottHorizontalPosition as Pos, WillmottHorizontalGeometry
 from diffcalc.tools import assert_array_almost_equal, \
     assert_second_dict_almost_in_first, matrixeq_
@@ -10,22 +18,13 @@ from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.utils import DiffcalcException
-from math import pi
-from mock import Mock
-from nose.plugins.skip import SkipTest
-from nose.tools import raises
 from tests.diffcalc.hardware.test_plugin import SimpleHardwareMonitorPlugin
 from tests.diffcalc.hkl.vlieg.test_calcvlieg import createMockUbcalc, \
     createMockDiffractometerGeometry
-
-try:
-    from numpy import matrix
-except ImportError:
-    from numjy import matrix
+import diffcalc.hkl.willmott.calcwill_horizontal  # @UnusedImport
 
 TORAD = pi / 180
 TODEG = 180 / pi
-import diffcalc.hkl.willmott.calcwill_horizontal # for CHOOSE_POSITIVE_GAMMA
 
 
 class _BaseTest():
@@ -70,19 +69,14 @@ class _BaseTest():
         self._check_hkl_to_angles(*args)
 
 
-
-
 # Primary and secondary reflections found with the help of DDIF on Diamond's
 # i07 on Jan 27 2010
 
-Si_5_5_12_HKL0 = 2, 19, 32
-Si_5_5_12_REF0 = WillmottHorizontalPosition(delta=21.975, gamma=4.419, omegah=2,
-                                  phi=326.2)
-
-Si_5_5_12_HKL1 = 0, 7, 22
-Si_5_5_12_REF1 = WillmottHorizontalPosition(delta=11.292, gamma=2.844, omegah=2,
-                                  phi=124.1)
 Si_5_5_12_WAVELENGTH = 0.6358
+Si_5_5_12_HKL0 = 2, 19, 32
+Si_5_5_12_REF0 = Pos(delta=21.975, gamma=4.419, omegah=2, phi=326.2)
+Si_5_5_12_HKL1 = 0, 7, 22
+Si_5_5_12_REF1 = Pos(delta=11.292, gamma=2.844, omegah=2, phi=124.1)
 
 # This is U matrix displayed by DDIF
 U_FROM_DDIF = matrix([[0.233140, 0.510833, 0.827463],
@@ -107,10 +101,12 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12():
     def testAgainstResultsFromJan_27_2010(self):
         self.ubcalc.newCalculation('test')
         self.ubcalc.setLattice('Si_5_5_12', 7.68, 53.48, 75.63, 90, 90, 90)
-        self.ubcalc.addReflection(Si_5_5_12_HKL0[0], Si_5_5_12_HKL0[1], Si_5_5_12_HKL0[2], Si_5_5_12_REF0, 12.39842 / Si_5_5_12_WAVELENGTH,
-                                  'ref0', None)
-        self.ubcalc.addReflection(Si_5_5_12_HKL1[0], Si_5_5_12_HKL1[1], Si_5_5_12_HKL1[2], Si_5_5_12_REF1, 12.39842 / Si_5_5_12_WAVELENGTH,
-                                  'ref1', None)
+        self.ubcalc.addReflection(
+            Si_5_5_12_HKL0[0], Si_5_5_12_HKL0[1], Si_5_5_12_HKL0[2],
+            Si_5_5_12_REF0, 12.39842 / Si_5_5_12_WAVELENGTH, 'ref0', None)
+        self.ubcalc.addReflection(
+            Si_5_5_12_HKL1[0], Si_5_5_12_HKL1[1], Si_5_5_12_HKL1[2],
+            Si_5_5_12_REF1, 12.39842 / Si_5_5_12_WAVELENGTH, 'ref1', None)
         self.ubcalc.calculateUB()
         print "U: ", self.ubcalc.getUMatrix()
         print "UB: ", self.ubcalc.getUBMatrix()
@@ -173,8 +169,6 @@ class TestSurfaceNormalVertical_Si_5_5_12_PosGamma(_BaseTest):
                     Pos(delta=5.224, gamma=10.415, omegah=2, phi=-1.972),
                     {'betain': 2})
 
-
-
 # conlcusion:
 # given or1 from testHkl_2_19_32_found_orientation_setting and,
 # or1 from testHkl_0_7_22_found_orientation_setting
@@ -184,7 +178,8 @@ class TestSurfaceNormalVertical_Si_5_5_12_PosGamma(_BaseTest):
 # calculated by DDIF to the number of recorded decimal places (3)
 
 
-class SkipTestSurfaceNormalVertical_Si_5_5_12_NegGamma(TestSurfaceNormalVertical_Si_5_5_12_PosGamma):
+class SkipTestSurfaceNormalVertical_Si_5_5_12_NegGamma(
+    TestSurfaceNormalVertical_Si_5_5_12_PosGamma):
     """When choosing -ve gamma delta ends up being -ve too"""
     def setup(self):
         _BaseTest.setup(self)
@@ -194,39 +189,42 @@ class SkipTestSurfaceNormalVertical_Si_5_5_12_NegGamma(TestSurfaceNormalVertical
                              75.63, 90, 90, 90).getBMatrix()
         self.UB = Si_5_5_12_U_DIFFCALC * B
         diffcalc.hkl.willmott.calcwill_horizontal.CHOOSE_POSITIVE_GAMMA = False
-        
-        
+
+
 ##################################################################
 
 # Primary and secondary reflections found with the help of DDIF on Diamond's
 # i07 on Jan 28/29 2010
 
 
-Pt531_HKL0 =  -1.000, 1.000, 6.0000
-Pt531_REF0 = WillmottHorizontalPosition(delta=9.465, gamma=16.301, omegah=2,
-                                  phi=307.94-360)
-Pt531_REF0_DIFFCALC = WillmottHorizontalPosition( 9.397102509657,  16.181230279320,  2.000000000000, -52.139290474913)
+Pt531_HKL0 = -1.000, 1.000, 6.0000
+Pt531_REF0 = Pos(delta=9.465, gamma=16.301, omegah=2,
+                                  phi=307.94 - 360)
+Pt531_REF0_DIFFCALC = Pos(
+    9.397102509657, 16.181230279320, 2.000000000000, -52.139290474913)
 
-Pt531_HKL1 = -2.000,  -1.000,   7.0000
-Pt531_REF1 = WillmottHorizontalPosition(delta=11.094, gamma=11.945, omegah=2,
-                                  phi=238.991-360)
-Pt531_REF1_DIFFCALC = WillmottHorizontalPosition( 11.012695836306,  11.863612760237,  2.000000000000, -121.215597507237)
+Pt531_HKL1 = -2.000, -1.000, 7.0000
+Pt531_REF1 = Pos(delta=11.094, gamma=11.945, omegah=2, phi=238.991 - 360)
+Pt531_REF1_DIFFCALC = Pos(
+    11.012695836306, 11.863612760237, 2.000000000000, -121.215597507237)
 
-Pt531_HKL2 = 1,  1, 9
-Pt531_REF2 = WillmottHorizontalPosition(delta=14.272, gamma=7.806, omegah=2,
+Pt531_HKL2 = 1, 1, 9
+Pt531_REF2 = Pos(delta=14.272, gamma=7.806, omegah=2,
                                   phi=22.9)
-Pt531_REF2_DIFFCALC = WillmottHorizontalPosition( 14.188161709766,  7.758593908726,  2.000000000000,  23.020313153847)
+Pt531_REF2_DIFFCALC = Pos(
+    14.188161709766, 7.758593908726, 2.000000000000, 23.020313153847)
 Pt531_WAVELENGTH = 0.6358
 
 # This is U matrix displayed by DDIF
-U_FROM_DDIF = matrix([[-0.00312594,  -0.00063417,   0.99999491],
-                      [0.99999229,  -0.00237817,   0.00312443],
-                      [0.00237618,   0.99999697,   0.00064159]])
+U_FROM_DDIF = matrix([[-0.00312594, -0.00063417, 0.99999491],
+                      [0.99999229, -0.00237817, 0.00312443],
+                      [0.00237618, 0.99999697, 0.00064159]])
 
 # This is the version that Diffcalc comes up with ( see following test)
 Pt531_U_DIFFCALC = matrix([[-0.0023763, -0.9999970, -0.0006416],
-                           [ 0.9999923, -0.0023783,  0.0031244],
-                           [-0.0031259, -0.0006342,  0.9999949]])
+                           [0.9999923, -0.0023783, 0.0031244],
+                           [-0.0031259, -0.0006342, 0.9999949]])
+
 
 class TestUBCalculationWithWillmotStrategy_Pt531():
 
@@ -240,10 +238,12 @@ class TestUBCalculationWithWillmotStrategy_Pt531():
     def testAgainstResultsFromJan_27_2010(self):
         self.ubcalc.newCalculation('test')
         self.ubcalc.setLattice('Pt531', 6.204, 4.806, 23.215, 90, 90, 49.8)
-        self.ubcalc.addReflection(Pt531_HKL0[0], Pt531_HKL0[1], Pt531_HKL0[2], Pt531_REF0, 12.39842 / Pt531_WAVELENGTH,
-                                  'ref0', None)
-        self.ubcalc.addReflection(Pt531_HKL1[0], Pt531_HKL1[1], Pt531_HKL1[2], Pt531_REF1, 12.39842 / Pt531_WAVELENGTH,
-                                  'ref1', None)
+        self.ubcalc.addReflection(
+            Pt531_HKL0[0], Pt531_HKL0[1], Pt531_HKL0[2], Pt531_REF0,
+            12.39842 / Pt531_WAVELENGTH, 'ref0', None)
+        self.ubcalc.addReflection(
+            Pt531_HKL1[0], Pt531_HKL1[1], Pt531_HKL1[2], Pt531_REF1,
+            12.39842 / Pt531_WAVELENGTH, 'ref1', None)
         self.ubcalc.calculateUB()
         print "U: ", self.ubcalc.getUMatrix()
         print "UB: ", self.ubcalc.getUBMatrix()
@@ -256,7 +256,9 @@ class TestSurfaceNormalVertical_Pt531_PosGamma(_BaseTest):
         _BaseTest.setup(self)
         self.constraints.reference = {'betain': 2}
         self.wavelength = Pt531_WAVELENGTH
-        B = CrystalUnderTest('Pt531', 6.204, 4.806, 23.215, 90, 90, 49.8).getBMatrix()
+
+        cut = CrystalUnderTest('Pt531', 6.204, 4.806, 23.215, 90, 90, 49.8)
+        B = cut.getBMatrix()
         self.UB = Pt531_U_DIFFCALC * B
         diffcalc.hkl.willmott.calcwill_horizontal.CHOOSE_POSITIVE_GAMMA = True
 
@@ -289,15 +291,15 @@ class TestSurfaceNormalVertical_Pt531_PosGamma(_BaseTest):
 
     def testHkl_0_predicted_versus_found_during_oriantation_phase(self):
         self._check(Pt531_HKL0,
-                    Pt531_REF0_DIFFCALC, # inspected to be close to Pt531_REF0
+                    Pt531_REF0_DIFFCALC,  # inspected as close to Pt531_REF0
                     {'betain': 2})
 
     def testHkl_1_predicted_versus_found_during_oriantation_phase(self):
         self._check(Pt531_HKL1,
-                    Pt531_REF1_DIFFCALC, # inspected to be close to Pt531_REF1,
+                    Pt531_REF1_DIFFCALC,  # inspected as close to Pt531_REF1,
                     {'betain': 2})
 
     def testHkl_2_predicted_versus_found_during_oriantation_phase(self):
         self._check(Pt531_HKL2,
-                    Pt531_REF2_DIFFCALC, # inspected to be close to Pt531_REF2
+                    Pt531_REF2_DIFFCALC,  # inspected as close to Pt531_REF2
                     {'betain': 2})
