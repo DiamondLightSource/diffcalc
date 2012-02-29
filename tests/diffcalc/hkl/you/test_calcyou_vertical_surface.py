@@ -9,11 +9,11 @@ try:
 except ImportError:
     from numjy import matrix
 
-from diffcalc.geometry import SixCircleYouGeometry
+from diffcalc.hkl.you.geometry import SixCircle
 from diffcalc.hkl.willmott.calcwill_horizontal import \
     WillmottHorizontalPosition as WillPos
 from diffcalc.hkl.you.position import YouPosition as YouPos
-from diffcalc.hkl.you.ubcalcstrategy import YouUbCalcStrategy
+from diffcalc.hkl.you.calcyou import YouUbCalcStrategy
 from tests.tools import matrixeq_
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.crystal import CrystalUnderTest
@@ -37,7 +37,7 @@ class SkipTestSurfaceNormalVerticalCubic(_BaseTest):
         self.UB = I * 2 * pi
 
     def _configure_ub(self):
-        self.mock_ubcalc.getUBMatrix.return_value = self.UB
+        self.mock_ubcalc.UB = self.UB
 
     def _check(self, hkl, pos, virtual_expected={}, fails=False):
         if pos is not None:
@@ -97,21 +97,21 @@ U_DIFFCALC = matrix([[-0.7178876, 0.6643924, -0.2078944],
                      [0.2331402, 0.5108327, 0.8274634]])
 
 
-#class WillmottHorizontalGeometry(DiffractometerGeometryPlugin):
+#class WillmottHorizontalGeometry(VliegGeometry):
 #
 #    def __init__(self):
-#        DiffractometerGeometryPlugin.__init__(self,
+#        VliegGeometry.__init__(self,
 #                    name='willmott_horizontal',
-#                    supportedModeGroupList=[],
-#                    fixedParameterDict={},
-#                    gammaLocation='base'
+#                    supported_mode_groups=[],
+#                    fixed_parameters={},
+#                    gamma_location='base'
 #                    )
 #
-#    def physicalAnglesToInternalPosition(self, physicalAngles):
+#    def physical_angles_to_internal_position(self, physicalAngles):
 #        assert (len(physicalAngles) == 4), "Wrong length of input list"
 #        return WillPos(*physicalAngles)
 #
-#    def internalPositionToPhysicalAngles(self, internalPosition):
+#    def internal_position_to_physical_angles(self, internalPosition):
 #        return internalPosition.totuple()
 
 def willmott_to_you_fixed_mu_eta(pos):
@@ -136,7 +136,7 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12_FixedMuEta():
         hardware = Mock()
         hardware.getPhysicalAngleNames.return_value = ('m', 'd', 'n', 'e', 'c',
                                                        'p')
-        self.ubcalc = UBCalculation(hardware, SixCircleYouGeometry(),
+        self.ubcalc = UBCalculation(hardware, SixCircle(),
                                     UbCalculationNonPersister(),
                                     YouUbCalcStrategy())
 
@@ -150,9 +150,9 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12_FixedMuEta():
             HKL1[0], HKL1[1], HKL1[2], willmott_to_you_fixed_mu_eta(REF1),
             ENERGY, 'ref1', None)
         self.ubcalc.calculateUB()
-        print "U: ", self.ubcalc.getUMatrix()
-        print "UB: ", self.ubcalc.getUBMatrix()
-        matrixeq_(self.ubcalc.getUMatrix(), U_DIFFCALC)
+        print "U: ", self.ubcalc.U
+        print "UB: ", self.ubcalc.UB
+        matrixeq_(self.ubcalc.U, U_DIFFCALC)
 
 
 class TestFixedMuEta(_BaseTest):
@@ -162,7 +162,7 @@ class TestFixedMuEta(_BaseTest):
         self._configure_constraints()
         self.wavelength = 0.6358
         B = CrystalUnderTest('xtal', 7.68, 53.48,
-                             75.63, 90, 90, 90).getBMatrix()
+                             75.63, 90, 90, 90).B
         self.UB = U_DIFFCALC * B
         self._configure_limits()
 
@@ -181,7 +181,7 @@ class TestFixedMuEta(_BaseTest):
         return  willmott_to_you_fixed_mu_eta(willmott_pos)
 
     def _configure_ub(self):
-        self.mock_ubcalc.getUBMatrix.return_value = self.UB
+        self.mock_ubcalc.UB = self.UB
 
     def _check(self, hkl, pos, virtual_expected={}, fails=False):
         self._check_angles_to_hkl('', 999, 999, hkl, pos, self.wavelength)
@@ -277,7 +277,7 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12_FixedMuChi():
         hardware = Mock()
         names = 'm', 'd', 'n', 'e', 'c', 'p'
         hardware.getPhysicalAngleNames.return_value = names
-        self.ubcalc = UBCalculation(hardware, SixCircleYouGeometry(),
+        self.ubcalc = UBCalculation(hardware, SixCircle(),
                                     UbCalculationNonPersister(),
                                     YouUbCalcStrategy())
 
@@ -291,9 +291,9 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12_FixedMuChi():
             HKL1[0], HKL1[1], HKL1[2], willmott_to_you_fixed_mu_chi(REF1),
             ENERGY, 'ref1', None)
         self.ubcalc.calculateUB()
-        print "U: ", self.ubcalc.getUMatrix()
-        print "UB: ", self.ubcalc.getUBMatrix()
-        matrixeq_(self.ubcalc.getUMatrix(), U_DIFFCALC)
+        print "U: ", self.ubcalc.U
+        print "UB: ", self.ubcalc.UB
+        matrixeq_(self.ubcalc.U, U_DIFFCALC)
 
 
 class Test_Fixed_Mu_Chi(TestFixedMuEta):
@@ -340,7 +340,7 @@ class TestUBCalculationWithYouStrategy_Pt531_FixedMuChi():
         hardware = Mock()
         names = 'm', 'd', 'n', 'e', 'c', 'p'
         hardware.getPhysicalAngleNames.return_value = names
-        self.ubcalc = UBCalculation(hardware, SixCircleYouGeometry(),
+        self.ubcalc = UBCalculation(hardware, SixCircle(),
                                     UbCalculationNonPersister(),
                                     YouUbCalcStrategy())
 
@@ -357,9 +357,9 @@ class TestUBCalculationWithYouStrategy_Pt531_FixedMuChi():
                                   12.39842 / Pt531_WAVELENGTH,
                                   'ref1', None)
         self.ubcalc.calculateUB()
-        print "U: ", self.ubcalc.getUMatrix()
-        print "UB: ", self.ubcalc.getUBMatrix()
-        matrixeq_(self.ubcalc.getUMatrix(), Pt531_U_DIFFCALC)
+        print "U: ", self.ubcalc.U
+        print "UB: ", self.ubcalc.UB
+        matrixeq_(self.ubcalc.U, Pt531_U_DIFFCALC)
 
 
 class Test_Pt531_FixedMuChi(_BaseTest):
@@ -369,7 +369,7 @@ class Test_Pt531_FixedMuChi(_BaseTest):
         self._configure_constraints()
         self.wavelength = Pt531_WAVELENGTH
         CUT = CrystalUnderTest('Pt531', 6.204, 4.806, 23.215, 90, 90, 49.8)
-        B = CUT.getBMatrix()
+        B = CUT.B
         self.UB = Pt531_U_DIFFCALC * B
         self._configure_limits()
 
@@ -389,7 +389,7 @@ class Test_Pt531_FixedMuChi(_BaseTest):
         return  willmott_to_you_fixed_mu_chi(willmott_pos)
 
     def _configure_ub(self):
-        self.mock_ubcalc.getUBMatrix.return_value = self.UB
+        self.mock_ubcalc.UB = self.UB
 
     def _check(self, hkl, pos, virtual_expected={}, fails=False):
 #        self._check_angles_to_hkl('', 999, 999, hkl, pos, self.wavelength,

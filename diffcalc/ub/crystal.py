@@ -9,7 +9,7 @@ TORAD = pi / 180
 TODEG = 180 / pi
 
 
-class CrystalUnderTest:
+class CrystalUnderTest(object):
     """
     Contains the lattice parameters and calculated B matrix for the crytsal
     under test. Also Calculates the distance between planes at a given hkl
@@ -63,7 +63,8 @@ class CrystalUnderTest:
             [0.0, b2 * sin(beta3), -b3 * sin(beta2) * cos(alpha1)],
             [0.0, 0.0, 2 * pi / a3]])
 
-    def getBMatrix(self):
+    @property
+    def B(self):
         '''
         Returns the B matrix, may be null if crystal is not set, or if there
         was a problem calculating this'''

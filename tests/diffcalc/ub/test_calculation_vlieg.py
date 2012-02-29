@@ -3,18 +3,19 @@ from datetime import datetime
 from math import cos, sin, pi
 
 from mock import Mock
+from nose.tools import raises
 try:
     from numpy import matrix
 except ImportError:
     from numjy import matrix
 
-from diffcalc.geometry import SixCircleGammaOnArmGeometry
+from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.hkl.vlieg.position import VliegPosition as Pos
 from tests.tools import matrixeq_, mneq_
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.utils import DiffcalcException
-from diffcalc.hkl.vlieg.ubcalcstrategy import VliegUbCalcStrategy
+from diffcalc.hkl.vlieg.calcvlieg import VliegUbCalcStrategy
 from tests.diffcalc import scenarios
 
 I = matrix('1 0 0; 0 1 0; 0 0 1')
@@ -39,14 +40,19 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
 ### State ###
 
     def testNewCalculation(self):
-        # this was called in setUp
         self.ubcalc.newCalculation('testcalc')
         self.assertEqual(self.ubcalc.getName(), 'testcalc',
                          "Name not set by newCalcualtion")
-        # check umatrix cleared:
-        self.assertRaises(DiffcalcException, self.ubcalc.getUMatrix)
-        # check ubmatrix cleared:
-        self.assertRaises(DiffcalcException, self.ubcalc.getUBMatrix)
+
+    @raises(DiffcalcException)
+    def testNewCalculationHasNoU(self):
+        self.ubcalc.newCalculation('testcalc')
+        print self.ubcalc.U
+
+    @raises(DiffcalcException)
+    def testNewCalculationHasNoUB(self):
+        self.ubcalc.newCalculation('testcalc')
+        print self.ubcalc.UB
 
 ### Lattice ###
 
@@ -67,29 +73,27 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
             self.ubcalc.setLattice(sess.name, *sess.lattice)
             self.ubcalc.setUManually(U)
             # Check the U matrix
-            mneq_(self.ubcalc.getUMatrix(), matrix(U), 4,
+            mneq_(self.ubcalc.U, matrix(U), 4,
                   note="wrong U after manually setting U")
 
             # Check the UB matrix
             if sess.bmatrix is None:
                 continue
             print "U: ", U
-            print "actual ub: ", self.ubcalc.getUBMatrix().tolist()
+            print "actual ub: ", self.ubcalc.UB.tolist()
             print " desired b: ", sess.bmatrix
-            mneq_(self.ubcalc.getUBMatrix(), matrix(sess.bmatrix), 4,
+            mneq_(self.ubcalc.UB, matrix(sess.bmatrix), 4,
                   note="wrong UB after manually setting U")
 
+    @raises(DiffcalcException)
     def testGetUMatrix(self):
         self.ubcalc.newCalculation('testcalc')
-        # tested in testSetUManually
-        # no u calculated yet
-        self.assertRaises(DiffcalcException, self.ubcalc.getUMatrix)
+        print self.ubcalc.U
 
+    @raises(DiffcalcException)
     def testGetUBMatrix(self):
         self.ubcalc.newCalculation('testcalc')
-        # tested in testSetUManually
-        # no ub calculated yet
-        self.assertRaises(DiffcalcException, self.ubcalc.getUBMatrix)
+        print self.ubcalc.UB
 
     def testCalculateU(self):
 
@@ -109,12 +113,12 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
             self.ubcalc.addReflection(
                 ref2.h, ref2.k, ref2.l, ref2.pos, ref2.energy, ref2.tag, t)
             self.ubcalc.calculateUB()
-            returned = self.ubcalc.getUMatrix().tolist()
+            returned = self.ubcalc.U.tolist()
             print "*Required:"
             print sess.umatrix
             print "*Returned:"
             print returned
-            mneq_(self.ubcalc.getUMatrix(), matrix(sess.umatrix), 4,
+            mneq_(self.ubcalc.U, matrix(sess.umatrix), 4,
                   note="wrong U calulated for sess.name=" + sess.name)
 
     def test__str__(self):
@@ -198,7 +202,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
             ref2.h, ref2.k, ref2.l, ref2.pos, ref2.energy, ref2.tag, t)
         self.ubcalc.setUManually([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         state = self.ubcalc.getState()
-        self.assertEqual(self.ubcalc.getUMatrix().tolist(), state['u'])
+        self.assertEqual(self.ubcalc.U.tolist(), state['u'])
         expectedState = self.getSess1State()
         expectedState['u'] = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
         self.assertEquals(expectedState, state)
@@ -210,7 +214,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
         self.ubcalc.restoreState(setState)
 
         self.assertEquals([[1, 2, 3], [4, 5, 6], [7, 8, 9]],
-                          self.ubcalc.getUMatrix().tolist())
+                          self.ubcalc.U.tolist())
 
     def testGetStateWithManualUB(self):
         sess = scenarios.sessions()[0]
@@ -225,7 +229,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
             ref2.h, ref2.k, ref2.l, ref2.pos, ref2.energy, ref2.tag, t)
         self.ubcalc.setUBManually([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         state = self.ubcalc.getState()
-        self.assertEqual(self.ubcalc.getUBMatrix().tolist(), state['ub'])
+        self.assertEqual(self.ubcalc.UB.tolist(), state['ub'])
         expectedState = self.getSess1State()
         expectedState['ub'] = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
         self.assertEquals(expectedState, state)
@@ -236,7 +240,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
         self.ubcalc.newCalculation('unwanted one')
         self.ubcalc.restoreState(setState)
         self.assertEquals([[1, 2, 3], [4, 5, 6], [7, 8, 9]],
-                          self.ubcalc.getUBMatrix().tolist())
+                          self.ubcalc.UB.tolist())
 
 #    #TODO: hkl calculation oddity: (CUBIC, 1, 0, 0, CUBIC_EN) -->
 #    #({alpha: 0.0 delta: 60.00000000000001 gamma: 0.0 omega: -59.9999999999999
@@ -310,7 +314,7 @@ class TestUBCalcWithCubicTwoRef(TestUBCalcWithCubic):
     def check(self, testname, hklref1, hklref2, expectedUMatrix):
         self.addref(hklref1)
         self.addref(hklref2)
-        matrixeq_(expectedUMatrix, self.ubcalc.getUMatrix())
+        matrixeq_(expectedUMatrix, self.ubcalc.U)
 
     def test_with_squarely_mounted(self):
         href = ((1, 0, 0),
@@ -382,7 +386,7 @@ class TestUBCalcWithcubicOneRef(TestUBCalcWithCubic):
         print testname
         self.addref(hklref)
         self.ubcalc.calculateUBFromPrimaryOnly()
-        matrixeq_(expectedUMatrix, self.ubcalc.getUMatrix())
+        matrixeq_(expectedUMatrix, self.ubcalc.U)
 
     def test_with_squarely_mounted(self):
         href = ((1, 0, 0),

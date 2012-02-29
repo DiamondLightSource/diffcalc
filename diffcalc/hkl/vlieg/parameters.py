@@ -32,7 +32,7 @@ class VliegParameterManager(object):
         self._trackedParameters = []
 
         # Overide parameters that are unchangable for this diffractometer
-        for (name, value) in self._geometry.getFixedParameters().items():
+        for (name, value) in self._geometry.fixed_parameters.items():
             if name not in self._parameters:
                 raise RuntimeError(
                     "The %s diffractometer geometry specifies a fixed "
@@ -47,7 +47,7 @@ class VliegParameterManager(object):
             flags = ""
             if not self._modeSelector.getMode().usesParameter(name):
                 flags += '(not relevant in this mode)'
-            if self._geometry.isParameterFixed(name):
+            if self._geometry.parameter_fixed(name):
                 flags += ' (fixed by this diffractometer)'
             if self.isParameterTracked(name):
                 flags += ' (tracking hardware)'
@@ -95,11 +95,11 @@ class VliegParameterManager(object):
         if not name in self._parameters:
             raise DiffcalcException("No fixed parameter %s is used by the "
                                     "diffraction calculator" % name)
-        if self._geometry.isParameterFixed(name):
+        if self._geometry.parameter_fixed(name):
             raise DiffcalcException(
                 "The parameter %s cannot be changed: It has been fixed by the "
                 "%s diffractometer geometry"
-                % (name, self._geometry.getName()))
+                % (name, self._geometry.name))
         if self.isParameterTracked(name):
             # for safety and to avoid confusion:
             raise DiffcalcException(
@@ -167,4 +167,4 @@ class VliegParameterManager(object):
         if mode is None:
             mode = self._modeSelector.getMode()
         return (mode.usesParameter(name) and
-                not self._geometry.isParameterFixed(name))
+                not self._geometry.parameter_fixed(name))

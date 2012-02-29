@@ -95,7 +95,7 @@ class VliegPositionTransformer(object):
 
     def isPositionWithinLimits(self, position):
         '''where position is Position object in degrees'''
-        angleTuple = self._geometry.internalPositionToPhysicalAngles(position)
+        angleTuple = self._geometry.internal_position_to_physical_angles(position)
         angleTuple = self._hardware.cutAngles(angleTuple)
         return self._hardware.isPositionWithinLimits(angleTuple)
 

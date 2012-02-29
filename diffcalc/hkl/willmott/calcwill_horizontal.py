@@ -8,7 +8,7 @@ except ImportError:
 from diffcalc.configurelogging import logging
 from diffcalc.utils import bound, AbstractPosition, DiffcalcException,\
     x_rotation, z_rotation
-from diffcalc.geometry import DiffractometerGeometryPlugin
+from diffcalc.hkl.vlieg.geometry import VliegGeometry
 from diffcalc.ub.calculation import PaperSpecificUbCalcStrategy
 from diffcalc.hkl.calcbase import HklCalculatorBase
 from diffcalc.hkl.common import DummyParameterManager
@@ -96,19 +96,15 @@ class WillmottHorizontalPosition(AbstractPosition):
                 (self.delta, self.gamma, self.omegah, self.phi))
 
 
-class WillmottHorizontalGeometry(DiffractometerGeometryPlugin):
+class WillmottHorizontalGeometry(object):
 
     def __init__(self):
-        DiffractometerGeometryPlugin.__init__(self, name='willmott_horizontal',
-                                              supportedModeGroupList=[],
-                                              fixedParameterDict={},
-                                              gammaLocation='base')
+        self.name = 'willmott_horizontal'
 
-    def physicalAnglesToInternalPosition(self, physicalAngles):
-        assert (len(physicalAngles) == 4), "Wrong length of input list"
+    def physical_angles_to_internal_position(self, physicalAngles):
         return WillmottHorizontalPosition(*physicalAngles)
 
-    def internalPositionToPhysicalAngles(self, internalPosition):
+    def internal_position_to_physical_angles(self, internalPosition):
         return internalPosition.totuple()
 
     def create_position(self, delta, gamma, omegah, phi):
@@ -175,7 +171,7 @@ class WillmottHorizontalCalculator(HklCalculatorBase):
 
     @property
     def _UB(self):
-        return self._ubcalc.getUBMatrix()
+        return self._ubcalc.UB
 
     def _anglesToHkl(self, pos, wavelength):
         """

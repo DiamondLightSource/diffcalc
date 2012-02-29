@@ -78,7 +78,7 @@ class ReflectionList:
         """getReflection(num) --> ( [h, k, l], (angle1...angleN), energy, tag )
         -- num starts at 1 position in degrees"""
         r = deepcopy(self._reflist[num - 1])  # for convenience
-        externalAngles = self._geometry.internalPositionToPhysicalAngles(r.pos)
+        externalAngles = self._geometry.internal_position_to_physical_angles(r.pos)
         result = [r.h, r.k, r.l], externalAngles, r.energy, r.tag, eval(r.time)
         return result
 

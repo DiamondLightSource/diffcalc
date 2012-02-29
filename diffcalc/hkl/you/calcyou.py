@@ -15,9 +15,11 @@ from diffcalc.hkl.you.position import YouPosition
 from diffcalc.utils import DiffcalcException, bound, angle_between_vectors
 from diffcalc.hkl.common import DummyParameterManager
 from diffcalc.utils import cross3, z_rotation, x_rotation
+from diffcalc.ub.calculation import PaperSpecificUbCalcStrategy
 
 logger = logging.getLogger("diffcalc.hkl.you.calcyou")
 I = matrix('1 0 0; 0 1 0; 0 0 1')
+y = matrix('0; 1; 0')
 
 SMALL = 1e-8
 TORAD = pi / 180
@@ -162,6 +164,17 @@ def _generate_transformed_values(value, constrained=False):
 class NoSolutionException(Exception):
     # TODO: Remove this when possible
     pass
+
+
+class YouUbCalcStrategy(PaperSpecificUbCalcStrategy):
+
+    def calculate_q_phi(self, pos):
+
+        [MU, DELTA, NU, ETA, CHI, PHI] = createYouMatrices(*pos.totuple())
+        # Equation 12: Compute the momentum transfer vector in the lab  frame
+        q_lab = (NU * DELTA - I) * y
+        # Transform this into the phi frame.
+        return PHI.I * CHI.I * ETA.I * MU.I * q_lab
 
 
 class YouHklCalculator(HklCalculatorBase):

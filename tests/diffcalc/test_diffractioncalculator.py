@@ -18,9 +18,9 @@ from diffcalc.gdasupport.scannable.parameter import \
     DiffractionCalculatorParameter
 from diffcalc.gdasupport.scannable.slave_driver import \
     NuDriverForSixCirclePlugin
-from diffcalc.geometry import fivec
-from diffcalc.geometry import fourc
-from diffcalc.geometry import SixCircleGammaOnArmGeometry, \
+from diffcalc.hkl.vlieg.geometry import fivec
+from diffcalc.hkl.vlieg.geometry import fourc
+from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry, \
     SixCircleGeometry
 from diffcalc.hardware_adapter import DummyHardwareAdapter
 from diffcalc.hardware_adapter import ScannableHardwareAdapter
@@ -90,7 +90,7 @@ class BaseTestDiffractionCalculatorWithData():
 
         # check the ubcalculation is okay before continuing
         # (useful to check for typos!)
-        mneq_(self.d._ubcalc.getUBMatrix(),
+        mneq_(self.d._ubcalc.UB,
               matrix(s.umatrix) * matrix(s.bmatrix), 4,
               note="wrong UB matrix after calculating U")
         # Test each hkl/position pair
@@ -133,7 +133,7 @@ class BaseTestDiffractionCalculatorWithData():
         self.d.ub.calcub()
         # check the ubcalculation is okay before continuing
         # (useful to check for typos !)
-        mneq_(self.d._ubcalc.getUBMatrix(),
+        mneq_(self.d._ubcalc.UB,
               matrix(s.umatrix) * matrix(s.bmatrix), 4,
               note="wrong UB matrix after calculating U")
 
@@ -150,7 +150,7 @@ class BaseTestDiffractionCalculatorWithData():
             (h, k, l) = c.hklList[idx]
 
             expectedangles = \
-                self.geometry.internalPositionToPhysicalAngles(c.posList[idx])
+                self.geometry.internal_position_to_physical_angles(c.posList[idx])
             (angles, params) = self.d.hkl_to_angles(h, k, l, c.energy)
             expectedAnglesStr = ("%f " * len(expectedangles)) % expectedangles
             anglesString = ("%f " * len(angles)) % angles
@@ -199,7 +199,7 @@ class BaseTestDiffractionCalculatorWithData():
 
         # check the ubcalculation is okay before continuing
         # (useful to check for typos!)
-        mneq_(self.d._ubcalc.getUBMatrix(),
+        mneq_(self.d._ubcalc.UB,
               (matrix(s.umatrix) * (matrix(s.bmatrix))),
               4, note="wrong UB matrix after calculating U")
         self.hardware.setEnergy(c.energy)
@@ -493,7 +493,7 @@ class SixcGammaOnBaseTest(TestSixcBase):
         self.sixc([0, 90, 0, 45, 45, 90])
         self.d.ub.addref(0, 1, 1)
         self.d.checkub()
-        res = self.d._ubcalc.getUMatrix()
+        res = self.d._ubcalc.U
         des = matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
         mneq_(res, des, 4)
         print "***"

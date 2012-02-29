@@ -15,7 +15,7 @@ class HklCalculatorBase(object):
         self._geometry = geometry   # to access information about the
                                     # diffractometer geometry and mode_selector
         self._gammaParameterName = ({'arm': 'gamma', 'base': 'oopgamma'}
-                                    [self._geometry.gammaLocation()])
+                                    [self._geometry.gamma_location])
         self._hardware = hardware  # Used for tracking parameters only
         self.raiseExceptionsIfAnglesDoNotMapBackToHkl = \
             raiseExceptionsIfAnglesDoNotMapBackToHkl
@@ -128,16 +128,16 @@ class HklCalculatorBase(object):
 ### Collect all math access to context here
 
     def _getUBMatrix(self):
-        return self._ubcalc.getUBMatrix()
+        return self._ubcalc.UB
 
     def _getMode(self):
         return self.mode_selector.getMode()
 
     def _getSigma(self):
-        return self._ubcalc.getSigma()
+        return self._ubcalc.sigma
 
     def _getTau(self):
-        return self._ubcalc.getTau()
+        return self._ubcalc.tau
 
     def _getParameter(self, name):
         # Does not use context.getParameter as this will trigger a costly

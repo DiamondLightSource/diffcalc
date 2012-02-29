@@ -3,7 +3,7 @@ import unittest
 
 from mock import Mock
 
-from diffcalc.geometry import SixCircleGammaOnArmGeometry
+from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.hardware_adapter import DummyHardwareAdapter
 from diffcalc.hkl.vlieg.position import VliegPosition as P, \
    VliegPosition as Pos
@@ -29,7 +29,7 @@ class TestVliegPositionTransformer(unittest.TestCase):
 
     def map(self, pos):  # @ReservedAssignment
         pos = self.transformer.transform(pos)
-        angle_tuple = self.geometry.internalPositionToPhysicalAngles(pos)
+        angle_tuple = self.geometry.internal_position_to_physical_angles(pos)
         angle_tuple = self.hardware.cutAngles(angle_tuple)
         return angle_tuple
 

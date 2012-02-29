@@ -110,13 +110,12 @@ class ModeSelector(object):
             raise DiffcalcException(
                 'Unknown mode. The diffraction calculator supports these '
                 'modeSelector: %s' % self._supportedModes.keys())
-        if  self._geometry.supportsModeGroup(mode.group):
+        if  self._geometry.supports_mode_group(mode.group):
             self._selectedIndex = index
         else:
             raise DiffcalcException(
-                "Mode %s not supported for this diffractometer (%s). Try one "
-                "of: %s" % (name, self._geometry.getName(),
-                self._geometry.getSupportedModes()))
+                "Mode %s not supported for this diffractometer (%s)." %
+                (name, self._geometry.name))
 
     def getMode(self):
         return self._modelist[self._selectedIndex]
@@ -130,7 +129,7 @@ class ModeSelector(object):
         indecis.sort()
         for index in indecis:
             mode = self._modelist[index]
-            if self._geometry.supportsModeGroup(mode.group):
+            if self._geometry.supports_mode_group(mode.group):
                 paramString = ''
                 flags = ''
                 pm = self.parameter_manager

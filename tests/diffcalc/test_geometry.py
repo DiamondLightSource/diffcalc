@@ -11,9 +11,9 @@ except ImportError:
 from tests.tools import mneq_
 
 
-from diffcalc.geometry import fivec
-from diffcalc.geometry import fourc
-from diffcalc.geometry import SixCircleGammaOnArmGeometry, gammaOnArmToBase, \
+from diffcalc.hkl.vlieg.geometry import fivec
+from diffcalc.hkl.vlieg.geometry import fourc
+from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry, gammaOnArmToBase, \
     gammaOnBaseToArm, SixCircleGeometry
 from diffcalc.hkl.vlieg.matrices import createVliegMatrices
 from diffcalc.hkl.vlieg.position import VliegPosition
@@ -32,27 +32,27 @@ class TestSixCirclePlugin(unittest.TestCase):
         self.geometry = SixCircleGeometry()
 
     def testGetName(self):
-        self.assertEqual(self.geometry.getName(), "sixc")
+        self.assertEqual(self.geometry.name, "sixc")
 
     def testPhysicalAnglesToInternalPosition(self):
         pos = [0, 0, 0, 0, 0, 0]
-        expected = self.geometry.physicalAnglesToInternalPosition(pos)
+        expected = self.geometry.physical_angles_to_internal_position(pos)
         self.assert_(VliegPosition(*pos) == expected)
 
     def testInternalPositionToPhysicalAngles(self):
         pos = VliegPosition(0, 0, 0, 0, 0, 0)
-        result = self.geometry.internalPositionToPhysicalAngles(pos)
+        result = self.geometry.internal_position_to_physical_angles(pos)
         self.assert_(norm(matrix([pos.totuple()]) - matrix([result])) < 0.001)
 
     def testGammaOn(self):
-        self.assert_(self.geometry.gammaLocation(), 'base')
+        self.assert_(self.geometry.gamma_location, 'base')
 
     def testSupportsModeGroup(self):
-        self.assertTrue(self.geometry.supportsModeGroup('fourc'))
-        self.assertFalse(self.geometry.supportsModeGroup('made up mode'))
+        self.assertTrue(self.geometry.supports_mode_group('fourc'))
+        self.assertFalse(self.geometry.supports_mode_group('made up mode'))
 
     def testGetFixedParameters(self):
-        self.geometry.getFixedParameters()  # check for exceptions
+        self.geometry.fixed_parameters  # check for exceptions
 
     def isParamaterUnchangable(self):
         self.assertFalse(
@@ -65,24 +65,24 @@ class TestSixCircleGammaOnArmGeometry(unittest.TestCase):
         self.geometry = SixCircleGammaOnArmGeometry()
 
     def testGetName(self):
-        self.assertEqual(self.geometry.getName(), "sixc_gamma_on_arm")
+        self.assertEqual(self.geometry.name, "sixc_gamma_on_arm")
 
     def testPhysicalAnglesToInternalPosition(self):
         pos = [1, 2, 3, 4, 5, 6]
-        expected = self.geometry.physicalAnglesToInternalPosition(pos)
+        expected = self.geometry.physical_angles_to_internal_position(pos)
         self.assert_(VliegPosition(*pos) == expected)
 
     def testInternalPositionToPhysicalAngles(self):
         pos = VliegPosition(1, 2, 3, 4, 5, 6)
-        result = self.geometry.internalPositionToPhysicalAngles(pos)
+        result = self.geometry.internal_position_to_physical_angles(pos)
         mneq_(matrix([pos.totuple()]), matrix([result]), 4)
 
     def testSupportsModeGroup(self):
-        self.assertTrue(self.geometry.supportsModeGroup('fourc'))
-        self.assertFalse(self.geometry.supportsModeGroup('made up mode'))
+        self.assertTrue(self.geometry.supports_mode_group('fourc'))
+        self.assertFalse(self.geometry.supports_mode_group('made up mode'))
 
     def testGetFixedParameters(self):
-        self.geometry.getFixedParameters()  # check for exceptions
+        self.geometry.fixed_parameters  # check for exceptions
 
     def isParamaterUnchangable(self):
         self.assertFalse(
@@ -176,30 +176,30 @@ class TestFiveCirclePlugin(unittest.TestCase):
         self.geometry = fivec()
 
     def testGetName(self):
-        self.assertEqual(self.geometry.getName(), "fivec")
+        self.assertEqual(self.geometry.name, "fivec")
 
     def testPhysicalAnglesToInternalPosition(self):
-        expected = self.geometry.physicalAnglesToInternalPosition(
+        expected = self.geometry.physical_angles_to_internal_position(
             (1, 2, 4, 5, 6))
         self.assert_(VliegPosition(1, 2, 0, 4, 5, 6) == expected)
 
     def testInternalPositionToPhysicalAngles(self):
-        result = self.geometry.internalPositionToPhysicalAngles(
+        result = self.geometry.internal_position_to_physical_angles(
             VliegPosition(1, 2, 0, 4, 5, 6))
         self.assert_(norm(matrix([[1, 2, 4, 5, 6]]) - (matrix([list(result)])))
                      < 0.001)
 
     def testSupportsModeGroup(self):
-        self.assertTrue(self.geometry.supportsModeGroup('fourc'))
-        self.assertFalse(self.geometry.supportsModeGroup('fivecFixedAlpha'))
-        self.assertTrue(self.geometry.supportsModeGroup('fivecFixedGamma'))
+        self.assertTrue(self.geometry.supports_mode_group('fourc'))
+        self.assertFalse(self.geometry.supports_mode_group('fivecFixedAlpha'))
+        self.assertTrue(self.geometry.supports_mode_group('fivecFixedGamma'))
 
     def testGetFixedParameters(self):
-        self.geometry.getFixedParameters()  # check for exceptions
+        self.geometry.fixed_parameters  # check for exceptions
 
     def testisParamaterFixed(self):
-        self.assertFalse(self.geometry.isParameterFixed('made up parameter'))
-        self.assertTrue(self.geometry.isParameterFixed('gamma'))
+        self.assertFalse(self.geometry.parameter_fixed('made up parameter'))
+        self.assertTrue(self.geometry.parameter_fixed('gamma'))
 
 
 class TestFourCirclePlugin(unittest.TestCase):
@@ -208,27 +208,27 @@ class TestFourCirclePlugin(unittest.TestCase):
         self.geometry = fourc()
 
     def testGetName(self):
-        self.assertEqual(self.geometry.getName(), "fourc")
+        self.assertEqual(self.geometry.name, "fourc")
 
     def testPhysicalAnglesToInternalPosition(self):
-        expected = self.geometry.physicalAnglesToInternalPosition((2, 4, 5, 6))
+        expected = self.geometry.physical_angles_to_internal_position((2, 4, 5, 6))
         self.assert_(VliegPosition(0, 2, 0, 4, 5, 6) == expected)
 
     def testInternalPositionToPhysicalAngles(self):
-        result = self.geometry.internalPositionToPhysicalAngles(
+        result = self.geometry.internal_position_to_physical_angles(
             VliegPosition(0, 2, 0, 4, 5, 6))
         self.assert_(norm(matrix([[2, 4, 5, 6]]) - matrix([list(result)]))
                      < 0.001)
 
     def testSupportsModeGroup(self):
-        self.assertTrue(self.geometry.supportsModeGroup('fourc'))
-        self.assertFalse(self.geometry.supportsModeGroup('fivecFixedAlpha'))
-        self.assertFalse(self.geometry.supportsModeGroup('fivecFixedGamma'))
+        self.assertTrue(self.geometry.supports_mode_group('fourc'))
+        self.assertFalse(self.geometry.supports_mode_group('fivecFixedAlpha'))
+        self.assertFalse(self.geometry.supports_mode_group('fivecFixedGamma'))
 
     def testGetFixedParameters(self):
-        self.geometry.getFixedParameters()  # check for exceptions
+        self.geometry.fixed_parameters  # check for exceptions
 
     def testisParamaterFixed(self):
-        self.assertFalse(self.geometry.isParameterFixed('made up parameter'))
-        self.assertTrue(self.geometry.isParameterFixed('gamma'))
-        self.assertTrue(self.geometry.isParameterFixed('alpha'))
+        self.assertFalse(self.geometry.parameter_fixed('made up parameter'))
+        self.assertTrue(self.geometry.parameter_fixed('gamma'))
+        self.assertTrue(self.geometry.parameter_fixed('alpha'))

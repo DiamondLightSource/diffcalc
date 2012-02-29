@@ -108,9 +108,9 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12():
             Si_5_5_12_HKL1[0], Si_5_5_12_HKL1[1], Si_5_5_12_HKL1[2],
             Si_5_5_12_REF1, 12.39842 / Si_5_5_12_WAVELENGTH, 'ref1', None)
         self.ubcalc.calculateUB()
-        print "U: ", self.ubcalc.getUMatrix()
-        print "UB: ", self.ubcalc.getUBMatrix()
-        matrixeq_(self.ubcalc.getUMatrix(), Si_5_5_12_U_DIFFCALC)
+        print "U: ", self.ubcalc.U
+        print "UB: ", self.ubcalc.UB
+        matrixeq_(self.ubcalc.U, Si_5_5_12_U_DIFFCALC)
 
 
 class TestSurfaceNormalVertical_Si_5_5_12_PosGamma(_BaseTest):
@@ -120,12 +120,12 @@ class TestSurfaceNormalVertical_Si_5_5_12_PosGamma(_BaseTest):
         self.constraints.reference = {'betain': 2}
         self.wavelength = 0.6358
         B = CrystalUnderTest('xtal', 7.68, 53.48,
-                             75.63, 90, 90, 90).getBMatrix()
+                             75.63, 90, 90, 90).B
         self.UB = Si_5_5_12_U_DIFFCALC * B
         diffcalc.hkl.willmott.calcwill_horizontal.CHOOSE_POSITIVE_GAMMA = True
 
     def _configure_ub(self):
-        self.mock_ubcalc.getUBMatrix.return_value = self.UB
+        self.mock_ubcalc.UB = self.UB
 
     def _check(self, hkl, pos, virtual_expected={}, fails=False):
         self._check_angles_to_hkl('', 999, 999, hkl, pos, self.wavelength,
@@ -186,7 +186,7 @@ class SkipTestSurfaceNormalVertical_Si_5_5_12_NegGamma(
         self.constraints.reference = {'betain': 2 * TORAD}
         self.wavelength = 0.6358
         B = CrystalUnderTest('xtal', 7.68, 53.48,
-                             75.63, 90, 90, 90).getBMatrix()
+                             75.63, 90, 90, 90).B
         self.UB = Si_5_5_12_U_DIFFCALC * B
         diffcalc.hkl.willmott.calcwill_horizontal.CHOOSE_POSITIVE_GAMMA = False
 
@@ -245,9 +245,9 @@ class TestUBCalculationWithWillmotStrategy_Pt531():
             Pt531_HKL1[0], Pt531_HKL1[1], Pt531_HKL1[2], Pt531_REF1,
             12.39842 / Pt531_WAVELENGTH, 'ref1', None)
         self.ubcalc.calculateUB()
-        print "U: ", self.ubcalc.getUMatrix()
-        print "UB: ", self.ubcalc.getUBMatrix()
-        matrixeq_(self.ubcalc.getUMatrix(), Pt531_U_DIFFCALC)
+        print "U: ", self.ubcalc.U
+        print "UB: ", self.ubcalc.UB
+        matrixeq_(self.ubcalc.U, Pt531_U_DIFFCALC)
 
 
 class TestSurfaceNormalVertical_Pt531_PosGamma(_BaseTest):
@@ -258,12 +258,12 @@ class TestSurfaceNormalVertical_Pt531_PosGamma(_BaseTest):
         self.wavelength = Pt531_WAVELENGTH
 
         cut = CrystalUnderTest('Pt531', 6.204, 4.806, 23.215, 90, 90, 49.8)
-        B = cut.getBMatrix()
+        B = cut.B
         self.UB = Pt531_U_DIFFCALC * B
         diffcalc.hkl.willmott.calcwill_horizontal.CHOOSE_POSITIVE_GAMMA = True
 
     def _configure_ub(self):
-        self.mock_ubcalc.getUBMatrix.return_value = self.UB
+        self.mock_ubcalc.UB = self.UB
 
     def _check(self, hkl, pos, virtual_expected={}, fails=False):
 #        self._check_angles_to_hkl('', 999, 999, hkl, pos, self.wavelength,

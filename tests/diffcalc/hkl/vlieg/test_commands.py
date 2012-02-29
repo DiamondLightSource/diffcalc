@@ -3,7 +3,7 @@ import unittest
 from mock import Mock
 
 import diffcalc.utils  # @UnusedImport to overide raw_input
-from diffcalc.geometry import SixCircleGammaOnArmGeometry
+from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.hardware_adapter import DummyHardwareAdapter
 from diffcalc.hkl.vlieg.commands import VliegHklCommands
 from diffcalc.utils import MockRawInput

@@ -2,10 +2,10 @@ import unittest
 
 from diffcalc.gdasupport import GdaDiffcalcObjectFactory as Factory
 from diffcalc.gdasupport.scannable.base import ScannableGroup
-from diffcalc.geometry import fourc
-from diffcalc.geometry import fivec
-from diffcalc.geometry import SixCircleGeometry
-from diffcalc.geometry import SixCircleGammaOnArmGeometry
+from diffcalc.hkl.vlieg.geometry import fourc
+from diffcalc.hkl.vlieg.geometry import fivec
+from diffcalc.hkl.vlieg.geometry import SixCircleGeometry
+from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
 from diffcalc.hardware_adapter import ScannableHardwareAdapter

@@ -56,7 +56,7 @@ class _BaseTest():
         YROT = y_rotation(self.yrot * TORAD)  # +CHI
         U = ZROT * YROT
         UB = U * self.B
-        self.mock_ubcalc.getUBMatrix.return_value = UB
+        self.mock_ubcalc.UB = UB
 
     def _check_hkl_to_angles(self, testname, zrot, yrot, hkl, pos_expected,
                              wavelength, virtual_expected={}):
@@ -282,7 +282,7 @@ class TestAgainstSpecSixcB16_270608(_BaseTest):
         self.places = 2  # TODO: the Vlieg code got this to 3 decimal places
 
     def _configure_ub(self):
-        self.mock_ubcalc.getUBMatrix.return_value = self.UB
+        self.mock_ubcalc.UB = self.UB
 
     def makes_cases(self, zrot, yrot):
         del zrot, yrot  # not used
@@ -338,8 +338,8 @@ class SkipTestThreeTwoCircleForDiamondI06andI10(_BaseTest):
 
     def _configure_ub(self):
         U = matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-        B = CrystalUnderTest('xtal', 5.34, 5.34, 13.2, 90, 90, 90).getBMatrix()
-        self.mock_ubcalc.getUBMatrix.return_value = U * B
+        B = CrystalUnderTest('xtal', 5.34, 5.34, 13.2, 90, 90, 90).B
+        self.mock_ubcalc.UB = U * B
 
     def testHkl001(self):
         hkl = (0, 0, 1)
@@ -383,7 +383,7 @@ class TestFixedChiPhiPsiMode_DiamondI07SurfaceNormalHorizontal(_TestCubic):
         self.places = 4
 
     def _configure_ub(self):
-        self.mock_ubcalc.getUBMatrix.return_value = self.UB
+        self.mock_ubcalc.UB = self.UB
 
     def _check(self, hkl, pos, virtual_expected={}, fails=False):
         self._check_angles_to_hkl(
@@ -469,7 +469,7 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
         self.mock_hardware.setLowerLimit('chi', None)
 
     def _configure_ub(self):
-        self.mock_ubcalc.getUBMatrix.return_value = self.UB
+        self.mock_ubcalc.UB = self.UB
 
     def _check(self, hkl, pos, virtual_expected={}, fails=False):
         self._check_angles_to_hkl(

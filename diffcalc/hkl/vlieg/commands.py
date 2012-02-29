@@ -67,7 +67,7 @@ class VliegHklCommands(object):
         flags = ''
         if self._hklcalc.parameter_manager.isParameterTracked(name):
             flags += '(tracking hardware) '
-        if self._geometry.isParameterFixed(name):
+        if self._geometry.parameter_fixed(name):
             flags += '(fixed by geometry) '
         pm = self._hklcalc.parameter_manager
         if not pm.isParameterUsedInSelectedMode(name):

@@ -70,7 +70,7 @@ class SimulatedCrystalCounter(PseudoDevice):
     def calcUB(self):
         CHI = calcCHI(self.chiMissmount * TORAD)
         PHI = calcPHI(self.phiMissmount * TORAD)
-        self.UB = CHI * PHI * self.cut.getBMatrix()
+        self.UB = CHI * PHI * self.cut.B
 
     def asynchronousMoveTo(self, exposureTime):
         self.exposureTime = exposureTime
@@ -85,7 +85,7 @@ class SimulatedCrystalCounter(PseudoDevice):
         return count * self.exposureTime
 
     def getHkl(self):
-        pos = self.geometry.physicalAnglesToInternalPosition(
+        pos = self.geometry.physical_angles_to_internal_position(
             self.diffractometerScannable.getPosition())
         pos.changeToRadians()
         wavelength = self.wavelengthScannable.getPosition()

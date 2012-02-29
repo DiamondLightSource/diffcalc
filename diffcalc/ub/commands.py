@@ -130,16 +130,16 @@ class UbCommands(object):
         if sigma is None and tau is None:
             chi = self._hardware.getPositionByName('chi')
             phi = self._hardware.getPositionByName('phi')
-            _sigma, _tau = self._ubcalc.getSigma(), self._ubcalc.getTau()
+            _sigma, _tau = self._ubcalc.sigma, self._ubcalc.tau
             print "sigma, tau = %f, %f" % (_sigma, _tau)
             print "  chi, phi = %f, %f" % (chi, phi)
             sigma = promptForInput("sigma", -chi)
             tau = promptForInput("  tau", -phi)
-            self._ubcalc.setSigma(sigma)
-            self._ubcalc.setTau(tau)
+            self._ubcalc.sigma = sigma
+            self._ubcalc.tau = tau
         else:
-            self._ubcalc.setSigma(float(sigma))
-            self._ubcalc.setTau(float(tau))
+            self._ubcalc.sigma = float(sigma)
+            self._ubcalc.tau = float(tau)
 
 ### UB refelections ###
 
@@ -189,7 +189,7 @@ class UbCommands(object):
             tag = promptForInput("tag")
             if tag == '':
                 tag = None
-            pos = self._geometry.physicalAnglesToInternalPosition(positionList)
+            pos = self._geometry.physical_angles_to_internal_position(positionList)
             self._ubcalc.addReflection(h, k, l, pos, energy, tag,
                                        datetime.now())
         elif len(args) in (3, 4, 5, 6):
@@ -200,13 +200,13 @@ class UbCommands(object):
             if not (isnum(h) and isnum(k) and isnum(l)):
                 raise TypeError()
             if len(args) >= 2:
-                pos = self._geometry.physicalAnglesToInternalPosition(
+                pos = self._geometry.physical_angles_to_internal_position(
                     args.pop(0))
                 energy = args.pop(0)
                 if not isnum(energy):
                     raise TypeError()
             else:
-                pos = self._geometry.physicalAnglesToInternalPosition(
+                pos = self._geometry.physical_angles_to_internal_position(
                     self._hardware.getPosition())
                 energy = self._hardware.getEnergy()
             if len(args) == 1:
@@ -260,7 +260,7 @@ class UbCommands(object):
         tag = promptForInput("tag", oldTag)
         if tag == '':
             tag = None
-        pos = self._geometry.physicalAnglesToInternalPosition(positionList)
+        pos = self._geometry.physical_angles_to_internal_position(positionList)
         self._ubcalc.editReflection(num, h, k, l, pos, energy, tag,
                                     datetime.now())
 

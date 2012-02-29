@@ -10,7 +10,7 @@ except ImportError:
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.persistence import UBCalculationPersister
 from diffcalc.ub.reflections import ReflectionList
-from diffcalc.utils import DiffcalcException, MIRROR, cross3, dot3
+from diffcalc.utils import DiffcalcException, cross3, dot3
 
 SMALL = 1e-7
 TODEG = 180 / pi
@@ -185,9 +185,6 @@ class UBCalculation:
                            (ub[1, 0], ub[1, 1], ub[1, 2]))
                 result += ("\t       % 18.13f% 18.13f% 18.12f\n" %
                            (ub[2, 0], ub[2, 1], ub[2, 2]))
-                if self._geometry.mirrorInXzPlane:
-                    print ("   (The effect of the configured mirror is not "
-                           "shown here)")
             result += "\n     Sigma: %f\n" % self._sigma
             result += "         Tau: %f\n" % self._tau
 
@@ -253,7 +250,9 @@ class UBCalculation:
         print self._crystal.__str__()
 
 ### Surface normal stuff ###
-    def getTau(self):
+
+    @property
+    def tau(self):
         """
         Returns tau (in degrees): the (minus) ammount of phi axis rotation ,
         that together with some chi axis rotation (minus sigma) brings the
@@ -261,11 +260,13 @@ class UBCalculation:
         """
         return self._tau
 
-    def setTau(self, tau):
+    @tau.setter
+    def tau(self, tau):
         self._tau = tau
         self.save()
 
-    def getSigma(self):
+    @property
+    def sigma(self):
         """
         Returns sigma (in degrees): the (minus) ammount of phi axis rotation ,
         that together with some phi axis rotation (minus tau) brings the
@@ -273,7 +274,8 @@ class UBCalculation:
         """
         return self._sigma
 
-    def setSigma(self, sigma):
+    @sigma.setter
+    def sigma(self, sigma):
         self._sigma = sigma
         self.save()
 
@@ -368,7 +370,7 @@ class UBCalculation:
         if self._crystal is None:
             raise DiffcalcException(
                 "A crystal must be specified before manually setting U")
-        self._UB = self._U * self._crystal.getBMatrix()
+        self._UB = self._U * self._crystal.B
         if self._UB is None:
             print "Calculating UB matrix."
         else:
@@ -399,18 +401,18 @@ class UBCalculation:
     def setTrialUMatrix(self, omega_u):  # add chi_u, phi_u for surface diff
         print "Sorry, this command is not hooked up to anything yet"
 
-    def getUMatrix(self):
+    @property
+    def U(self):
         if self._U is None:
             raise DiffcalcException(
                 "No U matrix has been calculated during this ub calculation")
         return self._U
 
-    def getUBMatrix(self):
+    @property
+    def UB(self):
         if self._UB is None:
             raise DiffcalcException(
                 "No UB matrix has been calculated during this ub calculation")
-        if self._geometry.mirrorInXzPlane:
-            return MIRROR * self._UB
         else:
             return self._UB
 
@@ -450,7 +452,7 @@ class UBCalculation:
 
         # Compute the two reflections' reciprical lattice vectors in the
         # cartesian crystal frame
-        B = self._crystal.getBMatrix()
+        B = self._crystal.B
         h1c = B * h1
         h2c = B * h2
 
@@ -512,7 +514,7 @@ class UBCalculation:
 
         h = matrix([h]).T  # row->column
         pos.changeToRadians()
-        B = self._crystal.getBMatrix()
+        B = self._crystal.B
         h_crystal = B * h
         h_crystal = h_crystal * (1 / norm(h_crystal))
 

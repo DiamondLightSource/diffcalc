@@ -4,7 +4,7 @@ from diffcalc.hkl.vlieg.commands import VliegHklCommands
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator
 from diffcalc.utils import DiffcalcException, allnum
-from diffcalc.hkl.vlieg.ubcalcstrategy import VliegUbCalcStrategy
+from diffcalc.hkl.vlieg.calcvlieg import VliegUbCalcStrategy
 from diffcalc.hkl.willmott.calcwill_horizontal import \
     WillmottHorizontalUbCalcStrategy, \
     WillmottHorizontalCalculator
@@ -181,7 +181,7 @@ class Diffcalc(object):
         (pos, params) = self._hklcalc.hklToAngles(h, k, l, wavelength)
         if self._transformer:
             pos = self._transformer.transform(pos)
-        angle_tuple = self._geometry.internalPositionToPhysicalAngles(pos)
+        angle_tuple = self._geometry.internal_position_to_physical_angles(pos)
         angle_tuple = self._hardware.cutAngles(angle_tuple)
 
         return angle_tuple, params
@@ -199,8 +199,8 @@ class Diffcalc(object):
             raise DiffcalcException(
                 "Cannot calculate hkl position as Energy is set to 0")
 
-        intpos = self._geometry.physicalAnglesToInternalPosition(angleTuple)
-        return self._hklcalc.anglesToHkl(intpos, wavelength)
+        i_pos = self._geometry.physical_angles_to_internal_position(angleTuple)
+        return self._hklcalc.anglesToHkl(i_pos, wavelength)
 
     # This command requires the ubcalc
     @command
@@ -247,4 +247,3 @@ class Diffcalc(object):
                     "The first argument does not support simulated moves")
             else:
                 print "The first argument does not support simulated moves"
-

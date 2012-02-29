@@ -34,7 +34,7 @@ class TestCrystalUnderTest(unittest.TestCase):
             cut = CrystalUnderTest('tc', *sess.lattice)
             desired = matrix(sess.bmatrix)
             print desired.tolist()
-            answer = cut.getBMatrix()
+            answer = cut.B
             print answer.tolist()
             note = "Incorrect B matrix calculation for scenario " + sess.name
             mneq_(answer, desired, 4, note=note)

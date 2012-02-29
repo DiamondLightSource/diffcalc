@@ -9,7 +9,7 @@ from diffcalc.gdasupport.scannable.parameter import \
     DiffractionCalculatorParameter
 from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter
 from diffcalc.gdasupport.scannable.wavelength import Wavelength
-from diffcalc.geometry import DiffractometerGeometryPlugin, \
+from diffcalc.hkl.vlieg.geometry import VliegGeometry, \
     SixCircleGammaOnArmGeometry, SixCircleGeometry, fivec, fourc
 from diffcalc.hardware_adapter import HardwareAdapter, ScannableHardwareAdapter
 from diffcalc.utils import format_command_help, ExternalCommand
@@ -84,7 +84,6 @@ def createDiffcalcObjects(
         geometryPlugin=None,    # Class or name
                                 # (avoids setting path before script is run)
         hardwarePluginClass=ScannableHardwareAdapter,
-        mirrorInXzPlane=False,
         hklName='hkl',
         hklVirtualAnglesToReport=(),
         hklverboseName='hklverbose',
@@ -100,7 +99,6 @@ def createDiffcalcObjects(
     objects = {}
 
     geometryPlugin = determineGeometryPlugin(geometryPlugin)
-    geometryPlugin.mirrorInXzPlane = mirrorInXzPlane
 
     diffractometerScannableName = determineDiffractometerScannableName(
         diffractometerScannableName, geometryPlugin)
@@ -173,7 +171,7 @@ def createDiffcalcObjects(
 
 
 def determineGeometryPlugin(geometryPlugin):
-    if isinstance(geometryPlugin, DiffractometerGeometryPlugin):
+    if isinstance(geometryPlugin, VliegGeometry):
         return geometryPlugin
     elif type(geometryPlugin) is str:
         try:
@@ -191,9 +189,9 @@ def determineGeometryPlugin(geometryPlugin):
 
 
 def determineDiffractometerScannableName(diffractometerScannableName,
-                                         geometryPlugin):
+                                         geometry):
     if diffractometerScannableName is None:
-        return geometryPlugin.getName()
+        return geometry.name
     elif type(diffractometerScannableName) is str:
         return diffractometerScannableName
     else:

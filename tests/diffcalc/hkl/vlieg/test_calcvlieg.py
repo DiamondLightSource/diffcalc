@@ -23,9 +23,9 @@ TODEG = 180 / pi
 
 def createMockUbcalc(UB):
     ubcalc = Mock()
-    ubcalc.getTau.return_value = 0
-    ubcalc.getSigma.return_value = 0
-    ubcalc.getUBMatrix.return_value = UB
+    ubcalc.tau = 0
+    ubcalc.sigma = 0
+    ubcalc.UB = UB
     return ubcalc
 
 
@@ -38,13 +38,11 @@ def createMockHardwareMonitor():
 
 def createMockDiffractometerGeometry():
     geometry = Mock()
-    geometry.getUnchangableParametersDictionary.return_value = {}
-    geometry.isParameterFixed.return_value = False
-    geometry.supportsModeGroup.return_value = True
-    geometry.getFixedParameters.return_value = {}
-    geometry.getName.return_value = 'mock'
-    geometry.getSupportedModes.return_value = {}
-    geometry.gammaLocation.return_value = 'arm'
+    geometry.parameter_fixed.return_value = False
+    geometry.supports_mode_group.return_value = True
+    geometry.fixed_parameters = {}
+    geometry.name = 'mock'
+    geometry.gamma_location = 'arm'
     return geometry
 
 

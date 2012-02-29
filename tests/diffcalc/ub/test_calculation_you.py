@@ -6,9 +6,9 @@ try:
 except ImportError:
     from numjy import matrix
 
-from diffcalc.geometry import SixCircleYouGeometry
-from diffcalc.hkl.vlieg.position import VliegPosition
-from diffcalc.hkl.you.ubcalcstrategy import YouUbCalcStrategy
+from diffcalc.hkl.you.geometry import SixCircle
+from diffcalc.hkl.you.position import YouPosition
+from diffcalc.hkl.you.calcyou import YouUbCalcStrategy
 from tests.tools import matrixeq_
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.persistence import UbCalculationNonPersister
@@ -29,7 +29,7 @@ from diffcalc.ub.persistence import UbCalculationNonPersister
 
 
 def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
-    return VliegPosition(mu, delta, gamma, eta, chi, phi)
+    return YouPosition(mu, delta, gamma, eta, chi, phi)
 
 UB1 = matrix(
     ((0.9996954135095477, -0.01745240643728364, -0.017449748351250637),
@@ -47,7 +47,7 @@ class TestUBCalculationWithYouStrategy():
     """
 
     def setUp(self):
-        geometry = SixCircleYouGeometry()  # pass through
+        geometry = SixCircle()  # pass through
         hardware = Mock()
         names = 'm', 'd', 'n', 'e', 'c', 'p'
         hardware.getPhysicalAngleNames.return_value = names
@@ -62,4 +62,4 @@ class TestUBCalculationWithYouStrategy():
         self.ubcalc.addReflection(1, 0, 0, REF1a, EN1, '100', None)
         self.ubcalc.addReflection(0, 0, 1, REF1b, EN1, '001', None)
         self.ubcalc.calculateUB()
-        matrixeq_(self.ubcalc.getUBMatrix(), UB1)
+        matrixeq_(self.ubcalc.UB, UB1)

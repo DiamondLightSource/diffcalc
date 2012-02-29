@@ -13,9 +13,6 @@ except ImportError:
     from numjy import matrix
     from numjy.linalg import norm
 
-MIRROR = matrix([[1, 0, 0],
-                 [0, -1, 0],
-                 [0, 0, 1]])
 
 # from http://physics.nist.gov/
 h_in_eV_per_s = 4.135667516E-15

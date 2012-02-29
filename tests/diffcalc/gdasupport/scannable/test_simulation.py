@@ -8,7 +8,7 @@ except ImportError:
 
 from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter, \
     Gaussian
-from diffcalc.geometry import fourc
+from diffcalc.hkl.vlieg.geometry import fourc
 from diffcalc.utils import nearlyEqual
 from tests.tools import mneq_
 

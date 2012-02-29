@@ -7,14 +7,14 @@ except ImportError:
     from numjy import matrix
 
 import diffcalc.utils  # @UnusedImport
-from diffcalc.geometry import SixCircleGammaOnArmGeometry
+from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.hardware_adapter import DummyHardwareAdapter
 from tests.tools import assert_iterable_almost_equal, mneq_
 from diffcalc.ub.commands import UbCommands
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.utils import DiffcalcException, MockRawInput
 from diffcalc.ub.calculation import UBCalculation
-from diffcalc.hkl.vlieg.ubcalcstrategy import VliegUbCalcStrategy
+from diffcalc.hkl.vlieg.calcvlieg import VliegUbCalcStrategy
 from tests.diffcalc import scenarios
 
 
@@ -264,14 +264,14 @@ class TestUbCommands(unittest.TestCase):
 
         prepareRawInput(['1 2 3', '4 5 6', '7 8 9'])
         self.ubcommands.setu()
-        a = self.ubcalc.getUMatrix().tolist()
+        a = self.ubcalc.U.tolist()
         eq_([list(a[0]), list(a[1]), list(a[2])],
             [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
         prepareRawInput(['', ' 9 9.9 99', ''])
         self.ubcommands.setu()
 
-        a = self.ubcalc.getUMatrix().tolist()
+        a = self.ubcalc.U.tolist()
         eq_([list(a[0]), list(a[1]), list(a[2])],
             [[1, 0, 0], [9, 9.9, 99], [0, 0, 1]])
 
@@ -293,13 +293,13 @@ class TestUbCommands(unittest.TestCase):
 
         prepareRawInput(['1 2 3', '4 5 6', '7 8 9'])
         self.ubcommands.setub()
-        a = self.ubcalc.getUBMatrix().tolist()
+        a = self.ubcalc.UB.tolist()
         eq_([list(a[0]), list(a[1]), list(a[2])],
             [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
         prepareRawInput(['', ' 9 9.9 99', ''])
         self.ubcommands.setub()
-        a = self.ubcalc.getUBMatrix().tolist()
+        a = self.ubcalc.UB.tolist()
         eq_([list(a[0]), list(a[1]), list(a[2])],
             [[1, 0, 0], [9, 9.9, 99], [0, 0, 1]])
 
@@ -318,7 +318,7 @@ class TestUbCommands(unittest.TestCase):
         r = s.ref2
         self.ubcommands.addref(r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
         self.ubcommands.calcub()
-        mneq_(self.ubcalc.getUBMatrix(), matrix(s.umatrix) * matrix(s.bmatrix),
+        mneq_(self.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
               4, note="wrong UB matrix after calculating U")
 
     def testC2th(self):
@@ -332,20 +332,20 @@ class TestUbCommands(unittest.TestCase):
         self.assertRaises(ValueError, self.ubcommands.sigtau, 1, 'a')
         self.ubcommands.sigtau(1, 2)
         self.ubcommands.sigtau(1, 2.0)
-        eq_(self.ubcalc.getSigma(), 1)
-        eq_(self.ubcalc.getTau(), 2.0)
+        eq_(self.ubcalc.sigma, 1)
+        eq_(self.ubcalc.tau, 2.0)
 
     def testSigtauInteractive(self):
         prepareRawInput(['1', '2.'])
         self.ubcommands.sigtau()
-        eq_(self.ubcalc.getSigma(), 1)
-        eq_(self.ubcalc.getTau(), 2.0)
+        eq_(self.ubcalc.sigma, 1)
+        eq_(self.ubcalc.tau, 2.0)
         #Defaults:
         prepareRawInput(['', ''])
         self.hardware.setPosition([None, None, None, None, 3, 4.])
         self.ubcommands.sigtau()
-        eq_(self.ubcalc.getSigma(), -3.)
-        eq_(self.ubcalc.getTau(), -4.)
+        eq_(self.ubcalc.sigma, -3.)
+        eq_(self.ubcalc.tau, -4.)
 
     def testSetWithString(self):
         self.assertRaises(TypeError, self.ubcommands.setlat, 'alpha', 'a')
