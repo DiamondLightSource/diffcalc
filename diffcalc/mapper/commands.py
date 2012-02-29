@@ -1,4 +1,7 @@
-from diffcalc.hkl.willmott.commands import _hklcalcCommandHelp, HklCommand
+from diffcalc.help import create_command_decorator
+
+_commands = []
+command = create_command_decorator(_commands)
 
 
 def getNameFromScannableOrString(o):
@@ -11,33 +14,35 @@ def getNameFromScannableOrString(o):
 class MapperCommands(object):
 
     def __init__(self, geometry, hardware, sector_selector):
-        self._sectorSelector = sector_selector
         self._geometry = geometry
         self._hardware = hardware
+        self._sectorSelector = sector_selector
 
-    _hklcalcCommandHelp.append('Angle-Mapper')
+    @property
+    def commands(self):
+        return _commands
 
-    @HklCommand
+    @command
     def mapper(self):
         """mapper  --- Shows state of angle-mapper sector/transform, limits for auto sector and angle cuts""" #@IgnorePep8
         print self._sectorSelector.__repr__()
         print self._hardware.reprSectorLimitsAndCuts()
 
-    @HklCommand
+    @command
     def transforma(self, *args):
-        """transforma [on/off/auto/manual] -- configure transform A application
+        """transforma {on|off|auto|manual} -- configure transform A application
         """
         self._transform('transforma', 'a', args)
 
-    @HklCommand
+    @command
     def transformb(self, *args):
-        """transformb [on/off/auto/manual] -- configure transform B application
+        """transformb {on|off|auto|manual} -- configure transform B application
         """
         self._transform('transformb', 'b', args)
 
-    @HklCommand
+    @command
     def transformc(self, *args):
-        """transformc [on/off/auto/manual] -- configure transform C application
+        """transformc {on|off|auto|manual} -- configure transform C application
         """
 
         self._transform('transformc', 'c', args)
@@ -65,9 +70,9 @@ class MapperCommands(object):
             raise TypeError()
         print self._sectorSelector.__repr__()
 
-    @HklCommand
+    @command
     def sector(self, sector=None):
-        """sector [0-7] -- Select or display sector (a la Spec)
+        """sector {0-7} -- Select or display sector (a la Spec)
         """
         if sector is None:
             print self._sectorSelector.__repr__()
@@ -77,9 +82,9 @@ class MapperCommands(object):
             self._sectorSelector.setSector(sector)
             print self._sectorSelector.__repr__()
 
-    @HklCommand
+    @command
     def autosector(self, *args):
-        """autosector '[None] [0-7] [0-7]... -- Set sectors that might be automatically selected')""" #@IgnorePep8
+        """autosector [None] [0-7] [0-7]... -- Set sectors that might be automatically applied""" #@IgnorePep8
         if len(args) == 0:
             print self._sectorSelector.__repr__()
         elif len(args) == 1 and args[0] is None:
@@ -94,10 +99,10 @@ class MapperCommands(object):
             self._sectorSelector.setAutoSectors(sectorList)
             print self._sectorSelector.__repr__()
 
-    @HklCommand
+    @command
     def setcut(self, scannable_or_string=None, val=None):
-        """setcut [axis_scannable [val]] -- sets cut angle
-        setcut [name [val]] -- sets cut angle
+        """setcut {axis_scannable {val}} -- sets cut angle
+        setcut {name {val}} -- sets cut angle
         """
         if scannable_or_string is None and val is None:
             print self._hardware.reprSectorLimitsAndCuts()
@@ -111,14 +116,14 @@ class MapperCommands(object):
                 newcut = self._hardware.getCuts()[name]
                 print '%s: %f --> %f' % (name, oldcut, newcut)
 
-    @HklCommand
+    @command
     def setmin(self, name=None, val=None):
-        """setmin [axis [val]] -- set lower limits used by auto sector code (None to clear)""" #@IgnorePep8
+        """setmin {axis {val}} -- set lower limits used by auto sector code (None to clear)""" #@IgnorePep8
         self._setMinOrMax(name, val, self._hardware.setLowerLimit)
 
-    @HklCommand
+    @command
     def setmax(self, name=None, val=None):
-        """setmax [name [val]] -- sets upper limits used by auto sector code (None to clear)""" #@IgnorePep8
+        """setmax {name {val}} -- sets upper limits used by auto sector code (None to clear)""" #@IgnorePep8
         self._setMinOrMax(name, val, self._hardware.setUpperLimit)
 
     def _setMinOrMax(self, name, val, setMethod):

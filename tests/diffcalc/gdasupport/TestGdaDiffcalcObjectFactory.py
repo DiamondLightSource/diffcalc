@@ -12,6 +12,10 @@ from diffcalc.hardware.scannable import ScannableHardwareMonitorPlugin
 from diffcalc.gdasupport.scannable.hkl import Hkl
 from diffcalc.gdasupport.scannable.parameter import \
     DiffractionCalculatorParameter
+from mock import Mock
+from diffcalc.hkl.vlieg.parameters import VliegParameterManager
+from diffcalc.diffractioncalculator import Diffcalc
+from diffcalc.hardware.plugin import HardwareMonitorPlugin
 try:
     from gdascripts.pd.dummy_pds import DummyPD
 except ImportError:
@@ -20,48 +24,11 @@ except ImportError:
     from diffcalc.gdasupport.minigda.scannable.dummy import DummyPD
 
 
-class MockCommandGroup1(object):
-
-    def cmd1(self):
-        pass
-
-    def _not_cm(self):
-        pass
-
-
-class MockCommandGroup2(object):
-
-    def cmd2(self):
-        pass
-
-    def _not_cm(self):
-        pass
-
-
-class MockCommandGroup3(object):
-
-    def cmd3(self):
-        pass
-
-    def _not_cm(self):
-        pass
-
-
 class MockDiffcalc(object):
 
     def __init__(self):
-        self.ubcommands = MockCommandGroup1()
-        self.hklcommands = MockCommandGroup2()
-        self.mappercommands = MockCommandGroup3()
 
-    def _getParameterNames(self):
-        return self.paramNames
-
-    def _getAxisNames(self):
-        return self.axisNames
-
-    def checkub(self):
-        pass
+        self.parameter_manager = Mock(spec=VliegParameterManager)
 
 
 class MockDiffractometerScannable(object):
@@ -210,7 +177,7 @@ class Test(unittest.TestCase):
         self.assertRaises(ValueError, c, str)
 
     def testBuildHklScannableAndComponents(self):
-        dc = MockDiffcalc()
+        dc = Mock(spec=Diffcalc)
         ds = MockDiffractometerScannable()
         self.assertRaises(
             TypeError, Factory.buildHklScannableAndComponents, ds, dc, ())
@@ -226,7 +193,7 @@ class Test(unittest.TestCase):
         self.assertEquals(objects['l'], hkl.l)
 
     def testBuildHklVerboseScannable(self):
-        dc = MockDiffcalc()
+        dc = Mock(spec=Diffcalc)
         ds = MockDiffractometerScannable()
         self.assertRaises(
             TypeError, Factory.buildHklverboseScannable, ds, dc, ())
@@ -240,8 +207,12 @@ class Test(unittest.TestCase):
 
     def testCreateParameterScannables(self):
         dc = MockDiffcalc()
-        dc.paramNames = 'alpha', 'betain', 'oopgamma'
-        dc.axisNames = 'alpha',
+        dc.hardware = Mock(spec=HardwareMonitorPlugin)
+        dc.hardware.getPhysicalAngleNames.return_value = 'alpha',
+        dc.parameter_manager = Mock(spec=VliegParameterManager)
+        #dc.parameter_manager.get
+        dc.parameter_manager.getParameterDict.return_value = {
+            'alpha': None, 'betain': None, 'oopgamma': None}
         objects = Factory.createParameterScannables(dc)
         self.assertEquals(len(objects), 3)
         self.assert_(isinstance(objects['alpha_par'],
@@ -252,24 +223,29 @@ class Test(unittest.TestCase):
                                 DiffractionCalculatorParameter))
 
     def testCreateAndAliasCommands(self):
-        dc = MockDiffcalc()
+        dc = Mock(spec=Diffcalc)
         alias = MockAlias()
         Factory.alias = alias
-        objects = Factory.createAndAliasCommands(dc)
-        self.assertEquals(len(objects), 4)
 
-        self.assertEquals(objects['cmd1'], dc.ubcommands.cmd1)
-        self.assertEquals(objects['cmd2'], dc.hklcommands.cmd2)
-        self.assertEquals(objects['cmd3'], dc.mappercommands.cmd3)
-        self.assertEquals(objects['checkub'], dc.checkub)
-        self.assertEquals(alias.aliased, ['cmd1', 'cmd2', 'cmd3', 'checkub'])
+        def f():
+            pass
+
+        def g():
+            pass
+
+        objects = Factory.expose_and_alias_commands([f, g])
+        self.assertEquals(len(objects), 2)
+
+        self.assertEquals(objects['f'], f)
+        self.assertEquals(objects['g'], g)
+        self.assertEquals(alias.aliased, ['f', 'g'])
 
     def testCreateDiffcalcObjects(self):
         virtual_names = '2theta', 'Bin', 'Bout', 'azimuth'
         objects = Factory.createDiffcalcObjects(
             dummyAxisNames=self.motorNames,
             dummyEnergyName='en',
-            geometryPlugin='sixc',  # Class or name (avoids needing to set path
+            geometryPlugin='sixc', # Class or name (avoids needing to set path
                                     # before script is run)
             hklverboseVirtualAnglesToReport=virtual_names)
         print objects.keys()
@@ -280,5 +256,5 @@ class Test(unittest.TestCase):
                     raise Exception("%s not in %s." % (aa, b))
 
         expected = ('en', 'wl', 'sixc', 'hkl', 'h', 'k', 'l', 'hklverbose',
-                    'sixc', 'helphkl', 'helpub', 'diffcalc_object')
+                    'sixc', 'diffcalc_object')
         assertHas(self.motorNames + expected, objects.keys())

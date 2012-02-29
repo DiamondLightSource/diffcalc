@@ -80,7 +80,7 @@ class DiffractometerScannableGroup(ScannableMotionBase):
         if len(pos) != len(self.getInputNames()):
             raise ValueError('Wrong number of inputs')
         try:
-            (hkl, params) = self.__diffcalc._anglesToHkl(pos)
+            (hkl, params) = self.__diffcalc.angles_to_hkl(pos)
         except Exception, e:
             return "Error: %s" % getMessageFromException(e)
         width = max(len(k) for k in params)

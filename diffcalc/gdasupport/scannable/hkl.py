@@ -8,7 +8,24 @@ except ImportError:
 from diffcalc.utils import getMessageFromException
 
 
+class _DynamicDocstringMetaclass(type):
+
+    def _get_doc(self):
+        return Hkl.dynamic_docstring
+
+    __doc__ = property(_get_doc)  # @ReservedAssignment
+
+
 class Hkl(ScannableMotionWithScannableFieldsBase):
+
+    __metaclass__ = _DynamicDocstringMetaclass
+
+    dynamic_docstring = 'Hkl Scannable'
+
+    def _get_doc(self):
+        return Hkl.dynamic_docstring
+
+    __doc__ = property(_get_doc)  # @ReservedAssignment
 
     def __init__(self, name, diffractometerObject, diffcalcObject,
                  virtualAnglesToReport=None):
@@ -27,16 +44,17 @@ class Hkl(ScannableMotionWithScannableFieldsBase):
 
         self.completeInstantiation()
         self.setAutoCompletePartialMoveToTargets(True)
+        self.dynamic_class_doc = 'Hkl Scannable xyz'
 
     def rawAsynchronousMoveTo(self, hkl):
         if len(hkl) != 3: raise ValueError('Hkl device expects three inputs')
 
-        (pos, _) = self._diffcalc._hklToAngles(hkl[0], hkl[1], hkl[2])
+        (pos, _) = self._diffcalc.hkl_to_angles(hkl[0], hkl[1], hkl[2])
         self.diffhw.asynchronousMoveTo(pos)
 
     def rawGetPosition(self):
         pos = self.diffhw.getPosition()
-        (hkl , params) = self._diffcalc._anglesToHkl(pos)
+        (hkl , params) = self._diffcalc.angles_to_hkl(pos)
         result = list(hkl)
         if self.vAngleNames:
             for vAngleName in self.vAngleNames:
@@ -57,7 +75,7 @@ class Hkl(ScannableMotionWithScannableFieldsBase):
             raise ValueError('Hkl device expects three inputs')
         if len(hkl) != 3:
             raise ValueError('Hkl device expects three inputs')
-        (pos, params) = self._diffcalc._hklToAngles(hkl[0], hkl[1], hkl[2])
+        (pos, params) = self._diffcalc.hkl_to_angles(hkl[0], hkl[1], hkl[2])
 
         width = max(len(k) for k in (params.keys() + list(self.diffhw.getInputNames())))
         fmt = '  %' + str(width) + 's : % 9.4f'
@@ -77,7 +95,7 @@ class Hkl(ScannableMotionWithScannableFieldsBase):
         lines = ['hkl:']
         pos = self.diffhw.getPosition()
         try:
-            (hkl , params) = self._diffcalc._anglesToHkl(pos)
+            (hkl, params) = self._diffcalc.angles_to_hkl(pos)
         except Exception, e:
             return "<hkl: %s>" % getMessageFromException(e)
 

@@ -1,19 +1,15 @@
 from math import asin, pi
 from datetime import datetime
 
-from diffcalc.help import HelpList, UsageHandler
 from diffcalc.utils import getInputWithDefault as promptForInput, \
     promptForNumber, promptForList, allnum, isnum
+from diffcalc.help import create_command_decorator
 
 TORAD = pi / 180
 TODEG = 180 / pi
 
-_ubcalcCommandHelp = HelpList()
-
-
-class UbCommand(UsageHandler):
-    def appendDocLine(self, line):
-        _ubcalcCommandHelp.append(line)
+_commands = []
+command = create_command_decorator(_commands)
 
 
 class UbCommands(object):
@@ -26,26 +22,17 @@ class UbCommands(object):
     def __str__(self):
         return self._ubcalc.__str__()
 
-    _ubcalcCommandHelp.append('Diffcalc')
-
-    @UbCommand
-    def helpub(self, name=None):
-        """helpub ['command'] -- show help for one or all ub commands"""
-        if name is None:
-            print _ubcalcCommandHelp.getCompleteCommandUsageList()
-        else:
-            print _ubcalcCommandHelp.getCommandUsageString(str(name))
-
-    _ubcalcCommandHelp.append(
-        "helphkl ['command'] -- show help for one or all hkl commands")
+    @property
+    def commands(self):
+        return _commands
 
 ### UB state ###
 
-    _ubcalcCommandHelp.append('UB_State')
+    _commands.append('State')
 
-    @UbCommand
+    @command
     def newub(self, name=None):
-        """newub ['name'] -- start a new ub calculation.
+        """newub {'name'} -- start a new ub calculation name, or interactively.
         """
         if name is None:
             # interactive
@@ -58,25 +45,25 @@ class UbCommands(object):
         else:
             raise TypeError()
 
-    @UbCommand
+    @command
     def loadub(self, name_or_num):
-        """loadub 'name' -- loads an existing ub calculation
+        """loadub {'name'|num} -- load an existing ub calculation
         """
         if isinstance(name_or_num, str):
             self._ubcalc.load(name_or_num)
         self._ubcalc.load(self._ubcalc.listub()[int(name_or_num)])
 
-    @UbCommand
+    @command
     def listub(self):
-        """listub -- lists the ub calculations available to load.
+        """listub -- list the ub calculations available to load.
         """
         print "UB calculations in cross-visit database:"
         for n, name in enumerate(self._ubcalc.listub()):
             print "%2i) %s" % (n, name)
 
-    @UbCommand
+    @command
     def saveubas(self, name):
-        """saveubas 'name' -- saves the ub calculation with a new name
+        """saveubas 'name' -- save the ub calculation with a new name
         """
         if isinstance(name, str):
             # just trying might cause confusion here
@@ -84,9 +71,9 @@ class UbCommands(object):
         else:
             raise TypeError()
 
-    @UbCommand
+    @command
     def ub(self):
-        """ub -- shows the complete state of the ub calculation
+        """ub -- show the complete state of the ub calculation
         """
         wavelength = float(self._hardware.getWavelength())
         energy = float(self._hardware.getEnergy())
@@ -94,9 +81,9 @@ class UbCommands(object):
                (wavelength, energy))
 
 ### UB lattice ###
-    _ubcalcCommandHelp.append('UB_lattice')
+    _commands.append('Lattice')
 
-    @UbCommand
+    @command
     def setlat(self, name=None, *args):
         """
         setlat  -- interactively enter lattice parameters (Angstroms and Deg)
@@ -125,7 +112,7 @@ class UbCommands(object):
         else:
             raise TypeError()
 
-    @UbCommand
+    @command
     def c2th(self, hkl=None):
         """
         c2th [h k l]  -- calculated two-theta angle for given reflection
@@ -135,11 +122,11 @@ class UbCommands(object):
         return 2.0 * asin(wl / (d * 2)) * TODEG
 
 ### Surface stuff ###
-    _ubcalcCommandHelp.append('UB_surface')
+    _commands.append('Surface')
 
-    @UbCommand
+    @command
     def sigtau(self, sigma=None, tau=None):
-        """sigtau [sigma tau] -- sets sigma and tau"""
+        """sigtau {sigma tau} -- sets or displays sigma and tau"""
         if sigma is None and tau is None:
             chi = self._hardware.getPositionByName('chi')
             phi = self._hardware.getPositionByName('phi')
@@ -155,19 +142,20 @@ class UbCommands(object):
             self._ubcalc.setTau(float(tau))
 
 ### UB refelections ###
-    _ubcalcCommandHelp.append('UB_reflections')
 
-    @UbCommand
+    _commands.append('Reflections')
+
+    @command
     def showref(self):
         """showref -- shows full reflection list"""
         print self._ubcalc.dispReflectionList()
 
-    @UbCommand
+    @command
     def addref(self, *args):
         """
         addref -- add reflection interactively
-        addref h k l ['tag'] -- add reflection with current position and energy
-        addref h k l (p1,p2...pN) energy ['tag'] -- add arbitrary reflection
+        addref h k l {'tag'} -- add reflection with current position and energy
+        addref h k l (p1,p2...pN) energy {'tag'} -- add arbitrary reflection
         """
 
         if len(args) == 0:
@@ -232,7 +220,7 @@ class UbCommands(object):
         else:
             raise TypeError()
 
-    @UbCommand
+    @command
     def editref(self, num):
         """editref num -- interactively edit a reflection.
         """
@@ -276,13 +264,13 @@ class UbCommands(object):
         self._ubcalc.editReflection(num, h, k, l, pos, energy, tag,
                                     datetime.now())
 
-    @UbCommand
+    @command
     def delref(self, num):
         """delref num -- deletes a reflection (numbered from 1)
         """
         self._ubcalc.delReflection(int(num))
 
-    @UbCommand
+    @command
     def swapref(self, num1=None, num2=None):
         """
         swapref -- swaps first two reflections used for calulating U matrix
@@ -296,11 +284,11 @@ class UbCommands(object):
             raise TypeError()
 
 ### UB calculations ###
-    _ubcalcCommandHelp.append('ub')
+    _commands.append('ub')
 
-    @UbCommand
+    @command
     def setu(self, U=None):
-        """setu [((,,),(,,),(,,))] --- manually set u matrix
+        """setu {((,,),(,,),(,,))} -- manually set u matrix
         """
         if U is None:
             U = self._promptFor3x3MatrixDefaultingToIdentity()
@@ -311,9 +299,9 @@ class UbCommands(object):
         else:
             raise TypeError("U must be given as 3x3 list or tuple")
 
-    @UbCommand
+    @command
     def setub(self, UB=None):
-        """setub [((,,),(,,),(,,))] -- manually set ub matrix"""
+        """setub {((,,),(,,),(,,))} -- manually set ub matrix"""
         if UB is None:
             UB = self._promptFor3x3MatrixDefaultingToIdentity()
             if UB is None:
@@ -339,13 +327,13 @@ class UbCommands(object):
             return None
         return [row1, row2, row3]
 
-    @UbCommand
+    @command
     def calcub(self):
         """calcub -- (re)calculate u matrix from ref1 and ref2.
         """
         self._ubcalc.calculateUB()
 
-    @UbCommand
+    @command
     def trialub(self):
         """trialub -- (re)calculate u matrix from ref1 only (check carefully).
         """

@@ -139,7 +139,7 @@ class TestDiffractometerScannableGroupWithFailingAngleCalculator(
 
     def setUp(self):
         class BadMockAngleCalculator:
-            def _anglesToHkl(self, pos):
+            def angles_to_hkl(self, pos):
                 raise Exception("Problem")
         dummy = createDummyAxes(['alpha', 'delta', 'gamma', 'omega', 'chi',
                                  'phi'])

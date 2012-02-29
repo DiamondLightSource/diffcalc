@@ -76,7 +76,7 @@ def vliegAnglesToHkl(pos, wavelength, UBMatrix):
 class VliegHklCalculator(HklCalculatorBase):
 
     def __init__(self, ubcalc, geometry, hardware,
-                 raiseExceptionsIfAnglesDoNotMapBackToHkl=False):
+                 raiseExceptionsIfAnglesDoNotMapBackToHkl=True):
         r = raiseExceptionsIfAnglesDoNotMapBackToHkl
         HklCalculatorBase.__init__(self, ubcalc, geometry, hardware,
                                    raiseExceptionsIfAnglesDoNotMapBackToHkl=r)

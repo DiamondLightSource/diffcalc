@@ -2,14 +2,15 @@ import unittest
 
 from diffcalc.gdasupport.scannable.parameter import \
     DiffractionCalculatorParameter
-from tests.diffcalc.gdasupport.scannable.mockdiffcalc import MockDiffcalc
+from tests.diffcalc.gdasupport.scannable.mockdiffcalc import MockDiffcalc,\
+    MockParametarManger
 
 
 class TestDiffractionCalculatorParameter(unittest.TestCase):
 
     def setUp(self):
         self.dcp = DiffractionCalculatorParameter('dcp', 'betain',
-                                                  MockDiffcalc(6))
+                                                  MockParametarManger())
 
     def testAsynchronousMoveToAndGetPosition(self):
         self.dcp.asynchronousMoveTo(12.3)

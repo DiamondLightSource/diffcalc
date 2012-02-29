@@ -1,4 +1,5 @@
 import time
+from diffcalc.help import format_command_help, ExternalCommand
 
 try:
     from gda.device.scannable.scannablegroup import ScannableGroup
@@ -20,7 +21,7 @@ except ImportError:
         Scannable as ScannableBase
     from diffcalc.gdasupport.minigda.scannable.scannable import \
         Scannable as PseudoDevice
-    from diffcalc.gdasupport.minigda.terminal import alias
+    # from diffcalc.gdasupport.minigda.terminal import alias
     # Note: minigda will provide an alias method in the rootnamespace
 
 from diffcalc.diffractioncalculator import create_diffcalc_vlieg, \
@@ -33,6 +34,7 @@ from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
 from diffcalc.hardware.plugin import HardwareMonitorPlugin
 from diffcalc.hardware.scannable import ScannableHardwareMonitorPlugin
 from diffcalc.gdasupport.scannable.hkl import Hkl
+from diffcalc import gdasupport
 from diffcalc.gdasupport.scannable.wavelength import Wavelength
 from diffcalc.gdasupport.scannable.parameter import \
     DiffractionCalculatorParameter
@@ -84,7 +86,7 @@ def createDiffcalcObjects(
         dummyEnergyName=None,
         energyScannable=None,
         energyScannableMultiplierToGetKeV=1,
-        geometryPlugin=None,  # Class or name
+        geometryPlugin=None,    # Class or name
                                 # (avoids setting path before script is run)
         hardwarePluginClass=ScannableHardwareMonitorPlugin,
         mirrorInXzPlane=False,
@@ -100,7 +102,7 @@ def createDiffcalcObjects(
         raiseExceptionsForAllErrors=True
         ):
     print "=" * 80
-    diffcalcObjects = {}
+    objects = {}
 
     geometryPlugin = determineGeometryPlugin(geometryPlugin)
     geometryPlugin.mirrorInXzPlane = mirrorInXzPlane
@@ -108,15 +110,15 @@ def createDiffcalcObjects(
     diffractometerScannableName = determineDiffractometerScannableName(
         diffractometerScannableName, geometryPlugin)
 
-    objects, diffractometerScannable = \
+    objects_, diffractometerScannable = \
         createDiffractometerScannableAndPossiblyDummies(
             dummyAxisNames, axisScannableList, axesGroupScannable,
             diffractometerScannableName)
-    diffcalcObjects.update(objects)
+    objects.update(objects_)
 
-    objects, energyScannable = buildWavelengthAndPossiblyEnergyScannable(
+    objects_, energyScannable = buildWavelengthAndPossiblyEnergyScannable(
         dummyEnergyName, energyScannable, energyScannableMultiplierToGetKeV)
-    diffcalcObjects.update(objects)
+    objects.update(objects_)
 
     checkHardwarePluginClass(hardwarePluginClass)
     m = energyScannableMultiplierToGetKeV
@@ -136,34 +138,45 @@ def createDiffcalcObjects(
             "The engine '%s' was not recognised. Try 'vlieg' or 'willmott'" %
             engineName)
 
-    diffcalcObjects['diffcalc_object'] = diffcalc
+    objects['diffcalc_object'] = diffcalc
     diffractometerScannable.setDiffcalcObject(diffcalc)
 
-    diffcalcObjects.update(buildHklScannableAndComponents(
+    objects.update(buildHklScannableAndComponents(
         hklName, diffractometerScannable, diffcalc, hklVirtualAnglesToReport))
 
-    diffcalcObjects.update(buildHklverboseScannable(
+    objects.update(buildHklverboseScannable(
         hklverboseName, diffractometerScannable, diffcalc,
         hklverboseVirtualAnglesToReport))
 
-    diffcalcObjects.update(createParameterScannables(diffcalc))
+    objects.update(createParameterScannables(diffcalc))
 
     if simulatedCrystalCounterName:
         ct = SimulatedCrystalCounter(
             simulatedCrystalCounterName, diffractometerScannable,
-            geometryPlugin, diffcalcObjects['wl'])
-        diffcalcObjects.update({simulatedCrystalCounterName: ct})
+            geometryPlugin, objects['wl'])
+        objects.update({simulatedCrystalCounterName: ct})
         print "Created Simulated Crystal Counter", simulatedCrystalCounterName
 
-    diffcalcObjects.update(createAndAliasCommands(diffcalc))
-
-    diffcalcObjects.update(createAndAliasDiffcalcdemoCommand(demoCommands))
+    print "UB"
+    print "=="
+    objects.update(expose_and_alias_commands(diffcalc.ub.commands))
+    print "hkl"
+    print "==="
+    objects.update(expose_and_alias_commands(diffcalc.hkl.commands))
+    print "Tutorial"
+    print ""
+    objects.update(createAndAliasDiffcalcdemoCommand(demoCommands))
     # add strings for transformX commands
-    diffcalcObjects.update(
+    objects.update(
         {'on': 'on', 'off': 'off', 'auto': 'auto', 'manual': 'manual'})
 
     print "=" * 80
-    return diffcalcObjects
+
+    objects['ub'].__doc__ = format_command_help(diffcalc.ub.commands)
+    #objects['hkl'].dynamic_docstring = format_command_help(diffcalc.hklcommands)
+    Hkl.dynamic_docstring = format_command_help(diffcalc.hkl.commands)
+    #objects['hkl'].__doc__ = format_command_help(diffcalc.hklcommands)
+    return objects
 
 
 def determineGeometryPlugin(geometryPlugin):
@@ -316,8 +329,8 @@ def buildHklverboseScannable(hklverboseScannableName, diffractometerScannable,
 
 def createParameterScannables(diffcalc):
     objects = {}
-    paramNames = diffcalc._getParameterNames()
-    axisNames = diffcalc._getAxisNames()
+    paramNames = diffcalc.parameter_manager.getParameterDict().keys()
+    axisNames = diffcalc._hardware.getPhysicalAngleNames()
     for param in paramNames:
         scnname = param
         if param in axisNames:
@@ -328,30 +341,36 @@ def createParameterScannables(diffcalc):
     return objects
 
 
-def createAndAliasCommands(diffcalc):
-    objects = {}
-    command_suppliers = [diffcalc.ubcommands,
-                         diffcalc.hklcommands,
-                         diffcalc.mappercommands]
-    for command_group in command_suppliers:
-        commandNames = filter(lambda s: s[0] != '_', dir(command_group))
-        for name in commandNames:
-            if name in objects:
-                raise Exception("Duplicate command: " + name)
-            objects[name] = command_group.__getattribute__(name)
-            alias(name)
-            print "Aliased command:", name
-    objects['checkub'] = diffcalc.checkub
-    alias('checkub')
-    print "Aliased command: checkub"
-    return objects
+def expose_and_alias_commands(command_list):
+    command_dict = {}
+
+    for obj in command_list:
+        if isinstance(obj, basestring):
+            print obj + ':'
+            continue
+        if isinstance(obj, ExternalCommand):
+            continue
+        cmd = obj
+        if cmd.__name__ in command_dict:
+            raise Exception("Duplicate command: " + cmd.__name__)
+        command_dict[cmd.__name__] = cmd
+        _try_to_alias(cmd.__name__)
+
+    return command_dict
+
+
+def _try_to_alias(command_name):
+    try:
+        alias(command_name)
+    except NameError:
+        pass
+    print "   ", command_name
 
 
 def createAndAliasDiffcalcdemoCommand(demoCommands):
     objects = {}
     objects['diffcalcdemo'] = DiffcalcDemo(demoCommands)
-    alias('diffcalcdemo')
-    print "Aliased command: diffcalcdemo"
+    _try_to_alias('diffcalcdemo')
     print "=" * 80
     print "Try the following:"
     for line in demoCommands:

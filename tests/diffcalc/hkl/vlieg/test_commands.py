@@ -31,36 +31,28 @@ class TestHklCommands(unittest.TestCase):
         self.mock_ubcalc = Mock(spec=UBCalculation)
         self.hklcalc = VliegHklCalculator(self.mock_ubcalc, self.geometry,
                                           self.hardware, True)
-        self.hklcommands = VliegHklCommands(self.hardware, self.geometry,
+        self.hkl = VliegHklCommands(self.hardware, self.geometry,
                                             self.hklcalc)
         diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
         prepareRawInput([])
 
-    def testhelphkl(self):
-        self.assertRaises(IndexError, self.hklcommands.helphkl, 1)
-        self.assertRaises(TypeError, self.hklcommands.helphkl, 'a', 'b')
-        self.assertRaises(
-            IndexError, self.hklcommands.helphkl, 'not_a_command')
-        self.hklcommands.helphkl()
-        self.hklcommands.helphkl('helphkl')
-
     def testHklmode(self):
-        self.assertRaises(TypeError, self.hklcommands.hklmode, 1, 2)
+        self.assertRaises(TypeError, self.hkl.hklmode, 1, 2)
         self.assertRaises(
-            ValueError, self.hklcommands.hklmode, 'unwanted_string')
-        print self.hklcommands.hklmode()
-        print self.hklcommands.hklmode(1)
+            ValueError, self.hkl.hklmode, 'unwanted_string')
+        print self.hkl.hklmode()
+        print self.hkl.hklmode(1)
 
     def testSetWithString(self):
-        self.hklcommands.setpar()
-        self.hklcommands.setpar('alpha')
-        self.hklcommands.setpar('alpha', 1)
-        self.hklcommands.setpar('alpha', 1.1)
-        pm = self.hklcommands._hklcalc.parameter_manager
+        self.hkl.setpar()
+        self.hkl.setpar('alpha')
+        self.hkl.setpar('alpha', 1)
+        self.hkl.setpar('alpha', 1.1)
+        pm = self.hkl._hklcalc.parameter_manager
         self.assertEqual(pm.getParameter('alpha'), 1.1)
 
     def testSetWithScannable(self):
         alpha = DummyPD('alpha')
-        self.hklcommands.setpar(alpha, 1.1)
-        pm = self.hklcommands._hklcalc.parameter_manager
+        self.hkl.setpar(alpha, 1.1)
+        pm = self.hkl._hklcalc.parameter_manager
         self.assertEqual(pm.getParameter('alpha'), 1.1)

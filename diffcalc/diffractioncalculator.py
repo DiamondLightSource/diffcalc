@@ -1,34 +1,26 @@
 import diffcalc.help  # @UnusedImport for flag
 
-from diffcalc.ub.commands import UbCommands, UbCommand
 from diffcalc.hkl.vlieg.commands import VliegHklCommands
 from diffcalc.mapper.commands import MapperCommands
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator
 from diffcalc.mapper.sector import VliegSectorSelector
 from diffcalc.mapper.mapper import PositionMapper
-from diffcalc.utils import DiffcalcException
+from diffcalc.utils import DiffcalcException, allnum
 from diffcalc.hkl.vlieg.ubcalcstrategy import VliegUbCalcStrategy
 from diffcalc.hkl.willmott.calcwill_horizontal import \
     WillmottHorizontalUbCalcStrategy, \
     WillmottHorizontalCalculator
 from diffcalc.hkl.willmott.commands import WillmottHklCommands
 from diffcalc.hkl.willmott.constraints import WillmottConstraintManager
+from diffcalc.help import create_command_decorator, ExternalCommand
+from diffcalc.ub.commands import UbCommands
 
+
+_unused_commands = []
+command = create_command_decorator(_unused_commands)
 
 AVAILABLE_ENGINES = ('vlieg', 'willmott')
-
-
-UB_CALC_STRATEGIES = {'vlieg': VliegUbCalcStrategy,
-                      'willmott': WillmottHorizontalUbCalcStrategy}
-
-
-HKL_CALCULATORS = {'vlieg': VliegHklCalculator,
-                   'willmott': WillmottHorizontalCalculator}
-
-
-HKL_COMMANDS = {'vlieg': VliegHklCommands,
-                'willmott': WillmottHklCommands}
 
 
 class DummySectorSelector(object):
@@ -42,83 +34,127 @@ def create_diffcalc_vlieg(geometry,
                           raise_exceptions_for_all_errors=True,
                           ub_persister=None):
 
-    diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = \
-        raise_exceptions_for_all_errors
-
-    ubcalc = UBCalculation(
-        hardware, geometry, ub_persister, VliegUbCalcStrategy())
-    hklcalc = VliegHklCalculator(ubcalc, geometry, hardware, True)
-    mapper = PositionMapper(geometry, hardware, VliegSectorSelector())
-    hklcommands = VliegHklCommands(hardware, geometry, hklcalc)
-    return Diffcalc(geometry, hardware, ubcalc, hklcalc, mapper, hklcommands)
+    return _create_diffcalc(
+        'vlieg', geometry, hardware, raise_exceptions_for_all_errors,
+        ub_persister)
 
 
 def create_diffcalc_willmot(geometry,
                             hardware,
                             raise_exceptions_for_all_errors=True,
                             ub_persister=None):
+    return _create_diffcalc(
+        'willmott', geometry, hardware, raise_exceptions_for_all_errors,
+        ub_persister)
+
+
+def _create_diffcalc(engine_name,
+                     geometry,
+                     hardware,
+                     raise_exceptions_for_all_errors,
+                     ub_persister):
 
     diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = \
         raise_exceptions_for_all_errors
-    ubcalc = UBCalculation(hardware, geometry, ub_persister,
-                           WillmottHorizontalUbCalcStrategy())
-    hklcalc = WillmottHorizontalCalculator(
-        ubcalc, geometry, hardware, constraints=WillmottConstraintManager())
-    mapper = PositionMapper(geometry, hardware, DummySectorSelector())
-    hklcommands = WillmottHklCommands(hardware, geometry, hklcalc)
-    return Diffcalc(geometry, hardware, ubcalc, hklcalc, mapper, hklcommands)
+
+    if engine_name not in AVAILABLE_ENGINES:
+        raise ValueError(engine_name + ' not supported')
+
+    # UB calculator
+    if engine_name == 'vlieg':
+        ubcalc_strategy = VliegUbCalcStrategy()
+    elif engine_name == 'willmott':
+        ubcalc_strategy = WillmottHorizontalUbCalcStrategy()
+    ubcalc = UBCalculation(hardware, geometry, ub_persister, ubcalc_strategy)
+    ub_commands = UbCommands(hardware, geometry, ubcalc)
+
+    # Hkl
+    if engine_name == 'vlieg':
+        hklcalc = VliegHklCalculator(ubcalc, geometry, hardware, True)
+        hkl_commands = VliegHklCommands(hardware, geometry, hklcalc)
+    elif engine_name == 'willmott':
+        hklcalc = WillmottHorizontalCalculator(
+            ubcalc, geometry, hardware, WillmottConstraintManager())
+        hkl_commands = WillmottHklCommands(hardware, geometry, hklcalc)
+
+    # Mapper
+    if engine_name == 'vlieg':
+        sector_selector = VliegSectorSelector()
+    elif engine_name == 'willmott':
+        sector_selector = DummySectorSelector()
+
+    # TODO: Split out into hardware commands and sector_selector commands
+    mapper = PositionMapper(geometry, hardware, sector_selector)
+    mapper_commands = MapperCommands(geometry, hardware, mapper)
+
+    dc = Diffcalc(geometry, hardware, mapper,
+                  ub_commands, hkl_commands, mapper_commands)
+
+    dc.ub.commands.append(dc.checkub)
+
+    dc.hkl.commands.append('Mapper')
+    dc.hkl.commands.extend(dc.mapper.commands)
+    dc.hkl.commands.append('Motion')
+    dc.hkl.commands.append(dc.sim)
+
+    _hwname = hardware.getDiffHardwareName()
+    _angles = ', '.join(hardware.getPhysicalAngleNames())
+
+    dc.hkl.commands.append(ExternalCommand(
+        '%(_hwname)s -- show Eularian position'))
+    dc.hkl.commands.append(ExternalCommand(
+        'pos %(_hwname)s [%(_angles)s]  -- move to Eularian position'
+        '(None holds an axis still)' % vars()))
+    dc.hkl.commands.append(ExternalCommand(
+        'sim %(_hwname)s [%(_angles)s] -- simulate move to Eulerian position'
+        '%(_hwname)s' % vars()))
+
+    dc.hkl.commands.append(ExternalCommand(
+        'hkl -- show hkl position'))
+    dc.hkl.commands.append(ExternalCommand(
+        'pos hkl [h k l] -- move to hkl position'))
+    dc.hkl.commands.append(ExternalCommand(
+        'pos <h|k|l> val -- move h, k or l to val'))
+    dc.hkl.commands.append(ExternalCommand(
+        'sim hkl [h k l] -- simulate move to hkl position'))
+
+    return dc
 
 
 class Diffcalc(object):
-    """
-    Methods that begin with an underscore are used by external classes. The
-    underscore indicates that the method should not be exposed on the command
-    line. TODO: Fix this.
-    """
 
-    def __init__(self, geometry, hardware, ubcalc, hklcalc, mapper,
-                 hklcommands):
+    def __init__(self, geometry, hardware, mapper,
+                 ub_commands, hkl_commands, mapper_commands):
 
         self._geometry = geometry
         self._hardware = hardware
-        self._ubcalc = ubcalc
-        self._hklcalc = hklcalc
         self._mapper = mapper
 
-        self.hklcommands = hklcommands
-        self.ubcommands = UbCommands(
-            self._hardware, self._geometry, self._ubcalc)
-        # TODO: Split out into hardware commands and sector_selector commands
-        self.mappercommands = MapperCommands(
-            self._geometry, self._hardware, self._mapper)
+        self.ub = ub_commands
+        self.hkl = hkl_commands
+        self.mapper = mapper_commands
 
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        return self.ubcommands.__str__() + "\n" + self.hklcommands.__str__()
+        return self.ub.__str__() + "\n" + self.hkl.__str__()
 
 ### Used by diffcalc scannables
 
-    def _getDiffractometerPlugin(self):
-        return self._geometry
+    @property
+    def parameter_manager(self):
+        return self.hkl._hklcalc.parameter_manager
 
-    def _getHardwareMonitor(self):
-        return self._hardware
+    @property
+    def _ubcalc(self):
+        return self.ub._ubcalc
 
-    def _getAxisNames(self):
-        return self._hardware.getPhysicalAngleNames()
+    @property
+    def _hklcalc(self):
+        return self.hkl._hklcalc
 
-    def _getParameterNames(self):
-        return self._hklcalc.parameter_manager.getParameterDict().keys()
-
-    def _setParameter(self, name, value):
-        self._hklcalc.parameter_manager.setParameter(name, value)
-
-    def _getParameter(self, name):
-        return self._hklcalc.parameter_manager.getParameter(name)
-
-    def _hklToAngles(self, h, k, l, energy=None):
+    def hkl_to_angles(self, h, k, l, energy=None):
         """Convert a given hkl vector to a set of diffractometer angles"""
         if energy is None:
             energy = self._hardware.getEnergy()
@@ -134,9 +170,9 @@ class Diffcalc(object):
 
         return pos, params
 
-    def _anglesToHkl(self, angleTuple, energy=None):
+    def angles_to_hkl(self, angleTuple, energy=None):
         """Converts a set of diffractometer angles to an hkl position
-        ((h, k, l), paramDict)=_anglesToHkl(self, (a1, a2,aN), energy=None)"""
+        ((h, k, l), paramDict)=angles_to_hkl(self, (a1, a2,aN), energy=None)"""
         #we will assume this is called correctly, as it is not a user command
         if energy is None:
             energy = self._hardware.getEnergy()
@@ -150,8 +186,8 @@ class Diffcalc(object):
         intpos = self._geometry.physicalAnglesToInternalPosition(angleTuple)
         return self._hklcalc.anglesToHkl(intpos, wavelength)
 
-    # This command requires both the hklcommands and ubcommands components
-    @UbCommand
+    # This command requires the ubcalc
+    @command
     def checkub(self):
         """checkub -- show calculated and entered hkl values for reflections.
         """
@@ -176,3 +212,22 @@ class Diffcalc(object):
                       "  %-s\n" % (n + 1, energy, hklguess[0], hklguess[1],
                       hklguess[2], hkl[0], hkl[1], hkl[2], tag))
         print s
+
+    @command
+    def sim(self, scn, hkl):
+        """sim hkl scn -- simulates moving scannable (not all)
+        """
+        if not isinstance(hkl, (tuple, list)):
+            raise TypeError
+
+        if not allnum(hkl):
+            raise TypeError()
+
+        try:
+            print scn.simulateMoveTo(hkl)
+        except AttributeError:
+            if diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS:
+                raise TypeError(
+                    "The first argument does not support simulated moves")
+            else:
+                print "The first argument does not support simulated moves"

@@ -1,111 +1,91 @@
-import types
-
 from diffcalc.utils import DiffcalcException
+from functools import wraps
+import textwrap
 
 RAISE_EXCEPTIONS_FOR_ALL_ERRORS = False
 DEBUG = False
 
 
-class HelpList:
-    class Usage:
-        def __init__(self, command, argstr, helpstr):
-            self.command = command
-            self.argstr = argstr
-            self.helpstr = helpstr
-
-    def __init__(self):
-        self.usageList = []
-        self.usageByCommand = {}
-
-    def append(self, docLine):
-        command, argstr, helpstr = splitDocLine(docLine)
-        self.usageList.append(self.Usage(command, argstr, helpstr))
-        if not command in self.usageByCommand:
-            self.usageByCommand[command] = [len(self.usageList) - 1]
-        else:
-            self.usageByCommand[command].append(len(self.usageList) - 1)
-
-    def _getUsageStringByIndex(self, index):
-        usage = self.usageList[index]
-        if usage.helpstr == '':
-            return ("\n" + usage.command.rjust(14) + "\n" +
-                    ("-" * len(usage.command)).rjust(14) + "\n")
-        else:
-            result = usage.command.rjust(14) + "  " + usage.argstr
-            result = result.ljust(35) + "- "
-            result += usage.helpstr + "\n"
-            return result
-
-    def getCommandUsageString(self, name):
-        result = ""
-        try:
-            for index in self.usageByCommand[name]:
-                result += self._getUsageStringByIndex(index) + '\n'
-        except KeyError:
-            raise IndexError("No help for command %s" % name)
-        return result
-
-    def getCommandUsageForDoc(self, name):
-        result = ""
-        try:
-            for index in self.usageByCommand[name]:
-                usage = self.usageList[index]
-                if usage.argstr == '':
-                    return None
-                result += (usage.command + " " + usage.argstr + " --- " +
-                           usage.helpstr + "\n")
-            return result.strip()
-        except KeyError:
-            return None
-
-    def getCompleteCommandUsageList(self):
-        result = ""
-        for index in range(len(self.usageList)):
-            result += self._getUsageStringByIndex(index)
-        return result
+class ExternalCommand(object):
+    """Instances found in a command_list by format_command_help will
+    result in documentation for a command without there actually being one.
+    """
+    def __init__(self, docstring):
+        """Set the docstring that will be pulled off by format_command_help.
+        """
+        self.__doc__ = docstring
 
 
-def splitDocLine(docLine):
+def format_command_help(command_list):
+    lines = []
+    for obj in command_list:
+
+        if isinstance(obj, basestring):  # group heading
+            lines.extend(['', obj.upper(), ''])
+
+        else:  # individual command
+            doc_lines = [s.strip() for s in obj.__doc__.split('\n')]
+            for doc_line in doc_lines:
+                if doc_line == '':
+                    continue
+                name, args, desc = _split_doc_line(doc_line)
+                desc_lines = textwrap.wrap(desc, 45)
+                line = ('   ' + name + ' ' + args).ljust(35)
+                if len(line) <= 35:
+                    line += (desc_lines.pop(0))  # first line
+                lines.append(line)
+                for desc_line in desc_lines:
+                    lines.append(' ' * 35 + desc_line)
+#                lines.append('')
+    return '\n'.join(lines)
+
+
+def _split_doc_line(docLine):
     name, _, right = docLine.partition(' ')
-    args, _, description = right.partition('-- ')
-    return name, args, description
+    args, _, desc = right.partition('-- ')
+    return name, args, desc
 
 
-class UsageHandler(object):
-    """Annotation"""
+def create_command_decorator(command_list):
+    """create a command_decorator
 
-    def __init__(self, command):
-        self.command = command
-        docLines = [s.strip() for s in self.command.__doc__.split('\n')]
-        for line in docLines:
-            if line:
-                self.appendDocLine(line)
+    In the process of decorating a function this command_decorator adds
+    the command to command_list. Calls to the decorated function (or method)
+    are wrapped by call_command.
+    """
 
-    def __call__(self, *args):
-        if DEBUG:
-            return self.command(*args)
-        try:
-            return self.command(*args)
-        except TypeError, e:
-            # NOTE: TypeErrors resulting from bugs in the core code will be
-            # erroneously caught here!
-            if RAISE_EXCEPTIONS_FOR_ALL_ERRORS:
-                print "-" * 80
-                print self.command.__doc__
-                print "-" * 80
-                raise e
-            else:
-                print 'TypeError : %s' % e.message
-                print 'USAGE:'
-                print self.command.__doc__
-        except DiffcalcException, e:
-            if RAISE_EXCEPTIONS_FOR_ALL_ERRORS:
-                raise e
-            else:
-                print e.args[0]
+    def command_decorator(f):
+        command_list.append(f)
 
-    def __get__(self, obj, ownerClass=None):
-        # ref:
-        #http://www.outofwhatbox.com/blog/2010/07/python-decorating-with-class/
-        # Return a wrapper that binds self as a method of obj (!)
-        return types.MethodType(self, obj)
+        @wraps(f)
+        def wrapper(*args, **kwds):
+            return call_command(f, args)
+
+        return wrapper
+
+    return command_decorator
+
+
+def call_command(f, args):
+
+    if DEBUG:
+        return f(*args)
+    try:
+        return f(*args)
+    except TypeError, e:
+        # NOTE: TypeErrors resulting from bugs in the core code will be
+        # erroneously caught here!
+        if RAISE_EXCEPTIONS_FOR_ALL_ERRORS:
+            print "-" * 80
+            print f.__doc__
+            print "-" * 80
+            raise e
+        else:
+            print 'TypeError : %s' % e.message
+            print 'USAGE:'
+            print f.__doc__
+    except DiffcalcException, e:
+        if RAISE_EXCEPTIONS_FOR_ALL_ERRORS:
+            raise e
+        else:
+            print e.args[0]

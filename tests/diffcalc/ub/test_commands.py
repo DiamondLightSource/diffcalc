@@ -38,11 +38,6 @@ class TestUbCommands(unittest.TestCase):
         prepareRawInput([])
         diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
 
-    def testHelpub(self):
-        self.assertRaises(TypeError, self.ubcommands.helpub, 'a', 'b')
-        self.ubcommands.helpub()
-        self.ubcommands.helpub('calcub')
-
     def testNewUb(self):
         self.ubcommands.newub('test1')
         eq_(self.ubcommands._ubcalc._name, 'test1')

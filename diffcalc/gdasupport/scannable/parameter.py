@@ -8,9 +8,9 @@ except ImportError:
 class DiffractionCalculatorParameter(ScannableMotionBase):
     "wraps up the diffractometer motors"
 
-    def __init__(self, name, parameterName, diffcalcObject):
+    def __init__(self, name, parameterName, parameter_manager):
 
-        self.diffcalcObject = diffcalcObject
+        self.parameter_manager = parameter_manager
         self.parameterName = parameterName
 
         self.setName(name)
@@ -19,10 +19,10 @@ class DiffractionCalculatorParameter(ScannableMotionBase):
         self.setLevel(3)
 
     def asynchronousMoveTo(self, value):
-        self.diffcalcObject._setParameter(self.parameterName, value)
+        self.parameter_manager.setParameter(self.parameterName, value)
 
     def getPosition(self):
-        return self.diffcalcObject._getParameter(self.parameterName)
+        return self.parameter_manager.getParameter(self.parameterName)
 
     def isBusy(self):
         return False

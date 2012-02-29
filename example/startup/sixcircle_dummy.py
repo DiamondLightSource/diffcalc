@@ -35,3 +35,9 @@ diffcalcObjects = createDiffcalcObjects(
 
 diffcalcObjects['diffcalcdemo'].commands = demoCommands
 addObjectsToNamespace(diffcalcObjects, globals())
+
+
+print diffcalcObjects['ub'].__doc__
+print "***"
+print diffcalcObjects['hkl'].__doc__
+print "***"
