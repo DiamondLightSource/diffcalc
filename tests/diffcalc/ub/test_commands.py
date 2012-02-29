@@ -8,7 +8,7 @@ except ImportError:
 
 import diffcalc.utils  # @UnusedImport
 from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
-from diffcalc.hardware.dummy import DummyHardwareMonitorPlugin
+from diffcalc.hardware_adapter import DummyHardwareAdapter
 from diffcalc.tools import assert_iterable_almost_equal, mneq_
 from diffcalc.ub.commands import UbCommands
 from diffcalc.ub.persistence import UbCalculationNonPersister
@@ -28,7 +28,7 @@ class TestUbCommands(unittest.TestCase):
 
     def setUp(self):
         names = 'alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'
-        self.hardware = DummyHardwareMonitorPlugin(names)
+        self.hardware = DummyHardwareAdapter(names)
         self.geometry = SixCircleGammaOnArmGeometry()
         self.ubcalc = UBCalculation(self.hardware,
                                     self.geometry,
@@ -36,7 +36,7 @@ class TestUbCommands(unittest.TestCase):
                                     VliegUbCalcStrategy())
         self.ubcommands = UbCommands(self.hardware, self.geometry, self.ubcalc)
         prepareRawInput([])
-        diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
+        diffcalc.utils.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
 
     def testNewUb(self):
         self.ubcommands.newub('test1')

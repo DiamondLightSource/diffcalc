@@ -1,4 +1,4 @@
-class MockParametarManger:
+class MockParameterManager:
 
     def __init__(self):
         self.params = {}
@@ -14,7 +14,7 @@ class MockDiffcalc:
 
     def __init__(self, numberAngles):
         self.numberAngles = numberAngles
-        self.parameter_manager = MockParametarManger()
+        self.parameter_manager = MockParameterManager()
 
     def hkl_to_angles(self, h, k, l):
         params = {}

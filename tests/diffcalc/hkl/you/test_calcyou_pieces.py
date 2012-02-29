@@ -16,7 +16,7 @@ from diffcalc.hkl.you.position  import YouPosition
 from tests.diffcalc.hkl.vlieg.test_calcvlieg import \
     createMockDiffractometerGeometry, createMockHardwareMonitor, \
     createMockUbcalc
-from tests.diffcalc.hardware.test_plugin import SimpleHardwareMonitorPlugin
+from tests.diffcalc.test_hardware_adapter import SimpleHardwareAdapter
 from diffcalc.utils import DiffcalcException
 
 
@@ -468,7 +468,7 @@ class TestSolutionGenerator():
     def setup(self):
 
         names = ['delta', 'nu', 'mu', 'eta', 'chi', 'phi']
-        self.hardware = SimpleHardwareMonitorPlugin(names)
+        self.hardware = SimpleHardwareAdapter(names)
         self.calc = YouHklCalculator(createMockUbcalc(None),
                                      createMockDiffractometerGeometry(),
                                      self.hardware,

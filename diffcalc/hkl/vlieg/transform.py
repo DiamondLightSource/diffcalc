@@ -1,3 +1,5 @@
+from diffcalc.utils import create_command_decorator
+
 from copy import copy
 from math import pi
 
@@ -79,7 +81,26 @@ for k, v in transformsFromSector.iteritems():
     sectorFromTransforms[v] = k
 
 
-class VliegSectorSelector(object):
+class VliegPositionTransformer(object):
+
+    def __init__(self, geometry, hardware, solution_transformer):
+        self._geometry = geometry
+        self._hardware = hardware
+        self._solution_transformer = solution_transformer
+        solution_transformer.limitCheckerFunction = self.isPositionWithinLimits
+
+    def transform(self, pos):
+        # 1. Choose the correct sector/transforms
+        return self._solution_transformer.transformPosition(pos)
+
+    def isPositionWithinLimits(self, position):
+        '''where position is Position object in degrees'''
+        angleTuple = self._geometry.internalPositionToPhysicalAngles(position)
+        angleTuple = self._hardware.cutAngles(angleTuple)
+        return self._hardware.isPositionWithinLimits(angleTuple)
+
+
+class VliegTransformSelector(object):
     '''All returned angles are between -180. and 180. -180.<=angle<180.
     '''
 ### basic sector selection
@@ -347,3 +368,103 @@ class VliegSectorSelector(object):
             return a
         return P(cut(position.alpha), cut(position.delta), cut(position.gamma),
                  cut(position.omega), cut(position.chi), cut(position.phi))
+
+
+_commands = []
+command = create_command_decorator(_commands)
+
+
+def getNameFromScannableOrString(o):
+        try:  # it may be a scannable
+            return o.getName()
+        except AttributeError:
+            return str(o)
+
+
+class TransformCommands(object):
+
+    def __init__(self, sector_selector):
+        self._sectorSelector = sector_selector
+
+    @property
+    def commands(self):
+        return _commands
+
+    @command
+    def transform(self):
+        """transform  -- show transform configuration"""
+        print self._sectorSelector.__repr__()
+
+    @command
+    def transforma(self, *args):
+        """transforma {on|off|auto|manual} -- configure transform A application
+        """
+        self._transform('transforma', 'a', args)
+
+    @command
+    def transformb(self, *args):
+        """transformb {on|off|auto|manual} -- configure transform B application
+        """
+        self._transform('transformb', 'b', args)
+
+    @command
+    def transformc(self, *args):
+        """transformc {on|off|auto|manual} -- configure transform C application
+        """
+
+        self._transform('transformc', 'c', args)
+
+    def _transform(self, commandName, transformName, args):
+        if len(args) == 0:
+            print self._sectorSelector.__repr__()
+            return
+        # get name
+        if len(args) != 1:
+            raise TypeError()
+        if type(args[0]) is not str:
+            raise TypeError()
+
+        ss = self._sectorSelector
+        if args[0] == 'on':
+            ss.addTransorm(transformName)
+        elif args[0] == 'off':
+            ss.removeTransorm(transformName)
+        elif args[0] == 'auto':
+            ss.addAutoTransorm(transformName)
+        elif args[0] == 'manual':
+            ss.removeAutoTransform(transformName)
+        else:
+            raise TypeError()
+        print self._sectorSelector.__repr__()
+
+    @command
+    def sector(self, sector=None):
+        """sector {0-7} -- Select or display sector (a la Spec)
+        """
+        if sector is None:
+            print self._sectorSelector.__repr__()
+        else:
+            if type(sector) is not int and not (0 <= sector <= 7):
+                raise TypeError()
+            self._sectorSelector.setSector(sector)
+            print self._sectorSelector.__repr__()
+
+    @command
+    def autosector(self, *args):
+        """autosector [None] [0-7] [0-7]... -- Set sectors that might be automatically applied""" #@IgnorePep8
+        if len(args) == 0:
+            print self._sectorSelector.__repr__()
+        elif len(args) == 1 and args[0] is None:
+            self._sectorSelector.setAutoSectors([])
+            print self._sectorSelector.__repr__()
+        else:
+            sectorList = []
+            for arg in args:
+                if type(arg) is not int:
+                    raise TypeError()
+                sectorList.append(arg)
+            self._sectorSelector.setAutoSectors(sectorList)
+            print self._sectorSelector.__repr__()
+
+
+

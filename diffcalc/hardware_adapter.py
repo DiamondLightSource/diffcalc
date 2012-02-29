@@ -1,7 +1,73 @@
+from diffcalc.utils import DiffcalcException
+
 SMALL = 1e-8
 
+from diffcalc.utils import create_command_decorator
 
-class HardwareMonitorPlugin(object):
+_commands = []
+command = create_command_decorator(_commands)
+
+
+def getNameFromScannableOrString(o):
+        try:  # it may be a scannable
+            return o.getName()
+        except AttributeError:
+            return str(o)
+
+
+class HardwareCommands(object):
+
+    def __init__(self, hardware):
+        self._hardware = hardware
+
+    @property
+    def commands(self):
+        return _commands
+
+    @command
+    def hardware(self):
+        """hardware  -- show diffcalc limits and cuts"""
+        print self._hardware.reprSectorLimitsAndCuts()
+
+    @command
+    def setcut(self, scannable_or_string=None, val=None):
+        """setcut {axis_scannable {val}} -- sets cut angle
+        setcut {name {val}} -- sets cut angle
+        """
+        if scannable_or_string is None and val is None:
+            print self._hardware.reprSectorLimitsAndCuts()
+        else:
+            name = getNameFromScannableOrString(scannable_or_string)
+            if val is None:
+                print '%s: %f' % (name, self._hardware.getCuts()[name])
+            else:
+                oldcut = self._hardware.getCuts()[name]
+                self._hardware.setCut(name, float(val))
+                newcut = self._hardware.getCuts()[name]
+                print '%s: %f --> %f' % (name, oldcut, newcut)
+
+    @command
+    def setmin(self, name=None, val=None):
+        """setmin {axis {val}} -- set lower limits used by auto sector code (None to clear)""" #@IgnorePep8
+        self._setMinOrMax(name, val, self._hardware.setLowerLimit)
+
+    @command
+    def setmax(self, name=None, val=None):
+        """setmax {name {val}} -- sets upper limits used by auto sector code (None to clear)""" #@IgnorePep8
+        self._setMinOrMax(name, val, self._hardware.setUpperLimit)
+
+    def _setMinOrMax(self, name, val, setMethod):
+        if name is None:
+            print self._hardware.reprSectorLimitsAndCuts()
+        else:
+            name = getNameFromScannableOrString(name)
+            if val is None:
+                print self.reprSectorLimitsAndCuts(name)
+            else:
+                setMethod(name, float(val))
+
+
+class HardwareAdapter(object):
 
     _name = "BaseHarwdareMonitor"
 
@@ -23,8 +89,7 @@ class HardwareMonitorPlugin(object):
         """pos = getPosition() -- returns the current physical diffractometer
         position as a diffcalc.utils object in degrees
         """
-        #### Overide me ###
-        raise Exception("Abstract")
+        raise NotImplementedError()
 
     def getWavelength(self):
         """wavelength = getWavelength() -- returns wavelength in Angstroms
@@ -33,8 +98,7 @@ class HardwareMonitorPlugin(object):
 
     def getEnergy(self):
         """energy = getEnergy() -- returns energy in kEv  """
-        #### Overide me ###
-        raise Exception("Abstract")
+        raise NotImplementedError()
 
     def getDiffHardwareName(self):
         return 'base'
@@ -196,3 +260,96 @@ def cut_angle_at(cut_angle, value):
         return value - 360.
     else:
         return value
+
+
+class DummyHardwareAdapter(HardwareAdapter):
+
+    _name = "DummyHarwdareMonitor"
+
+    def __init__(self, diffractometerAngleNames):
+        HardwareAdapter.__init__(self, diffractometerAngleNames)
+
+        self.diffractometerAngles = [0.] * len(diffractometerAngleNames)
+        self.wavelength = 1.
+        self.energy = 12.39842 / self.wavelength
+        self.energyScannableMultiplierToGetKeV = 1
+
+# Required methods
+
+    def getPosition(self):
+        """
+        pos = getDiffractometerPosition() -- returns the current physical
+        diffractometer position as a list in degrees
+        """
+        return self.diffractometerAngles
+
+    def getEnergy(self):
+        """energy = getEnergy() -- returns energy in kEv  """
+        if self.energy is None:
+            raise DiffcalcException(
+                "Energy has not been set in DummySoftwareMonitor")
+        return self.energy * self.energyScannableMultiplierToGetKeV
+
+    def getWavelength(self):
+        """wavelength = getWavelength() -- returns wavelength in Angstroms"""
+        if self.energy is None:
+            raise DiffcalcException(
+                "Energy has not been set in DummySoftwareMonitor")
+        return self.wavelength
+
+    def getDiffHardwareName(self):
+        return 'dummy'
+
+# Dummy implementation methods
+
+    def setPosition(self, pos):
+        assert len(pos) == len(self.getPhysicalAngleNames()), \
+            "Wrong length of input list"
+        self.diffractometerAngles = pos
+
+    def setEnergy(self, energy):
+        self.energy = energy
+        self.wavelength = 12.39842 / energy
+
+    def setWavelength(self, wavelength):
+        self.wavelength = wavelength
+        self.energy = 12.39842 / wavelength
+
+
+class ScannableHardwareAdapter(HardwareAdapter):
+
+    _name = "DummyHarwdareMonitor"
+
+    def __init__(self, diffractometerScannable, energyScannable,
+                 energyScannableMultiplierToGetKeV=1):
+        input_names = diffractometerScannable.getInputNames()
+        HardwareAdapter.__init__(self, input_names)
+        self.diffhw = diffractometerScannable
+        self.energyhw = energyScannable
+        self.energyScannableMultiplierToGetKeV = \
+            energyScannableMultiplierToGetKeV
+
+# Required methods
+
+    def getPosition(self):
+        """
+        pos = getDiffractometerPosition() -- returns the current physical
+        diffractometer position as a list in degrees
+        """
+        return self.diffhw.getPosition()
+
+    def getEnergy(self):
+        """energy = getEnergy() -- returns energy in kEv (NOT eV!) """
+        multiplier = self.energyScannableMultiplierToGetKeV
+        energy = self.energyhw.getPosition() * multiplier
+        if energy is None:
+            raise DiffcalcException("Energy has not been set")
+        return energy
+
+    def getWavelength(self):
+        """wavelength = getWavelength() -- returns wavelength in Angstroms"""
+        energy = self.getEnergy()
+        return 12.39842 / energy
+
+    def getDiffHardwareName(self):
+        return self.diffhw.getName()

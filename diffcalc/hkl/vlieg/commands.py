@@ -1,5 +1,5 @@
 from diffcalc.hkl.common import getNameFromScannableOrString
-from diffcalc.help import create_command_decorator
+from diffcalc.utils import create_command_decorator
 
 _commands = []
 command = create_command_decorator(_commands)

@@ -1,5 +1,5 @@
 import time
-from diffcalc.help import format_command_help, ExternalCommand
+from diffcalc.utils import format_command_help, ExternalCommand
 
 try:
     from gda.device.scannable.scannablegroup import ScannableGroup
@@ -31,10 +31,9 @@ from diffcalc.geometry.fourc import fourc
 from diffcalc.geometry.fivec import fivec
 from diffcalc.geometry.sixc import SixCircleGeometry
 from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
-from diffcalc.hardware.plugin import HardwareMonitorPlugin
-from diffcalc.hardware.scannable import ScannableHardwareMonitorPlugin
+from diffcalc.hardware_adapter import HardwareAdapter
+from diffcalc.hardware_adapter import ScannableHardwareAdapter
 from diffcalc.gdasupport.scannable.hkl import Hkl
-from diffcalc import gdasupport
 from diffcalc.gdasupport.scannable.wavelength import Wavelength
 from diffcalc.gdasupport.scannable.parameter import \
     DiffractionCalculatorParameter
@@ -88,7 +87,7 @@ def createDiffcalcObjects(
         energyScannableMultiplierToGetKeV=1,
         geometryPlugin=None,    # Class or name
                                 # (avoids setting path before script is run)
-        hardwarePluginClass=ScannableHardwareMonitorPlugin,
+        hardwarePluginClass=ScannableHardwareAdapter,
         mirrorInXzPlane=False,
         hklName='hkl',
         hklVirtualAnglesToReport=(),
@@ -173,9 +172,7 @@ def createDiffcalcObjects(
     print "=" * 80
 
     objects['ub'].__doc__ = format_command_help(diffcalc.ub.commands)
-    #objects['hkl'].dynamic_docstring = format_command_help(diffcalc.hklcommands)
     Hkl.dynamic_docstring = format_command_help(diffcalc.hkl.commands)
-    #objects['hkl'].__doc__ = format_command_help(diffcalc.hklcommands)
     return objects
 
 
@@ -277,9 +274,9 @@ def buildWavelengthAndPossiblyEnergyScannable(dummyEnergyName, energyScannable,
 
 def checkHardwarePluginClass(hardwarePluginClass):
     try:
-        if not issubclass(hardwarePluginClass, HardwareMonitorPlugin):
+        if not issubclass(hardwarePluginClass, HardwareAdapter):
             raise ValueError(
-                "hardwarePluginClass must be a HardwareMonitorPlugin, not a %r"
+                "hardwarePluginClass must be a HardwareAdapter, not a %r"
                 % type(hardwarePluginClass))
     except TypeError:
         raise TypeError("hardwarePluginClass must be class not an instance")

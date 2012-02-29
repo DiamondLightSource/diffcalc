@@ -8,7 +8,7 @@ except ImportError:
     from numjy.linalg import norm
 
 from diffcalc.hkl.calcbase import HklCalculatorBase
-from diffcalc.mapper.sector import TransformCInRadians
+from diffcalc.hkl.vlieg.transform import TransformCInRadians
 from diffcalc.utils import dot3, cross3, bound, differ
 from diffcalc.hkl.vlieg.matrices import createVliegMatrices, \
     createVliegsPsiTransformationMatrix, \

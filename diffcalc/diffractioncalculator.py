@@ -1,11 +1,8 @@
-import diffcalc.help  # @UnusedImport for flag
+import diffcalc.utils  # @UnusedImport for flag
 
 from diffcalc.hkl.vlieg.commands import VliegHklCommands
-from diffcalc.mapper.commands import MapperCommands
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator
-from diffcalc.mapper.sector import VliegSectorSelector
-from diffcalc.mapper.mapper import PositionMapper
 from diffcalc.utils import DiffcalcException, allnum
 from diffcalc.hkl.vlieg.ubcalcstrategy import VliegUbCalcStrategy
 from diffcalc.hkl.willmott.calcwill_horizontal import \
@@ -13,8 +10,11 @@ from diffcalc.hkl.willmott.calcwill_horizontal import \
     WillmottHorizontalCalculator
 from diffcalc.hkl.willmott.commands import WillmottHklCommands
 from diffcalc.hkl.willmott.constraints import WillmottConstraintManager
-from diffcalc.help import create_command_decorator, ExternalCommand
+from diffcalc.utils import create_command_decorator, ExternalCommand
 from diffcalc.ub.commands import UbCommands
+from diffcalc.hardware_adapter import HardwareCommands
+from diffcalc.hkl.vlieg.transform import VliegTransformSelector, \
+    TransformCommands, VliegPositionTransformer
 
 
 _unused_commands = []
@@ -23,7 +23,7 @@ command = create_command_decorator(_unused_commands)
 AVAILABLE_ENGINES = ('vlieg', 'willmott')
 
 
-class DummySectorSelector(object):
+class DummySolutionTransformer(object):
 
     def transformPosition(self, pos):
         return pos
@@ -54,7 +54,7 @@ def _create_diffcalc(engine_name,
                      raise_exceptions_for_all_errors,
                      ub_persister):
 
-    diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = \
+    diffcalc.utils.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = \
         raise_exceptions_for_all_errors
 
     if engine_name not in AVAILABLE_ENGINES:
@@ -77,23 +77,30 @@ def _create_diffcalc(engine_name,
             ubcalc, geometry, hardware, WillmottConstraintManager())
         hkl_commands = WillmottHklCommands(hardware, geometry, hklcalc)
 
+    # Hardware
+    hardware_commands = HardwareCommands(hardware)
+
     # Mapper
     if engine_name == 'vlieg':
-        sector_selector = VliegSectorSelector()
-    elif engine_name == 'willmott':
-        sector_selector = DummySectorSelector()
+        transform_selector = VliegTransformSelector()
+        transform_commands = TransformCommands(transform_selector)
+        transformer = VliegPositionTransformer(geometry, hardware,
+                                               transform_selector)
+    else:
+        transform_commands = None
+        transformer = None
 
-    # TODO: Split out into hardware commands and sector_selector commands
-    mapper = PositionMapper(geometry, hardware, sector_selector)
-    mapper_commands = MapperCommands(geometry, hardware, mapper)
-
-    dc = Diffcalc(geometry, hardware, mapper,
-                  ub_commands, hkl_commands, mapper_commands)
+    dc = Diffcalc(geometry, hardware, transformer,
+                  ub_commands, hkl_commands, hardware_commands,
+                  transform_commands)
 
     dc.ub.commands.append(dc.checkub)
 
-    dc.hkl.commands.append('Mapper')
-    dc.hkl.commands.extend(dc.mapper.commands)
+    dc.hkl.commands.append('Hardware')
+    dc.hkl.commands.extend(dc.hardware.commands)
+    if transform_commands is not None:
+        dc.hkl.commands.append('Transform')
+        dc.hkl.commands.extend(dc.transform.commands)
     dc.hkl.commands.append('Motion')
     dc.hkl.commands.append(dc.sim)
 
@@ -118,21 +125,27 @@ def _create_diffcalc(engine_name,
     dc.hkl.commands.append(ExternalCommand(
         'sim hkl [h k l] -- simulate move to hkl position'))
 
+    if engine_name != 'vlieg':
+        pass
+        # TODO: remove sigtau command and 'Surface' string
     return dc
 
 
 class Diffcalc(object):
 
-    def __init__(self, geometry, hardware, mapper,
-                 ub_commands, hkl_commands, mapper_commands):
+    def __init__(self, geometry, hardware, transformer,
+                 ub_commands, hkl_commands, hardware_commands,
+                transform_commands):
 
         self._geometry = geometry
         self._hardware = hardware
-        self._mapper = mapper
+        self._transformer = transformer
 
         self.ub = ub_commands
         self.hkl = hkl_commands
-        self.mapper = mapper_commands
+        self.hardware = hardware_commands
+        if transform_commands is not None:
+            self.transform = transform_commands
 
     def __str__(self):
         return self.__repr__()
@@ -165,10 +178,13 @@ class Diffcalc(object):
             raise DiffcalcException(
                 "Cannot calculate hkl position as Energy is set to 0")
 
-        (pos_unmapped, params) = self._hklcalc.hklToAngles(h, k, l, wavelength)
-        pos = self._mapper.map(pos_unmapped)
+        (pos, params) = self._hklcalc.hklToAngles(h, k, l, wavelength)
+        if self._transformer:
+            pos = self._transformer.transform(pos)
+        angle_tuple = self._geometry.internalPositionToPhysicalAngles(pos)
+        angle_tuple = self._hardware.cutAngles(angle_tuple)
 
-        return pos, params
+        return angle_tuple, params
 
     def angles_to_hkl(self, angleTuple, energy=None):
         """Converts a set of diffractometer angles to an hkl position
@@ -226,8 +242,9 @@ class Diffcalc(object):
         try:
             print scn.simulateMoveTo(hkl)
         except AttributeError:
-            if diffcalc.help.RAISE_EXCEPTIONS_FOR_ALL_ERRORS:
+            if diffcalc.utils.RAISE_EXCEPTIONS_FOR_ALL_ERRORS:
                 raise TypeError(
                     "The first argument does not support simulated moves")
             else:
                 print "The first argument does not support simulated moves"
+

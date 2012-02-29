@@ -1,10 +1,148 @@
-from mock import Mock
+from nose.tools import eq_
 import unittest
 
-from diffcalc.hkl.vlieg.position  import VliegPosition as P
-from diffcalc.mapper.sector import VliegSectorSelector, TransformA, \
-    TransformB, TransformC, transformsFromSector
-# self.alpha, self.delta, self.gamma, self.omega, self.chi, self.phi
+from mock import Mock
+
+from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
+from diffcalc.hardware_adapter import DummyHardwareAdapter
+from diffcalc.hkl.vlieg.position import VliegPosition as P, \
+   VliegPosition as Pos
+from diffcalc.hkl.vlieg.transform import TransformA, TransformB, TransformC, \
+    transformsFromSector, TransformCommands, \
+    VliegTransformSelector, VliegPositionTransformer
+import diffcalc.utils  # @UnusedImport
+
+
+class TestVliegPositionTransformer(unittest.TestCase):
+
+    def setUp(self):
+        names = 'a', 'd', 'g', 'o', 'c', 'phi'
+        self.hardware = DummyHardwareAdapter(names)
+        self.geometry = SixCircleGammaOnArmGeometry()
+
+        self.transform_selector = VliegTransformSelector()
+        self.transformer = VliegPositionTransformer(
+            self.geometry, self.hardware, self.transform_selector)
+        self.transform_commands = TransformCommands(self.transform_selector)
+
+        diffcalc.utils.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
+
+    def map(self, pos):  # @ReservedAssignment
+        pos = self.transformer.transform(pos)
+        angle_tuple = self.geometry.internalPositionToPhysicalAngles(pos)
+        angle_tuple = self.hardware.cutAngles(angle_tuple)
+        return angle_tuple
+
+    def testMapDefaultSector(self):
+
+        eq_(self.map(Pos(1, 2, 3, 4, 5, 6)),
+            (1, 2, 3, 4, 5, 6))
+
+        eq_(self.map(Pos(-180, -179, 0, 179, 180, 359)),
+            (-180, -179, 0, 179, 180, 359))
+
+        eq_(self.map(Pos(0, 0, 0, 0, 0, 0)),
+            (0, 0, 0, 0, 0, 0))
+
+        eq_(self.map(Pos(-270, 270, 0, 0, 0, -90)),
+            (90, -90, 0, 0, 0, 270))
+
+    def testMapSector1(self):
+        self.transform_commands._sectorSelector.setSector(1)
+
+        eq_(self.map(Pos(1, 2, 3, 4, 5, 6)),
+            (1, 2, 3, 4 - 180, -5, (6 - 180) + 360))
+
+        eq_(self.map(Pos(-180, -179, 0, 179, 180, 359)),
+            (-180, -179, 0, 179 - 180, -180, 359 - 180))
+
+        eq_(self.map(Pos(0, 0, 0, 0, 0, 0)),
+            (0, 0, 0, 0 - 180, 0, (0 - 180) + 360))
+
+        eq_(self.map(Pos(-270, 270, 0, 0, 0, -90)),
+            (90, -90, 0, 0 - 180, 0, 270 - 180))
+
+    def testMapAutoSector(self):
+        self.transform_commands._sectorSelector.addAutoTransorm(1)
+        self.hardware.setLowerLimit('c', 0)
+
+        eq_(self.map(Pos(1, 2, 3, 4, -5, 6)),
+            (1, 2, 3, 4 - 180, 5, (6 - 180) + 360))
+
+        eq_(self.map(Pos(-180, -179, 0, 179, -180, 359)),
+            (-180, -179, 0, 179 - 180, 180, 359 - 180))
+
+        eq_(self.map(Pos(0, 0, 0, 0, -5, 0)),
+            (0, 0, 0, 0 - 180, 5, (0 - 180) + 360))
+
+        eq_(self.map(Pos(-270, 270, 0, 0, -5, -90)),
+            (90, -90, 0, 0 - 180, 5, 270 - 180))
+
+    def testTransform(self):
+        # mapper
+        self.transform_commands.transform()  # should print its state
+        self.assertRaises(TypeError, self.transform_commands.transform, 1)
+        self.assertRaises(TypeError, self.transform_commands.transform, 'a', 1)
+
+    def testTransformsOnOff(self):
+        # transforma [on/off/auto/manual]
+        ss = self.transform_commands._sectorSelector
+        self.transform_commands.transforma()  # should print mapper state
+        eq_(ss.transforms, [], "test assumes transforms are off to start")
+        self.transform_commands.transforma('on')
+        eq_(ss.transforms, ['a'])
+        self.transform_commands.transformb('on')
+        eq_(ss.transforms, ['a', 'b'])
+        self.transform_commands.transformc('off')
+        eq_(ss.transforms, ['a', 'b'])
+        self.transform_commands.transformb('off')
+        eq_(ss.transforms, ['a'])
+
+    def testTransformsAuto(self):
+        ss = self.transform_commands._sectorSelector
+        eq_(ss.autotransforms, [], "test assumes transforms are off to start")
+        self.transform_commands.transforma('auto')
+        eq_(ss.autotransforms, ['a'])
+        self.transform_commands.transformb('auto')
+        eq_(ss.autotransforms, ['a', 'b'])
+        self.transform_commands.transformc('manual')
+        eq_(ss.autotransforms, ['a', 'b'])
+        self.transform_commands.transformb('manual')
+        eq_(ss.autotransforms, ['a'])
+
+    def testTransformsBadInput(self):
+        transforma = self.transform_commands.transforma
+        self.assertRaises(TypeError, transforma, 1)
+        self.assertRaises(TypeError, transforma, 'not_valid')
+        self.assertRaises(TypeError, transforma, 'auto', 1)
+
+    def testSector(self):
+        #sector [0-7]
+        ss = self.transform_commands._sectorSelector
+        self.transform_commands.sector()  # should print mapper state
+        eq_(ss.sector, 0, "test assumes sector is 0 to start")
+        self.transform_commands.sector(1)
+        eq_(ss.sector, 1)
+        self.assertRaises(TypeError, self.transform_commands.sector, 1, 2)
+        self.assertRaises(TypeError, self.transform_commands.sector, 'a')
+
+    def testAutosectors(self):
+        #autosector [0-7]
+        ss = self.transform_selector
+        self.transform_commands.autosector()  # should print mapper state
+        eq_(ss.autosectors, [], "test assumes no auto sectors to start")
+        self.transform_commands.autosector(1)
+        eq_(ss.autosectors, [1])
+        self.transform_commands.autosector(1, 2)
+        eq_(ss.autosectors, [1, 2])
+        self.transform_commands.autosector(1)
+        eq_(ss.autosectors, [1])
+        self.transform_commands.autosector(3)
+        eq_(ss.autosectors, [3])
+        self.assertRaises(
+            TypeError, self.transform_commands.autosector, 1, 'a')
+        self.assertRaises(
+            TypeError, self.transform_commands.autosector, 'a')
 
 
 class MockLimitChecker(object):
@@ -19,11 +157,11 @@ class MockLimitChecker(object):
         return pos.delta <= 0
 
 
-class TestSectorSelector(unittest.TestCase):
+class TestVliegTransformSelector(unittest.TestCase):
 
     def setUp(self):
         self.limitChecker = MockLimitChecker()
-        self.ss = VliegSectorSelector()
+        self.ss = VliegTransformSelector()
         self.ss.limitCheckerFunction = self.limitChecker.isPoswithiLimits
 
     def test__init__(self):
@@ -102,7 +240,7 @@ class TestSectorSelectorAutoCode(unittest.TestCase):
 
     def setUp(self):
         self.limitChecker = MockLimitChecker()
-        self.ss = VliegSectorSelector()
+        self.ss = VliegTransformSelector()
         self.ss.limitCheckerFunction = self.limitChecker.isDeltaNegative
         self.pos = P(0, .1, .2, .3, .4, 5)
         self.pos_in2 = self.ss.cutPosition(
@@ -143,7 +281,7 @@ class TestSectorSelectorAutoCode(unittest.TestCase):
     def testTransformPosition(self):
         # Check that with no transforms set to autoapply, the limit
         # checker function is ignored
-        ss = VliegSectorSelector()
+        ss = VliegTransformSelector()
         ss.limitCheckerFunction = self.limitChecker.isPoswithiLimits
         self.limitChecker.okay = False
         ss.transformPosition(P(0, .1, .2, .3, .4, 5))
@@ -249,7 +387,7 @@ class TestTransforms(unittest.TestCase):
 
     def setUp(self):
         self.limitCheckerFunction = Mock()
-        self.ss = VliegSectorSelector()
+        self.ss = VliegTransformSelector()
         self.ss.limitCheckerFunction = self.limitCheckerFunction
 
     def applyTransforms(self, transforms, pos):

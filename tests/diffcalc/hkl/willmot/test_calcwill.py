@@ -18,7 +18,7 @@ from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.utils import DiffcalcException
-from tests.diffcalc.hardware.test_plugin import SimpleHardwareMonitorPlugin
+from tests.diffcalc.test_hardware_adapter import SimpleHardwareAdapter
 from tests.diffcalc.hkl.vlieg.test_calcvlieg import createMockUbcalc, \
     createMockDiffractometerGeometry
 import diffcalc.hkl.willmott.calcwill_horizontal  # @UnusedImport
@@ -32,7 +32,7 @@ class _BaseTest():
     def setup(self):
         self.mock_ubcalc = createMockUbcalc(None)
         self.mock_geometry = createMockDiffractometerGeometry()
-        self.mock_hardware = SimpleHardwareMonitorPlugin(
+        self.mock_hardware = SimpleHardwareAdapter(
                              ['delta', 'gamma', 'omegah', 'phi'])
         self.constraints = Mock()
         self.calc = WillmottHorizontalCalculator(self.mock_ubcalc,

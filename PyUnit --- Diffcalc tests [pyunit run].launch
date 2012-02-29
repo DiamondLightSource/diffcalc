@@ -19,5 +19,5 @@
 <stringAttribute key="org.python.pydev.debug.ATTR_INTERPRETER" value="__default"/>
 <stringAttribute key="org.python.pydev.debug.ATTR_PROJECT" value="diffcalc"/>
 <intAttribute key="org.python.pydev.debug.ATTR_RESOURCE_TYPE" value="2"/>
-<stringAttribute key="org.python.pydev.debug.ATTR_UNITTEST_CONFIGURATION_FILE" value="/home/zrb13439/gda/diffcalc/tests/diffcalc/gdasupport/TestGdaDiffcalcObjectFactory.py|Test.testCreateDiffcalcObjects&#10;"/>
+<stringAttribute key="org.python.pydev.debug.ATTR_UNITTEST_CONFIGURATION_FILE" value="/home/zrb13439/gda/diffcalc/tests/diffcalc/gdasupport/TestGdaDiffcalcObjectFactory.py|Test.testCreateParameterScannables&#10;/home/zrb13439/gda/diffcalc/tests/diffcalc/mapper/test_commands.py|&#10;/home/zrb13439/gda/diffcalc/tests/diffcalc/mapper/test_sector.py|&#10;/home/zrb13439/gda/diffcalc/tests/diffcalc/test_diffractioncalculator.py|FourCircleForI06Experiment.testHkl001&#10;/home/zrb13439/gda/diffcalc/tests/diffcalc/test_diffractioncalculator.py|FourCircleForI06Experiment.testHkl101&#10;"/>
 </launchConfiguration>

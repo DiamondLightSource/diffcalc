@@ -8,14 +8,14 @@ from diffcalc.geometry.sixc import SixCircleGeometry
 from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
-from diffcalc.hardware.scannable import ScannableHardwareMonitorPlugin
+from diffcalc.hardware_adapter import ScannableHardwareAdapter
 from diffcalc.gdasupport.scannable.hkl import Hkl
 from diffcalc.gdasupport.scannable.parameter import \
     DiffractionCalculatorParameter
 from mock import Mock
 from diffcalc.hkl.vlieg.parameters import VliegParameterManager
 from diffcalc.diffractioncalculator import Diffcalc
-from diffcalc.hardware.plugin import HardwareMonitorPlugin
+from diffcalc.hardware_adapter import HardwareAdapter
 try:
     from gdascripts.pd.dummy_pds import DummyPD
 except ImportError:
@@ -172,7 +172,7 @@ class Test(unittest.TestCase):
 
     def testCheckHardwarePluginClass(self):
         c = Factory.checkHardwarePluginClass
-        c(ScannableHardwareMonitorPlugin)  # no exceptions expected
+        c(ScannableHardwareAdapter)  # no exceptions expected
         self.assertRaises(TypeError, c, 2)
         self.assertRaises(ValueError, c, str)
 
@@ -207,8 +207,8 @@ class Test(unittest.TestCase):
 
     def testCreateParameterScannables(self):
         dc = MockDiffcalc()
-        dc.hardware = Mock(spec=HardwareMonitorPlugin)
-        dc.hardware.getPhysicalAngleNames.return_value = 'alpha',
+        dc._hardware = Mock(spec=HardwareAdapter)
+        dc._hardware.getPhysicalAngleNames.return_value = 'alpha',
         dc.parameter_manager = Mock(spec=VliegParameterManager)
         #dc.parameter_manager.get
         dc.parameter_manager.getParameterDict.return_value = {
@@ -223,7 +223,6 @@ class Test(unittest.TestCase):
                                 DiffractionCalculatorParameter))
 
     def testCreateAndAliasCommands(self):
-        dc = Mock(spec=Diffcalc)
         alias = MockAlias()
         Factory.alias = alias
 
@@ -245,7 +244,7 @@ class Test(unittest.TestCase):
         objects = Factory.createDiffcalcObjects(
             dummyAxisNames=self.motorNames,
             dummyEnergyName='en',
-            geometryPlugin='sixc', # Class or name (avoids needing to set path
+            geometryPlugin='sixc',  # Class or name (avoids needing to set path
                                     # before script is run)
             hklverboseVirtualAnglesToReport=virtual_names)
         print objects.keys()

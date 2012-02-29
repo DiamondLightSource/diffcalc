@@ -12,7 +12,7 @@ from diffcalc.tools import assert_array_almost_equal, \
     assert_second_dict_almost_in_first
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.utils import y_rotation, z_rotation, DiffcalcException
-from tests.diffcalc.hardware.test_plugin import SimpleHardwareMonitorPlugin
+from tests.diffcalc.test_hardware_adapter import SimpleHardwareAdapter
 from tests.diffcalc.hkl.vlieg.test_calcvlieg import \
     createMockDiffractometerGeometry, createMockUbcalc
 from diffcalc.hkl.you.position import YouPosition as Pos, YouPosition as P
@@ -38,7 +38,7 @@ class _BaseTest():
         self.mock_ubcalc = createMockUbcalc(None)
         self.mock_geometry = createMockDiffractometerGeometry()
         names = ['delta', 'nu', 'mu', 'eta', 'chi', 'phi']
-        self.mock_hardware = SimpleHardwareMonitorPlugin(names)
+        self.mock_hardware = SimpleHardwareAdapter(names)
         self.constraints = ConstraintManager(self.mock_hardware)
         self.calc = YouHklCalculator(self.mock_ubcalc, self.mock_geometry,
                                      self.mock_hardware, self.constraints)

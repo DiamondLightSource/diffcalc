@@ -3,7 +3,7 @@ from datetime import datetime
 
 from diffcalc.utils import getInputWithDefault as promptForInput, \
     promptForNumber, promptForList, allnum, isnum
-from diffcalc.help import create_command_decorator
+from diffcalc.utils import create_command_decorator
 
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -32,7 +32,7 @@ class UbCommands(object):
 
     @command
     def newub(self, name=None):
-        """newub {'name'} -- start a new ub calculation name, or interactively.
+        """newub {'name'} -- start a new ub calculation name
         """
         if name is None:
             # interactive
@@ -115,7 +115,7 @@ class UbCommands(object):
     @command
     def c2th(self, hkl=None):
         """
-        c2th [h k l]  -- calculated two-theta angle for given reflection
+        c2th [h k l]  -- calculate two-theta angle for reflection
         """
         wl = self._hardware.getWavelength()
         d = self._ubcalc.getHklPlaneDistance(hkl)
