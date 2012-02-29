@@ -4,7 +4,7 @@ from math import sqrt, pi, exp
 try:
     from gda.device.scannable import PseudoDevice
 except ImportError:
-    from diffcalc.gdasupport.minigda.scannable.scannable import \
+    from diffcalc.gdasupport.minigda.scannable import \
         Scannable as PseudoDevice
 
 from diffcalc.ub.crystal import CrystalUnderTest

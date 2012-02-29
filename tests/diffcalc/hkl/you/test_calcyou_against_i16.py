@@ -6,7 +6,7 @@ except ImportError:
     from numjy import matrix
 
 from diffcalc.hkl.vlieg.position  import VliegPosition
-from diffcalc.tools import arrayeq_
+from tests.tools import arrayeq_
 from diffcalc.hkl.you.calcyou import youAnglesToHkl
 
 TORAD = pi / 180

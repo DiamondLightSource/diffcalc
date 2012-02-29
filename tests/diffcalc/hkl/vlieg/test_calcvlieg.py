@@ -2,7 +2,7 @@ import random
 import unittest
 from math import pi
 from mock import Mock
-from diffcalc.tools import mneq_
+from tests.tools import mneq_
 
 try:
     from numpy import matrix

@@ -10,7 +10,7 @@ except ImportError:
 
 from diffcalc.hkl.you.calcyou import YouHklCalculator, I, \
     _calc_angle_between_naz_and_qaz
-from diffcalc.tools import  assert_matrix_almost_equal, \
+from tests.tools import  assert_matrix_almost_equal, \
     assert_2darray_almost_equal
 from diffcalc.hkl.you.position  import YouPosition
 from tests.diffcalc.hkl.vlieg.test_calcvlieg import \

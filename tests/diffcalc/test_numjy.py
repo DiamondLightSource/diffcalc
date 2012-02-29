@@ -12,7 +12,7 @@ try:
 except ImportError:
     __NUMJY_AVAILABLE__ = False
 
-from diffcalc.tools import assert_2darray_almost_equal, meq_
+from tests.tools import assert_2darray_almost_equal, meq_
 
 
 class _TestNumpyMatrix():

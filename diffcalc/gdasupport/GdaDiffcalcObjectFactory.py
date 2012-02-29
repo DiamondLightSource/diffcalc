@@ -1,10 +1,23 @@
 import time
+
+from diffcalc.diffractioncalculator import create_diffcalc_vlieg, \
+    create_diffcalc_willmot
+from diffcalc.gdasupport.scannable.diffractometer import \
+    DiffractometerScannableGroup
+from diffcalc.gdasupport.scannable.hkl import Hkl
+from diffcalc.gdasupport.scannable.parameter import \
+    DiffractionCalculatorParameter
+from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter
+from diffcalc.gdasupport.scannable.wavelength import Wavelength
+from diffcalc.geometry import DiffractometerGeometryPlugin, \
+    SixCircleGammaOnArmGeometry, SixCircleGeometry, fivec, fourc
+from diffcalc.hardware_adapter import HardwareAdapter, ScannableHardwareAdapter
 from diffcalc.utils import format_command_help, ExternalCommand
 
 try:
     from gda.device.scannable.scannablegroup import ScannableGroup
 except ImportError:
-    from diffcalc.gdasupport.minigda.scannable.group import ScannableGroup
+    from diffcalc.gdasupport.minigda.scannable import ScannableGroup
 
 try:
     from gdascripts.pd.dummy_pds import DummyPD
@@ -16,30 +29,13 @@ except ImportError:
     print "WARNING: ExampleSixCircleStartup.py is not running within the GDA:"
     print "         falling back to the (very minimal!) minigda..."
 
-    from diffcalc.gdasupport.minigda.scannable.dummy import DummyPD
-    from diffcalc.gdasupport.minigda.scannable.scannable import \
+    from diffcalc.gdasupport.minigda.scannable import DummyPD
+    from diffcalc.gdasupport.minigda.scannable import \
         Scannable as ScannableBase
-    from diffcalc.gdasupport.minigda.scannable.scannable import \
+    from diffcalc.gdasupport.minigda.scannable import \
         Scannable as PseudoDevice
     # from diffcalc.gdasupport.minigda.terminal import alias
     # Note: minigda will provide an alias method in the rootnamespace
-
-from diffcalc.diffractioncalculator import create_diffcalc_vlieg, \
-    create_diffcalc_willmot
-from diffcalc.geometry.plugin import DiffractometerGeometryPlugin
-from diffcalc.geometry.fourc import fourc
-from diffcalc.geometry.fivec import fivec
-from diffcalc.geometry.sixc import SixCircleGeometry
-from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
-from diffcalc.hardware_adapter import HardwareAdapter
-from diffcalc.hardware_adapter import ScannableHardwareAdapter
-from diffcalc.gdasupport.scannable.hkl import Hkl
-from diffcalc.gdasupport.scannable.wavelength import Wavelength
-from diffcalc.gdasupport.scannable.parameter import \
-    DiffractionCalculatorParameter
-from diffcalc.gdasupport.scannable.diffractometer import \
-    DiffractometerScannableGroup
-from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter
 
 
 def isObjectScannable(obj):

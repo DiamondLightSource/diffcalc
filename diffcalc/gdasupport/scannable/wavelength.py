@@ -3,7 +3,7 @@ try:
 except ImportError:
     print "WARNING: ExampleSixCircleStartup.py is not running within the GDA:"
     print "falling back to the (very minimal!) minigda..."
-    from diffcalc.gdasupport.minigda.scannable.dummy import DummyPD
+    from diffcalc.gdasupport.minigda.scannable import DummyPD
 
 
 class Wavelength(DummyPD):

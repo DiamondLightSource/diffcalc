@@ -10,11 +10,11 @@ from tests.diffcalc.gdasupport.scannable.mockdiffcalc import MockDiffcalc
 try:
     from gdascripts.pd.dummy_pds import DummyPD  # @UnusedImport
 except ImportError:
-    from diffcalc.gdasupport.minigda.scannable.dummy import DummyPD
+    from diffcalc.gdasupport.minigda.scannable import DummyPD
 try:
     from gda.device.scannable.scannablegroup import ScannableGroup
 except ImportError:
-    from diffcalc.gdasupport.minigda.scannable.group import ScannableGroup
+    from diffcalc.gdasupport.minigda.scannable import ScannableGroup
 
 
 def createDummyAxes(names):

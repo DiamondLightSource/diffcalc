@@ -2,7 +2,7 @@ try:
     from gda.device.scannable.scannablegroup import \
         ScannableMotionWithScannableFieldsBase
 except ImportError:
-    from diffcalc.gdasupport.minigda.scannable.group import \
+    from diffcalc.gdasupport.minigda.scannable import \
         ScannableMotionWithScannableFieldsBase
 
 from diffcalc.utils import getMessageFromException

@@ -3,7 +3,7 @@ import unittest
 
 from mock import Mock
 
-from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
+from diffcalc.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.hardware_adapter import DummyHardwareAdapter
 from diffcalc.hkl.vlieg.position import VliegPosition as P, \
    VliegPosition as Pos

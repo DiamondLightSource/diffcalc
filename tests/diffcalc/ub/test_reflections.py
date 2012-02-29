@@ -1,5 +1,5 @@
 from datetime import datetime
-from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
+from diffcalc.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.ub.reflections import ReflectionList
 from diffcalc.hkl.vlieg.position  import VliegPosition as Pos
 import unittest

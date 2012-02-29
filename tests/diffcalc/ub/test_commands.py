@@ -7,9 +7,9 @@ except ImportError:
     from numjy import matrix
 
 import diffcalc.utils  # @UnusedImport
-from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
+from diffcalc.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.hardware_adapter import DummyHardwareAdapter
-from diffcalc.tools import assert_iterable_almost_equal, mneq_
+from tests.tools import assert_iterable_almost_equal, mneq_
 from diffcalc.ub.commands import UbCommands
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.utils import DiffcalcException, MockRawInput

@@ -8,9 +8,9 @@ except ImportError:
 
 from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter, \
     Gaussian
-from diffcalc.geometry.fourc import fourc
+from diffcalc.geometry import fourc
 from diffcalc.utils import nearlyEqual
-from diffcalc.tools import mneq_
+from tests.tools import mneq_
 
 
 class MockScannable(object):

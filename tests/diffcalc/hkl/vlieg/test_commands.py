@@ -3,7 +3,7 @@ import unittest
 from mock import Mock
 
 import diffcalc.utils  # @UnusedImport to overide raw_input
-from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
+from diffcalc.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.hardware_adapter import DummyHardwareAdapter
 from diffcalc.hkl.vlieg.commands import VliegHklCommands
 from diffcalc.utils import MockRawInput
@@ -13,7 +13,7 @@ from diffcalc.ub.calculation import UBCalculation
 try:
     from gdascripts.pd.dummy_pds import DummyPD  # @UnusedImport
 except ImportError:
-    from diffcalc.gdasupport.minigda.scannable.dummy import DummyPD
+    from diffcalc.gdasupport.minigda.scannable import DummyPD
 
 
 def prepareRawInput(listOfStrings):

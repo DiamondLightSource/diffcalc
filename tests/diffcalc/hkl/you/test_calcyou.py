@@ -8,7 +8,7 @@ except ImportError:
 
 from diffcalc.hkl.you.calcyou import YouHklCalculator
 from diffcalc.hkl.you.constraints import ConstraintManager
-from diffcalc.tools import assert_array_almost_equal, \
+from tests.tools import assert_array_almost_equal, \
     assert_second_dict_almost_in_first
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.utils import y_rotation, z_rotation, DiffcalcException

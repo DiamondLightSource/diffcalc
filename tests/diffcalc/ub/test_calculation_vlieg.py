@@ -8,9 +8,9 @@ try:
 except ImportError:
     from numjy import matrix
 
-from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
+from diffcalc.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.hkl.vlieg.position import VliegPosition as Pos
-from diffcalc.tools import matrixeq_, mneq_
+from tests.tools import matrixeq_, mneq_
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.utils import DiffcalcException

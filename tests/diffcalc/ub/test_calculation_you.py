@@ -6,10 +6,10 @@ try:
 except ImportError:
     from numjy import matrix
 
-from diffcalc.geometry.sixc import SixCircleYouGeometry
+from diffcalc.geometry import SixCircleYouGeometry
 from diffcalc.hkl.vlieg.position import VliegPosition
 from diffcalc.hkl.you.ubcalcstrategy import YouUbCalcStrategy
-from diffcalc.tools import matrixeq_
+from tests.tools import matrixeq_
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.persistence import UbCalculationNonPersister
 

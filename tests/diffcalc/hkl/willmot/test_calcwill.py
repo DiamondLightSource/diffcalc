@@ -12,7 +12,7 @@ except ImportError:
 from diffcalc.hkl.willmott.calcwill_horizontal import \
     WillmottHorizontalUbCalcStrategy, WillmottHorizontalCalculator, \
     WillmottHorizontalPosition as Pos, WillmottHorizontalGeometry
-from diffcalc.tools import assert_array_almost_equal, \
+from tests.tools import assert_array_almost_equal, \
     assert_second_dict_almost_in_first, matrixeq_
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.crystal import CrystalUnderTest

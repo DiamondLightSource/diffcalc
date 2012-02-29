@@ -1,10 +1,6 @@
-from diffcalc.geometry.plugin import DiffractometerGeometryPlugin
-from diffcalc.hkl.vlieg.position  import VliegPosition
-from diffcalc.utils import nearlyEqual, bound
 from math import tan, cos, sin, asin, atan, pi, fabs
 
-TORAD = pi / 180
-TODEG = 180 / pi
+from diffcalc.utils import bound, nearlyEqual
 
 
 def sign(x):
@@ -13,133 +9,11 @@ def sign(x):
     else:
         return 1
 
-
-class SixCircleGammaOnArmGeometry(DiffractometerGeometryPlugin):
-    """
-    This six-circle diffractometer geometry simply passes through the
-    angles from a six circle diffractometer with the same geometry and
-    angle names as those defined in Vliegs's paper defined internally.
-    """
-
-    def __init__(self):
-        DiffractometerGeometryPlugin.__init__(
-            self,
-            name='sixc_gamma_on_arm',
-            supportedModeGroupList=('fourc', 'fivecFixedGamma',
-                                    'fivecFixedAlpha', 'zaxis'),
-            fixedParameterDict={},
-            gammaLocation='arm')
-
-    def physicalAnglesToInternalPosition(self, physicalAngles):
-        """ (a,d,g,o,c,p) = physicalAnglesToInternal(a,d,g,o,c,p)
-        """
-        assert (len(physicalAngles) == 6), "Wrong length of input list"
-        return VliegPosition(*physicalAngles)
-
-    def internalPositionToPhysicalAngles(self, internalPosition):
-        """ (a,d,g,o,c,p) = physicalAnglesToInternal(a,d,g,o,c,p)
-        """
-        return internalPosition.totuple()
-
-
-class SixCircleYouGeometry(SixCircleGammaOnArmGeometry):
-    def __init__(self):
-        DiffractometerGeometryPlugin.__init__(
-            self,
-            name='sixc_you',
-            supportedModeGroupList=('fourc', 'fivecFixedGamma',
-                                    'fivecFixedAlpha', 'zaxis'),
-            fixedParameterDict={},
-            gammaLocation=None)
-
-
-class SixCircleGeometry(DiffractometerGeometryPlugin):
-    """
-    This six-circle diffractometer geometry simply passes through the
-    angles from a six circle diffractometer with the same geometry and
-    angle names as those defined in Vliegs's paper defined internally.
-    """
-
-    def __init__(self):
-        DiffractometerGeometryPlugin.__init__(
-            self,
-            name='sixc',
-            supportedModeGroupList=('fourc', 'fivecFixedGamma',
-                                    'fivecFixedAlpha', 'zaxis'),
-            fixedParameterDict={},
-            gammaLocation='base')
-        self.hardwareMonitor = None
-#(deltaA, gammaA) = gammaOnBaseToArm(deltaB, gammaB, alpha) (all in radians)
-#(deltaB, gammaB) = gammaOnArmToBase(deltaA, gammaA, alpha) (all in radians)
-
-    def physicalAnglesToInternalPosition(self, physicalAngles):
-        """ (a,d,g,o,c,p) = physicalAnglesToInternal(a,d,g,o,c,p)
-        """
-        assert (len(physicalAngles) == 6), "Wrong length of input list"
-        alpha, deltaB, gammaB, omega, chi, phi = physicalAngles
-        (deltaA, gammaA) = gammaOnBaseToArm(
-            deltaB * TORAD, gammaB * TORAD, alpha * TORAD)
-        return VliegPosition(
-            alpha, deltaA * TODEG, gammaA * TODEG, omega, chi, phi)
-
-    def internalPositionToPhysicalAngles(self, internalPosition):
-        """ (a,d,g,o,c,p) = physicalAnglesToInternal(a,d,g,o,c,p)
-        """
-        alpha, deltaA, gammaA, omega, chi, phi = internalPosition.totuple()
-        deltaB, gammaB = gammaOnArmToBase(
-            deltaA * TORAD, gammaA * TORAD, alpha * TORAD)
-        deltaB, gammaB = deltaB * TODEG, gammaB * TODEG
-
-        if self.hardwareMonitor is not None:
-            gammaName = self.hardwareMonitor.getPhysicalAngleNames()[2]
-            minGamma = self.hardwareMonitor.getLowerLimit(gammaName)
-            maxGamma = self.hardwareMonitor.getUpperLimit(gammaName)
-
-            if maxGamma is not None:
-                if gammaB > maxGamma:
-                    gammaB = gammaB - 180
-                    deltaB = 180 - deltaB
-            if minGamma is not None:
-                if gammaB < minGamma:
-                    gammaB = gammaB + 180
-                    deltaB = 180 - deltaB
-
-        return alpha, deltaB, gammaB, omega, chi, phi
-
-
-class FivecWithGammaOnBase(SixCircleGeometry):
-
-    def __init__(self):
-        DiffractometerGeometryPlugin.__init__(
-            self,
-            name='fivec_with_gamma',
-            supportedModeGroupList=('fourc', 'fivecFixedGamma'),
-            fixedParameterDict={'alpha': 0.0},
-            gammaLocation='base')
-        self.hardwareMonitor = None
-
-    def physicalAnglesToInternalPosition(self, physicalAngles):
-        """ (a,d,g,o,c,p) = physicalAnglesToInternal(d,g,o,c,p)
-        """
-        assert (len(physicalAngles) == 5), "Wrong length of input list"
-        return SixCircleGeometry.physicalAnglesToInternalPosition(
-            self, (0,) + tuple(physicalAngles))
-
-    def internalPositionToPhysicalAngles(self, internalPosition):
-        """ (d,g,o,c,p) = physicalAnglesToInternal(a,d,g,o,c,p)
-        """
-        return SixCircleGeometry.internalPositionToPhysicalAngles(
-            self, internalPosition)[1:]
-
-
 """
 Based on: Elias Vlieg, "A (2+3)-Type Surface Diffractometer: Mergence of
 the z-axis and (2+2)-Type Geometries", J. Appl. Cryst. (1998). 31.
 198-203
 """
-
-max_gamma = pi
-min_gamma = 0
 
 
 def solvesEq8(alpha, deltaA, gammaA, deltaB, gammaB):

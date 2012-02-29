@@ -8,7 +8,7 @@ except ImportError:
 from diffcalc.configurelogging import logging
 from diffcalc.utils import bound, AbstractPosition, DiffcalcException,\
     x_rotation, z_rotation
-from diffcalc.geometry.plugin import DiffractometerGeometryPlugin
+from diffcalc.geometry import DiffractometerGeometryPlugin
 from diffcalc.ub.calculation import PaperSpecificUbCalcStrategy
 from diffcalc.hkl.calcbase import HklCalculatorBase
 from diffcalc.hkl.common import DummyParameterManager

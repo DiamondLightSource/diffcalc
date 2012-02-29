@@ -3,7 +3,7 @@ import unittest
 try:
     from gdascripts.pd.dummy_pds import DummyPD  # @UnusedImport
 except ImportError:
-    from diffcalc.gdasupport.minigda.scannable.dummy import DummyPD
+    from diffcalc.gdasupport.minigda.scannable import DummyPD
 
 
 from diffcalc.gdasupport.scannable.base import ScannableGroup

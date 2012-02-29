@@ -5,7 +5,7 @@ try:
 except ImportError:
     from numjy import matrix
 
-from diffcalc.tools import assert_dict_almost_equal, mneq_
+from tests.tools import assert_dict_almost_equal, mneq_
 from diffcalc.ub.crystal import CrystalUnderTest
 from tests.diffcalc import scenarios
 

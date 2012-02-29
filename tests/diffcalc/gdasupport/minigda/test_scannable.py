@@ -3,10 +3,23 @@ import unittest
 try:
     from gdascripts.pd.dummy_pds import DummyPD  # @UnusedImport
 except ImportError:
-    from diffcalc.gdasupport.minigda.scannable.dummy import DummyPD
+    from diffcalc.gdasupport.minigda.scannable import DummyPD
 
-from diffcalc.gdasupport.scannable.base import ScannableGroup
 from diffcalc.gdasupport.scannable.mock import MockMotor
+from diffcalc.gdasupport.minigda.scannable import \
+    SingleFieldDummyScannable
+from diffcalc.gdasupport.minigda.scannable import Scannable
+from diffcalc.gdasupport.scannable.base import ScannableGroup
+
+
+class TestScannable(unittest.TestCase):
+
+    def setUp(self):
+        self.scannable = Scannable()
+
+    def testSomethingUnrelated(self):
+        a = SingleFieldDummyScannable('a')
+        print isinstance(a, Scannable)
 
 
 def createDummyAxes(names):

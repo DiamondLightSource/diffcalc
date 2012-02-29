@@ -1,8 +1,188 @@
-from diffcalc.gdasupport.minigda.scannable.scannable import \
-    Scannable as PseudoDevice
 
 
-class ScannableGroup(PseudoDevice):
+class Scannable(object):
+    """Implemetation of a subset of the gda's Scannable interface
+    """
+
+    def isBusy(self):
+        raise Exception("Must be overidden. Not needed in minigda yet!")
+
+    def getPosition(self):
+        return self.rawGetPosition()
+
+    def asynchronousMoveTo(self, newpos):
+        self.rawAsynchronousMoveTo(newpos)
+
+    def rawGetPosition(self):
+        raise NotImplementedError()
+
+    def rawAsynchronousMoveTo(self, newpos):
+        raise NotImplementedError()
+
+    def atScanStart(self):
+        pass
+
+    def atScanEnd(self):
+        pass
+
+    def atCommandFailure(self):
+        pass
+
+###
+
+    def __repr__(self):
+        pos = self.getPosition()
+        formattedValues = self.formatPositionFields(pos)
+        if len(tuple(self.getInputNames()) + tuple(self.getExtraNames())) > 1:
+            result = self.getName() + ': '
+        else:
+            result = ''
+
+        names = tuple(self.getInputNames()) + tuple(self.getExtraNames())
+        for name, val in zip(names, formattedValues):
+            result += name + ': ' + val
+        return '< ' + result + ' >'
+###
+
+    def formatPositionFields(self, pos):
+        """Returns position as array of formatted strings"""
+        # Make sure pos is a tuple or list
+        if type(pos) not in (tuple, list):
+            pos = tuple([pos])
+
+        # Sanity check
+        if len(pos) != len(self.getOutputFormat()):
+            raise Exception(
+                "In scannable '%s':number of position fields differs from "
+                "number format strings specified" % self.getName())
+
+        result = []
+        for field, format in zip(pos, self.getOutputFormat()):
+            if field is None:
+                result.append('???')
+            else:
+                s = (format % field)
+##                if width!=None:
+##                s = s.ljust(width)
+                result.append(s)
+
+        return result
+
+###
+
+    def getName(self):
+        return self.name
+
+    def setName(self, value):
+        self.name = value
+
+    def getLevel(self):
+        return self._level
+
+    def setLevel(self, value):
+        self._level = value
+
+    def getInputNames(self):
+        return self._ioFieldNames
+
+    def setInputNames(self, value):
+        self._ioFieldNames = value
+
+    def getExtraNames(self):
+        try:
+            return self._oFieldNames
+        except:
+            return []
+
+    def setExtraNames(self, value):
+        self._oFieldNames = value
+
+    def getOutputFormat(self):
+        return self._formats
+
+    def setOutputFormat(self, value):
+        if type(value) not in (tuple, list):
+            raise TypeError(
+                "%s.setOutputFormat() expects tuple or list; not %s" %
+                (self.getName(), str(type(value))))
+        self._formats = value
+
+    def __call__(self, newpos=None):
+        if newpos is None:
+            return self.getPosition()
+        self.asynchronousMoveTo(newpos)
+
+
+class SingleFieldDummyScannable(Scannable):
+    '''Dummy PD Class'''
+    def __init__(self, name):
+        self.setName(name)
+        self.setInputNames([name])
+        self.setOutputFormat(['%6.4f'])
+        self.setLevel(3)
+        self.currentposition = 0.0
+
+    def isBusy(self):
+        return 0
+
+    def asynchronousMoveTo(self, new_position):
+        self.currentposition = float(new_position)
+
+    def getPosition(self):
+        return self.currentposition
+
+
+class DummyPD(SingleFieldDummyScannable):
+    """For compatability with the gda's dummy_pd module"""
+    pass
+
+
+class MultiInputExtraFieldsDummyScannable(Scannable):
+    '''Multi input Dummy PD Class supporting input and extra fields'''
+    def __init__(self, name, inputNames, extraNames):
+        self.setName(name)
+        self.setInputNames(inputNames)
+        self.setExtraNames(extraNames)
+        self.setOutputFormat(['%6.4f'] * (len(inputNames) + len(extraNames)))
+        self.setLevel(3)
+        self.currentposition = [0.0] * len(inputNames)
+
+    def isBusy(self):
+        return 0
+
+    def asynchronousMoveTo(self, new_position):
+        if type(new_position) == type(1) or type(new_position) == type(1.0):
+            new_position = [new_position]
+            msg = "Wrong new_position size"
+        assert len(new_position) == len(self.currentposition), msg
+        for i in range(len(new_position)):
+            if new_position[i] != None:
+                self.currentposition[i] = float(new_position[i])
+
+    def getPosition(self):
+        extraValues = range(100, 100 + (len(self.getExtraNames())))
+        return self.currentposition + map(float, extraValues)
+
+
+class ZeroInputExtraFieldsDummyScannable(Scannable):
+    '''Zero input/extra field dummy pd
+    '''
+    def __init__(self, name):
+        self.setName(name)
+        self.setInputNames([])
+        self.setOutputFormat([])
+
+    def isBusy(self):
+        return 0
+
+    def asynchronousMoveTo(self, new_position):
+        pass
+
+    def getPosition(self):
+        pass
+
+
+class ScannableGroup(Scannable):
     """wraps up motors. Simulates motors if non given."""
 
     def __init__(self, name, motorList):
@@ -45,7 +225,7 @@ class ScannableGroup(PseudoDevice):
         pass
 
 
-class ScannableMotionWithScannableFieldsBase(PseudoDevice):
+class ScannableMotionWithScannableFieldsBase(Scannable):
     '''
     This extended version of ScannableMotionBase contains a
     completeInstantiation() method which adds a dictionary of
@@ -125,7 +305,7 @@ class ScannableMotionWithScannableFieldsBase(PseudoDevice):
     def asynchronousMoveTo(self, newpos):
         if self.autoCompletePartialMoveToTargets:
             newpos = self.completePosition(newpos)
-        PseudoDevice.asynchronousMoveTo(self, newpos)
+        Scannable.asynchronousMoveTo(self, newpos)
 
     def completePosition(self, position):
         '''
@@ -158,7 +338,7 @@ class ScannableMotionWithScannableFieldsBase(PseudoDevice):
         '''Returns the a compnent scannable'''
         return self.childrenDict[name]
 
-    class MotionScannablePart(PseudoDevice):
+    class MotionScannablePart(Scannable):
         '''
         A scannable to be placed in the parent's childrenDict that allows
         access to the parent's individual fields.'''

@@ -2,10 +2,10 @@ import unittest
 
 from diffcalc.gdasupport import GdaDiffcalcObjectFactory as Factory
 from diffcalc.gdasupport.scannable.base import ScannableGroup
-from diffcalc.geometry.fourc import fourc
-from diffcalc.geometry.fivec import fivec
-from diffcalc.geometry.sixc import SixCircleGeometry
-from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry
+from diffcalc.geometry import fourc
+from diffcalc.geometry import fivec
+from diffcalc.geometry import SixCircleGeometry
+from diffcalc.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
 from diffcalc.hardware_adapter import ScannableHardwareAdapter
@@ -21,7 +21,7 @@ try:
 except ImportError:
     print "WARNING: ExampleSixCircleStartup.py is not running within the GDA:"
     print "falling back to the (very minimal!) minigda..."
-    from diffcalc.gdasupport.minigda.scannable.dummy import DummyPD
+    from diffcalc.gdasupport.minigda.scannable import DummyPD
 
 
 class MockDiffcalc(object):

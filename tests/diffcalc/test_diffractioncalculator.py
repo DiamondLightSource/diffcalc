@@ -7,7 +7,7 @@ except ImportError:
 try:
     from gdascripts.pd.dummy_pds import DummyPD  # @UnusedImport
 except ImportError:
-    from diffcalc.gdasupport.minigda.scannable.dummy import DummyPD
+    from diffcalc.gdasupport.minigda.scannable import DummyPD
 
 from diffcalc.diffractioncalculator import create_diffcalc_vlieg
 from diffcalc.gdasupport.scannable.base import ScannableGroup
@@ -18,13 +18,13 @@ from diffcalc.gdasupport.scannable.parameter import \
     DiffractionCalculatorParameter
 from diffcalc.gdasupport.scannable.slave_driver import \
     NuDriverForSixCirclePlugin
-from diffcalc.geometry.fivec import fivec
-from diffcalc.geometry.fourc import fourc
-from diffcalc.geometry.sixc import SixCircleGammaOnArmGeometry, \
+from diffcalc.geometry import fivec
+from diffcalc.geometry import fourc
+from diffcalc.geometry import SixCircleGammaOnArmGeometry, \
     SixCircleGeometry
 from diffcalc.hardware_adapter import DummyHardwareAdapter
 from diffcalc.hardware_adapter import ScannableHardwareAdapter
-from diffcalc.tools import aneq_, mneq_
+from tests.tools import aneq_, mneq_
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.utils import DiffcalcException, MockRawInput
 from tests.diffcalc import scenarios

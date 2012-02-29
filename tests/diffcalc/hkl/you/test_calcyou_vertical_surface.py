@@ -9,12 +9,12 @@ try:
 except ImportError:
     from numjy import matrix
 
-from diffcalc.geometry.sixc import SixCircleYouGeometry
+from diffcalc.geometry import SixCircleYouGeometry
 from diffcalc.hkl.willmott.calcwill_horizontal import \
     WillmottHorizontalPosition as WillPos
 from diffcalc.hkl.you.position import YouPosition as YouPos
 from diffcalc.hkl.you.ubcalcstrategy import YouUbCalcStrategy
-from diffcalc.tools import matrixeq_
+from tests.tools import matrixeq_
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.persistence import UbCalculationNonPersister

@@ -3,9 +3,9 @@
 # get standard configurations settings
 import os
 if not 'BUILDERS_DOCUMENTATION' in os.environ:
-    raise Exception, 'Environment variable BUILDERS_DOCUMENTATION must be set'
+    raise ('Environment variable BUILDERS_DOCUMENTATION must be set')
 if not os.path.isabs(os.environ['BUILDERS_DOCUMENTATION']):
-    raise Exception, 'Environment variable BUILDERS_DOCUMENTATION must be an absolute file path, but is "%s"' % (os.environ['BUILDERS_DOCUMENTATION'],) 
+    raise Exception('Environment variable BUILDERS_DOCUMENTATION must be an absolute file path, but is "%s"' % (os.environ['BUILDERS_DOCUMENTATION'],)) 
 conf_common_path = os.path.join(os.environ['BUILDERS_DOCUMENTATION'], 'source', 'conf_common.py')
 if not os.path.isfile(conf_common_path):
     raise Exception, 'File %s not found' % (conf_common_path,)
