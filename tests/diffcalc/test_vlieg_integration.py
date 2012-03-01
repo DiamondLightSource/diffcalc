@@ -18,10 +18,8 @@ from diffcalc.gdasupport.scannable.parameter import \
     DiffractionCalculatorParameter
 from diffcalc.gdasupport.scannable.slave_driver import \
     NuDriverForSixCirclePlugin
-from diffcalc.hkl.vlieg.geometry import fivec
-from diffcalc.hkl.vlieg.geometry import fourc
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry, \
-    SixCircleGeometry
+    SixCircleGeometry, Fivec, Fourc
 from diffcalc.hardware_adapter import DummyHardwareAdapter
 from diffcalc.hardware_adapter import ScannableHardwareAdapter
 from tests.tools import aneq_, mneq_
@@ -255,7 +253,7 @@ class TestSixcBase(unittest.TestCase):
             True,
             UbCalculationNonPersister())
 
-        self.sixc.setDiffcalcObject(self.d)
+        self.sixc.diffcalc = self.d
         self.hkl = Hkl('hkl', self.sixc, self.d)
         self.d.raiseExceptionsForAllErrors = True
 
@@ -269,11 +267,11 @@ class TestFourcBase(unittest.TestCase):
         self.fourc = DiffractometerScannableGroup(
             'fourc', None, scannableGroup)
         hwmp = ScannableHardwareAdapter(self.fourc, self.en)
-        self.d = create_diffcalc_vlieg(fourc(),
+        self.d = create_diffcalc_vlieg(Fourc(),
                                        hwmp,
                                        True,
                                        UbCalculationNonPersister())
-        self.fourc.setDiffcalcObject(self.d)
+        self.fourc.diffcalc = self.d
         self.hkl = Hkl('hkl', self.fourc, self.d)
         self.d.raiseExceptionsForAllErrors = True
 
@@ -512,12 +510,12 @@ class FiveCircleTest(unittest.TestCase):
         dummy = createDummyAxes(['alpha', 'delta', 'omega', 'chi', 'phi'])
         group = ScannableGroup('fivecgrp', dummy)
         self.fivec = DiffractometerScannableGroup('fivec', None, group)
-        self.d = create_diffcalc_vlieg(fivec(),
+        self.d = create_diffcalc_vlieg(Fivec(),
                      ScannableHardwareAdapter(self.fivec, self.en),
                      True, UbCalculationNonPersister())
         #self.d = Diffcalc(, , True, True, UbCalculationNonPersister())
         self.d.raiseExceptionsForAllErrors = True
-        self.fivec.setDiffcalcObject(self.d)
+        self.fivec.diffcalc = self.d
         self.hkl = Hkl('hkl', self.fivec, self.d)
         self.hklverbose = Hkl('hkl', self.fivec, self.d,
                               ('theta', '2theta', 'Bin', 'Bout', 'azimuth'))

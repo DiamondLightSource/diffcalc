@@ -8,7 +8,7 @@ except ImportError:
 
 from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter, \
     Gaussian
-from diffcalc.hkl.vlieg.geometry import fourc
+from diffcalc.hkl.vlieg.geometry import Fourc
 from diffcalc.utils import nearlyEqual
 from tests.tools import mneq_
 
@@ -35,7 +35,7 @@ class TestSimulatedCrystalCounter(unittest.TestCase):
         self.wl = MockScannable()
         self.wl.pos = 1.
         self.eq = MockEquation()
-        self.scc = SimulatedCrystalCounter('det', self.diff, fourc(), self.wl,
+        self.scc = SimulatedCrystalCounter('det', self.diff, Fourc(), self.wl,
                                            self.eq)
 
     def testInit(self):

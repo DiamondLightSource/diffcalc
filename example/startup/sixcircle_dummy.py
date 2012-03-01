@@ -8,8 +8,8 @@ except ImportError:
     sys.path = [diffcalc_path] + sys.path
     print diffcalc_path + ' added to GDA Jython path.'
     import diffcalc  # @UnusedImport
-from diffcalc.gdasupport.GdaDiffcalcObjectFactory import \
-    createDiffcalcObjects, addObjectsToNamespace
+from diffcalc.gdasupport.diffcalc_factory import \
+    create_objects, add_objects_to_namespace
 
 demoCommands = []
 demoCommands.append("newub 'cubic'")
@@ -25,16 +25,16 @@ demoCommands.append("hklmode")
 
 
 print "=" * 80
-diffcalcObjects = createDiffcalcObjects(
-    dummyAxisNames=('alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'),
-    dummyEnergyName='en',
-    geometryPlugin='sixc',
-    hklverboseVirtualAnglesToReport=('2theta', 'Bin', 'Bout', 'azimuth'),
-    demoCommands=demoCommands
+diffcalcObjects = create_objects(
+    dummy_axis_names=('alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'),
+    dummy_energy_name='en',
+    geometry='sixc',
+    hklverbose_virtual_angles_to_report=('2theta', 'Bin', 'Bout', 'azimuth'),
+    demo_commands=demoCommands
 )
 
 diffcalcObjects['diffcalcdemo'].commands = demoCommands
-addObjectsToNamespace(diffcalcObjects, globals())
+add_objects_to_namespace(diffcalcObjects, globals())
 
 
 print diffcalcObjects['ub'].__doc__

@@ -29,7 +29,7 @@ class DiffractometerScannableGroup(ScannableMotionBase):
     def __init__(self, name, diffcalcObject, scannableGroup,
                  slave_driver=None):
         # if motorList is None, will create a dummy __group
-        self.__diffcalc = diffcalcObject
+        self.diffcalc = diffcalcObject
         self.__group = scannableGroup
         self.slave_driver = slave_driver
         self.setName(name)
@@ -49,9 +49,6 @@ class DiffractometerScannableGroup(ScannableMotionBase):
         else:
             slave_formats = self.slave_driver.getScannableNames()
         return list(self.__group.getOutputFormat()) + slave_formats
-
-    def setDiffcalcObject(self, diffcalcObject):
-        self.__diffcalc = diffcalcObject
 
     def asynchronousMoveTo(self, position):
         self.__group.asynchronousMoveTo(position)
@@ -80,7 +77,7 @@ class DiffractometerScannableGroup(ScannableMotionBase):
         if len(pos) != len(self.getInputNames()):
             raise ValueError('Wrong number of inputs')
         try:
-            (hkl, params) = self.__diffcalc.angles_to_hkl(pos)
+            (hkl, params) = self.diffcalc.angles_to_hkl(pos)
         except Exception, e:
             return "Error: %s" % getMessageFromException(e)
         width = max(len(k) for k in params)

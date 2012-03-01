@@ -1,3 +1,7 @@
+"""
+This script is referenced by b16 directly
+"""
+
 try:
 	import diffcalc
 except ImportError:
@@ -9,7 +13,7 @@ except ImportError:
 	import diffcalc
 #####
 
-from diffcalc.gdasupport.GdaDiffcalcObjectFactory import createDiffcalcObjects, addObjectsToNamespace
+from diffcalc.gdasupport.diffcalc_factory import create_objects, add_objects_to_namespace
 
 demoCommands = []
 demoCommands.append( "newub 'cubic'" )
@@ -23,17 +27,17 @@ demoCommands.append( "checkub" )
 demoCommands.append( "ub" )
 demoCommands.append( "hklmode" )
 
-diffcalcObjects = createDiffcalcObjects(
+diffcalcObjects = create_objects(
 	#axisScannableList = (alpha, delta, omega, chi, phi), #@UndefinedVariable
-	axesGroupScannable = dif, #@UndefinedVariable
-	energyScannable = energy, #@UndefinedVariable
-	energyScannableMultiplierToGetKeV = 0.001,
-	geometryPlugin = 'fivec',
-	hklverboseVirtualAnglesToReport=('2theta','Bin','Bout','azimuth'),
-	demoCommands = demoCommands,
-	simulatedCrystalCounterName = 'ct'
+	axes_group_scannable = dif, #@UndefinedVariable
+	energy_scannable = energy, #@UndefinedVariable
+	energy_scannable_multiplier_to_get_KeV = 0.001,
+	geometry_plugin = 'fivec',
+	hklverbose_virtual_angles_to_report=('2theta','Bin','Bout','azimuth'),
+	demo_commands = demoCommands,
+	simulated_crystal_counter_name = 'ct'
 )
 
 diffcalcObjects['diffcalcdemo'].commands = demoCommands
-addObjectsToNamespace(diffcalcObjects, globals())
+add_objects_to_namespace(diffcalcObjects, globals())
 

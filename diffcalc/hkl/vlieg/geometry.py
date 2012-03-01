@@ -154,7 +154,7 @@ class FivecWithGammaOnBase(SixCircleGeometry):
             self, internalPosition)[1:]
 
 
-class fivec(VliegGeometry):
+class Fivec(VliegGeometry):
     """
     This five-circle diffractometer geometry is for diffractometers with the
     same geometry and angle names as those defined in Vliegs's paper defined
@@ -183,7 +183,7 @@ class fivec(VliegGeometry):
         return sixAngles[0:2] + sixAngles[3:]
 
 
-class fourc(VliegGeometry):
+class Fourc(VliegGeometry):
     """
     This five-circle diffractometer geometry is for diffractometers with the
     same geometry and angle names as those defined in Vliegs's paper defined

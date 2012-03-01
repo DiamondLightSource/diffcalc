@@ -9,7 +9,7 @@ except ImportError:
 	import diffcalc #@UnusedImport
 #####
 
-from diffcalc.gdasupport.GdaDiffcalcObjectFactory import createDiffcalcObjects, addObjectsToNamespace
+from diffcalc.gdasupport.diffcalc_factory import create_objects, add_objects_to_namespace
 
 demoCommands = []
 demoCommands.append( "newub 'cubic'" )
@@ -23,13 +23,13 @@ demoCommands.append( "checkub" )
 demoCommands.append( "ub" )
 demoCommands.append( "hklmode" )
 
-diffcalcObjects = createDiffcalcObjects(
-	dummyAxisNames = ('alpha', 'delta', 'omega', 'chi', 'phi'),
-	dummyEnergyName = 'energy',
-	geometryPlugin = 'fivec',
-	hklverboseVirtualAnglesToReport=('2theta','Bin','Bout','azimuth'),
-	demoCommands = demoCommands
+diffcalcObjects = create_objects(
+	dummy_axis_names = ('alpha', 'delta', 'omega', 'chi', 'phi'),
+	dummy_energy_name = 'energy',
+	geometry_plugin = 'fivec',
+	hklverbose_virtual_angles_to_report=('2theta','Bin','Bout','azimuth'),
+	demo_commands = demoCommands
 )
 
 diffcalcObjects['diffcalcdemo'].commands = demoCommands
-addObjectsToNamespace(diffcalcObjects, globals())
+add_objects_to_namespace(diffcalcObjects, globals())

@@ -7,7 +7,7 @@ except ImportError:
 	sys.path = [diffcalc_path] + sys.path
 	print diffcalc_path + ' added to GDA Jython path.'
 	import diffcalc #@UnusedImport
-from diffcalc.gdasupport.GdaDiffcalcObjectFactory import createDiffcalcObjects, addObjectsToNamespace
+from diffcalc.gdasupport.diffcalc_factory import create_objects, add_objects_to_namespace
 from diffcalc.gdasupport.scannable.vrmlanimator import VrmlModelDriver, LinearProfile, MoveThread
 from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter
 from socket import gethostname
@@ -37,17 +37,17 @@ print "="*80
 print "Run from diffcalc/models (in Bash):"
 print "python vrml_animator.py sixc.wrl 4567 alpha delta gamma omega chi phi"
 print "="*80
-diffcalcObjects = createDiffcalcObjects(
-	axesGroupScannable = sixcgrp,
-	dummyEnergyName = 'en',
-	geometryPlugin = 'sixc',
-	hklverboseVirtualAnglesToReport=('2theta','Bin','Bout','azimuth'),
-	simulatedCrystalCounterName = 'ct',
-	demoCommands = demoCommands
+diffcalcObjects = create_objects(
+	axes_group_scannable = sixcgrp,
+	dummy_energy_name = 'en',
+	geometry_plugin = 'sixc',
+	hklverbose_virtual_angles_to_report=('2theta','Bin','Bout','azimuth'),
+	simulated_crystal_counter_name = 'ct',
+	demo_commands = demoCommands
 )
 
 diffcalcObjects['diffcalcdemo'].commands = demoCommands
-addObjectsToNamespace(diffcalcObjects, globals())
+add_objects_to_namespace(diffcalcObjects, globals())
 
 ct.setChiMissmount(1) #@UndefinedVariable
 ct.setPhiMissmount(1) #@UndefinedVariable

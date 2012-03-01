@@ -11,7 +11,7 @@ except ImportError:
 #####
 
 from gdascripts.pd.dummy_pds import DummyPD
-from diffcalc.gdasupport.GdaDiffcalcObjectFactory import createDiffcalcObjects, addObjectsToNamespace
+from diffcalc.gdasupport.diffcalc_factory import create_objects, add_objects_to_namespace
 
 demoCommands = []
 demoCommands.append( "newub 'cubic'" )
@@ -41,15 +41,15 @@ if CREATE_DUMMY_AXES:
 	print "Moved chi to 90"
 	print "="*80
 
-diffcalcObjects = createDiffcalcObjects(
-	axisScannableList = (tth, th, chi, phi),
-	energyScannable = denergy,
-	energyScannableMultiplierToGetKeV = .001,
-	geometryPlugin = 'fourc',
-	hklverboseVirtualAnglesToReport=('2theta','Bin','Bout','azimuth'),
-	demoCommands = demoCommands
+diffcalcObjects = create_objects(
+	axis_scannable_list = (tth, th, chi, phi),
+	energy_scannable = denergy,
+	energy_scannable_multiplier_to_get_KeV = .001,
+	geometry_plugin = 'fourc',
+	hklverbose_virtual_angles_to_report=('2theta','Bin','Bout','azimuth'),
+	demo_commands = demoCommands
 )
 diffcalcObjects['alpha_par'] = diffcalcObjects['alpha']
 del diffcalcObjects['alpha']
 diffcalcObjects['diffcalcdemo'].commands = demoCommands
-addObjectsToNamespace(diffcalcObjects, globals())
+add_objects_to_namespace(diffcalcObjects, globals())

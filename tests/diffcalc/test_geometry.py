@@ -11,10 +11,8 @@ except ImportError:
 from tests.tools import mneq_
 
 
-from diffcalc.hkl.vlieg.geometry import fivec
-from diffcalc.hkl.vlieg.geometry import fourc
-from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry, gammaOnArmToBase, \
-    gammaOnBaseToArm, SixCircleGeometry
+from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry, \
+    gammaOnArmToBase, gammaOnBaseToArm, SixCircleGeometry, Fivec, Fourc
 from diffcalc.hkl.vlieg.matrices import createVliegMatrices
 from diffcalc.hkl.vlieg.position import VliegPosition
 from diffcalc.utils import nearlyEqual, radiansEquivilant as radeq
@@ -173,7 +171,7 @@ def test_generator_for_cases():
 class TestFiveCirclePlugin(unittest.TestCase):
 
     def setUp(self):
-        self.geometry = fivec()
+        self.geometry = Fivec()
 
     def testGetName(self):
         self.assertEqual(self.geometry.name, "fivec")
@@ -205,7 +203,7 @@ class TestFiveCirclePlugin(unittest.TestCase):
 class TestFourCirclePlugin(unittest.TestCase):
 
     def setUp(self):
-        self.geometry = fourc()
+        self.geometry = Fourc()
 
     def testGetName(self):
         self.assertEqual(self.geometry.name, "fourc")

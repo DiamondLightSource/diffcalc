@@ -1,9 +1,9 @@
 import unittest
 
-from diffcalc.gdasupport import GdaDiffcalcObjectFactory as Factory
+from diffcalc.gdasupport import diffcalc_factory as Factory
 from diffcalc.gdasupport.scannable.base import ScannableGroup
-from diffcalc.hkl.vlieg.geometry import fourc
-from diffcalc.hkl.vlieg.geometry import fivec
+from diffcalc.hkl.vlieg.geometry import Fourc
+from diffcalc.hkl.vlieg.geometry import Fivec
 from diffcalc.hkl.vlieg.geometry import SixCircleGeometry
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.gdasupport.scannable.diffractometer import \
@@ -61,33 +61,34 @@ class Test(unittest.TestCase):
 
     def testDetermineGeometryPlugin(self):
         geometry = SixCircleGeometry()
-        determine_geometry = Factory.determineGeometryPlugin
-        self.assertEquals(determine_geometry(geometry), geometry)
-        self.assertEquals(determine_geometry('fourc').__class__, fourc)
-        self.assertEquals(determine_geometry('fivec').__class__, fivec)
-        self.assertEquals(determine_geometry('sixc').__class__,
+        _determine_vlieg_geometry = Factory._determine_vlieg_geometry
+        self.assertEquals(_determine_vlieg_geometry(geometry), geometry)
+        self.assertEquals(_determine_vlieg_geometry('fourc').__class__, Fourc)
+        self.assertEquals(_determine_vlieg_geometry('fivec').__class__, Fivec)
+        self.assertEquals(_determine_vlieg_geometry('sixc').__class__,
                           SixCircleGeometry)
-        self.assertEquals(determine_geometry('sixc_gamma_on_arm').__class__,
+        self.assertEquals(_determine_vlieg_geometry('sixc_gamma_on_arm').__class__,
                           SixCircleGammaOnArmGeometry)
-        self.assertRaises(KeyError, determine_geometry, 'Not a geometry name')
-        self.assertRaises(TypeError, determine_geometry, None)
-        self.assertRaises(TypeError, determine_geometry, 9999)
+        self.assertRaises(KeyError, _determine_vlieg_geometry, 'Not a geometry name')
+        self.assertRaises(TypeError, _determine_vlieg_geometry, None)
+        self.assertRaises(TypeError, _determine_vlieg_geometry, 9999)
 
     def testDetermineDiffractometerScannableName(self):
         geometry = SixCircleGeometry()
-        determine_name = Factory.determineDiffractometerScannableName
+        determine_name = Factory._determine_diffractometer_scannable_name
         self.assertEquals(determine_name('a_name', geometry), 'a_name')
         self.assertEquals(determine_name(None, geometry), 'sixc')
         self.assertRaises(TypeError, determine_name, 1234, None)
 
     def testCreateDiffractometerScannable_BadInput(self):
-        c = Factory.createDiffractometerScannableAndPossiblyDummies
+        c = Factory._create_diff_and_dummies
         self.assertRaises(
             ValueError, c, self.motorNames, self.motorList, None, 'ncircle')
 
     def testCreateDiffractometerScannable_FromGroup(self):
-        c = Factory.createDiffractometerScannableAndPossiblyDummies
-        objects, diffractometerScannable = c(None, None, self.group, 'ncircle')
+        c = Factory._create_diff_and_dummies
+        objects = c(None, None, self.group, 'ncircle')
+        diffractometerScannable = objects['ncircle']
         self.assert_(isinstance(diffractometerScannable,
                                 DiffractometerScannableGroup))
         self.assertEquals(diffractometerScannable.getName(), 'ncircle')
@@ -101,9 +102,9 @@ class Test(unittest.TestCase):
         print objects
 
     def testCreateDiffractometerScannable_FromMotors(self):
-        c = Factory.createDiffractometerScannableAndPossiblyDummies
-        objects, diffractometerScannable = c(None, self.motorList, None,
-                                             'ncircle')
+        c = Factory._create_diff_and_dummies
+        objects = c(None, self.motorList, None, 'ncircle')
+        diffractometerScannable = objects['ncircle']
         group = diffractometerScannable._DiffractometerScannableGroup__group
         try:
             motors = group._ScannableGroup__motors
@@ -119,9 +120,9 @@ class Test(unittest.TestCase):
         print objects
 
     def testCreateDiffractometerScannable_FromDummies(self):
-        c = Factory.createDiffractometerScannableAndPossiblyDummies
-        objects, diffractometerScannable = c(self.motorNames, None, None,
-                                             'ncircle')
+        c = Factory._create_diff_and_dummies
+        objects = c(self.motorNames, None, None, 'ncircle')
+        diffractometerScannable = objects['ncircle']
         group = diffractometerScannable._DiffractometerScannableGroup__group
         try:
             motors = group._ScannableGroup__motors
@@ -141,11 +142,11 @@ class Test(unittest.TestCase):
         self.assertEquals(len(objects), 7)
 
     def testBuildWavelengthAndPossiblyEnergyScannable_BadInput(self):
-        b = Factory.buildWavelengthAndPossiblyEnergyScannable
+        b = Factory._create_wavelength_and_energy
         self.assertRaises(ValueError, b, 'en_to_make', b, 1)
 
     def testBuildWavelengthAndPossiblyEnergyScannable_FromReal(self):
-        b = Factory.buildWavelengthAndPossiblyEnergyScannable
+        b = Factory._create_wavelength_and_energy
         self.en.asynchronousMoveTo(10)
         objects, energyScannable = b(None, self.en, 1)
         self.assertEquals(energyScannable, self.en)
@@ -156,7 +157,7 @@ class Test(unittest.TestCase):
         self.assertEquals(wl.getPosition(), 1.2398419999999999)
 
     def testBuildWavelengthAndPossiblyEnergyScannable_FromDummy(self):
-        b = Factory.buildWavelengthAndPossiblyEnergyScannable
+        b = Factory._create_wavelength_and_energy
         objects, energyScannable = b('dummy_en', None, 1)
         self.assertEquals(energyScannable.getName(), 'dummy_en')
         self.assertEquals(list(energyScannable.getInputNames()), ['dummy_en'])
@@ -170,18 +171,12 @@ class Test(unittest.TestCase):
         energyScannable.asynchronousMoveTo(10)
         self.assertEquals(wl.getPosition(), 1.2398419999999999)
 
-    def testCheckHardwarePluginClass(self):
-        c = Factory.checkHardwarePluginClass
-        c(ScannableHardwareAdapter)  # no exceptions expected
-        self.assertRaises(TypeError, c, 2)
-        self.assertRaises(ValueError, c, str)
-
     def testBuildHklScannableAndComponents(self):
         dc = Mock(spec=Diffcalc)
         ds = MockDiffractometerScannable()
         self.assertRaises(
-            TypeError, Factory.buildHklScannableAndComponents, ds, dc, ())
-        objects = Factory.buildHklScannableAndComponents('myhkl', ds, dc, ())
+            TypeError, Factory._create_hkl, ds, dc, ())
+        objects = Factory._create_hkl('myhkl', ds, dc, ())
         self.assertEquals(len(objects), 4)
         hkl = objects['myhkl']
         self.assert_(isinstance(hkl, Hkl))
@@ -196,8 +191,8 @@ class Test(unittest.TestCase):
         dc = Mock(spec=Diffcalc)
         ds = MockDiffractometerScannable()
         self.assertRaises(
-            TypeError, Factory.buildHklverboseScannable, ds, dc, ())
-        objects = Factory.buildHklverboseScannable('myhkl', ds, dc, ('a', 'b'))
+            TypeError, Factory._create_hkl_verbose, ds, dc, ())
+        objects = Factory._create_hkl_verbose('myhkl', ds, dc, ('a', 'b'))
         self.assertEquals(len(objects), 1)
         hkl = objects['myhkl']
         self.assert_(isinstance(hkl, Hkl))
@@ -213,7 +208,7 @@ class Test(unittest.TestCase):
         #dc.parameter_manager.get
         dc.parameter_manager.getParameterDict.return_value = {
             'alpha': None, 'betain': None, 'oopgamma': None}
-        objects = Factory.createParameterScannables(dc)
+        objects = Factory._create_constraint_scannables(dc)
         self.assertEquals(len(objects), 3)
         self.assert_(isinstance(objects['alpha_par'],
                                 DiffractionCalculatorParameter))
@@ -232,7 +227,7 @@ class Test(unittest.TestCase):
         def g():
             pass
 
-        objects = Factory.expose_and_alias_commands([f, g])
+        objects = Factory._expose_and_alias_commands([f, g])
         self.assertEquals(len(objects), 2)
 
         self.assertEquals(objects['f'], f)
@@ -241,12 +236,12 @@ class Test(unittest.TestCase):
 
     def testCreateDiffcalcObjects(self):
         virtual_names = '2theta', 'Bin', 'Bout', 'azimuth'
-        objects = Factory.createDiffcalcObjects(
-            dummyAxisNames=self.motorNames,
-            dummyEnergyName='en',
-            geometryPlugin='sixc',  # Class or name (avoids needing to set path
+        objects = Factory.create_objects(
+            dummy_axis_names=self.motorNames,
+            dummy_energy_name='en',
+            geometry='sixc',  # Class or name (avoids needing to set path
                                     # before script is run)
-            hklverboseVirtualAnglesToReport=virtual_names)
+            hklverbose_virtual_angles_to_report=virtual_names)
         print objects.keys()
 
         def assertHas(a, b):
@@ -255,5 +250,5 @@ class Test(unittest.TestCase):
                     raise Exception("%s not in %s." % (aa, b))
 
         expected = ('en', 'wl', 'sixc', 'hkl', 'h', 'k', 'l', 'hklverbose',
-                    'sixc', 'diffcalc_object')
+                    'sixc', 'dc')
         assertHas(self.motorNames + expected, objects.keys())
