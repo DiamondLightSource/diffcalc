@@ -1,7 +1,7 @@
 from nose.tools import eq_  # @UnresolvedImport
 from mock import Mock
 
-from diffcalc.hkl.you.constraints import ConstraintManager
+from diffcalc.hkl.you.constraints import YouConstraintManager
 from diffcalc.utils import DiffcalcException
 
 
@@ -17,7 +17,7 @@ class TestConstraintManager:
         self.hardware_monitor.getPosition.return_value = (1.,) * 6
         self.hardware_monitor.getPhysicalAngleNames.return_value = [
                                       'mu', 'delta', 'nu', 'eta', 'chi', 'phi']
-        self.cm = ConstraintManager(self.hardware_monitor)
+        self.cm = YouConstraintManager(self.hardware_monitor)
 
     def test_init(self):
         eq_(self.cm.all, {})

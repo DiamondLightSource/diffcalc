@@ -206,7 +206,7 @@ class Test(unittest.TestCase):
         dc._hardware.getPhysicalAngleNames.return_value = 'alpha',
         dc.parameter_manager = Mock(spec=VliegParameterManager)
         #dc.parameter_manager.get
-        dc.parameter_manager.getParameterDict.return_value = {
+        dc.parameter_manager.settable_constraint_names = {
             'alpha': None, 'betain': None, 'oopgamma': None}
         objects = Factory._create_constraint_scannables(dc)
         self.assertEquals(len(objects), 3)

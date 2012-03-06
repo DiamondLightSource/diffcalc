@@ -185,7 +185,7 @@ class YouHklCalculator(HklCalculatorBase):
                                    raiseExceptionsIfAnglesDoNotMapBackToHkl)
         self._hardware = hardware  # for checking limits only
         self.constraints = constraints
-        self.parameter_manager = DummyParameterManager()
+        self.parameter_manager = constraints # TODO: remove need for this attr.
 
         self.n_phi = matrix([[0], [0], [1]])
 

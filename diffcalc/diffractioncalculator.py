@@ -10,17 +10,19 @@ from diffcalc.hkl.willmott.calcwill_horizontal import \
     WillmottHorizontalCalculator
 from diffcalc.hkl.willmott.commands import WillmottHklCommands
 from diffcalc.hkl.willmott.constraints import WillmottConstraintManager
-from diffcalc.utils import create_command_decorator, ExternalCommand
+from diffcalc.utils import command, ExternalCommand
 from diffcalc.ub.commands import UbCommands
 from diffcalc.hardware_adapter import HardwareCommands
 from diffcalc.hkl.vlieg.transform import VliegTransformSelector, \
     TransformCommands, VliegPositionTransformer
+from diffcalc.hkl.you.calcyou import YouUbCalcStrategy, YouHklCalculator
+from diffcalc.hkl.you.commands import YouHklCommands
+from diffcalc.hkl.you.constraints import YouConstraintManager
 
 
-_unused_commands = []
-command = create_command_decorator(_unused_commands)
 
-AVAILABLE_ENGINES = ('vlieg', 'willmott')
+
+AVAILABLE_ENGINES = ('vlieg', 'willmott', 'you')
 
 
 class DummySolutionTransformer(object):
@@ -29,30 +31,11 @@ class DummySolutionTransformer(object):
         return pos
 
 
-def create_diffcalc_vlieg(geometry,
-                          hardware,
-                          raise_exceptions_for_all_errors=True,
-                          ub_persister=None):
-
-    return _create_diffcalc(
-        'vlieg', geometry, hardware, raise_exceptions_for_all_errors,
-        ub_persister)
-
-
-def create_diffcalc_willmot(geometry,
-                            hardware,
-                            raise_exceptions_for_all_errors=True,
-                            ub_persister=None):
-    return _create_diffcalc(
-        'willmott', geometry, hardware, raise_exceptions_for_all_errors,
-        ub_persister)
-
-
-def _create_diffcalc(engine_name,
-                     geometry,
-                     hardware,
-                     raise_exceptions_for_all_errors,
-                     ub_persister):
+def create_diffcalc(engine_name,
+                    geometry,
+                    hardware,
+                    raise_exceptions_for_all_errors,
+                    ub_persister=None):
 
     diffcalc.utils.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = \
         raise_exceptions_for_all_errors
@@ -61,21 +44,25 @@ def _create_diffcalc(engine_name,
         raise ValueError(engine_name + ' not supported')
 
     # UB calculator
-    if engine_name == 'vlieg':
-        ubcalc_strategy = VliegUbCalcStrategy()
-    elif engine_name == 'willmott':
-        ubcalc_strategy = WillmottHorizontalUbCalcStrategy()
+    strategy_classes = {'vlieg': VliegUbCalcStrategy,
+                        'willmott': WillmottHorizontalUbCalcStrategy,
+                        'you': YouUbCalcStrategy}
+    ubcalc_strategy = strategy_classes[engine_name]()
     ubcalc = UBCalculation(hardware, geometry, ub_persister, ubcalc_strategy)
     ub_commands = UbCommands(hardware, geometry, ubcalc)
 
     # Hkl
     if engine_name == 'vlieg':
         hklcalc = VliegHklCalculator(ubcalc, geometry, hardware, True)
-        hkl_commands = VliegHklCommands(hardware, geometry, hklcalc)
+        hkl_commands = VliegHklCommands(hklcalc, geometry)
     elif engine_name == 'willmott':
         hklcalc = WillmottHorizontalCalculator(
             ubcalc, geometry, hardware, WillmottConstraintManager())
-        hkl_commands = WillmottHklCommands(hardware, geometry, hklcalc)
+        hkl_commands = WillmottHklCommands(hklcalc)
+    elif engine_name == 'you':
+        hklcalc = YouHklCalculator(
+            ubcalc, geometry, hardware, YouConstraintManager(hardware))
+        hkl_commands = YouHklCommands(hklcalc)
 
     # Hardware
     hardware_commands = HardwareCommands(hardware)
@@ -94,19 +81,18 @@ def _create_diffcalc(engine_name,
                   ub_commands, hkl_commands, hardware_commands,
                   transform_commands)
 
-    dc.ub.commands.append(dc.checkub)
-
-    dc.hkl.commands.append('Hardware')
-    dc.hkl.commands.extend(dc.hardware.commands)
-    if transform_commands is not None:
-        dc.hkl.commands.append('Transform')
-        dc.hkl.commands.extend(dc.transform.commands)
-    dc.hkl.commands.append('Motion')
-    dc.hkl.commands.append(dc.sim)
-
     _hwname = hardware.getDiffHardwareName()
     _angles = ', '.join(hardware.getPhysicalAngleNames())
 
+    dc.ub.commands.append(dc.checkub)
+
+    dc.hkl.commands.extend(dc.hardware.commands)
+
+    if transform_commands is not None:
+        dc.hkl.commands.extend(dc.transform.commands)
+
+    dc.hkl.commands.append('Motion')
+    dc.hkl.commands.append(dc.sim)
     dc.hkl.commands.append(ExternalCommand(
         '%(_hwname)s -- show Eularian position'))
     dc.hkl.commands.append(ExternalCommand(

@@ -71,7 +71,7 @@ class HklCalculatorBase(object):
         # will be read directly from self._parameters instead of via
         # self.getParameter which would trigger another potentially time-costly
         # position update.
-        self.parameter_manager.updateTrackedParameters()
+        self.parameter_manager.update_tracked()
 
         pos, virtualAngles = self._hklToAngles(h, k, l, wavelength)  # in rad
 

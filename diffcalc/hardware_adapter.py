@@ -2,10 +2,7 @@ from diffcalc.utils import DiffcalcException
 
 SMALL = 1e-8
 
-from diffcalc.utils import create_command_decorator
-
-_commands = []
-command = create_command_decorator(_commands)
+from diffcalc.utils import command
 
 
 def getNameFromScannableOrString(o):
@@ -19,10 +16,11 @@ class HardwareCommands(object):
 
     def __init__(self, hardware):
         self._hardware = hardware
-
-    @property
-    def commands(self):
-        return _commands
+        self.commands = ['Hardware',
+                         self.hardware,
+                         self.setcut,
+                         self.setmin,
+                         self.setmax]
 
     @command
     def hardware(self):

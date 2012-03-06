@@ -16,12 +16,25 @@ valueless_constraints = ('a_eq_b', 'mu_is_nu')
 all_constraints = det_constraints + ref_constraints + samp_constraints
 
 
-class ConstraintManager(object):
+class YouConstraintManager(object):
 
     def __init__(self, hardware):
         self._hardware = hardware
         self._constrained = {}
         self._tracking = []
+
+    @property
+    def available(self):
+        """list of all available constraints"""
+        return all_constraints
+
+    @property
+    def settable_constraint_names(self):
+        """list of all available constraints that have settable values"""
+        all_copy = list(all_constraints)
+        for valueless in valueless_constraints:
+            all_copy.remove(valueless)
+        return all_copy
 
     @property
     def all(self):  # @ReservedAssignment

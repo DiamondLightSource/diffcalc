@@ -33,7 +33,7 @@ class UBCalculation:
     """
 
     def __init__(self, hardwareMonitorObject, diffractometerPluginObject,
-                 persister=None, strategy=None):
+                 persister=UBCalculationPersister(), strategy=None):
 
         # The diffractometer geometry is required to map the internal angles
         # into those used by this diffractometer (for display only)
@@ -48,10 +48,7 @@ class UBCalculation:
         self._okayToAutoCalculateUB = True  # True unless U or UB set manually.
         self._uSetManually = False
         self._ubSetManually = False
-        if persister is None:
-            self._persister = UBCalculationPersister()
-        else:
-            self._persister = persister
+        self._persister = persister
         self._strategy = strategy
         # when calclulateUB called manualy.
 

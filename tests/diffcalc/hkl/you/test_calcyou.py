@@ -7,7 +7,7 @@ except ImportError:
     from numjy import matrix
 
 from diffcalc.hkl.you.calcyou import YouHklCalculator
-from diffcalc.hkl.you.constraints import ConstraintManager
+from diffcalc.hkl.you.constraints import YouConstraintManager
 from tests.tools import assert_array_almost_equal, \
     assert_second_dict_almost_in_first
 from diffcalc.ub.crystal import CrystalUnderTest
@@ -39,7 +39,7 @@ class _BaseTest():
         self.mock_geometry = createMockDiffractometerGeometry()
         names = ['delta', 'nu', 'mu', 'eta', 'chi', 'phi']
         self.mock_hardware = SimpleHardwareAdapter(names)
-        self.constraints = ConstraintManager(self.mock_hardware)
+        self.constraints = YouConstraintManager(self.mock_hardware)
         self.calc = YouHklCalculator(self.mock_ubcalc, self.mock_geometry,
                                      self.mock_hardware, self.constraints)
 

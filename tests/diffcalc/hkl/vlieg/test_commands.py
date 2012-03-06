@@ -31,8 +31,7 @@ class TestHklCommands(unittest.TestCase):
         self.mock_ubcalc = Mock(spec=UBCalculation)
         self.hklcalc = VliegHklCalculator(self.mock_ubcalc, self.geometry,
                                           self.hardware, True)
-        self.hkl = VliegHklCommands(self.hardware, self.geometry,
-                                            self.hklcalc)
+        self.hkl = VliegHklCommands(self.hklcalc, self.geometry)
         diffcalc.utils.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
         prepareRawInput([])
 

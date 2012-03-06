@@ -11,7 +11,7 @@ class UBCalculationPersister(object):
             self.shelf = LocalJythonShelfManager.getLocalObjectShelf(
                 'diffcalc.ub')
         except ImportError, e:
-            print ("UBCalculationPersister could not import the gda database "
+            print ("!!! UBCalculationPersister could not import the gda database "
                    "code: " + repr(e))
             self.shelf = None
         except LocalDatabaseException, e:

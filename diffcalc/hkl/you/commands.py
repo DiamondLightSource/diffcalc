@@ -4,7 +4,7 @@ from diffcalc.utils import command
 
 
 
-class WillmottHklCommands(object):
+class YouHklCommands(object):
 
     def __init__(self, hklcalc):
         self._hklcalc = hklcalc

@@ -1,7 +1,6 @@
 import time
 
-from diffcalc.diffractioncalculator import create_diffcalc_vlieg, \
-    create_diffcalc_willmot
+from diffcalc.diffractioncalculator import create_diffcalc, AVAILABLE_ENGINES
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
 from diffcalc.gdasupport.scannable.hkl import Hkl
@@ -13,8 +12,8 @@ import diffcalc.hkl.vlieg.geometry
 from diffcalc.hardware_adapter import ScannableHardwareAdapter
 from diffcalc.utils import format_command_help, ExternalCommand
 from diffcalc.hkl.vlieg.geometry import VliegGeometry
-from diffcalc.hkl import you
 from diffcalc.hkl.you.geometry import YouGeometry
+from diffcalc.ub.persistence import UBCalculationPersister
 
 try:
     from gda.device.scannable.scannablegroup import ScannableGroup
@@ -127,15 +126,15 @@ def create_objects(
                                         energy_scannable_multiplier_to_get_KeV)
 
     # Instantiate diffcalc
-    if engine_name.lower() == 'vlieg':
-        dc = create_diffcalc_vlieg(geometry, hardware,
-                                         raise_exceptions_for_all_errors)
-    elif engine_name.lower() == 'willmott':
-        dc = create_diffcalc_willmot(geometry, hardware,
-                                           raise_exceptions_for_all_errors)
-    else:
+    if engine_name.lower() not in AVAILABLE_ENGINES:
         raise KeyError("The engine '%s' was not recognised. "
-                       "Try 'vlieg' or 'willmott'" % engine_name)
+                       "Try %r" % (engine_name, AVAILABLE_ENGINES))
+
+    dc = create_diffcalc(engine_name.lower(),
+                          geometry,
+                          hardware,
+                          raise_exceptions_for_all_errors,
+                          UBCalculationPersister())
 
     objects['dc'] = dc
     diff_scannable.diffcalc = dc
@@ -158,7 +157,7 @@ def create_objects(
         ct = SimulatedCrystalCounter(simulated_crystal_counter_name,
                                      diff_scannable, geometry, objects['wl'])
         objects.update({ct.name: ct})
-        print "Created Simulated Crystal Counter", ct.name
+        print "\nCreated Simulated Crystal Counter:\n   ", ct.name
 
     # expose and alias ub and hkl commands from diffcalc object
     print "UB"
@@ -178,7 +177,7 @@ def create_objects(
 
     print "=" * 80
 
-    objects['ub'].__doc__ = format_command_help(dc.ub.commands)
+    objects['ub'].__func__.__doc__ = format_command_help(dc.ub.commands)
     Hkl.dynamic_docstring = format_command_help(dc.hkl.commands)
     return objects
 
@@ -243,7 +242,8 @@ def _create_diff_and_dummies(dummy_axis_names,
         result = []
         for name in nameList:
             result.append(DummyPD(name))
-            print "Created DummyPD: %s" % name
+        print "\nCreated dummy axes:"
+        print "   ", ', '.join(nameList[:-1]) + ' and ' + nameList[-1]
         return result
 
     options = [dummy_axis_names, axes_scannable_list, axes_group_scannable]
@@ -259,7 +259,8 @@ def _create_diff_and_dummies(dummy_axis_names,
             diffractometer_scannable_name + '_group', axes_scannable_list)
     diff_scannable = DiffractometerScannableGroup(
             diffractometer_scannable_name, None, axes_group_scannable)
-    print "Created diffractometer scannable:", diffractometer_scannable_name
+    print ("\nCreated diffractometer scannable:\n    " +
+           diffractometer_scannable_name)
     objects[diffractometer_scannable_name] = diff_scannable
     return objects
 
@@ -272,8 +273,8 @@ def _create_wavelength_and_energy(dummy_energy_name,
     def create_energy_scannable(name):
         scn = DummyPD(name)
         scn.asynchronousMoveTo(12.39842)
-        print "Created dummy energy scannable: ", name
-        print "Set dummy energy to 1 Angstrom"
+        print "\nCreated dummy energy scannable:\n   ", name
+        print "    (set dummy energy to 1 Angstrom)"
         return scn
 
     options = [dummy_energy_name, energy_scannable]
@@ -295,7 +296,7 @@ def _create_wavelength_and_energy(dummy_energy_name,
     # create wavelength scannable
     objects['wl'] = Wavelength('wl', energy_scannable,
                                energy_scannable_multiplier_to_KeV)
-    print "Created wavelength scannable: wl"
+    print "\nCreated wavelength scannable:\n    wl"
     return objects, energy_scannable
 
 
@@ -313,11 +314,11 @@ def _create_hkl(hklScannableName, diffractometerScannable,
     objects['k'] = hkl.k
     objects['l'] = hkl.l
     if len(hklVirtualAnglesToReport) == 0:
-        print "Created hkl scannable:", hklScannableName
+        print "\nCreated hkl scannable:\n   ", hklScannableName
     else:
-        print ("Created hkl scannable: %s. Reports the virtual angles: %s" %
+        print ("\nCreated hkl scannable:\n    %s\n    (reports the virtual angles: %s)" %
                (hklScannableName, ', '.join(hklVirtualAnglesToReport)))
-    print "Created hkl component scannables: h, k & l"
+    print "\nCreated hkl component scannables:\n    h, k & l"
     return objects
 
 
@@ -333,25 +334,28 @@ def _create_hkl_verbose(hklverboseScannableName, diffractometerScannable,
             hklverboseScannableName, diffractometerScannable, diffcalc,
             hklverboseVirtualAnglesToReport)
         if len(hklverboseVirtualAnglesToReport) == 0:
-            print "Created verbose hkl scannable:", hklverboseScannableName
+            print "\nCreated verbose hkl scannable:\n   ", hklverboseScannableName
         else:
             virtual_to_report = ', '.join(hklverboseVirtualAnglesToReport)
-            print ("Created verbose hkl scannable: %s. Reports the virtual "
+            print ("\nCreated verbose hkl scannable:\n    %s. Reports the virtual "
                    "angles: %s" % (hklverboseScannableName, virtual_to_report))
     return objects
 
 
 def _create_constraint_scannables(diffcalc):
     objects = {}
-    paramNames = diffcalc.parameter_manager.getParameterDict().keys()
+    paramNames = diffcalc.parameter_manager.settable_constraint_names
     axisNames = diffcalc._hardware.getPhysicalAngleNames()
+    created_names = []
     for param in paramNames:
         scnname = param
         if param in axisNames:
             scnname += '_par'
         objects[scnname] = DiffractionCalculatorParameter(scnname, param,
                                                           diffcalc)
-        print "Created parameter scannable:", scnname
+        created_names.append(scnname)
+    print "\nCreated parameter scannables:"
+    print "   ", ', '.join(created_names[:-1]) + ' and ' + created_names[-1]
     return objects
 
 

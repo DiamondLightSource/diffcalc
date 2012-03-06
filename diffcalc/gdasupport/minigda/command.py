@@ -8,6 +8,7 @@ class Pos(object):
 
     def __init__(self, mainNamepaceDict):
         self.mainNamepaceDict = mainNamepaceDict
+        self.__name__ = 'pos'
 
     def __call__(self, *posargs):
         if len(posargs) == 0:

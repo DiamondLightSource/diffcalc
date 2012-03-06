@@ -17,5 +17,5 @@ class DummyParameterManager(object):
     def _getParameter(self, name):
         raise KeyError(name)
 
-    def updateTrackedParameters(self):
+    def update_tracked(self):
         pass

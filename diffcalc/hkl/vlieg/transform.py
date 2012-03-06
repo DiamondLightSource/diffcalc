@@ -1,4 +1,4 @@
-from diffcalc.utils import create_command_decorator
+from diffcalc.utils import command
 
 from copy import copy
 from math import pi
@@ -370,10 +370,6 @@ class VliegTransformSelector(object):
                  cut(position.omega), cut(position.chi), cut(position.phi))
 
 
-_commands = []
-command = create_command_decorator(_commands)
-
-
 def getNameFromScannableOrString(o):
         try:  # it may be a scannable
             return o.getName()
@@ -385,10 +381,11 @@ class TransformCommands(object):
 
     def __init__(self, sector_selector):
         self._sectorSelector = sector_selector
-
-    @property
-    def commands(self):
-        return _commands
+        self.commands = ['Transform',
+                         self.transform,
+                         self.transforma,
+                         self.transformb,
+                         self.transformc]
 
     @command
     def transform(self):

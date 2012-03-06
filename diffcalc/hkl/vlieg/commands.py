@@ -1,27 +1,25 @@
 from diffcalc.hkl.common import getNameFromScannableOrString
-from diffcalc.utils import create_command_decorator
+from diffcalc.utils import command
 
-_commands = []
-command = create_command_decorator(_commands)
+
 
 
 class VliegHklCommands(object):
     """Commands to configure hkl mode and parameters.
     """
 
-    def __init__(self, hardware, geometry, hklcalc):
-        self._hardware = hardware
+    def __init__(self, hklcalc, geometry):
         self._geometry = geometry
         self._hklcalc = hklcalc
+        self.commands = ['Constraints',
+                         self.hklmode,
+                         self.setpar,
+                         self.trackalpha,
+                         self.trackgamma,
+                         self.trackphi]
 
     def __str__(self):
         return self._hklcalc.__str__()
-
-    @property
-    def commands(self):
-        return _commands
-
-    _commands.append('Constraints')
 
     @command
     def hklmode(self, num=None):

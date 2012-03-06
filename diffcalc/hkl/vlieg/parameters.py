@@ -41,7 +41,7 @@ class VliegParameterManager(object):
             self._parameters[name] = value
 
     def reportAllParameters(self):
-        self.updateTrackedParameters()
+        self.update_tracked()
         result = ''
         for name in self._parameterDisplayOrder:
             flags = ""
@@ -60,7 +60,7 @@ class VliegParameterManager(object):
         return result
 
     def reportParametersUsedInCurrentMode(self):
-        self.updateTrackedParameters()
+        self.update_tracked()
         result = ''
         for name in self.getUserChangableParametersForMode(
             self._modeSelector.getMode()):
@@ -122,12 +122,17 @@ class VliegParameterManager(object):
                                     "diffraction calculator" % name)
 
     def getParameter(self, name):
-        self.updateTrackedParameters()
+        self.update_tracked()
         return self.getParameterWithoutUpdatingTrackedParemeters(name)
 
     def getParameterDict(self):
-        self.updateTrackedParameters()
+        self.update_tracked()
         return copy(self._parameters)
+
+    @property
+    def settable_constraint_names(self):
+        """list of all available constraints that have settable values"""
+        return sorted(self.getParameterDict().keys())
 
     def setTrackParameter(self, name, switch):
         if not name in self._parameters.keys():
@@ -148,7 +153,7 @@ class VliegParameterManager(object):
     def isParameterTracked(self, name):
         return (name in self._trackedParameters)
 
-    def updateTrackedParameters(self):
+    def update_tracked(self):
         """Note that the name of a tracked parameter MUST map into the name of
         an external diffractometer angle
         """

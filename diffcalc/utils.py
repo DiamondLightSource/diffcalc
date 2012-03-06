@@ -273,6 +273,7 @@ class ExternalCommand(object):
         """Set the docstring that will be pulled off by format_command_help.
         """
         self.__doc__ = docstring
+        self.__name__ = ''
 
 
 def format_command_help(command_list):
@@ -290,6 +291,8 @@ def format_command_help(command_list):
                 name, args, desc = _split_doc_line(doc_line)
                 desc_lines = textwrap.wrap(desc, 45)
                 line = ('   ' + name + ' ' + args).ljust(35)
+                if obj.__name__ in ('ub', 'hkl'):
+                    continue
                 if len(line) <= 35:
                     line += (desc_lines.pop(0))  # first line
                 lines.append(line)
@@ -305,24 +308,16 @@ def _split_doc_line(docLine):
     return name, args, desc
 
 
-def create_command_decorator(command_list):
-    """create a command_decorator
+def command(f):
+    """A decorator to wrap a command method or function.
 
-    In the process of decorating a function this command_decorator adds
-    the command to command_list. Calls to the decorated function (or method)
-    are wrapped by call_command.
+    Calls to the decorated method or function are wrapped by call_command.
     """
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        return call_command(f, args)
 
-    def command_decorator(f):
-        command_list.append(f)
-
-        @wraps(f)
-        def wrapper(*args, **kwds):
-            return call_command(f, args)
-
-        return wrapper
-
-    return command_decorator
+    return wrapper
 
 
 def call_command(f, args):

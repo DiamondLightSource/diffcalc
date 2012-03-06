@@ -145,7 +145,7 @@ class ConstraintAdapter(object):
         else:
             return 999
 
-    def updateTrackedParameters(self):
+    def update_tracked(self):
         pass
 
 

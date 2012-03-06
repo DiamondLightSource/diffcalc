@@ -3,13 +3,12 @@ from datetime import datetime
 
 from diffcalc.utils import getInputWithDefault as promptForInput, \
     promptForNumber, promptForList, allnum, isnum
-from diffcalc.utils import create_command_decorator
+from diffcalc.utils import command
 
 TORAD = pi / 180
 TODEG = 180 / pi
 
-_commands = []
-command = create_command_decorator(_commands)
+
 
 
 class UbCommands(object):
@@ -18,17 +17,33 @@ class UbCommands(object):
         self._hardware = hardware
         self._geometry = geometry
         self._ubcalc = ubcalc
+        self.commands = ['State',
+                         self.newub,
+                         self.loadub,
+                         self.listub,
+                         self.saveubas,
+                         self.ub,
+                         'Lattice',
+                         self.setlat,
+                         self.c2th,
+                         'Surface',
+                         self.sigtau,
+                         'Reflections',
+                         self.showref,
+                         self.addref,
+                         self.editref,
+                         self.delref,
+                         self.swapref,
+                         'ub',
+                         self.setu,
+                         self.setub,
+                         self.calcub,
+                         self.trialub]
 
     def __str__(self):
         return self._ubcalc.__str__()
 
-    @property
-    def commands(self):
-        return _commands
-
 ### UB state ###
-
-    _commands.append('State')
 
     @command
     def newub(self, name=None):
@@ -81,7 +96,6 @@ class UbCommands(object):
                (wavelength, energy))
 
 ### UB lattice ###
-    _commands.append('Lattice')
 
     @command
     def setlat(self, name=None, *args):
@@ -122,7 +136,6 @@ class UbCommands(object):
         return 2.0 * asin(wl / (d * 2)) * TODEG
 
 ### Surface stuff ###
-    _commands.append('Surface')
 
     @command
     def sigtau(self, sigma=None, tau=None):
@@ -143,7 +156,6 @@ class UbCommands(object):
 
 ### UB refelections ###
 
-    _commands.append('Reflections')
 
     @command
     def showref(self):
@@ -284,7 +296,6 @@ class UbCommands(object):
             raise TypeError()
 
 ### UB calculations ###
-    _commands.append('ub')
 
     @command
     def setu(self, U=None):
