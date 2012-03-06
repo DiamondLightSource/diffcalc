@@ -2,7 +2,7 @@ import unittest
 
 from diffcalc.hkl.vlieg.modes import ModeSelector
 from diffcalc.hkl.vlieg.parameters import VliegParameterManager
-from diffcalc.utils import DiffcalcException
+from diffcalc.util import DiffcalcException
 from test.diffcalc.hkl.vlieg.test_calcvlieg import \
     createMockHardwareMonitor, createMockDiffractometerGeometry
 

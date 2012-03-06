@@ -14,7 +14,7 @@ from diffcalc.hkl.vlieg.position import VliegPosition as Pos
 from test.tools import matrixeq_, mneq_
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.persistence import UbCalculationNonPersister
-from diffcalc.utils import DiffcalcException
+from diffcalc.util import DiffcalcException
 from diffcalc.hkl.vlieg.calcvlieg import VliegUbCalcStrategy
 from test.diffcalc import scenarios
 

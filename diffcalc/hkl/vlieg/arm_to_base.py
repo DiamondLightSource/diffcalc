@@ -1,6 +1,6 @@
 from math import tan, cos, sin, asin, atan, pi, fabs
 
-from diffcalc.utils import bound, nearlyEqual
+from diffcalc.util import bound, nearlyEqual
 
 
 def sign(x):

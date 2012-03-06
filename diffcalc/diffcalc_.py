@@ -1,25 +1,27 @@
-import diffcalc.utils  # @UnusedImport for flag
+from __future__ import absolute_import
+# NOTE: The underscore in this module is used because Jython 2.5.2 does
+#       not properly honour absolute_import
+
+import diffcalc.util  # @UnusedImport for flag
 
 from diffcalc.hkl.vlieg.commands import VliegHklCommands
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator
-from diffcalc.utils import DiffcalcException, allnum
+from diffcalc.util import DiffcalcException, allnum
 from diffcalc.hkl.vlieg.calcvlieg import VliegUbCalcStrategy
 from diffcalc.hkl.willmott.calcwill_horizontal import \
     WillmottHorizontalUbCalcStrategy, \
     WillmottHorizontalCalculator
 from diffcalc.hkl.willmott.commands import WillmottHklCommands
 from diffcalc.hkl.willmott.constraints import WillmottConstraintManager
-from diffcalc.utils import command, ExternalCommand
+from diffcalc.util import command, ExternalCommand
 from diffcalc.ub.commands import UbCommands
-from diffcalc.hardware_adapter import HardwareCommands
+from diffcalc.hardware import HardwareCommands
 from diffcalc.hkl.vlieg.transform import VliegTransformSelector, \
     TransformCommands, VliegPositionTransformer
 from diffcalc.hkl.you.calcyou import YouUbCalcStrategy, YouHklCalculator
 from diffcalc.hkl.you.commands import YouHklCommands
 from diffcalc.hkl.you.constraints import YouConstraintManager
-
-
 
 
 AVAILABLE_ENGINES = ('vlieg', 'willmott', 'you')
@@ -37,7 +39,7 @@ def create_diffcalc(engine_name,
                     raise_exceptions_for_all_errors,
                     ub_persister=None):
 
-    diffcalc.utils.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = \
+    diffcalc.util.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = \
         raise_exceptions_for_all_errors
 
     if engine_name not in AVAILABLE_ENGINES:
@@ -194,8 +196,8 @@ class Diffcalc(object):
         """checkub -- show calculated and entered hkl values for reflections.
         """
 
-        s = "   %-6s %-4s %-4s %-4s  %-6s %-6s %-6s  tag\n" % \
-        ('energy', 'h', 'k', 'l', 'h_comp', 'k_comp', 'l_comp')
+        s = "\n   %7s  %4s  %4s  %4s   %6s  %6s  %6s   TAG\n" % \
+        ('ENERGY', 'H', 'K', 'L', 'H_COMP', 'K_COMP', 'L_COMP')
 
         if self._ubcalc.getReflist() is None:
             s += "<<empty>>"
@@ -210,9 +212,9 @@ class Diffcalc(object):
                 del time, params
                 if tag is None:
                     tag = ""
-                s += ("%-2d %-6.4f %-4.2f %-4.2f %-4.2f  %-6.4f %-6.4f %-6.4f"
-                      "  %-s\n" % (n + 1, energy, hklguess[0], hklguess[1],
-                      hklguess[2], hkl[0], hkl[1], hkl[2], tag))
+                s += ("%-2d %-6.4f  %-4.2f  %-4.2f  %-4.2f   %-6.4f  %-6.4f  "
+                      "%-6.4f   %-s\n" % (n + 1, energy, hklguess[0],
+                      hklguess[1], hklguess[2], hkl[0], hkl[1], hkl[2], tag))
         print s
 
     @command
@@ -228,7 +230,7 @@ class Diffcalc(object):
         try:
             print scn.simulateMoveTo(hkl)
         except AttributeError:
-            if diffcalc.utils.RAISE_EXCEPTIONS_FOR_ALL_ERRORS:
+            if diffcalc.util.RAISE_EXCEPTIONS_FOR_ALL_ERRORS:
                 raise TypeError(
                     "The first argument does not support simulated moves")
             else:

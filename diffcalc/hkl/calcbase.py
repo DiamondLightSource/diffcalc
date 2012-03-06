@@ -1,6 +1,6 @@
 from math import pi
 
-from diffcalc.utils import DiffcalcException, differ
+from diffcalc.util import DiffcalcException, differ
 
 TORAD = pi / 180
 TODEG = 180 / pi

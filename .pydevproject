@@ -10,5 +10,6 @@
 <pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
 <path>/home/zrb13439/gda-ws-trunk/tp/plugins/uk.ac.diamond.jama_1.0.1.jar</path>
 <path>/home/zrb13439/gda-ws-trunk/tp/plugins/uk.ac.diamond.org.jscience_2.0.2.jar</path>
+<path>/home/zrb13439/gda-ws-trunk/tp/plugins/com.springsource.slf4j.org.apache.commons.logging_1.5.6.jar</path>
 </pydev_pathproperty>
 </pydev_project>

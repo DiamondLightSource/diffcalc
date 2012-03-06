@@ -4,7 +4,7 @@ except ImportError:
     from diffcalc.gdasupport.minigda.scannable import \
         Scannable as ScannableMotionBase
 
-from diffcalc.utils import getMessageFromException
+from diffcalc.util import getMessageFromException
 
 # TODO: Split into a base class when making other scannables
 

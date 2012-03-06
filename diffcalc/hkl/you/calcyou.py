@@ -7,14 +7,14 @@ except ImportError:
     from numjy import matrix
     from numjy.linalg import norm
 
-from diffcalc.configurelogging import logging
+from diffcalc.log import logging
 from diffcalc.hkl.calcbase import HklCalculatorBase
 from diffcalc.hkl.you.matrices import createYouMatrices, calcMU, calcPHI, \
     calcCHI
 from diffcalc.hkl.you.position import YouPosition
-from diffcalc.utils import DiffcalcException, bound, angle_between_vectors
+from diffcalc.util import DiffcalcException, bound, angle_between_vectors
 from diffcalc.hkl.common import DummyParameterManager
-from diffcalc.utils import cross3, z_rotation, x_rotation
+from diffcalc.util import cross3, z_rotation, x_rotation
 from diffcalc.ub.calculation import PaperSpecificUbCalcStrategy
 
 logger = logging.getLogger("diffcalc.hkl.you.calcyou")
@@ -623,6 +623,11 @@ class YouHklCalculator(HklCalculatorBase):
 
     def _calc_angles_given_two_sample_and_reference(
             self, samp_constraints, psi, theta, q_phi, n_phi):
+        """Available combinations:
+        chi, phi, reference
+        mu, eta, reference,
+        chi=90, mu=0, reference
+        """
 
         N_phi = _calc_N(q_phi, n_phi)
         THETA = z_rotation(-theta)

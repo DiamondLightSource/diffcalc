@@ -1,7 +1,7 @@
 from copy import deepcopy
 import datetime  # @UnusedImport for the eval below
 
-from diffcalc.utils import DiffcalcException
+from diffcalc.util import DiffcalcException
 from diffcalc.hkl.vlieg.position import VliegPosition
 
 
@@ -94,45 +94,29 @@ class ReflectionList:
         return len(self._reflist)
 
     def __str__(self):
-        return self.toStringWithExternalAngles()
+        return '\n'.join(self.str_lines())
 
-    def toStringWithExternalAngles(self):
-        circleNames = self._externalAngleNames
-        format = ("      %-6s %-4s %-4s %-4s  " + "%-8s " * len(circleNames) +
-                  " tag\n")
-        values = ('energy', 'h', 'k', 'l') + circleNames
+    def str_lines(self):
+        axes = tuple(s.upper() for s in self._externalAngleNames)
+        if not self._reflist:
+            return "   <<< none specified >>>"
 
-        result = format % values
-        #if len(self._reflist)==0:
-        #    result += "<<empty>>"
+        lines = []
+
+        format = ("     %6s %5s %5s %5s  " + "%8s " * len(axes) + " TAG")
+        values = ('ENERGY', 'H', 'K', 'L') + axes
+        lines.append(format % values)
+
         for n in range(len(self._reflist)):
-            [h, k, l], externalAngles, energy, tag, _ = \
-                self.getReflectionInExternalAngles(n + 1)
+            ref_tuple = self.getReflectionInExternalAngles(n + 1)
+            [h, k, l], externalAngles, energy, tag, _ = ref_tuple
             if tag is None:
                 tag = ""
-            format = ("   %-2d %-6.3f %-4.2f %-4.2f %-4.2f  " +
-                      "%-8.4f " * len(circleNames) + " %-s\n")
+            format = ("  %2d %6.3f % 4.2f % 4.2f % 4.2f  " +
+                      "% 8.4f " * len(axes) + " %s")
             values = (n + 1, energy, h, k, l) + externalAngles + (tag,)
-            result += format % values
-        return result
-
-    def soStringWithInternalAngles(self):
-        toReturn = ("      %-6s %-4s %-4s %-4s  %-8s %-8s %-8s %-8s %-8s %-8s "
-                    " tag\n" % ('energy', 'h', 'k', 'l', 'alpha', 'delta',
-                    'gamma', 'omega', 'chi', 'phi'))
-        for n in range(len(self._reflist)):
-            ref = self._reflist[n]
-            pos = ref.pos
-            if ref.tag is None:
-                tag = ""
-            else:
-                tag = ref.tag
-            toReturn += ("   %-2d %-6.3f %-4.2f %-4.2f %-4.2f  %-8.4f %-8.4f "
-                         "%-8.4f %-8.4f %-8.4f %-8.4f  %-s\n" %
-                         (n + 1, ref.energy, ref.h, ref.k, ref.l, pos.alpha,
-                         pos.delta, pos.gamma, pos.omega, pos.chi, pos.phi,
-                         tag))
-        return toReturn
+            lines.append(format % values)
+        return lines
 
     def getStateDict(self):
         """returns dict of form:

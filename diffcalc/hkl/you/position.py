@@ -1,6 +1,6 @@
 from math import pi
 
-from diffcalc.utils import AbstractPosition
+from diffcalc.util import AbstractPosition
 
 TORAD = pi / 180
 TODEG = 180 / pi

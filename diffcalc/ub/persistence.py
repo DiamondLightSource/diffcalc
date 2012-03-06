@@ -23,7 +23,7 @@ class UBCalculationPersister(object):
         if self.shelf is not None:
             self.shelf[key] = state
         else:
-            print " no database available to save UB calculation"
+            print "<<<no database available to save UB calculation>>>"
 
     def load(self, name):
         if self.shelf is not None:

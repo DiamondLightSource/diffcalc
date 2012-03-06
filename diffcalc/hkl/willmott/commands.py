@@ -1,7 +1,5 @@
 from diffcalc.hkl.common import getNameFromScannableOrString
-from diffcalc.utils import command
-
-
+from diffcalc.util import command
 
 
 class WillmottHklCommands(object):
@@ -38,5 +36,5 @@ class WillmottHklCommands(object):
         print self._report_constraints()
 
     def _report_constraints(self):
-        return (self._hklcalc.constraints._build_display_table() + '\n\n' +
+        return (self._hklcalc.constraints.build_display_table() + '\n\n' +
                self._hklcalc.constraints._report_constraints())

@@ -1,9 +1,9 @@
 from math import asin, pi
 from datetime import datetime
 
-from diffcalc.utils import getInputWithDefault as promptForInput, \
+from diffcalc.util import getInputWithDefault as promptForInput, \
     promptForNumber, promptForList, allnum, isnum
-from diffcalc.utils import command
+from diffcalc.util import command
 
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -92,8 +92,7 @@ class UbCommands(object):
         """
         wavelength = float(self._hardware.getWavelength())
         energy = float(self._hardware.getEnergy())
-        print (self._ubcalc.__str__() + "Wavelength: %f\n    Energy: %f\n" %
-               (wavelength, energy))
+        print self._ubcalc.__str__()
 
 ### UB lattice ###
 
@@ -156,11 +155,13 @@ class UbCommands(object):
 
 ### UB refelections ###
 
-
     @command
     def showref(self):
         """showref -- shows full reflection list"""
-        print self._ubcalc.dispReflectionList()
+        if self._ubcalc._reflist:
+            print '\n'.join(self._ubcalc._reflist.str_lines())
+        else:
+            print "<<< No UB calculation started >>>"
 
     @command
     def addref(self, *args):

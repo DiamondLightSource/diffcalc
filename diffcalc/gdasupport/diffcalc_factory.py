@@ -1,6 +1,6 @@
 import time
 
-from diffcalc.diffractioncalculator import create_diffcalc, AVAILABLE_ENGINES
+from diffcalc.diffcalc_ import create_diffcalc, AVAILABLE_ENGINES
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
 from diffcalc.gdasupport.scannable.hkl import Hkl
@@ -9,8 +9,8 @@ from diffcalc.gdasupport.scannable.parameter import \
 from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter
 from diffcalc.gdasupport.scannable.wavelength import Wavelength
 import diffcalc.hkl.vlieg.geometry
-from diffcalc.hardware_adapter import ScannableHardwareAdapter
-from diffcalc.utils import format_command_help, ExternalCommand
+from diffcalc.hardware import ScannableHardwareAdapter
+from diffcalc.util import format_command_help, ExternalCommand
 from diffcalc.hkl.vlieg.geometry import VliegGeometry
 from diffcalc.hkl.you.geometry import YouGeometry
 from diffcalc.ub.persistence import UBCalculationPersister

@@ -6,20 +6,20 @@ try:
 except ImportError:
     from numjy import matrix
 
-import diffcalc.utils  # @UnusedImport
+import diffcalc.util  # @UnusedImport
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
-from diffcalc.hardware_adapter import DummyHardwareAdapter
+from diffcalc.hardware import DummyHardwareAdapter
 from test.tools import assert_iterable_almost_equal, mneq_
 from diffcalc.ub.commands import UbCommands
 from diffcalc.ub.persistence import UbCalculationNonPersister
-from diffcalc.utils import DiffcalcException, MockRawInput
+from diffcalc.util import DiffcalcException, MockRawInput
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.hkl.vlieg.calcvlieg import VliegUbCalcStrategy
 from test.diffcalc import scenarios
 
 
 def prepareRawInput(listOfStrings):
-    diffcalc.utils.raw_input = MockRawInput(listOfStrings)
+    diffcalc.util.raw_input = MockRawInput(listOfStrings)
 
 prepareRawInput([])
 
@@ -36,7 +36,7 @@ class TestUbCommands(unittest.TestCase):
                                     VliegUbCalcStrategy())
         self.ubcommands = UbCommands(self.hardware, self.geometry, self.ubcalc)
         prepareRawInput([])
-        diffcalc.utils.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
+        diffcalc.util.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
 
     def testNewUb(self):
         self.ubcommands.newub('test1')

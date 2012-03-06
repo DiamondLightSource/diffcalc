@@ -1,9 +1,9 @@
 import unittest
 
 from diffcalc.hkl.vlieg.position import VliegPosition
-from diffcalc.utils import MockRawInput, \
+from diffcalc.util import MockRawInput, \
     getInputWithDefault, differ, nearlyEqual, degreesEquivilant
-import diffcalc.utils  # @UnusedImport
+import diffcalc.util  # @UnusedImport
 
 
 class TestUtils(unittest.TestCase):
@@ -22,39 +22,39 @@ class TestUtils(unittest.TestCase):
         self.assertRaises(TypeError, raw_input, '?')
 
     def testGetInputWithDefaultWithStrings(self):
-        diffcalc.utils.raw_input = MockRawInput('reply')
+        diffcalc.util.raw_input = MockRawInput('reply')
         print">>>"
         self.assertEquals(getInputWithDefault('enter a thing', 'default'),
                           'reply')
         print">>>"
-        diffcalc.utils.raw_input = MockRawInput('')
+        diffcalc.util.raw_input = MockRawInput('')
         self.assertEquals(getInputWithDefault('enter a thing', 'default'),
                           'default')
         print">>>"
-        diffcalc.utils.raw_input = MockRawInput('1.23 1 a')
+        diffcalc.util.raw_input = MockRawInput('1.23 1 a')
         self.assertEquals(getInputWithDefault('enter a thing', 'default'),
                           '1.23 1 a')
 
     def testGetInputWithDefaultWithNumbers(self):
-        diffcalc.utils.raw_input = MockRawInput('')
+        diffcalc.util.raw_input = MockRawInput('')
         self.assertEquals(getInputWithDefault('enter a thing', 1), 1.0)
 
-        diffcalc.utils.raw_input = MockRawInput('')
+        diffcalc.util.raw_input = MockRawInput('')
         self.assertEquals(getInputWithDefault('enter a thing', 1.23), 1.23)
 
-        diffcalc.utils.raw_input = MockRawInput('1')
+        diffcalc.util.raw_input = MockRawInput('1')
         self.assertEquals(getInputWithDefault('enter a thing', 'default'), 1.0)
 
-        diffcalc.utils.raw_input = MockRawInput('1.23')
+        diffcalc.util.raw_input = MockRawInput('1.23')
         self.assertEquals(getInputWithDefault('enter a thing', 'default'),
                           1.23)
 
     def testGetInputWithDefaultWithLists(self):
-        diffcalc.utils.raw_input = MockRawInput('')
+        diffcalc.util.raw_input = MockRawInput('')
         self.assertEquals(getInputWithDefault('enter a thing', (1, 2.0, 3.1)),
                           (1.0, 2.0, 3.1))
 
-        diffcalc.utils.raw_input = MockRawInput('1 2.0 3.1')
+        diffcalc.util.raw_input = MockRawInput('1 2.0 3.1')
         self.assertEquals(getInputWithDefault('enter a thing', 'default'),
                           [1.0, 2.0, 3.1])
 

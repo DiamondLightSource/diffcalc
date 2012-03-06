@@ -1,6 +1,6 @@
 from copy import copy
 
-from diffcalc.utils import DiffcalcException
+from diffcalc.util import DiffcalcException
 
 
 class VliegParameterManager(object):

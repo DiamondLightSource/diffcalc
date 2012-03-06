@@ -2,7 +2,7 @@ from nose.tools import eq_  # @UnresolvedImport
 from mock import Mock
 
 from diffcalc.hkl.you.constraints import YouConstraintManager
-from diffcalc.utils import DiffcalcException
+from diffcalc.util import DiffcalcException
 
 
 def joined(d1, d2):
@@ -31,18 +31,30 @@ class TestConstraintManager:
         self.cm.constrain('alpha')
         self.cm.constrain('eta')
         self.cm.set('qaz', 1.234)
-        self.cm.track('eta')
-        print self.cm._build_display_table()
-        eq_(self.cm._build_display_table(),
+        self.cm.set('eta', 99.)
+        print self.cm.build_display_table()
+        eq_(self.cm.build_display_table(),
 """
     DET        REF        SAMP
     ======     ======     ======
     delta      a_eq_b     mu
-    nu     o-> alpha  ~~> eta
+    nu     o-> alpha  --> eta
 --> qaz        beta       chi
     naz        psi        phi
                           mu_is_nu
-"""[1:])
+"""[1:-1])
+
+
+#"""
+#    DET        REF        SAMP                  Available:
+#    ======     ======     ======
+#    delta      a_eq_b     mu                    3x samp:         80 of 80
+#    nu     o-> alpha  --> eta                   2x samp and ref: chi & phi
+#--> qaz        beta       chi                                    mu & eta
+#    naz        psi        phi                                    chi=90 & mu=0
+#                          mu_is_nu              2x samp and det: 0 of 6
+#                                                3x samp:         0 of 4
+#"""[1:-1]
 
     def test_unconstrain_okay(self):
         eq_(self.cm.all, {})
@@ -93,9 +105,9 @@ class TestConstraintManager:
             self.cm.constrain('delta')
             assert False
         except DiffcalcException, e:
-            eq_(e.args[0], ("Delta could not be constrained. First "
-                            "un-constrain one of as the angles alpha,\n"
-                            "chi or phi (with 'uncon')"))
+            eq_(e.args[0], (
+                "Delta could not be constrained. First un-constrain one of the"
+                "\nangles alpha, chi or phi (with 'uncon')"))
 
     def test_constrain_det_three_preexisting_samp(self):
         self.cm.constrain('phi')
@@ -106,8 +118,8 @@ class TestConstraintManager:
             assert False
         except DiffcalcException, e:
             eq_(e.args[0],
-"""Delta could not be constrained. First un-constrain one of as the angles eta,
-chi or phi (with 'uncon')""")
+                "Delta could not be constrained. First un-constrain one of the"
+                "\nangles eta, chi or phi (with 'uncon')")
 
     def test_constrain_ref(self, pre={}):
         eq_(self.cm.all, pre)
@@ -144,9 +156,9 @@ chi or phi (with 'uncon')""")
             self.cm.constrain('alpha'),
             assert False
         except DiffcalcException, e:
-            eq_(e.args[0], ("Alpha could not be constrained. First "
-                            "un-constrain one of as the angles delta,\n"
-                            "chi or phi (with 'uncon')"))
+            eq_(e.args[0],
+                "Alpha could not be constrained. First un-constrain one of the"
+                "\nangles delta, chi or phi (with 'uncon')")
 
     def test_constrain_ref_three_preexisting_samp(self):
         self.cm.constrain('phi')
@@ -156,9 +168,9 @@ chi or phi (with 'uncon')""")
             self.cm.constrain('delta')
             assert False
         except DiffcalcException, e:
-            eq_(e.args[0], ("Delta could not be constrained. First "
-                            "un-constrain one of as the angles eta,\n"
-                            "chi or phi (with 'uncon')"))
+            eq_(e.args[0],
+                "Delta could not be constrained. First un-constrain one of the"
+                "\nangles eta, chi or phi (with 'uncon')")
 
     def test_constrain_samp_when_one_free(self, pre={}):
         eq_(self.cm.all, pre)
@@ -208,9 +220,9 @@ chi or phi (with 'uncon')""")
             self.cm.constrain('phi')
             assert False
         except DiffcalcException, e:
-            eq_(e.args[0], ("Phi could not be constrained. First "
-                            "un-constrain one of as the angles delta,\n"
-                            "eta or chi (with 'uncon')"))
+            eq_(e.args[0], 
+                "Phi could not be constrained. First un-constrain one of the"
+                "\nangles delta, eta or chi (with 'uncon')")
 
     def test_constrain_samp_three_preexisting_two_samp_one_ref(self):
         self.cm.constrain('alpha')
@@ -220,9 +232,9 @@ chi or phi (with 'uncon')""")
             self.cm.constrain('phi')
             assert False
         except DiffcalcException, e:
-            eq_(e.args[0], ("Phi could not be constrained. First "
-                            "un-constrain one of as the angles alpha,\n"
-                            "eta or chi (with 'uncon')"))
+            eq_(e.args[0],
+                "Phi could not be constrained. First un-constrain one of the"
+                "\nangles alpha, eta or chi (with 'uncon')")
 
     def test_constrain_samp_three_preexisting_samp(self):
         self.cm.constrain('mu')
@@ -232,9 +244,9 @@ chi or phi (with 'uncon')""")
             self.cm.constrain('phi')
             assert False
         except DiffcalcException, e:
-            eq_(e.args[0], ("Phi could not be constrained. First "
-                            "un-constrain one of as the angles mu,\n"
-                            "eta or chi (with 'uncon')"))
+            eq_(e.args[0],
+                "Phi could not be constrained. First un-constrain one of the"
+                "\nangles mu, eta or chi (with 'uncon')")
 
 ###
     def test_set_fails(self):
@@ -242,7 +254,7 @@ chi or phi (with 'uncon')""")
             self.cm.set('not_a_constraint', object())
             assert False
         except DiffcalcException, e:
-            eq_(e.args[0], "Could not set not_a_constraint as this is not an "
+            eq_(e.args[0], "Could not set not_a_constraint. This is not an "
                 "available constraint.")
 
         try:
@@ -250,7 +262,7 @@ chi or phi (with 'uncon')""")
             assert False
         except DiffcalcException, e:
             eq_(e.args[0],
-                "Could not set delta as this is not currently constrained.")
+                "Could not set delta. This is not currently constrained.")
 
         self.cm.constrain('a_eq_b')
         try:
@@ -258,18 +270,18 @@ chi or phi (with 'uncon')""")
             assert False
         except DiffcalcException, e:
             eq_(e.args[0],
-                "Could not set a_eq_b as this constraint takes no value.")
+                "Could not set a_eq_b. This constraint takes no value.")
 
-        self.cm.constrain('delta')
-        self.cm.track('delta')
-        try:
-            self.cm.set('delta', object())
-            assert False
-        except DiffcalcException, e:
-            eq_(e.args[0], ("Could not set delta as this constraint is "
-                            "configured to track its associated\n"
-                            "physical angle. First remove this tracking "
-                            "(use 'untrack delta')."))
+#        self.cm.constrain('delta')
+#        self.cm.track('delta')
+#        try:
+#            self.cm.set('delta', object())
+#            assert False
+#        except DiffcalcException, e:
+#            eq_(e.args[0], ("Could not set delta as this constraint is "
+#                            "configured to track its associated\n"
+#                            "physical angle. First remove this tracking "
+#                            "(use 'untrack delta')."))
 
     def test_set(self):
         #"%s: %s --> %f %s"
@@ -277,43 +289,43 @@ chi or phi (with 'uncon')""")
         eq_(self.cm.set('alpha', 1.), 'alpha : --- --> 1.0')
         eq_(self.cm.set('alpha', 2.), 'alpha : 1.0 --> 2.0')
 
-    def test_track_fails(self):
-        try:
-            self.cm.track('not_a_constraint')
-            assert False
-        except DiffcalcException, e:
-            eq_(e.args[0], "Could not track not_a_constraint as this is not "
-                "an available constraint.")
-
-        try:
-            self.cm.track('delta')
-            assert False
-        except DiffcalcException, e:
-            eq_(e.args[0],
-                "Could not track delta as this is not currently constrained.")
-
-        self.cm.constrain('a_eq_b')
-        try:
-            self.cm.track('a_eq_b')
-            assert False
-        except DiffcalcException, e:
-            eq_(e.args[0],
-                "Could not track a_eq_b as this constraint takes no value.")
-
-        self.cm.constrain('alpha')
-        try:
-            self.cm.track('alpha')
-            assert False
-        except DiffcalcException, e:
-            eq_(e.args[0], ("Could not configure alpha to track as this "
-                            "constraint is not associated with a\n"
-                            "physical angle."))
-
-    def test_track(self):
-        #"%s: %s --> %f %s"
-        self.cm.constrain('delta')
-        eq_(self.cm.track('delta'), 'delta : --- ~~> 1.0 (tracking)')
-        eq_(self.cm.track('delta'), 'Delta was already configured to track.')
-        self.cm.untrack('delta')
-        self.cm.set('delta', 2.)
-        eq_(self.cm.track('delta'), 'delta : 2.0 ~~> 1.0 (tracking)')
+#    def test_track_fails(self):
+#        try:
+#            self.cm.track('not_a_constraint')
+#            assert False
+#        except DiffcalcException, e:
+#            eq_(e.args[0], "Could not track not_a_constraint as this is not "
+#                "an available constraint.")
+#
+#        try:
+#            self.cm.track('delta')
+#            assert False
+#        except DiffcalcException, e:
+#            eq_(e.args[0],
+#                "Could not track delta as this is not currently constrained.")
+#
+#        self.cm.constrain('a_eq_b')
+#        try:
+#            self.cm.track('a_eq_b')
+#            assert False
+#        except DiffcalcException, e:
+#            eq_(e.args[0],
+#                "Could not track a_eq_b as this constraint takes no value.")
+#
+#        self.cm.constrain('alpha')
+#        try:
+#            self.cm.track('alpha')
+#            assert False
+#        except DiffcalcException, e:
+#            eq_(e.args[0], ("Could not configure alpha to track as this "
+#                            "constraint is not associated with a\n"
+#                            "physical angle."))
+#
+#    def test_track(self):
+#        #"%s: %s --> %f %s"
+#        self.cm.constrain('delta')
+#        eq_(self.cm.track('delta'), 'delta : --- ~~> 1.0 (tracking)')
+#        eq_(self.cm.track('delta'), 'Delta was already configured to track.')
+#        self.cm.untrack('delta')
+#        self.cm.set('delta', 2.)
+#        eq_(self.cm.track('delta'), 'delta : 2.0 ~~> 1.0 (tracking)')

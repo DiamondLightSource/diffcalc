@@ -10,7 +10,7 @@ except ImportError:
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.persistence import UBCalculationPersister
 from diffcalc.ub.reflections import ReflectionList
-from diffcalc.utils import DiffcalcException, cross3, dot3
+from diffcalc.util import DiffcalcException, cross3, dot3
 
 SMALL = 1e-7
 TODEG = 180 / pi
@@ -161,33 +161,53 @@ class UBCalculation:
         self._sigma = 0  # degrees
 
     def __str__(self):
-        if self._name != None:
-            result = "UBCalc:     %s\n" % self._name
-            result += "======\n\n"
-            result += "Crystal\n-------\n"
-            if self._crystal is None:
-                result += "   none specified\n"
-            else:
-                result += self._crystal.__str__()
-            result += "\nReflections\n-----------\n"
-            result += self._reflist.__str__()
-            result += "\nUB matrix\n---------\n"
-            if self._UB is None:
-                result += "   none calculated"
-            else:
-                ub = self._UB
-                result += ("\t       % 18.13f% 18.13f% 18.12f\n" %
-                           (ub[0, 0], ub[0, 1], ub[0, 2]))
-                result += ("\t       % 18.13f% 18.13f% 18.12f\n" %
-                           (ub[1, 0], ub[1, 1], ub[1, 2]))
-                result += ("\t       % 18.13f% 18.13f% 18.12f\n" %
-                           (ub[2, 0], ub[2, 1], ub[2, 2]))
-            result += "\n     Sigma: %f\n" % self._sigma
-            result += "         Tau: %f\n" % self._tau
+        WIDTH = 13
 
+        if self._name is None:
+            return "<<< No UB calculation started >>>"
+        lines = []
+        lines.append("UBCALC")
+        lines.append("")
+        lines.append(
+            "   name:".ljust(WIDTH) + self._name.rjust(9))
+        lines.append(
+            "   sigma:".ljust(WIDTH) + ("% 9.5f" % self._sigma).rjust(9))
+        lines.append(
+            "   tau:".ljust(WIDTH) + ("% 9.5f" % self._tau).rjust(9))
+
+        lines.append("")
+        lines.append("CRYSTAL")
+        lines.append("")
+        if self._crystal is None:
+            lines.append("   <<< none specified >>>")
         else:
-            result = "No UB calculation started.\n"
-        return result
+            lines.extend(self._crystal.str_lines())
+
+        lines.append("")
+        lines.append("UB MATRIX")
+        lines.append("")
+        if self._UB is None:
+            lines.append("   <<< none calculated >>>")
+        else:
+            fmt = "% 9.5f % 9.5f % 9.5f"
+            U = self.U
+            UB = self.UB
+            lines.append("   U matrix:".ljust(WIDTH) +
+                         fmt % (U[0, 0], U[0, 1], U[0, 2]))
+            lines.append(' ' * WIDTH + fmt % (U[1, 0], U[1, 1], U[1, 2]))
+            lines.append(' ' * WIDTH + fmt % (U[2, 0], U[2, 1], U[2, 2]))
+            lines.append("")
+
+            lines.append("   UB matrix:".ljust(WIDTH) +
+                         fmt % (UB[0, 0], UB[0, 1], UB[0, 2]))
+            lines.append(' ' * WIDTH + fmt % (UB[1, 0], UB[1, 1], UB[1, 2]))
+            lines.append(' ' * WIDTH + fmt % (UB[2, 0], UB[2, 1], UB[2, 2]))
+
+        lines.append("")
+        lines.append("REFLECTIONS")
+        lines.append("")
+        lines.extend(self._reflist.str_lines())
+        return '\n'.join(lines)
 
     def getName(self):
         return self._name
@@ -248,8 +268,7 @@ class UBCalculation:
 
 ### Surface normal stuff ###
 
-    @property
-    def tau(self):
+    def _gettau(self):
         """
         Returns tau (in degrees): the (minus) ammount of phi axis rotation ,
         that together with some chi axis rotation (minus sigma) brings the
@@ -257,13 +276,13 @@ class UBCalculation:
         """
         return self._tau
 
-    @tau.setter
-    def tau(self, tau):
+    def _settau(self, tau):
         self._tau = tau
         self.save()
 
-    @property
-    def sigma(self):
+    tau = property(_gettau, _settau)
+
+    def _getsigma(self):
         """
         Returns sigma (in degrees): the (minus) ammount of phi axis rotation ,
         that together with some phi axis rotation (minus tau) brings the
@@ -271,10 +290,11 @@ class UBCalculation:
         """
         return self._sigma
 
-    @sigma.setter
-    def sigma(self, sigma):
+    def _setsigma(self, sigma):
         self._sigma = sigma
         self.save()
+
+    sigma = property(_getsigma, _setsigma)
 
 ### Reflections ###
 

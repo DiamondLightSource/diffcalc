@@ -2,11 +2,11 @@ import unittest
 
 from mock import Mock
 
-import diffcalc.utils  # @UnusedImport to overide raw_input
+import diffcalc.util  # @UnusedImport to overide raw_input
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
-from diffcalc.hardware_adapter import DummyHardwareAdapter
+from diffcalc.hardware import DummyHardwareAdapter
 from diffcalc.hkl.vlieg.commands import VliegHklCommands
-from diffcalc.utils import MockRawInput
+from diffcalc.util import MockRawInput
 from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator
 from diffcalc.ub.calculation import UBCalculation
 
@@ -17,7 +17,7 @@ except ImportError:
 
 
 def prepareRawInput(listOfStrings):
-    diffcalc.utils.raw_input = MockRawInput(listOfStrings)
+    diffcalc.util.raw_input = MockRawInput(listOfStrings)
 
 prepareRawInput([])
 
@@ -32,7 +32,7 @@ class TestHklCommands(unittest.TestCase):
         self.hklcalc = VliegHklCalculator(self.mock_ubcalc, self.geometry,
                                           self.hardware, True)
         self.hkl = VliegHklCommands(self.hklcalc, self.geometry)
-        diffcalc.utils.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
+        diffcalc.util.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
         prepareRawInput([])
 
     def testHklmode(self):

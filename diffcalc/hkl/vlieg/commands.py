@@ -1,5 +1,5 @@
 from diffcalc.hkl.common import getNameFromScannableOrString
-from diffcalc.utils import command
+from diffcalc.util import command
 
 
 

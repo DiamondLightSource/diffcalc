@@ -41,7 +41,7 @@ class Scannable(object):
         names = tuple(self.getInputNames()) + tuple(self.getExtraNames())
         for name, val in zip(names, formattedValues):
             result += name + ': ' + val
-        return '< ' + result + ' >'
+        return result
 ###
 
     def formatPositionFields(self, pos):

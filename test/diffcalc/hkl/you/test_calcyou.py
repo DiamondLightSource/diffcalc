@@ -11,8 +11,8 @@ from diffcalc.hkl.you.constraints import YouConstraintManager
 from test.tools import assert_array_almost_equal, \
     assert_second_dict_almost_in_first
 from diffcalc.ub.crystal import CrystalUnderTest
-from diffcalc.utils import y_rotation, z_rotation, DiffcalcException
-from test.diffcalc.test_hardware_adapter import SimpleHardwareAdapter
+from diffcalc.util import y_rotation, z_rotation, DiffcalcException
+from test.diffcalc.test_hardware import SimpleHardwareAdapter
 from test.diffcalc.hkl.vlieg.test_calcvlieg import \
     createMockDiffractometerGeometry, createMockUbcalc
 from diffcalc.hkl.you.position import YouPosition as Pos, YouPosition as P

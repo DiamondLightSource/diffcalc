@@ -333,13 +333,13 @@ def call_command(f, args):
             print "-" * 80
             print f.__doc__
             print "-" * 80
-            raise e
+            raise
         else:
             print 'TypeError : %s' % e.message
             print 'USAGE:'
             print f.__doc__
     except DiffcalcException, e:
         if RAISE_EXCEPTIONS_FOR_ALL_ERRORS:
-            raise e
+            raise
         else:
             print e.args[0]

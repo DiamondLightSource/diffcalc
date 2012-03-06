@@ -10,10 +10,10 @@ from diffcalc.gdasupport.scannable.base import ScannableGroup
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
 from diffcalc.gdasupport.scannable.mock import MockMotor
-from diffcalc.hardware_adapter import HardwareCommands
-from diffcalc.hardware_adapter import DummyHardwareAdapter
-from diffcalc.hardware_adapter import HardwareAdapter
-from diffcalc.hardware_adapter import ScannableHardwareAdapter
+from diffcalc.hardware import HardwareCommands
+from diffcalc.hardware import DummyHardwareAdapter
+from diffcalc.hardware import HardwareAdapter
+from diffcalc.hardware import ScannableHardwareAdapter
 from nose.tools import eq_, assert_raises  # @UnresolvedImport
 from test.diffcalc.gdasupport.scannable.mockdiffcalc import MockDiffcalc
 

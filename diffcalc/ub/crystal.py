@@ -82,32 +82,29 @@ class CrystalUnderTest(object):
 
     def __str__(self):
         '''    Returns lattice name and all set and calculated parameters'''
+        return '\n'.join(self.str_lines())
 
-        # Assume that if name is set, everything has been calculated
+    def str_lines(self):
+        WIDTH = 13
         if self._name is None:
-            return "   none specified\n"
+            return ["   none specified"]
 
         b = self._bMatrix
+        lines = []
+        lines.append("   name:".ljust(WIDTH) + self._name.rjust(9))
+        lines.append("")
+        lines.append("   a, b, c:".ljust(WIDTH) +
+                     "% 9.5f % 9.5f % 9.5f" % (self.getLattice()[1:4]))
+        lines.append(" " * WIDTH +
+                     "% 9.5f % 9.5f % 9.5f" % (self.getLattice()[4:]))
+        lines.append("")
 
-        result = "   crystal:       %s\n\n" % self._name
-        result += ("   lattice:                a ,b ,c  = % 9.5f, % 9.5f, % 9.5f\n" #@IgnorePep8
-                   % (self._a1, self._a2, self._a3))
-        result += ("                alpha, beta, gamma  = % 9.5f, % 9.5f, % 9.5f\n" #@IgnorePep8
-                   % (self._alpha1 * TODEG, self._alpha2 * TODEG,
-                      self._alpha3 * TODEG))
-        result += "\n"
-        result += ("   reciprical:          b1, b2, b3  = % 9.5f, % 9.5f, % 9.5f\n" #@IgnorePep8
-                   % (self._b1, self._b2, self._b3))
-        result += ("               beta1, beta2, beta3  = % 9.5f, % 9.5f, % 9.5f\n" #@IgnorePep8
-                   % (self._beta1, self._beta2, self._beta3))
-        result += "\n"
-        result += ("   B matrix:   % 18.13f% 18.13f% 18.12f\n" %
-                   (b[0, 0], b[0, 1], b[0, 2]))
-        result += ("               % 18.13f% 18.13f% 18.12f\n" %
-                   (b[1, 0], b[1, 1], b[1, 2]))
-        result += ("               % 18.13f% 18.13f% 18.12f\n" %
-                   (b[2, 0], b[2, 1], b[2, 2]))
-        return result
+        fmt = "% 9.5f % 9.5f % 9.5f"
+        lines.append("   B matrix:".ljust(WIDTH) +
+                     fmt % (b[0, 0], b[0, 1], b[0, 2]))
+        lines.append(' ' * WIDTH + fmt % (b[1, 0], b[1, 1], b[1, 2]))
+        lines.append(' ' * WIDTH + fmt % (b[2, 0], b[2, 1], b[2, 2]))
+        return lines
 
     def getLattice(self):
         return(self._name, self._a1, self._a2, self._a3, self._alpha1 * TODEG,

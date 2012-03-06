@@ -1,7 +1,5 @@
 from diffcalc.hkl.common import getNameFromScannableOrString
-from diffcalc.utils import command
-
-
+from diffcalc.util import command
 
 
 class YouHklCommands(object):
@@ -35,8 +33,14 @@ class YouHklCommands(object):
     def cons(self):
         """cons -- list available constraints and values
         """
-        print self._report_constraints()
+        lines = []
+        lines.append(self._hklcalc.constraints.build_display_table())
+        lines.append("")
+        lines.append(self._hklcalc.constraints.report_constraints())
+        lines.append("")
+        lines.append("Type 'help cons' for instructions")
+        print '\n'.join(lines)
 
     def _report_constraints(self):
-        return (self._hklcalc.constraints._build_display_table() + '\n\n' +
-               self._hklcalc.constraints._report_constraints())
+        return (self._hklcalc.constraints.build_display_table() + '\n\n' +
+               self._hklcalc.constraints.report_constraints())

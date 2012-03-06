@@ -2,7 +2,7 @@ import mock
 import nose
 import unittest
 
-from diffcalc import diffractioncalculator
+from diffcalc import diffcalc_
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
 from diffcalc.gdasupport.scannable.hkl import Hkl
@@ -42,7 +42,7 @@ class Popper:
 class TestHkl(unittest.TestCase):
 
     def setUp(self):
-        self.mockDiffcalc = mock.Mock(spec=diffractioncalculator.Diffcalc)
+        self.mockDiffcalc = mock.Mock(spec=diffcalc_.Diffcalc)
         self.mockSixc = mock.Mock(spec=DiffractometerScannableGroup)
         self.hkl = Hkl('hkl', self.mockSixc, self.mockDiffcalc)
 

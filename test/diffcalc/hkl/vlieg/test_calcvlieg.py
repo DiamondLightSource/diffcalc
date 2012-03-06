@@ -14,7 +14,7 @@ except ImportError:
 from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator, \
     _findOmegaAndChiToRotateHchiIntoQalpha, check
 from diffcalc.hkl.vlieg.matrices import createVliegMatrices
-from diffcalc.utils import DiffcalcException
+from diffcalc.util import DiffcalcException
 from test.diffcalc import scenarios
 
 TORAD = pi / 180

@@ -1,4 +1,4 @@
-from diffcalc.utils import DiffcalcException
+from diffcalc.util import DiffcalcException
 
 
 def filter_dict(d, keys):
@@ -20,7 +20,7 @@ class WillmottConstraintManager(object):
         self._constrained = {'bin_eq_bout': None}
 
     @property
-    def available(self):
+    def available_constraint_names(self):
         """list of all available constraints"""
         return all_constraints
 

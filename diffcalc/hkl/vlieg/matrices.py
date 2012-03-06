@@ -5,7 +5,7 @@ try:
 except ImportError:
     from numjy import matrix
 
-from diffcalc.utils import x_rotation, z_rotation, y_rotation
+from diffcalc.util import x_rotation, z_rotation, y_rotation
 
 
 def calcALPHA(alpha):

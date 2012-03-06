@@ -1,5 +1,6 @@
 from nose.tools import assert_almost_equal  # @UnresolvedImport
 from nose.tools import ok_
+from functools import wraps
 
 try:
     from numpy import matrix
@@ -106,3 +107,39 @@ mneq_ = matrixeq_ = assert_matrix_almost_equal
 
 def meq_(a, b):
     ok_((a == b).all(), '\n%s\n  !=\n%s' % (a, b))
+
+
+def wrap_command_to_print_calls(f, user_syntax=True):
+
+    def print_with_user_syntax(f, args):
+        arg_strings = []
+        for arg in args:
+            if isinstance(arg, list):
+                element_as_strings = (str(el) for el in arg)
+                arg_strings.append('[%s]' % ' '.join(element_as_strings))
+            else:
+                try:
+                    arg_strings.append(arg.name)  # Scannable
+                except AttributeError:
+                    arg_strings.append(repr(arg))  # e.g. number or string
+
+        print '\n>>>', f.__name__, ' '.join(arg_strings)
+
+    def print_with_python_syntax(f, args):
+        print '\n>>> %s(%s)' % (f.__name__, ', '.join(args))
+
+    def call_command(f, args):
+        if user_syntax:
+            print_with_user_syntax(f, args)
+        else:
+            print_with_python_syntax(f, args)
+        result = f(*args)
+        if result is not None:
+            print result
+        return result
+
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        return call_command(f, args)
+
+    return wrapper

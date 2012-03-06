@@ -1,5 +1,5 @@
 from diffcalc.gdasupport.minigda.scannable import Scannable
-from diffcalc.utils import getMessageFromException
+from diffcalc.util import getMessageFromException
 import math
 import time
 

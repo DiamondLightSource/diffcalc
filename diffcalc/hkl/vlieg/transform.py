@@ -1,4 +1,4 @@
-from diffcalc.utils import command
+from diffcalc.util import command
 
 from copy import copy
 from math import pi

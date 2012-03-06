@@ -9,7 +9,7 @@ except ImportError:
 
 from diffcalc.hkl.calcbase import HklCalculatorBase
 from diffcalc.hkl.vlieg.transform import TransformCInRadians
-from diffcalc.utils import dot3, cross3, bound, differ
+from diffcalc.util import dot3, cross3, bound, differ
 from diffcalc.hkl.vlieg.matrices import createVliegMatrices, \
     createVliegsPsiTransformationMatrix, \
     createVliegsSurfaceTransformationMatrices, calcPHI

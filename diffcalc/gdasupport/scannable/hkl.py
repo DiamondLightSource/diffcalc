@@ -5,7 +5,7 @@ except ImportError:
     from diffcalc.gdasupport.minigda.scannable import \
         ScannableMotionWithScannableFieldsBase
 
-from diffcalc.utils import getMessageFromException
+from diffcalc.util import getMessageFromException
 
 
 class _DynamicDocstringMetaclass(type):
@@ -18,7 +18,7 @@ class _DynamicDocstringMetaclass(type):
 
 class Hkl(ScannableMotionWithScannableFieldsBase):
 
-    __metaclass__ = _DynamicDocstringMetaclass
+    #__metaclass__ = _DynamicDocstringMetaclass  # TODO: Removed to fix Jython
 
     dynamic_docstring = 'Hkl Scannable'
 

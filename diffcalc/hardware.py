@@ -1,8 +1,10 @@
-from diffcalc.utils import DiffcalcException
+from __future__ import absolute_import
+
+from diffcalc.util import DiffcalcException
 
 SMALL = 1e-8
 
-from diffcalc.utils import command
+from diffcalc.util import command
 
 
 def getNameFromScannableOrString(o):
@@ -85,7 +87,7 @@ class HardwareAdapter(object):
 
     def getPosition(self):
         """pos = getPosition() -- returns the current physical diffractometer
-        position as a diffcalc.utils object in degrees
+        position as a diffcalc.util object in degrees
         """
         raise NotImplementedError()
 

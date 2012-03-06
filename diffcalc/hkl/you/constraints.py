@@ -1,4 +1,4 @@
-from diffcalc.utils import DiffcalcException
+from diffcalc.util import DiffcalcException
 
 
 def filter_dict(d, keys):
@@ -16,15 +16,29 @@ valueless_constraints = ('a_eq_b', 'mu_is_nu')
 all_constraints = det_constraints + ref_constraints + samp_constraints
 
 
+number_single_sample = (len(det_constraints) * len(ref_constraints) *
+                        len(samp_constraints))
+AVAILABLE_MODES_STRING = """
+Available:
+
+1x samp:         80 of 80
+2x samp and ref: chi & phi
+                 mu & eta
+                 chi=90 & mu=0
+2x samp and det: 0 of 6
+3x samp:         0 of 4
+"""[1:-1]
+
+
 class YouConstraintManager(object):
 
     def __init__(self, hardware):
         self._hardware = hardware
         self._constrained = {}
-        self._tracking = []
+#        self._tracking = []
 
     @property
-    def available(self):
+    def available_constraint_names(self):
         """list of all available constraints"""
         return all_constraints
 
@@ -71,43 +85,62 @@ class YouConstraintManager(object):
     def is_constrained(self, name):
         return name in self._constrained
 
-    def is_tracking(self, name):
-        return name in self._tracking
-
     def get_value(self, name):
         return self._constrained[name]
 
-    def _build_display_table(self):
+    def build_display_table(self):
         constraint_types = (det_constraints, ref_constraints,
                             samp_constraints)
         num_rows = max([len(col) for col in constraint_types])
         max_name_width = max(
             [len(name) for name in sum(constraint_types[:2], ())])
-        s = '    ' + 'DET'.ljust(max_name_width) + ' '
-        s += '    ' + 'REF'.ljust(max_name_width) + ' '
-        s += '    ' + 'SAMP' + '\n'
-        s += (('    ' + '=' * max_name_width + ' ') * 3).rstrip() + '\n'
+        cells = []
+        
+        header_cells = []
+        header_cells.append('    ' + 'DET'.ljust(max_name_width))
+        header_cells.append('    ' + 'REF'.ljust(max_name_width))
+        header_cells.append('    ' + 'SAMP')
+        cells.append(header_cells)
+        
+        underline_cells = ['    ' + '=' * max_name_width] * 3
+        cells.append(underline_cells)
+        
+        
         for n_row in range(num_rows):
+            row_cells = []
             for col in constraint_types:
                 name = col[n_row] if n_row < len(col) else ''
-                s += self._label_constraint(name)
-                s += ('%-' + str(max_name_width) + 's ') % name
-            s = s.rstrip()
-            s += '\n'
-        return s
+                row_cells.append(self._label_constraint(name))
+                row_cells.append(('%-' + str(max_name_width) + 's') % name)
+            cells.append(row_cells)
+        
+        lines = [' '.join(row_cells).rstrip() for row_cells in cells]
+        return '\n'.join(lines)
 
+    def report_constraints(self):
+        if not self.reference:
+            return "!!! No reference constraint set"
+        name, val = self.reference.items()[0]
+        if name in valueless_constraints:
+            return "    %s" % name
+        else:
+            if val is None:
+                return "!!! %s: ---" % name
+            else:
+                return "    %s: %.4f" % (name, val)
+            
     def _label_constraint(self, name):
         if name == '':
-            label = '    '
-        elif self.is_tracking(name):  # implies constrained
-            label = '~~> '
+            label = '   '
+#        elif self.is_tracking(name):  # implies constrained
+#            label = '~~> '
         elif (self.is_constrained(name) and (self.get_value(name) is None) and
             name not in valueless_constraints):
-            label = 'o-> '
+            label = 'o->'
         elif self.is_constrained(name):
-            label = '--> '
+            label = '-->'
         else:
-            label = '    '
+            label = '   '
         return label
 
     def constrain(self, name):
@@ -139,8 +172,9 @@ class YouConstraintManager(object):
 
     def _could_not_constrain_exception(self, name):
         return DiffcalcException(
-"""%s could not be constrained. First un-constrain one of as the angles %s,
-%s or %s (with 'uncon')""" % ((name.capitalize(),) + self.constrained_names))
+            "%s could not be constrained. First un-constrain one of the\n"
+            "angles %s, %s or %s (with 'uncon')" %
+            ((name.capitalize(),) + self.constrained_names))
 
     def _constrain_reference(self, name):
         if self.reference:
@@ -174,58 +208,64 @@ class YouConstraintManager(object):
         else:
             return "%s was not already constrained." % name.capitalize()
 
-    def _check_constraint_settable_or_trackable(self, name, verb):
+    def _check_constraint_settable(self, name):
         if name not in all_constraints:
             raise DiffcalcException(
-                'Could not %(verb)s %(name)s as this is not an available '
+                'Could not set %(name)s. This is not an available '
                 'constraint.' % locals())
         elif name not in self.all.keys():
             raise DiffcalcException(
-                'Could not %(verb)s %(name)s as this is not currently '
+                'Could not set %(name)s. This is not currently '
                 'constrained.' % locals())
         elif name in valueless_constraints:
             raise DiffcalcException(
-                'Could not %(verb)s %(name)s as this constraint takes no '
+                'Could not set %(name)s. This constraint takes no '
                 'value.' % locals())
 
     def set(self, name, value):  # @ReservedAssignment
-        self._check_constraint_settable_or_trackable(name, 'set')
-        if name in self._tracking:
-            raise DiffcalcException(
-                "Could not set %s as this constraint is configured to track "
-                "its associated\nphysical angle. First remove this tracking "
-                "(use 'untrack %s').""" % (name, name))
+        self._check_constraint_settable(name)
+#        if name in self._tracking:
+#            raise DiffcalcException(
+#                "Could not set %s as this constraint is configured to track "
+#                "its associated\nphysical angle. First remove this tracking "
+#                "(use 'untrack %s').""" % (name, name))
         old_value = self.all[name]
         old = str(old_value) if old_value is not None else '---'
         self._constrained[name] = float(value)
         new = str(value)
         return "%(name)s : %(old)s --> %(new)s" % locals()
 
-    def track(self, name):
-        self._check_constraint_settable_or_trackable(name, 'track')
-        if name not in trackable_constraints:
-            raise DiffcalcException(
-"""Could not configure %s to track as this constraint is not associated with a
-physical angle.""" % name)
-        elif name in self._tracking:
-            return "%s was already configured to track." % name.capitalize()
-        else:
-            old_value = self.all[name]
-            old = str(old_value) if old_value is not None else '---'
-            self._tracking.append(name)
-            self.update_tracked()
-            new = str(self.all[name])
-            return "%(name)s : %(old)s ~~> %(new)s (tracking)" % locals()
-
-    def untrack(self, name):
-        if name not in self._tracking:
-            return "%s was not configured to track." % name.capitalize()
-        self._tracking.remove(name)
-
     def update_tracked(self):
-        if self._tracking:
-            physical_angles = tuple(self._hardware.getPosition())
-            angle_names = tuple(self._hardware.getPhysicalAngleNames())
-            for name in self._tracking:
-                self._constrained[name] = \
-                    physical_angles[list(angle_names).index(name)]
+        pass  # not used
+
+#    def track(self, name):
+#        self._check_constraint_settable(name, 'track')
+#        if name not in trackable_constraints:
+#            raise DiffcalcException(
+#"""Could not configure %s to track as this constraint is not associated with a
+#physical angle.""" % name)
+#        elif name in self._tracking:
+#            return "%s was already configured to track." % name.capitalize()
+#        else:
+#            old_value = self.all[name]
+#            old = str(old_value) if old_value is not None else '---'
+#            self._tracking.append(name)
+#            self.update_tracked()
+#            new = str(self.all[name])
+#            return "%(name)s : %(old)s ~~> %(new)s (tracking)" % locals()
+#
+#    def untrack(self, name):
+#        if name not in self._tracking:
+#            return "%s was not configured to track." % name.capitalize()
+#        self._tracking.remove(name)
+#
+#    def update_tracked(self):
+#        if self._tracking:
+#            physical_angles = tuple(self._hardware.getPosition())
+#            angle_names = tuple(self._hardware.getPhysicalAngleNames())
+#            for name in self._tracking:
+#                self._constrained[name] = \
+#                    physical_angles[list(angle_names).index(name)]
+#
+#    def is_tracking(self, name):
+#        return name in self._tracking

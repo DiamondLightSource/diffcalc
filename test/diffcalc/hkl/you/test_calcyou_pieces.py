@@ -16,8 +16,8 @@ from diffcalc.hkl.you.position  import YouPosition
 from test.diffcalc.hkl.vlieg.test_calcvlieg import \
     createMockDiffractometerGeometry, createMockHardwareMonitor, \
     createMockUbcalc
-from test.diffcalc.test_hardware_adapter import SimpleHardwareAdapter
-from diffcalc.utils import DiffcalcException
+from test.diffcalc.test_hardware import SimpleHardwareAdapter
+from diffcalc.util import DiffcalcException
 
 
 TORAD = pi / 180

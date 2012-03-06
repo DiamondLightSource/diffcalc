@@ -1,4 +1,4 @@
-from diffcalc.utils import x_rotation, z_rotation, y_rotation
+from diffcalc.util import x_rotation, z_rotation, y_rotation
 
 
 def createYouMatrices(mu=None, delta=None, nu=None, eta=None, chi=None,

@@ -8,14 +8,14 @@ from diffcalc.hkl.vlieg.geometry import SixCircleGeometry
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
-from diffcalc.hardware_adapter import ScannableHardwareAdapter
+from diffcalc.hardware import ScannableHardwareAdapter
 from diffcalc.gdasupport.scannable.hkl import Hkl
 from diffcalc.gdasupport.scannable.parameter import \
     DiffractionCalculatorParameter
 from mock import Mock
 from diffcalc.hkl.vlieg.parameters import VliegParameterManager
-from diffcalc.diffractioncalculator import Diffcalc
-from diffcalc.hardware_adapter import HardwareAdapter
+from diffcalc.diffcalc_ import Diffcalc
+from diffcalc.hardware import HardwareAdapter
 try:
     from gdascripts.pd.dummy_pds import DummyPD
 except ImportError:

@@ -4,13 +4,13 @@ import unittest
 from mock import Mock
 
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
-from diffcalc.hardware_adapter import DummyHardwareAdapter
+from diffcalc.hardware import DummyHardwareAdapter
 from diffcalc.hkl.vlieg.position import VliegPosition as P, \
    VliegPosition as Pos
 from diffcalc.hkl.vlieg.transform import TransformA, TransformB, TransformC, \
     transformsFromSector, TransformCommands, \
     VliegTransformSelector, VliegPositionTransformer
-import diffcalc.utils  # @UnusedImport
+import diffcalc.util  # @UnusedImport
 
 
 class TestVliegPositionTransformer(unittest.TestCase):
@@ -25,7 +25,7 @@ class TestVliegPositionTransformer(unittest.TestCase):
             self.geometry, self.hardware, self.transform_selector)
         self.transform_commands = TransformCommands(self.transform_selector)
 
-        diffcalc.utils.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
+        diffcalc.util.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
 
     def map(self, pos):  # @ReservedAssignment
         pos = self.transformer.transform(pos)

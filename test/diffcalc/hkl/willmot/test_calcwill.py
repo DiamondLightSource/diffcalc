@@ -17,8 +17,8 @@ from test.tools import assert_array_almost_equal, \
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.persistence import UbCalculationNonPersister
-from diffcalc.utils import DiffcalcException
-from test.diffcalc.test_hardware_adapter import SimpleHardwareAdapter
+from diffcalc.util import DiffcalcException
+from test.diffcalc.test_hardware import SimpleHardwareAdapter
 from test.diffcalc.hkl.vlieg.test_calcvlieg import createMockUbcalc, \
     createMockDiffractometerGeometry
 import diffcalc.hkl.willmott.calcwill_horizontal  # @UnusedImport

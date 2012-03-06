@@ -9,7 +9,7 @@ try:
 except ImportError:
     from diffcalc.gdasupport.minigda.scannable import DummyPD
 
-from diffcalc.diffractioncalculator import create_diffcalc
+from diffcalc.diffcalc_ import create_diffcalc
 from diffcalc.gdasupport.scannable.base import ScannableGroup
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
@@ -20,17 +20,17 @@ from diffcalc.gdasupport.scannable.slave_driver import \
     NuDriverForSixCirclePlugin
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry, \
     SixCircleGeometry, Fivec, Fourc
-from diffcalc.hardware_adapter import DummyHardwareAdapter
-from diffcalc.hardware_adapter import ScannableHardwareAdapter
+from diffcalc.hardware import DummyHardwareAdapter
+from diffcalc.hardware import ScannableHardwareAdapter
 from test.tools import aneq_, mneq_
 from diffcalc.ub.persistence import UbCalculationNonPersister
-from diffcalc.utils import DiffcalcException, MockRawInput
+from diffcalc.util import DiffcalcException, MockRawInput
 from test.diffcalc import scenarios
-import diffcalc.utils  # @UnusedImport to overide raw_input
+import diffcalc.util  # @UnusedImport to overide raw_input
 
 
 def prepareRawInput(listOfStrings):
-    diffcalc.utils.raw_input = MockRawInput(listOfStrings)
+    diffcalc.util.raw_input = MockRawInput(listOfStrings)
 
 
 prepareRawInput([])
