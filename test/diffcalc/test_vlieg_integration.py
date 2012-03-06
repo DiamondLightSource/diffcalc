@@ -22,10 +22,10 @@ from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry, \
     SixCircleGeometry, Fivec, Fourc
 from diffcalc.hardware_adapter import DummyHardwareAdapter
 from diffcalc.hardware_adapter import ScannableHardwareAdapter
-from tests.tools import aneq_, mneq_
+from test.tools import aneq_, mneq_
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.utils import DiffcalcException, MockRawInput
-from tests.diffcalc import scenarios
+from test.diffcalc import scenarios
 import diffcalc.utils  # @UnusedImport to overide raw_input
 
 

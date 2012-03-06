@@ -8,12 +8,12 @@ except ImportError:
 
 from diffcalc.hkl.you.calcyou import YouHklCalculator
 from diffcalc.hkl.you.constraints import YouConstraintManager
-from tests.tools import assert_array_almost_equal, \
+from test.tools import assert_array_almost_equal, \
     assert_second_dict_almost_in_first
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.utils import y_rotation, z_rotation, DiffcalcException
-from tests.diffcalc.test_hardware_adapter import SimpleHardwareAdapter
-from tests.diffcalc.hkl.vlieg.test_calcvlieg import \
+from test.diffcalc.test_hardware_adapter import SimpleHardwareAdapter
+from test.diffcalc.hkl.vlieg.test_calcvlieg import \
     createMockDiffractometerGeometry, createMockUbcalc
 from diffcalc.hkl.you.position import YouPosition as Pos, YouPosition as P
 
@@ -265,7 +265,7 @@ class TestCubicHorizontal_delta0_aeqb(_TestCubicHorizontal):
 
 
 class TestAgainstSpecSixcB16_270608(_BaseTest):
-    '''NOTE: copied from tests.diffcalc.scenarios.session3'''
+    '''NOTE: copied from test.diffcalc.scenarios.session3'''
     def setup(self):
         _BaseTest.setup(self)
 

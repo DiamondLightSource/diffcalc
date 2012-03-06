@@ -2,7 +2,7 @@ import unittest
 
 from diffcalc.gdasupport.scannable.parameter import \
     DiffractionCalculatorParameter
-from tests.diffcalc.gdasupport.scannable.mockdiffcalc import \
+from test.diffcalc.gdasupport.scannable.mockdiffcalc import \
     MockParameterManager
 
 

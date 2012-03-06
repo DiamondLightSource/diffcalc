@@ -2,7 +2,7 @@ import random
 import unittest
 from math import pi
 from mock import Mock
-from tests.tools import mneq_
+from test.tools import mneq_
 
 try:
     from numpy import matrix
@@ -15,7 +15,7 @@ from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator, \
     _findOmegaAndChiToRotateHchiIntoQalpha, check
 from diffcalc.hkl.vlieg.matrices import createVliegMatrices
 from diffcalc.utils import DiffcalcException
-from tests.diffcalc import scenarios
+from test.diffcalc import scenarios
 
 TORAD = pi / 180
 TODEG = 180 / pi

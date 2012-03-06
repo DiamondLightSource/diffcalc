@@ -14,11 +14,11 @@ from diffcalc.hkl.willmott.calcwill_horizontal import \
     WillmottHorizontalPosition as WillPos
 from diffcalc.hkl.you.position import YouPosition as YouPos
 from diffcalc.hkl.you.calcyou import YouUbCalcStrategy
-from tests.tools import matrixeq_
+from test.tools import matrixeq_
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.persistence import UbCalculationNonPersister
-from tests.diffcalc.hkl.you.test_calcyou import _BaseTest
+from test.diffcalc.hkl.you.test_calcyou import _BaseTest
 
 
 TORAD = pi / 180

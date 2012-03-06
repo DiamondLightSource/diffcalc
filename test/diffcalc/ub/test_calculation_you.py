@@ -9,7 +9,7 @@ except ImportError:
 from diffcalc.hkl.you.geometry import SixCircle
 from diffcalc.hkl.you.position import YouPosition
 from diffcalc.hkl.you.calcyou import YouUbCalcStrategy
-from tests.tools import matrixeq_
+from test.tools import matrixeq_
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.persistence import UbCalculationNonPersister
 

@@ -6,7 +6,7 @@ from diffcalc.gdasupport.scannable.slave_driver import SlaveScannableDriver
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
 from diffcalc.gdasupport.scannable.mock import MockMotor
-from tests.diffcalc.gdasupport.scannable.mockdiffcalc import MockDiffcalc
+from test.diffcalc.gdasupport.scannable.mockdiffcalc import MockDiffcalc
 try:
     from gdascripts.pd.dummy_pds import DummyPD  # @UnusedImport
 except ImportError:

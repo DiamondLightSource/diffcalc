@@ -11,12 +11,12 @@ except ImportError:
 
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.hkl.vlieg.position import VliegPosition as Pos
-from tests.tools import matrixeq_, mneq_
+from test.tools import matrixeq_, mneq_
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.utils import DiffcalcException
 from diffcalc.hkl.vlieg.calcvlieg import VliegUbCalcStrategy
-from tests.diffcalc import scenarios
+from test.diffcalc import scenarios
 
 I = matrix('1 0 0; 0 1 0; 0 0 1')
 TORAD = pi / 180

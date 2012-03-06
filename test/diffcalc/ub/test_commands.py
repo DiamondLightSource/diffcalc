@@ -9,13 +9,13 @@ except ImportError:
 import diffcalc.utils  # @UnusedImport
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.hardware_adapter import DummyHardwareAdapter
-from tests.tools import assert_iterable_almost_equal, mneq_
+from test.tools import assert_iterable_almost_equal, mneq_
 from diffcalc.ub.commands import UbCommands
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.utils import DiffcalcException, MockRawInput
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.hkl.vlieg.calcvlieg import VliegUbCalcStrategy
-from tests.diffcalc import scenarios
+from test.diffcalc import scenarios
 
 
 def prepareRawInput(listOfStrings):

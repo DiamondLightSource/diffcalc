@@ -15,7 +15,7 @@ from diffcalc.hardware_adapter import DummyHardwareAdapter
 from diffcalc.hardware_adapter import HardwareAdapter
 from diffcalc.hardware_adapter import ScannableHardwareAdapter
 from nose.tools import eq_, assert_raises  # @UnresolvedImport
-from tests.diffcalc.gdasupport.scannable.mockdiffcalc import MockDiffcalc
+from test.diffcalc.gdasupport.scannable.mockdiffcalc import MockDiffcalc
 
 
 class SimpleHardwareAdapter(HardwareAdapter):

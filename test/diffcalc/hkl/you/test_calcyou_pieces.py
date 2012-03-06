@@ -10,13 +10,13 @@ except ImportError:
 
 from diffcalc.hkl.you.calcyou import YouHklCalculator, I, \
     _calc_angle_between_naz_and_qaz
-from tests.tools import  assert_matrix_almost_equal, \
+from test.tools import  assert_matrix_almost_equal, \
     assert_2darray_almost_equal
 from diffcalc.hkl.you.position  import YouPosition
-from tests.diffcalc.hkl.vlieg.test_calcvlieg import \
+from test.diffcalc.hkl.vlieg.test_calcvlieg import \
     createMockDiffractometerGeometry, createMockHardwareMonitor, \
     createMockUbcalc
-from tests.diffcalc.test_hardware_adapter import SimpleHardwareAdapter
+from test.diffcalc.test_hardware_adapter import SimpleHardwareAdapter
 from diffcalc.utils import DiffcalcException
 
 

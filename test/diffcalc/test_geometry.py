@@ -8,7 +8,7 @@ try:
 except ImportError:
     from numjy import matrix
     from numjy.linalg import norm
-from tests.tools import mneq_
+from test.tools import mneq_
 
 
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry, \

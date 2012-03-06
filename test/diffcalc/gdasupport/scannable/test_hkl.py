@@ -6,7 +6,7 @@ from diffcalc import diffractioncalculator
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
 from diffcalc.gdasupport.scannable.hkl import Hkl
-from tests.diffcalc.gdasupport.scannable.mockdiffcalc import MockDiffcalc
+from test.diffcalc.gdasupport.scannable.mockdiffcalc import MockDiffcalc
 try:
     from gda.device.scannable.scannablegroup import ScannableGroup
 except ImportError:

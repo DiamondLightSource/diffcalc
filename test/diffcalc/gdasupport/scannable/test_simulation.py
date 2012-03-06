@@ -10,7 +10,7 @@ from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter, \
     Gaussian
 from diffcalc.hkl.vlieg.geometry import Fourc
 from diffcalc.utils import nearlyEqual
-from tests.tools import mneq_
+from test.tools import mneq_
 
 
 class MockScannable(object):

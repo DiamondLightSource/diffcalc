@@ -12,14 +12,14 @@ except ImportError:
 from diffcalc.hkl.willmott.calcwill_horizontal import \
     WillmottHorizontalUbCalcStrategy, WillmottHorizontalCalculator, \
     WillmottHorizontalPosition as Pos, WillmottHorizontalGeometry
-from tests.tools import assert_array_almost_equal, \
+from test.tools import assert_array_almost_equal, \
     assert_second_dict_almost_in_first, matrixeq_
 from diffcalc.ub.calculation import UBCalculation
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.utils import DiffcalcException
-from tests.diffcalc.test_hardware_adapter import SimpleHardwareAdapter
-from tests.diffcalc.hkl.vlieg.test_calcvlieg import createMockUbcalc, \
+from test.diffcalc.test_hardware_adapter import SimpleHardwareAdapter
+from test.diffcalc.hkl.vlieg.test_calcvlieg import createMockUbcalc, \
     createMockDiffractometerGeometry
 import diffcalc.hkl.willmott.calcwill_horizontal  # @UnusedImport
 
