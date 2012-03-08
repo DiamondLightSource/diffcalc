@@ -55,13 +55,13 @@ class AbstractPosition(object):
         return pos
 
     def changeToRadians(self):
-        raise Exception("abstract")
+        raise NotImplementedError()
 
     def changeToDegrees(self):
-        raise Exception("abstract")
+        raise NotImplementedError()
 
     def totuple(self):
-        raise Exception("abstract")
+        raise NotImplementedError()
 
 
 ### Matrices
@@ -284,7 +284,8 @@ def format_command_help(command_list):
             lines.extend(['', obj.upper(), ''])
 
         else:  # individual command
-            doc_lines = [s.strip() for s in obj.__doc__.split('\n')]
+            doc_before_empty_line = obj.__doc__.split('\n\n')[0]
+            doc_lines = [s.strip() for s in doc_before_empty_line.split('\n')]
             for doc_line in doc_lines:
                 if doc_line == '':
                     continue
@@ -293,6 +294,8 @@ def format_command_help(command_list):
                 line = ('   ' + name + ' ' + args).ljust(35)
                 if obj.__name__ in ('ub', 'hkl'):
                     continue
+                if not desc_lines:
+                    raise AssertionError()
                 if len(line) <= 35:
                     line += (desc_lines.pop(0))  # first line
                 lines.append(line)
@@ -313,6 +316,7 @@ def command(f):
 
     Calls to the decorated method or function are wrapped by call_command.
     """
+    # TODO: remove one level of stack trace by not using wraps
     @wraps(f)
     def wrapper(*args, **kwds):
         return call_command(f, args)
@@ -326,20 +330,10 @@ def call_command(f, args):
         return f(*args)
     try:
         return f(*args)
-    except TypeError, e:
+    except TypeError:
         # NOTE: TypeErrors resulting from bugs in the core code will be
-        # erroneously caught here!
-        if RAISE_EXCEPTIONS_FOR_ALL_ERRORS:
-            print "-" * 80
-            print f.__doc__
-            print "-" * 80
-            raise
-        else:
-            print 'TypeError : %s' % e.message
-            print 'USAGE:'
-            print f.__doc__
-    except DiffcalcException, e:
-        if RAISE_EXCEPTIONS_FOR_ALL_ERRORS:
-            raise
-        else:
-            print e.args[0]
+        # erroneously caught here! TODO: check depth of TypeError stack
+        raise TypeError('\n\nUSAGE:\n' + f.__doc__)
+    except DiffcalcException:
+        # TODO: log and create a new one to shorten stack trace for user
+        raise

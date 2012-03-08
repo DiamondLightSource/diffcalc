@@ -30,8 +30,8 @@ class TestConstraintManager:
         self.cm.constrain('qaz')
         self.cm.constrain('alpha')
         self.cm.constrain('eta')
-        self.cm.set('qaz', 1.234)
-        self.cm.set('eta', 99.)
+        self.cm.set_parameter('qaz', 1.234)
+        self.cm.set_parameter('eta', 99.)
         print self.cm.build_display_table()
         eq_(self.cm.build_display_table(),
 """
@@ -251,14 +251,14 @@ class TestConstraintManager:
 ###
     def test_set_fails(self):
         try:
-            self.cm.set('not_a_constraint', object())
+            self.cm.set_parameter('not_a_constraint', object())
             assert False
         except DiffcalcException, e:
             eq_(e.args[0], "Could not set not_a_constraint. This is not an "
                 "available constraint.")
 
         try:
-            self.cm.set('delta', object())
+            self.cm.set_parameter('delta', object())
             assert False
         except DiffcalcException, e:
             eq_(e.args[0],
@@ -266,7 +266,7 @@ class TestConstraintManager:
 
         self.cm.constrain('a_eq_b')
         try:
-            self.cm.set('a_eq_b', object())
+            self.cm.set_parameter('a_eq_b', object())
             assert False
         except DiffcalcException, e:
             eq_(e.args[0],
@@ -286,8 +286,8 @@ class TestConstraintManager:
     def test_set(self):
         #"%s: %s --> %f %s"
         self.cm.constrain('alpha')
-        eq_(self.cm.set('alpha', 1.), 'alpha : --- --> 1.0')
-        eq_(self.cm.set('alpha', 2.), 'alpha : 1.0 --> 2.0')
+        eq_(self.cm.set_parameter('alpha', 1.), 'alpha : --- --> 1.0')
+        eq_(self.cm.set_parameter('alpha', 2.), 'alpha : 1.0 --> 2.0')
 
 #    def test_track_fails(self):
 #        try:
@@ -327,5 +327,5 @@ class TestConstraintManager:
 #        eq_(self.cm.track('delta'), 'delta : --- ~~> 1.0 (tracking)')
 #        eq_(self.cm.track('delta'), 'Delta was already configured to track.')
 #        self.cm.untrack('delta')
-#        self.cm.set('delta', 2.)
+#        self.cm.set_parameter('delta', 2.)
 #        eq_(self.cm.track('delta'), 'delta : 2.0 ~~> 1.0 (tracking)')

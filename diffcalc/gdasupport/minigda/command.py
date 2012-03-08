@@ -1,3 +1,7 @@
+#try:
+#    from gda.device import Scannable
+#except ImportError:
+#    from diffcalc.gdasupport.minigda.scannable import Scannable
 from diffcalc.gdasupport.minigda.scannable import Scannable
 from diffcalc.util import getMessageFromException
 import math
@@ -61,12 +65,18 @@ class Pos(object):
             return result + "---"
         # Single field scannable:
         if len(fieldNames) == 1:
-            result += "%s" % scannable.formatPositionFields(pos)[0]
+            try:
+                result += "%s" % scannable.formatPositionFields(pos)[0]
+            except AttributeError:
+                result += str(scannable())
         # Multi field scannable:
         else:
-            formatted = scannable.formatPositionFields(pos)
-            for name, formattedValue in zip(fieldNames, formatted):
-                result += "%s: %s " % (name, formattedValue)
+            try:
+                formatted = scannable.formatPositionFields(pos)
+                for name, formattedValue in zip(fieldNames, formatted):
+                    result += "%s: %s " % (name, formattedValue)
+            except AttributeError:
+                result += str(scannable())
 
         return result
 

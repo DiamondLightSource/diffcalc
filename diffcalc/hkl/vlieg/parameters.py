@@ -91,7 +91,7 @@ class VliegParameterManager(object):
 
 ### Fixed parameters stuff ###
 
-    def setParameter(self, name, value):
+    def set_parameter(self, name, value): 
         if not name in self._parameters:
             raise DiffcalcException("No fixed parameter %s is used by the "
                                     "diffraction calculator" % name)
@@ -121,7 +121,7 @@ class VliegParameterManager(object):
             raise DiffcalcException("No fixed parameter %s is used by the "
                                     "diffraction calculator" % name)
 
-    def getParameter(self, name):
+    def get(self, name):
         self.update_tracked()
         return self.getParameterWithoutUpdatingTrackedParemeters(name)
 

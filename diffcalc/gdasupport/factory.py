@@ -38,6 +38,8 @@ except ImportError:
     # from diffcalc.gdasupport.minigda.terminal import alias
     # Note: minigda will provide an alias method in the rootnamespace
 
+VERBOSE = True
+
 
 def _is_scannable(obj):
     return isinstance(obj, PseudoDevice) or isinstance(obj, ScannableBase)
@@ -77,7 +79,8 @@ def add_objects_to_namespace(object_dict, namespace):
                 "Did not add diffcalc objects/method to namespace, as doing "
                 "so would overwrite the object %s" % nameToAdd)
     namespace.update(object_dict)
-    print "Added objects/methods to namespace: ", ', '.join(object_dict.keys())
+    if VERBOSE:
+        print "Added objects/methods to namespace: ", ', '.join(object_dict.keys())
 
 
 def create_objects(
@@ -98,8 +101,8 @@ def create_objects(
     simulated_crystal_counter_name=None,
     engine_name='vlieg',
     raise_exceptions_for_all_errors=True):
-
-    print "=" * 80
+    if VERBOSE:
+        print "=" * 80
     objects = {}
 
     # Obtain geometry instance
@@ -157,17 +160,21 @@ def create_objects(
         ct = SimulatedCrystalCounter(simulated_crystal_counter_name,
                                      diff_scannable, geometry, objects['wl'])
         objects.update({ct.name: ct})
-        print "\nCreated Simulated Crystal Counter:\n   ", ct.name
+        if VERBOSE:
+            print "\nCreated Simulated Crystal Counter:\n   ", ct.name
 
     # expose and alias ub and hkl commands from diffcalc object
-    print "UB"
-    print "=="
+    if VERBOSE:
+        print "UB"
+        print "=="
     objects.update(_expose_and_alias_commands(dc.ub.commands))
-    print "hkl"
-    print "==="
+    if VERBOSE:
+        print "hkl"
+        print "==="
     objects.update(_expose_and_alias_commands(dc.hkl.commands))
-    print "Tutorial"
-    print ""
+    if VERBOSE:
+        print "Tutorial"
+        print ""
     objects.update(_create_and_alias_diffcalcdemo(demo_commands))
 
     if engine_name.lower() == 'vlieg':
@@ -175,10 +182,11 @@ def create_objects(
         objects.update(
             {'on': 'on', 'off': 'off', 'auto': 'auto', 'manual': 'manual'})
 
-    print "=" * 80
-
-    objects['ub'].__func__.__doc__ = format_command_help(dc.ub.commands)
+    if VERBOSE:
+        print "=" * 80
+    objects['ub'].im_func.__doc__ = format_command_help(dc.ub.commands)
     Hkl.dynamic_docstring = format_command_help(dc.hkl.commands)
+
     return objects
 
 
@@ -242,8 +250,10 @@ def _create_diff_and_dummies(dummy_axis_names,
         result = []
         for name in nameList:
             result.append(DummyPD(name))
-        print "\nCreated dummy axes:"
-        print "   ", ', '.join(nameList[:-1]) + ' and ' + nameList[-1]
+        if VERBOSE:
+            print "\nCreated dummy axes:"
+        if VERBOSE:
+            print "   ", ', '.join(nameList[:-1]) + ' and ' + nameList[-1]
         return result
 
     options = [dummy_axis_names, axes_scannable_list, axes_group_scannable]
@@ -259,7 +269,8 @@ def _create_diff_and_dummies(dummy_axis_names,
             diffractometer_scannable_name + '_group', axes_scannable_list)
     diff_scannable = DiffractometerScannableGroup(
             diffractometer_scannable_name, None, axes_group_scannable)
-    print ("\nCreated diffractometer scannable:\n    " +
+    if VERBOSE:
+        print ("\nCreated diffractometer scannable:\n    " +
            diffractometer_scannable_name)
     objects[diffractometer_scannable_name] = diff_scannable
     return objects
@@ -273,8 +284,10 @@ def _create_wavelength_and_energy(dummy_energy_name,
     def create_energy_scannable(name):
         scn = DummyPD(name)
         scn.asynchronousMoveTo(12.39842)
-        print "\nCreated dummy energy scannable:\n   ", name
-        print "    (set dummy energy to 1 Angstrom)"
+        if VERBOSE:
+            print "\nCreated dummy energy scannable:\n   ", name
+        if VERBOSE:
+            print "    (set dummy energy to 1 Angstrom)"
         return scn
 
     options = [dummy_energy_name, energy_scannable]
@@ -296,7 +309,8 @@ def _create_wavelength_and_energy(dummy_energy_name,
     # create wavelength scannable
     objects['wl'] = Wavelength('wl', energy_scannable,
                                energy_scannable_multiplier_to_KeV)
-    print "\nCreated wavelength scannable:\n    wl"
+    if VERBOSE:
+        print "\nCreated wavelength scannable:\n    wl"
     return objects, energy_scannable
 
 
@@ -313,12 +327,13 @@ def _create_hkl(hklScannableName, diffractometerScannable,
     objects['h'] = hkl.h
     objects['k'] = hkl.k
     objects['l'] = hkl.l
-    if len(hklVirtualAnglesToReport) == 0:
-        print "\nCreated hkl scannable:\n   ", hklScannableName
-    else:
-        print ("\nCreated hkl scannable:\n    %s\n    (reports the virtual angles: %s)" %
-               (hklScannableName, ', '.join(hklVirtualAnglesToReport)))
-    print "\nCreated hkl component scannables:\n    h, k & l"
+    if VERBOSE:
+        if len(hklVirtualAnglesToReport) == 0:
+            print "\nCreated hkl scannable:\n   ", hklScannableName
+        else:
+            print ("\nCreated hkl scannable:\n    %s\n    (reports the virtual angles: %s)" %
+                   (hklScannableName, ', '.join(hklVirtualAnglesToReport)))
+        print "\nCreated hkl component scannables:\n    h, k & l"
     return objects
 
 
@@ -333,12 +348,13 @@ def _create_hkl_verbose(hklverboseScannableName, diffractometerScannable,
         objects[hklverboseScannableName] = Hkl(
             hklverboseScannableName, diffractometerScannable, diffcalc,
             hklverboseVirtualAnglesToReport)
-        if len(hklverboseVirtualAnglesToReport) == 0:
-            print "\nCreated verbose hkl scannable:\n   ", hklverboseScannableName
-        else:
-            virtual_to_report = ', '.join(hklverboseVirtualAnglesToReport)
-            print ("\nCreated verbose hkl scannable:\n    %s. Reports the virtual "
-                   "angles: %s" % (hklverboseScannableName, virtual_to_report))
+        if VERBOSE:
+            if len(hklverboseVirtualAnglesToReport) == 0:
+                print "\nCreated verbose hkl scannable:\n   ", hklverboseScannableName
+            else:
+                virtual_to_report = ', '.join(hklverboseVirtualAnglesToReport)
+                print ("\nCreated verbose hkl scannable:\n    %s. Reports the virtual "
+                       "angles: %s" % (hklverboseScannableName, virtual_to_report))
     return objects
 
 
@@ -351,11 +367,12 @@ def _create_constraint_scannables(diffcalc):
         scnname = param
         if param in axisNames:
             scnname += '_par'
-        objects[scnname] = DiffractionCalculatorParameter(scnname, param,
-                                                          diffcalc)
+        objects[scnname] = DiffractionCalculatorParameter(
+            scnname, param, diffcalc.parameter_manager)
         created_names.append(scnname)
-    print "\nCreated parameter scannables:"
-    print "   ", ', '.join(created_names[:-1]) + ' and ' + created_names[-1]
+    if VERBOSE:
+        print "\nCreated parameter scannables:"
+        print "   ", ', '.join(created_names[:-1]) + ' and ' + created_names[-1]
     return objects
 
 
@@ -364,7 +381,8 @@ def _expose_and_alias_commands(command_list):
 
     for obj in command_list:
         if isinstance(obj, basestring):
-            print obj + ':'
+            if VERBOSE:
+                print obj + ':'
             continue
         if isinstance(obj, ExternalCommand):
             continue
@@ -380,9 +398,10 @@ def _expose_and_alias_commands(command_list):
 def _try_to_alias(command_name):
     try:
         alias(command_name)
-    except NameError:
+    except:
         pass
-    print "   ", command_name
+    if VERBOSE:
+        print "   ", command_name
 
 
 def _create_and_alias_diffcalcdemo(demoCommands):

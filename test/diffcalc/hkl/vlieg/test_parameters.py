@@ -16,24 +16,24 @@ class TestParameterManager(unittest.TestCase):
                                         self.hw, self.ms)
 
     def testDefaultParameterValues(self):
-        self.assertEqual(self.pm.getParameter('alpha'), 0)
-        self.assertEqual(self.pm.getParameter('gamma'), 0)
-        self.assertRaises(DiffcalcException, self.pm.getParameter,
+        self.assertEqual(self.pm.get('alpha'), 0)
+        self.assertEqual(self.pm.get('gamma'), 0)
+        self.assertRaises(DiffcalcException, self.pm.get,
                           'not-a-parameter-name')
 
     def testSetParameter(self):
-        self.pm.setParameter('alpha', 10.1)
-        self.assertEqual(self.pm.getParameter('alpha'), 10.1)
+        self.pm.set_parameter('alpha', 10.1)
+        self.assertEqual(self.pm.get('alpha'), 10.1)
 
     def testSetTrackParameter_isParameterChecked(self):
         self.assertEqual(self.pm.isParameterTracked('alpha'), False)
-        self.pm.setParameter('alpha', 9)
+        self.pm.set_parameter('alpha', 9)
 
         self.pm.setTrackParameter('alpha', True)
         self.assertEqual(self.pm.isParameterTracked('alpha'), True)
-        self.assertRaises(DiffcalcException, self.pm.setParameter, 'alpha', 10)
+        self.assertRaises(DiffcalcException, self.pm.set_parameter, 'alpha', 10)
         self.hw.getPosition.return_value = 888, 11, 999
-        self.assertEqual(self.pm.getParameter('alpha'), 11)
+        self.assertEqual(self.pm.get('alpha'), 11)
 
         print self.pm.reportAllParameters()
         print "**"
@@ -42,8 +42,8 @@ class TestParameterManager(unittest.TestCase):
 
         self.pm.setTrackParameter('alpha', False)
         self.assertEqual(self.pm.isParameterTracked('alpha'), False)
-        self.assertEqual(self.pm.getParameter('alpha'), 11)
+        self.assertEqual(self.pm.get('alpha'), 11)
         self.hw.getPosition.return_value = 888, 12, 999
-        self.assertEqual(self.pm.getParameter('alpha'), 11)
-        self.pm.setParameter('alpha', 13)
-        self.assertEqual(self.pm.getParameter('alpha'), 13)
+        self.assertEqual(self.pm.get('alpha'), 11)
+        self.pm.set_parameter('alpha', 13)
+        self.assertEqual(self.pm.get('alpha'), 13)

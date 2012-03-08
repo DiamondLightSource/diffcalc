@@ -19,10 +19,10 @@ class DiffractionCalculatorParameter(ScannableMotionBase):
         self.setLevel(3)
 
     def asynchronousMoveTo(self, value):
-        self.parameter_manager.setParameter(self.parameterName, value)
+        self.parameter_manager.set_parameter(self.parameterName, value)
 
     def getPosition(self):
-        return self.parameter_manager.getParameter(self.parameterName)
+        return self.parameter_manager.get(self.parameterName)
 
     def isBusy(self):
         return False

@@ -128,7 +128,7 @@ def wrap_command_to_print_calls(f, user_syntax=True):
     def print_with_python_syntax(f, args):
         print '\n>>> %s(%s)' % (f.__name__, ', '.join(args))
 
-    def call_command(f, args):
+    def print_and_call_command(f, args):
         if user_syntax:
             print_with_user_syntax(f, args)
         else:
@@ -140,6 +140,6 @@ def wrap_command_to_print_calls(f, user_syntax=True):
 
     @wraps(f)
     def wrapper(*args, **kwds):
-        return call_command(f, args)
+        return print_and_call_command(f, args)
 
     return wrapper

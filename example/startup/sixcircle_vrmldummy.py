@@ -7,7 +7,7 @@ except ImportError:
 	sys.path = [diffcalc_path] + sys.path
 	print diffcalc_path + ' added to GDA Jython path.'
 	import diffcalc #@UnusedImport
-from diffcalc.gdasupport.diffcalc_factory import create_objects, add_objects_to_namespace
+from diffcalc.gdasupport.factory import create_objects, add_objects_to_namespace
 from diffcalc.gdasupport.scannable.vrmlanimator import VrmlModelDriver, LinearProfile, MoveThread
 from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter
 from socket import gethostname

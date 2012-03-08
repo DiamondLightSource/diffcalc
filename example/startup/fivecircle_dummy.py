@@ -9,7 +9,7 @@ except ImportError:
 	import diffcalc #@UnusedImport
 #####
 
-from diffcalc.gdasupport.diffcalc_factory import create_objects, add_objects_to_namespace
+from diffcalc.gdasupport.factory import create_objects, add_objects_to_namespace
 
 demoCommands = []
 demoCommands.append( "newub 'cubic'" )

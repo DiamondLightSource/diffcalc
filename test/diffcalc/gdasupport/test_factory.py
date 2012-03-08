@@ -1,6 +1,6 @@
 import unittest
 
-from diffcalc.gdasupport import diffcalc_factory as Factory
+from diffcalc.gdasupport import factory as Factory
 from diffcalc.gdasupport.scannable.base import ScannableGroup
 from diffcalc.hkl.vlieg.geometry import Fourc
 from diffcalc.hkl.vlieg.geometry import Fivec

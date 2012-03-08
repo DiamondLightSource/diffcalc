@@ -18,16 +18,6 @@ all_constraints = det_constraints + ref_constraints + samp_constraints
 
 number_single_sample = (len(det_constraints) * len(ref_constraints) *
                         len(samp_constraints))
-AVAILABLE_MODES_STRING = """
-Available:
-
-1x samp:         80 of 80
-2x samp and ref: chi & phi
-                 mu & eta
-                 chi=90 & mu=0
-2x samp and det: 0 of 6
-3x samp:         0 of 4
-"""[1:-1]
 
 
 class YouConstraintManager(object):
@@ -222,7 +212,7 @@ class YouConstraintManager(object):
                 'Could not set %(name)s. This constraint takes no '
                 'value.' % locals())
 
-    def set(self, name, value):  # @ReservedAssignment
+    def set_parameter(self, name, value):  # @ReservedAssignment
         self._check_constraint_settable(name)
 #        if name in self._tracking:
 #            raise DiffcalcException(
@@ -234,6 +224,9 @@ class YouConstraintManager(object):
         self._constrained[name] = float(value)
         new = str(value)
         return "%(name)s : %(old)s --> %(new)s" % locals()
+
+    def get_constraint(self, name):
+        return self.all[name]
 
     def update_tracked(self):
         pass  # not used

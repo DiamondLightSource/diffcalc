@@ -11,7 +11,7 @@ except ImportError:
 #####
 
 from gdascripts.pd.dummy_pds import DummyPD
-from diffcalc.gdasupport.diffcalc_factory import create_objects, add_objects_to_namespace
+from diffcalc.gdasupport.factory import create_objects, add_objects_to_namespace
 
 demoCommands = []
 demoCommands.append( "newub 'cubic'" )

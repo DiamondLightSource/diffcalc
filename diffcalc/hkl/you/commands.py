@@ -32,6 +32,19 @@ class YouHklCommands(object):
     @command
     def cons(self):
         """cons -- list available constraints and values
+
+        Select three constraints using 'con' and 'uncon'. Choose up to one
+        from each of the sample and detector columns and up to three from
+        the sample column.
+
+        Not all constraint combinations are currently available:
+
+            1 x samp:              all 80 of 80
+            2 x samp and 1 x ref:  chi & phi, mu & eta and chi=90 & mu=0 (2.5 of 6)
+            2 x samp and 1 x det:  0 of 6
+            3 x samp:              0 of 4
+
+        See also 'con' and 'uncon'
         """
         lines = []
         lines.append(self._hklcalc.constraints.build_display_table())

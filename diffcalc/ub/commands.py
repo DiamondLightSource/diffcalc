@@ -126,7 +126,7 @@ class UbCommands(object):
             raise TypeError()
 
     @command
-    def c2th(self, hkl=None):
+    def c2th(self, hkl):
         """
         c2th [h k l]  -- calculate two-theta angle for reflection
         """

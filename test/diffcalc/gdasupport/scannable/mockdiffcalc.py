@@ -3,10 +3,10 @@ class MockParameterManager:
     def __init__(self):
         self.params = {}
 
-    def setParameter(self, name, value):
+    def set_parameter(self, name, value):
         self.params[name] = value
 
-    def getParameter(self, name):
+    def get(self, name):
         return self.params[name]
 
 

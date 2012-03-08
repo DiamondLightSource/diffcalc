@@ -188,7 +188,7 @@ class BaseTestHklCalculator():
                 #ac.setParameter('alpha', self.calc.alpha )
                 ac.parameter_manager.setTrackParameter('alpha', True)
                 hw.getPosition.return_value = 888, self.calc.alpha, 999
-                ac.parameter_manager.setParameter('gamma', self.calc.gamma)
+                ac.parameter_manager.set_parameter('gamma', self.calc.gamma)
 
             # Test each hkl/position pair
             for idx in range(len(self.calc.hklList)):

@@ -34,10 +34,10 @@ class VliegHklCommands(object):
                    pm.reportParametersUsedInCurrentMode())
 
     def _setParameter(self, name, value):
-        self._hklcalc.parameter_manager.setParameter(name, value)
+        self._hklcalc.parameter_manager.set_parameter(name, value)
 
     def _getParameter(self, name):
-        return self._hklcalc.parameter_manager.getParameter(name)
+        return self._hklcalc.parameter_manager.get(name)
 
     @command
     def setpar(self, scannable_or_string=None, val=None):
