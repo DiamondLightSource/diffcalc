@@ -1,8 +1,11 @@
+from math import pi
+
 from nose.tools import eq_  # @UnresolvedImport
 from mock import Mock
 
 from diffcalc.hkl.you.constraints import YouConstraintManager
 from diffcalc.util import DiffcalcException
+from nose.tools import raises, ok_
 
 
 def joined(d1, d2):
@@ -30,19 +33,17 @@ class TestConstraintManager:
         self.cm.constrain('qaz')
         self.cm.constrain('alpha')
         self.cm.constrain('eta')
-        self.cm.set_parameter('qaz', 1.234)
-        self.cm.set_parameter('eta', 99.)
-        print self.cm.build_display_table()
-        eq_(self.cm.build_display_table(),
-"""
-    DET        REF        SAMP
-    ======     ======     ======
-    delta      a_eq_b     mu
-    nu     o-> alpha  --> eta
---> qaz        beta       chi
-    naz        psi        phi
-                          mu_is_nu
-"""[1:-1])
+        self.cm.set_constraint('qaz', 1.234)
+        self.cm.set_constraint('eta', 99.)
+        print self.cm.build_display_table_lines()
+        eq_(self.cm.build_display_table_lines(),
+            ['    DET        REF        SAMP',
+             '    ======     ======     ======',
+             '    delta      a_eq_b     mu',
+             '    nu     o-> alpha  --> eta',
+             '--> qaz        beta       chi',
+             '    naz        psi        phi',
+             '                          mu_is_nu'])
 
 
 #"""
@@ -220,7 +221,7 @@ class TestConstraintManager:
             self.cm.constrain('phi')
             assert False
         except DiffcalcException, e:
-            eq_(e.args[0], 
+            eq_(e.args[0],
                 "Phi could not be constrained. First un-constrain one of the"
                 "\nangles delta, eta or chi (with 'uncon')")
 
@@ -248,17 +249,155 @@ class TestConstraintManager:
                 "Phi could not be constrained. First un-constrain one of the"
                 "\nangles mu, eta or chi (with 'uncon')")
 
-###
+    def test_report_constraints_none(self):
+        eq_(self.cm.report_constraints_lines(),
+            ['!   3 more constraints required'])
+
+    def test_report_constraints_one_with_value(self):
+        self.cm.constrain('nu')
+        self.cm.set_constraint('nu', 9.12343)
+        eq_(self.cm.report_constraints_lines(),
+            ['!   2 more constraints required',
+             '    nu: 9.1234'])
+
+    def test_report_constraints_one_with_novalue(self):
+        self.cm.constrain('nu')
+        eq_(self.cm.report_constraints_lines(),
+            ['!   2 more constraints required',
+             '!   nu: ---'])
+
+    def test_report_constraints_one_with_valueless(self):
+        self.cm.constrain('a_eq_b')
+        eq_(self.cm.report_constraints_lines(),
+            ['!   2 more constraints required',
+             '    a_eq_b'])
+
+    def test_report_constraints_one_with_two(self):
+        self.cm.constrain('naz')
+        self.cm.set_constraint('naz', 9.12343)
+        self.cm.constrain('a_eq_b')
+        eq_(self.cm.report_constraints_lines(),
+            ['!   1 more constraint required',
+             '    naz: 9.1234',
+             '    a_eq_b'])
+
+    def test_report_constraints_one_with_three(self):
+        self.cm.constrain('naz')
+        self.cm.set_constraint('naz', 9.12343)
+        self.cm.constrain('a_eq_b')
+        self.cm.constrain('mu')
+        self.cm.set_constraint('mu', 9.12343)
+
+        eq_(self.cm.report_constraints_lines(),
+            ['    naz: 9.1234',
+             '    a_eq_b',
+             '    mu: 9.1234'])
+
+    def _constrain(self, *args):
+        for con in args:
+            self.cm.constrain(con)
+
+    @raises(ValueError)
+    def test_is_implemented_invalid(self):
+        self._constrain('naz')
+        self.cm.is_current_mode_implemented()
+
+    # 1 samp
+
+    def test_is_implemented_1_samp_naz(self):
+        self._constrain('naz', 'alpha', 'mu')
+        eq_(self.cm.is_current_mode_implemented(), True)
+
+    def test_is_implemented_1_samp_det(self):
+        self._constrain('qaz', 'alpha', 'mu')
+        eq_(self.cm.is_current_mode_implemented(), True)
+
+    # 2 samp + ref
+
+    def test_is_implemented_2_samp_ref_mu_chi(self):
+        self._constrain('beta', 'mu', 'chi')
+        eq_(self.cm.is_current_mode_implemented(), False)
+
+    def test_is_implemented_2_samp_ref_mu90_chi0(self):
+        self._constrain('beta', 'mu', 'chi')
+        self.cm.set_constraint('mu', 0)
+        self.cm.set_constraint('chi', pi / 2)
+        eq_(self.cm.is_current_mode_implemented(), True)
+
+    def test_is_implemented_2_samp_ref_mu_eta(self):
+        self._constrain('beta', 'mu', 'eta')
+        eq_(self.cm.is_current_mode_implemented(), True)
+
+    def test_is_implemented_2_samp_ref_mu_phi(self):
+        self._constrain('beta', 'mu', 'phi')
+        eq_(self.cm.is_current_mode_implemented(), False)
+
+    def test_is_implemented_2_samp_ref_eta_chi(self):
+        self._constrain('beta', 'eta', 'chi')
+        eq_(self.cm.is_current_mode_implemented(), False)
+
+    def test_is_implemented_2_samp_ref_eta_phi(self):
+        self._constrain('beta', 'eta', 'phi')
+        eq_(self.cm.is_current_mode_implemented(), False)
+
+    def test_is_implemented_2_samp_ref_chi_phi(self):
+        self._constrain('beta', 'chi', 'phi')
+        eq_(self.cm.is_current_mode_implemented(), True)
+
+    # 2 samp + det
+
+    def test_is_implemented_2_samp_det_mu_chi(self):
+        self._constrain('qaz', 'mu', 'chi')
+        eq_(self.cm.is_current_mode_implemented(), False)
+
+    def test_is_implemented_2_samp_det_mu_eta(self):
+        self._constrain('qaz', 'mu', 'eta')
+        eq_(self.cm.is_current_mode_implemented(), False)
+
+    def test_is_implemented_2_samp_det_mu_phi(self):
+        self._constrain('qaz', 'mu', 'phi')
+        eq_(self.cm.is_current_mode_implemented(), False)
+
+    def test_is_implemented_2_samp_det_eta_chi(self):
+        self._constrain('qaz', 'eta', 'chi')
+        eq_(self.cm.is_current_mode_implemented(), False)
+
+    def test_is_implemented_2_samp_det_eta_phi(self):
+        self._constrain('qaz', 'eta', 'phi')
+        eq_(self.cm.is_current_mode_implemented(), False)
+
+    def test_is_implemented_2_samp_det_chi_phi(self):
+        self._constrain('qaz', 'chi', 'phi')
+        eq_(self.cm.is_current_mode_implemented(), False)
+
+    # 3 samp
+
+    def test_is_implemented_3_samp_no_mu(self):
+        self._constrain('eta', 'chi', 'phi')
+        eq_(self.cm.is_current_mode_implemented(), False)
+
+    def test_is_implemented_3_samp_no_eta(self):
+        self._constrain('mu', 'chi', 'phi')
+        eq_(self.cm.is_current_mode_implemented(), False)
+
+    def test_is_implemented_3_samp_no_chi(self):
+        self._constrain('mu', 'eta', 'phi')
+        eq_(self.cm.is_current_mode_implemented(), False)
+
+    def test_is_implemented_3_samp_no_phi(self):
+        self._constrain('mu', 'eta', 'chi')
+        eq_(self.cm.is_current_mode_implemented(), False)
+
     def test_set_fails(self):
         try:
-            self.cm.set_parameter('not_a_constraint', object())
+            self.cm.set_constraint('not_a_constraint', object())
             assert False
         except DiffcalcException, e:
             eq_(e.args[0], "Could not set not_a_constraint. This is not an "
                 "available constraint.")
 
         try:
-            self.cm.set_parameter('delta', object())
+            self.cm.set_constraint('delta', object())
             assert False
         except DiffcalcException, e:
             eq_(e.args[0],
@@ -266,7 +405,7 @@ class TestConstraintManager:
 
         self.cm.constrain('a_eq_b')
         try:
-            self.cm.set_parameter('a_eq_b', object())
+            self.cm.set_constraint('a_eq_b', object())
             assert False
         except DiffcalcException, e:
             eq_(e.args[0],
@@ -286,8 +425,8 @@ class TestConstraintManager:
     def test_set(self):
         #"%s: %s --> %f %s"
         self.cm.constrain('alpha')
-        eq_(self.cm.set_parameter('alpha', 1.), 'alpha : --- --> 1.0')
-        eq_(self.cm.set_parameter('alpha', 2.), 'alpha : 1.0 --> 2.0')
+        eq_(self.cm.set_constraint('alpha', 1.), 'alpha : --- --> 1.0')
+        eq_(self.cm.set_constraint('alpha', 2.), 'alpha : 1.0 --> 2.0')
 
 #    def test_track_fails(self):
 #        try:
@@ -327,5 +466,5 @@ class TestConstraintManager:
 #        eq_(self.cm.track('delta'), 'delta : --- ~~> 1.0 (tracking)')
 #        eq_(self.cm.track('delta'), 'Delta was already configured to track.')
 #        self.cm.untrack('delta')
-#        self.cm.set_parameter('delta', 2.)
+#        self.cm.set_constraint('delta', 2.)
 #        eq_(self.cm.track('delta'), 'delta : 2.0 ~~> 1.0 (tracking)')

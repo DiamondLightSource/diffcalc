@@ -2,6 +2,7 @@ import math
 from math import pi, sin, cos
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_almost_equal, raises, eq_  # @UnresolvedImport
+from mock import Mock
 
 try:
     from numpy import matrix
@@ -39,10 +40,12 @@ def isnan(n):
 class Test_anglesToVirtualAngles():
 
     def setup(self):
+        constraints = Mock()
+        constraints.is_fully_constrained.return_value = True
         self.calc = YouHklCalculator(createMockUbcalc(None),
                                      createMockDiffractometerGeometry(),
                                      createMockHardwareMonitor(),
-                                     None)
+                                     constraints)
 
     def check_angle(self, name, expected, mu=-99, delta=99, nu=99,
                      eta=99, chi=99, phi=99):

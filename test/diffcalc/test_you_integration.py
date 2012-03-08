@@ -121,6 +121,7 @@ class TestDiffcalcFactorySixc():
         help(cons)
 
     def test_constraint_mgmt(self):
+        diffcalc.util.DEBUG = True
         cons()  # TODO: show constrained values underneath
 
     def test_hkl_move_no_constraints(self):

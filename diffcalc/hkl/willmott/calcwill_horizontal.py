@@ -136,7 +136,7 @@ class ConstraintAdapter(object):
         return dict(zip(names, [None] * len(names)))
 
     def setParameter(self, name, value):
-        self._constraints.set_parameter(name, value)
+        self._constraints.set_constraint(name, value)
 
     def get(self, name):
         if name in self._constraints.all:

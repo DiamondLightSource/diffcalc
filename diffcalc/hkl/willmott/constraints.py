@@ -129,7 +129,7 @@ class WillmottConstraintManager(object):
                 'Could not %(verb)s %(name)s as this constraint takes no '
                 'value.' % locals())
 
-    def set_parameter(self, name, value):  # @ReservedAssignment
+    def set_constraint(self, name, value):  # @ReservedAssignment
         self._check_constraint_settable(name, 'set')
         old_value = self.all[name]
         old = str(old_value) if old_value is not None else '---'

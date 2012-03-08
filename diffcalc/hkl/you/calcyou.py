@@ -185,7 +185,7 @@ class YouHklCalculator(HklCalculatorBase):
                                    raiseExceptionsIfAnglesDoNotMapBackToHkl)
         self._hardware = hardware  # for checking limits only
         self.constraints = constraints
-        self.parameter_manager = constraints # TODO: remove need for this attr.
+        self.parameter_manager = constraints  # TODO: remove need for this attr
 
         self.n_phi = matrix([[0], [0], [1]])
 
@@ -254,6 +254,17 @@ class YouHklCalculator(HklCalculatorBase):
         Position object pos and the virtual angles returned in degrees. Some
         modes may not calculate all virtual angles.
         """
+
+        if not self.constraints.is_fully_constrained():
+            raise DiffcalcException(
+                "\nDiffcalc is not fully constrained.\n"
+                "Type 'help cons' for instructions")
+
+        if not self.constraints.is_current_mode_implemented():
+            raise DiffcalcException(
+                "\nSorry, the selected constraint combination is valid but "
+                "is not implemented.\n\n"
+                "Type 'help cons' for available combinations")
 
         h_phi = self._getUBMatrix() * matrix([[h], [k], [l]])
         theta = self._calc_theta(h_phi, wavelength)

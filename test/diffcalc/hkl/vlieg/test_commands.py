@@ -48,10 +48,10 @@ class TestHklCommands(unittest.TestCase):
         self.hkl.setpar('alpha', 1)
         self.hkl.setpar('alpha', 1.1)
         pm = self.hkl._hklcalc.parameter_manager
-        self.assertEqual(pm.get('alpha'), 1.1)
+        self.assertEqual(pm.get_constraint('alpha'), 1.1)
 
     def testSetWithScannable(self):
         alpha = DummyPD('alpha')
         self.hkl.setpar(alpha, 1.1)
         pm = self.hkl._hklcalc.parameter_manager
-        self.assertEqual(pm.get('alpha'), 1.1)
+        self.assertEqual(pm.get_constraint('alpha'), 1.1)

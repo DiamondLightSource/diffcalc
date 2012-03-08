@@ -19,7 +19,7 @@ class YouHklCommands(object):
         """
         name = getNameFromScannableOrString(scn_or_string)
         self._hklcalc.constraints.constrain(name)
-        print self._report_constraints()
+        print '\n'.join(self._hklcalc.constraints.report_constraints_lines())
 
     @command
     def uncon(self, scn_or_string):
@@ -27,7 +27,7 @@ class YouHklCommands(object):
         """
         name = getNameFromScannableOrString(scn_or_string)
         self._hklcalc.constraints.unconstrain(name)
-        print self._report_constraints()
+        print '\n'.join(self._hklcalc.constraints.report_constraints_lines())
 
     @command
     def cons(self):
@@ -40,20 +40,29 @@ class YouHklCommands(object):
         Not all constraint combinations are currently available:
 
             1 x samp:              all 80 of 80
-            2 x samp and 1 x ref:  chi & phi, mu & eta and chi=90 & mu=0 (2.5 of 6)
+
+            2 x samp and 1 x ref:  chi & phi
+                                   mu & eta
+                                   chi=90 & mu=0 (2.5 of 6)
+
             2 x samp and 1 x det:  0 of 6
+
             3 x samp:              0 of 4
 
         See also 'con' and 'uncon'
         """
-        lines = []
-        lines.append(self._hklcalc.constraints.build_display_table())
-        lines.append("")
-        lines.append(self._hklcalc.constraints.report_constraints())
-        lines.append("")
-        lines.append("Type 'help cons' for instructions")
-        print '\n'.join(lines)
 
-    def _report_constraints(self):
-        return (self._hklcalc.constraints.build_display_table() + '\n\n' +
-               self._hklcalc.constraints.report_constraints())
+        lines = []
+        constraints = self._hklcalc.constraints
+        lines.extend(constraints.build_display_table_lines())
+        lines.append("")
+        lines.extend(constraints.report_constraints_lines())
+        lines.append("")
+        if (constraints.is_fully_constrained() and
+            not constraints.is_current_mode_implemented()):
+            lines.append(
+                "    Sorry, this constraint combination is not implemented")
+            lines.append("    Type 'help cons' for available combinations")
+        else:
+            lines.append("    Type 'help cons' for instructions")  # okay
+        print '\n'.join(lines)

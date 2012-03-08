@@ -1,3 +1,5 @@
+from math import pi
+
 from diffcalc.util import DiffcalcException
 
 
@@ -78,7 +80,7 @@ class YouConstraintManager(object):
     def get_value(self, name):
         return self._constrained[name]
 
-    def build_display_table(self):
+    def build_display_table_lines(self):
         constraint_types = (det_constraints, ref_constraints,
                             samp_constraints)
         num_rows = max([len(col) for col in constraint_types])
@@ -105,20 +107,57 @@ class YouConstraintManager(object):
             cells.append(row_cells)
         
         lines = [' '.join(row_cells).rstrip() for row_cells in cells]
-        return '\n'.join(lines)
+        return lines
 
-    def report_constraints(self):
-        if not self.reference:
-            return "!!! No reference constraint set"
-        name, val = self.reference.items()[0]
+    def _report_constraint(self, name):
+        val = self.all[name]
         if name in valueless_constraints:
             return "    %s" % name
         else:
             if val is None:
-                return "!!! %s: ---" % name
+                return "!   %s: ---" % name
             else:
                 return "    %s: %.4f" % (name, val)
             
+    def report_constraints_lines(self):
+        lines = []
+        required = 3 - len(self.all)
+        if required == 0:
+            pass
+        elif required == 1:
+            lines.append('!   1 more constraint required')
+        else:
+            lines.append('!   %d more constraints required' % required)
+        constraints = []
+        constraints.extend(self.detector.keys())
+        constraints.extend(self.naz.keys())
+        constraints.extend(self.reference.keys())
+        constraints.extend(sorted(self.sample.keys()))
+        for name in constraints:
+            lines.append(self._report_constraint(name))
+        return lines
+
+    def is_fully_constrained(self):
+        return len(self.all) == 3
+
+    def is_current_mode_implemented(self):
+        if not self.is_fully_constrained():
+            raise ValueError("Three constraints required")
+        
+        if len(self.sample) == 3:
+            return False
+
+        if len(self.sample) == 1:
+            return True
+
+        if len(self.reference) == 1:
+            return (set(self.sample.keys()) == set(['chi', 'phi']) or
+                    set(self.sample.keys()) == set(['mu', 'eta']) or
+                    self.sample == {'mu': 0, 'chi': pi / 2})
+        
+        return False
+        
+
     def _label_constraint(self, name):
         if name == '':
             label = '   '
@@ -212,7 +251,7 @@ class YouConstraintManager(object):
                 'Could not set %(name)s. This constraint takes no '
                 'value.' % locals())
 
-    def set_parameter(self, name, value):  # @ReservedAssignment
+    def set_constraint(self, name, value):  # @ReservedAssignment
         self._check_constraint_settable(name)
 #        if name in self._tracking:
 #            raise DiffcalcException(

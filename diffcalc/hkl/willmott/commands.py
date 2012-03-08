@@ -36,5 +36,5 @@ class WillmottHklCommands(object):
         print self._report_constraints()
 
     def _report_constraints(self):
-        return (self._hklcalc.constraints.build_display_table() + '\n\n' +
+        return (self._hklcalc.constraints.build_display_table_lines() + '\n\n' +
                self._hklcalc.constraints._report_constraints())
