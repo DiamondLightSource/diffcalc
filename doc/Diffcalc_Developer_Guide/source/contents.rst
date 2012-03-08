@@ -6,7 +6,7 @@
 :Contact: rob.walton (at) diamond.ac.uk
 :Web site: http://www.opengda.org/
 
-.. rubric:: Diffcalc: A Diffraction Condition Calculator for Diffractometer Control
+.. rubric:: Diffcalc: A diffraction condition calculator for diffractometer control
 
 .. toctree::
    :maxdepth: 2

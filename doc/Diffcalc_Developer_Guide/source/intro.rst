@@ -2,7 +2,10 @@ Introduction
 ============
 
 Diffcalc is a diffraction condition calculator used for controlling
-diffractometers within reciprocal lattice space.
+diffractometers within reciprocal lattice space. It is based on the papers
+given in the :doc:`references <../references>` 
+
+
 
 The core code will run by itself. However it makes more sense to use it
 within Diamond's Gda framework which provides motor control, a scan mechanism
