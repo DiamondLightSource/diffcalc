@@ -99,7 +99,7 @@ class ReflectionList:
     def str_lines(self):
         axes = tuple(s.upper() for s in self._externalAngleNames)
         if not self._reflist:
-            return "   <<< none specified >>>"
+            return ["   <<< none specified >>>"]
 
         lines = []
 

@@ -135,6 +135,7 @@ class TestDiffcalcFactorySixc():
         con(mu)
         con(nu)
         con('a_eq_b')
+        con('a_eq_b')
         pos(hkl, [1, 0, 0])
 
     def test_hkl_move_okay(self):
@@ -143,7 +144,7 @@ class TestDiffcalcFactorySixc():
         con(nu)
         con('a_eq_b')
         pos(mu_par, 0)
-        pos(nu_par, 0)
+        pos(nu_par, 0)  # TODO: Fails with qaz=90
         pos(hkl, [1, 1, 0])  # TODO: prints DEGENERATE. necessary?
         call_scannable(sixc)
 
@@ -156,6 +157,9 @@ class TestDiffcalcFactorySixc():
         setlat('wrong arg', 'wrong arg')
 
 
+# TODO: 'cons mu 2'   should work ?
+# TODO:  'cons nu a_eq_b mu' should work
+# TODO: Fix ' pos <h|k|l> val                 move h, k or l to val' doc string
 # TODO: look at all commands together (showref, listub, cons)
 # TODO: startup should sy to 'help ub' and 'help hkl'
 # TODO: overide help command. Perhaps just print __doc__ if it starts

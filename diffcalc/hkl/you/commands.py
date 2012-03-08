@@ -6,7 +6,8 @@ class YouHklCommands(object):
 
     def __init__(self, hklcalc):
         self._hklcalc = hklcalc
-        self.commands = [self.con,
+        self.commands = ['CONSTRAINTS',
+                         self.con,
                          self.uncon,
                          self.cons]
 
@@ -14,16 +15,18 @@ class YouHklCommands(object):
         return self._hklcalc.__str__()
 
     @command
-    def con(self, scn_or_string):
-        """con <constraint> -- constrains constraint
+    def con(self, scn_or_string, value=None):
+        """con <constraint> {value}-- constrains and optionally sets constraint
         """
         name = getNameFromScannableOrString(scn_or_string)
         self._hklcalc.constraints.constrain(name)
+        if value is not None:
+            self._hklcalc.constraints.set_constraint(name, value)
         print '\n'.join(self._hklcalc.constraints.report_constraints_lines())
 
     @command
     def uncon(self, scn_or_string):
-        """uncon <constraint> -- unconstrains constraint
+        """uncon <constraint> -- remove constraint
         """
         name = getNameFromScannableOrString(scn_or_string)
         self._hklcalc.constraints.unconstrain(name)
@@ -40,13 +43,10 @@ class YouHklCommands(object):
         Not all constraint combinations are currently available:
 
             1 x samp:              all 80 of 80
-
             2 x samp and 1 x ref:  chi & phi
                                    mu & eta
                                    chi=90 & mu=0 (2.5 of 6)
-
             2 x samp and 1 x det:  0 of 6
-
             3 x samp:              0 of 4
 
         See also 'con' and 'uncon'

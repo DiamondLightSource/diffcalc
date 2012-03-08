@@ -2,6 +2,9 @@ from math import pi
 
 from diffcalc.util import DiffcalcException
 
+TODEG = 180 / pi
+TORAD = pi / 180
+
 
 def filter_dict(d, keys):
     """Return a copy of d containing only keys that are in keys"""
@@ -110,7 +113,7 @@ class YouConstraintManager(object):
         return lines
 
     def _report_constraint(self, name):
-        val = self.all[name]
+        val = self.get_constraint(name)
         if name in valueless_constraints:
             return "    %s" % name
         else:
@@ -258,14 +261,15 @@ class YouConstraintManager(object):
 #                "Could not set %s as this constraint is configured to track "
 #                "its associated\nphysical angle. First remove this tracking "
 #                "(use 'untrack %s').""" % (name, name))
-        old_value = self.all[name]
+        old_value = self.get_constraint(name)
         old = str(old_value) if old_value is not None else '---'
-        self._constrained[name] = float(value)
+        self._constrained[name] = float(value) * TORAD
         new = str(value)
         return "%(name)s : %(old)s --> %(new)s" % locals()
 
     def get_constraint(self, name):
-        return self.all[name]
+        value = self.all[name]
+        return None if value is None else value * TODEG
 
     def update_tracked(self):
         pass  # not used

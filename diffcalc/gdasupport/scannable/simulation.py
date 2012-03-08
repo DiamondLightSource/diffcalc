@@ -103,7 +103,7 @@ class SimulatedCrystalCounter(PseudoDevice):
         s += '   h : %f\n' % h
         s += '   k : %f\n' % k
         s += '   l : %f\n' % l
-        s += self.cut.__str__()
+        s += self.cut.__str__() + '\n'
         s += "chi orientation: %s\n" % self.chiMissmount
         s += "phi orientation: %s\n" % self.phiMissmount
         ub = self.UB.tolist()

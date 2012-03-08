@@ -96,7 +96,7 @@ def create_diffcalc(engine_name,
     dc.hkl.commands.append('Motion')
     dc.hkl.commands.append(dc.sim)
     dc.hkl.commands.append(ExternalCommand(
-        '%(_hwname)s -- show Eularian position'))
+        '%(_hwname)s -- show Eularian position' % vars()))
     dc.hkl.commands.append(ExternalCommand(
         'pos %(_hwname)s [%(_angles)s]  -- move to Eularian position'
         '(None holds an axis still)' % vars()))
@@ -196,7 +196,7 @@ class Diffcalc(object):
         """checkub -- show calculated and entered hkl values for reflections.
         """
 
-        s = "\n   %7s  %4s  %4s  %4s   %6s  %6s  %6s   TAG\n" % \
+        s = "\n    %7s  %4s  %4s  %4s    %6s   %6s   %6s     TAG\n" % \
         ('ENERGY', 'H', 'K', 'L', 'H_COMP', 'K_COMP', 'L_COMP')
 
         if self._ubcalc.getReflist() is None:
@@ -212,8 +212,8 @@ class Diffcalc(object):
                 del time, params
                 if tag is None:
                     tag = ""
-                s += ("%-2d %-6.4f  %-4.2f  %-4.2f  %-4.2f   %-6.4f  %-6.4f  "
-                      "%-6.4f   %-s\n" % (n + 1, energy, hklguess[0],
+                s += ("% 2d % 6.4f % 4.2f % 4.2f % 4.2f   % 6.4f  % 6.4f  "
+                      "% 6.4f  %6s\n" % (n + 1, energy, hklguess[0],
                       hklguess[1], hklguess[2], hkl[0], hkl[1], hkl[2], tag))
         print s
 

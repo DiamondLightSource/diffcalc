@@ -1,3 +1,5 @@
+print "=" * 80
+
 try:
     import diffcalc
 except ImportError:
@@ -8,36 +10,45 @@ except ImportError:
     sys.path = [diffcalc_path] + sys.path
     print diffcalc_path + ' added to GDA Jython path.'
     import diffcalc  # @UnusedImport
+
 from diffcalc.gdasupport.factory import \
     create_objects, add_objects_to_namespace
+_demo = []
+_demo.append("pos wl 1")
+_demo.append("en")
+_demo.append("newub 'test'")
+_demo.append("setlat 'cubic' 1 1 1 90 90 90")
+_demo.append("c2th [1 0 0]")
+_demo.append("pos sixc [0 60 0 30 0 0]")
+_demo.append("addref 1 0 0 'ref1'")
+_demo.append("c2th [0 1 0]")
+_demo.append("pos phi 90")
+_demo.append("addref 0 1 0 'ref2'")
+_demo.append("checkub")
 
-demoCommands = []
-demoCommands.append("newub 'cubic'")
-demoCommands.append("setlat 'cubic' 1 1 1 90 90 90")
-demoCommands.append("pos wl 1")
-demoCommands.append("pos sixc [0 90 0 45 45 0]")
-demoCommands.append("addref 1 0 1")
-demoCommands.append("pos phi 90")
-demoCommands.append("addref 0 1 1")
-demoCommands.append("checkub")
-demoCommands.append("ub")
-demoCommands.append("hklmode")
-
-
-print "=" * 80
-diffcalcObjects = create_objects(
-    dummy_axis_names=('alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'),
-    dummy_energy_name='en',
+axis_names = ('mu', 'delta', 'nu', 'eta', 'chi', 'phi')
+virtual_angles = ('theta', 'qaz', 'alpha', 'naz', 'tau', 'psi', 'beta')
+_objects = create_objects(
+    engine_name='you',
     geometry='sixc',
-    hklverbose_virtual_angles_to_report=('2theta', 'Bin', 'Bout', 'azimuth'),
-    demo_commands=demoCommands
-)
+    dummy_axis_names=axis_names,
+    dummy_energy_name='en',
+    hklverbose_virtual_angles_to_report=virtual_angles,
+    simulated_crystal_counter_name='ct',
+    demo_commands=_demo
+    )
 
-diffcalcObjects['diffcalcdemo'].commands = demoCommands
-add_objects_to_namespace(diffcalcObjects, globals())
+#_objects['diffcalcdemo'].commands = demoCommands
+add_objects_to_namespace(_objects, globals())
+a_eq_b ='a_eq_b'
 
+# TODO: Tidy these hacks:
+en.setLevel(4)
+hkl.setLevel(5) #@UndefinedVariable
 
-print diffcalcObjects['ub'].__doc__
-print "***"
-print diffcalcObjects['hkl'].__doc__
-print "***"
+print '=' * 80
+
+def help_hkl():
+    print hkl.__doc__
+    
+alias('help_hkl')

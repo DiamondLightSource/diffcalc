@@ -40,6 +40,12 @@ def z_rotation(th):
 class DiffcalcException(Exception):
     """Error caused by user misuse of diffraction calculator.
     """
+    def __str__(self):
+        lines = []
+        lines.append('DiffcalcException:')
+        for msg_line in self.message.split('\n'):
+            lines.append('! ' + msg_line)
+        return '\n'.join(lines)
 
 
 class AbstractPosition(object):

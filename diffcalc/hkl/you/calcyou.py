@@ -25,6 +25,7 @@ SMALL = 1e-8
 TORAD = pi / 180
 TODEG = 180 / pi
 
+PRINT_DEGENERATE = False
 
 def is_small(x):
     return abs(x) < SMALL
@@ -107,10 +108,11 @@ def _tidy_degenerate_solutions(pos, constraints):
             eta_diff = desired_eta - pos.eta
             pos.eta += eta_diff
             pos.phi -= eta_diff
-            print ('DEGENERATE: with chi=0, phi and eta are colinear:'
-                   'choosing eta = delta/2 by adding % 7.3f to eta and '
-                   'removing it from phi. (mu=nu=0 only)' % (eta_diff * TODEG))
-            print '            original:', original
+            if PRINT_DEGENERATE:
+                print ('DEGENERATE: with chi=0, phi and eta are colinear:'
+                       'choosing eta = delta/2 by adding % 7.3f to eta and '
+                       'removing it from phi. (mu=nu=0 only)' % (eta_diff * TODEG))
+                print '            original:', original
 
     elif delta_constrained_to_0 and eta_constrained_to_0:
         # constrained to horizontal 4-circle like mode
@@ -119,10 +121,11 @@ def _tidy_degenerate_solutions(pos, constraints):
             mu_diff = desired_mu - pos.mu
             pos.mu += mu_diff
             pos.phi += mu_diff
-            print ('DEGENERATE: with chi=90, phi and mu are colinear: choosing'
-                   ' mu = nu/2 by adding % 7.3f to mu and to phi. '
-                   '(delta=eta=0 only)' % (mu_diff * TODEG))
-            print '            original:', original
+            if PRINT_DEGENERATE:
+                print ('DEGENERATE: with chi=90, phi and mu are colinear: choosing'
+                       ' mu = nu/2 by adding % 7.3f to mu and to phi. '
+                       '(delta=eta=0 only)' % (mu_diff * TODEG))
+                print '            original:', original
 
     return pos
 
@@ -717,8 +720,9 @@ class YouHklCalculator(HklCalculatorBase):
                                         theta, det_constraint_name):
         if (ne(initial_delta, pi / 2) and
             ('nu' not in self.constraints.detector)):
-            print ('DEGENERATE: with delta=90, nu is degenerate: choosing '
-                   'nu = 0 (allowed because nu is unconstrained)')
+            if PRINT_DEGENERATE:
+                print ('DEGENERATE: with delta=90, nu is degenerate: choosing '
+                       'nu = 0 (allowed because nu is unconstrained)')
             return initial_delta, 0  # delta, nu
 
         logger.info('initial detector solution - delta=% 7.3f, nu=% 7.3f',
@@ -816,7 +820,7 @@ class YouHklCalculator(HklCalculatorBase):
         if len(delta_nu_pairs) > 1:
             delta_nu_pairs_degrees = [[v * TODEG for v in pair]
                                       for pair in delta_nu_pairs]
-            raise Exception(
+            raise DiffcalcException(
                 'Multiple detector solutions were found: delta, nu = %s, '
                 'please constrain detector limits' % delta_nu_pairs_degrees)
         if len(delta_nu_pairs) == 0:

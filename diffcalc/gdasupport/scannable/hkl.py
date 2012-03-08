@@ -5,7 +5,7 @@ except ImportError:
     from diffcalc.gdasupport.minigda.scannable import \
         ScannableMotionWithScannableFieldsBase
 
-from diffcalc.util import getMessageFromException
+from diffcalc.util import getMessageFromException, DiffcalcException
 
 
 class _DynamicDocstringMetaclass(type):
@@ -48,8 +48,10 @@ class Hkl(ScannableMotionWithScannableFieldsBase):
 
     def rawAsynchronousMoveTo(self, hkl):
         if len(hkl) != 3: raise ValueError('Hkl device expects three inputs')
-
-        (pos, _) = self._diffcalc.hkl_to_angles(hkl[0], hkl[1], hkl[2])
+        try:
+            (pos, _) = self._diffcalc.hkl_to_angles(hkl[0], hkl[1], hkl[2])
+        except DiffcalcException, e:
+            raise DiffcalcException(e.message)
         self.diffhw.asynchronousMoveTo(pos)
 
     def rawGetPosition(self):
