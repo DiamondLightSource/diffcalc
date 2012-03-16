@@ -1,5 +1,7 @@
-Quick-start inside OpenGda
-==========================
+.. _quickstart-opengda:
+
+Quick-start: OpenGDA
+====================
 
 Install
 -------

@@ -108,8 +108,8 @@ class UbCommands(object):
     def ub(self):
         """ub -- show the complete state of the ub calculation
         """
-        wavelength = float(self._hardware.getWavelength())
-        energy = float(self._hardware.getEnergy())
+        wavelength = float(self._hardware.get_wavelength())
+        energy = float(self._hardware.get_energy())
         print self._ubcalc.__str__()
 
 ### UB lattice ###
@@ -144,11 +144,14 @@ class UbCommands(object):
             raise TypeError()
 
     @command
-    def c2th(self, hkl):
+    def c2th(self, hkl, en=None):
         """
         c2th [h k l]  -- calculate two-theta angle for reflection
         """
-        wl = self._hardware.getWavelength()
+        if en is None:
+            wl = self._hardware.get_wavelength()
+        else:
+            wl = 12.39842 / en
         d = self._ubcalc.getHklPlaneDistance(hkl)
         return 2.0 * asin(wl / (d * 2)) * TODEG
 
@@ -158,8 +161,8 @@ class UbCommands(object):
     def sigtau(self, sigma=None, tau=None):
         """sigtau {sigma tau} -- sets or displays sigma and tau"""
         if sigma is None and tau is None:
-            chi = self._hardware.getPositionByName('chi')
-            phi = self._hardware.getPositionByName('phi')
+            chi = self._hardware.get_position_by_name('chi')
+            phi = self._hardware.get_position_by_name('phi')
             _sigma, _tau = self._ubcalc.sigma, self._ubcalc.tau
             print "sigma, tau = %f, %f" % (_sigma, _tau)
             print "  chi, phi = %f, %f" % (chi, phi)
@@ -185,8 +188,8 @@ class UbCommands(object):
     def addref(self, *args):
         """
         addref -- add reflection interactively
-        addref h k l {'tag'} -- add reflection with current position and energy
-        addref h k l (p1,p2...pN) energy {'tag'} -- add arbitrary reflection
+        addref [h k l] {'tag'} -- add reflection with current position and energy
+        addref [h k l] (p1,p2...pN) energy {'tag'} -- add arbitrary reflection
         """
 
         if len(args) == 0:
@@ -197,12 +200,12 @@ class UbCommands(object):
                 self.handleInputError("h,k and l must all be numbers")
             reply = promptForInput('current pos', 'y')
             if reply in ('y', 'Y', 'yes'):
-                positionList = self._hardware.getPosition()
-                energy = self._hardware.getEnergy()
+                positionList = self._hardware.get_position()
+                energy = self._hardware.get_energy()
             else:
-                currentPos = self._hardware.getPosition()
+                currentPos = self._hardware.get_position()
                 positionList = []
-                names = self._hardware.getPhysicalAngleNames()
+                names = self._hardware.get_axes_names()
                 for i, angleName in enumerate(names):
                     val = promptForNumber(angleName.rjust(7), currentPos[i])
                     if val is None:
@@ -210,7 +213,7 @@ class UbCommands(object):
                                               " Return to accept default!")
                         return
                     positionList.append(val)
-                energy = promptForNumber('energy', self._hardware.getEnergy())
+                energy = promptForNumber('energy', self._hardware.get_energy())
                 if val is None:
                     self.handleInputError("Please enter a number, or press "
                                           "Return to accept default!")
@@ -223,11 +226,9 @@ class UbCommands(object):
             pos = self._geometry.physical_angles_to_internal_position(positionList)
             self._ubcalc.addReflection(h, k, l, pos, energy, tag,
                                        datetime.now())
-        elif len(args) in (3, 4, 5, 6):
+        elif len(args) in (1, 2, 3, 4):
             args = list(args)
-            h = args.pop(0)
-            k = args.pop(0)
-            l = args.pop(0)
+            h, k, l = args.pop(0)
             if not (isnum(h) and isnum(k) and isnum(l)):
                 raise TypeError()
             if len(args) >= 2:
@@ -238,8 +239,8 @@ class UbCommands(object):
                     raise TypeError()
             else:
                 pos = self._geometry.physical_angles_to_internal_position(
-                    self._hardware.getPosition())
-                energy = self._hardware.getEnergy()
+                    self._hardware.get_position())
+                energy = self._hardware.get_energy()
             if len(args) == 1:
                 tag = args.pop(0)
                 if not isinstance(tag, str):
@@ -270,11 +271,11 @@ class UbCommands(object):
         reply = promptForInput('update position with current hardware setting',
                                'n')
         if reply in ('y', 'Y', 'yes'):
-            positionList = self._hardware.getPosition()
-            energy = self._hardware.getEnergy()
+            positionList = self._hardware.get_position()
+            energy = self._hardware.get_energy()
         else:
             positionList = []
-            names = self._hardware.getPhysicalAngleNames()
+            names = self._hardware.get_axes_names()
             for i, angleName in enumerate(names):
                 val = promptForNumber(angleName.rjust(7), oldExternalAngles[i])
                 if val is None:

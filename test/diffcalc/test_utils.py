@@ -18,7 +18,7 @@
 
 import unittest
 
-from diffcalc.hkl.vlieg.position import VliegPosition
+from diffcalc.hkl.vlieg.geometry import VliegPosition
 from diffcalc.util import MockRawInput, \
     getInputWithDefault, differ, nearlyEqual, degreesEquivilant
 import diffcalc.util  # @UnusedImport

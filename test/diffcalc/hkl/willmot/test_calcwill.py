@@ -16,7 +16,7 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-# TODO: class largely copied from test_calcyou
+# TODO: class largely copied from test_calc
 
 from math import pi
 from mock import Mock
@@ -27,19 +27,19 @@ try:
 except ImportError:
     from numjy import matrix
 
-from diffcalc.hkl.willmott.calcwill_horizontal import \
+from diffcalc.hkl.willmott.calc import \
     WillmottHorizontalUbCalcStrategy, WillmottHorizontalCalculator, \
     WillmottHorizontalPosition as Pos, WillmottHorizontalGeometry
 from test.tools import assert_array_almost_equal, \
     assert_second_dict_almost_in_first, matrixeq_
-from diffcalc.ub.calculation import UBCalculation
+from diffcalc.ub.calc import UBCalculation
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.util import DiffcalcException
 from test.diffcalc.test_hardware import SimpleHardwareAdapter
-from test.diffcalc.hkl.vlieg.test_calcvlieg import createMockUbcalc, \
+from test.diffcalc.hkl.vlieg.test_calc import createMockUbcalc, \
     createMockDiffractometerGeometry
-import diffcalc.hkl.willmott.calcwill_horizontal  # @UnusedImport
+import diffcalc.hkl.willmott.calc  # @UnusedImport
 
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -111,7 +111,7 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12():
 
     def setUp(self):
         hardware = Mock()
-        hardware.getPhysicalAngleNames.return_value = ('d', 'g', 'oh', 'p')
+        hardware.get_axes_names.return_value = ('d', 'g', 'oh', 'p')
         self.ubcalc = UBCalculation(hardware, WillmottHorizontalGeometry(),
                                     UbCalculationNonPersister(),
                                     WillmottHorizontalUbCalcStrategy())
@@ -140,7 +140,7 @@ class TestSurfaceNormalVertical_Si_5_5_12_PosGamma(_BaseTest):
         B = CrystalUnderTest('xtal', 7.68, 53.48,
                              75.63, 90, 90, 90).B
         self.UB = Si_5_5_12_U_DIFFCALC * B
-        diffcalc.hkl.willmott.calcwill_horizontal.CHOOSE_POSITIVE_GAMMA = True
+        diffcalc.hkl.willmott.calc.CHOOSE_POSITIVE_GAMMA = True
 
     def _configure_ub(self):
         self.mock_ubcalc.UB = self.UB
@@ -206,7 +206,7 @@ class SkipTestSurfaceNormalVertical_Si_5_5_12_NegGamma(
         B = CrystalUnderTest('xtal', 7.68, 53.48,
                              75.63, 90, 90, 90).B
         self.UB = Si_5_5_12_U_DIFFCALC * B
-        diffcalc.hkl.willmott.calcwill_horizontal.CHOOSE_POSITIVE_GAMMA = False
+        diffcalc.hkl.willmott.calc.CHOOSE_POSITIVE_GAMMA = False
 
 
 ##################################################################
@@ -248,7 +248,7 @@ class TestUBCalculationWithWillmotStrategy_Pt531():
 
     def setUp(self):
         hardware = Mock()
-        hardware.getPhysicalAngleNames.return_value = ('d', 'g', 'oh', 'p')
+        hardware.get_axes_names.return_value = ('d', 'g', 'oh', 'p')
         self.ubcalc = UBCalculation(hardware, WillmottHorizontalGeometry(),
                                     UbCalculationNonPersister(),
                                     WillmottHorizontalUbCalcStrategy())
@@ -278,7 +278,7 @@ class TestSurfaceNormalVertical_Pt531_PosGamma(_BaseTest):
         cut = CrystalUnderTest('Pt531', 6.204, 4.806, 23.215, 90, 90, 49.8)
         B = cut.B
         self.UB = Pt531_U_DIFFCALC * B
-        diffcalc.hkl.willmott.calcwill_horizontal.CHOOSE_POSITIVE_GAMMA = True
+        diffcalc.hkl.willmott.calc.CHOOSE_POSITIVE_GAMMA = True
 
     def _configure_ub(self):
         self.mock_ubcalc.UB = self.UB

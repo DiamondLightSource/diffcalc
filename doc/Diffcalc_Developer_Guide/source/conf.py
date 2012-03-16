@@ -39,3 +39,5 @@ latex_documents = [
   ('contents', 'Diffcalc_Developer_Guide.tex', u'Diffcalc Developer Guide',
    _author_diamond, 'manual'),
 ]
+
+intersphinx_mapping = {}

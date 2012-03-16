@@ -27,11 +27,13 @@ from diffcalc.gdasupport.scannable.parameter import \
 from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter
 from diffcalc.gdasupport.scannable.wavelength import Wavelength
 import diffcalc.hkl.vlieg.geometry
+import diffcalc.hkl.you.geometry
 from diffcalc.hardware import ScannableHardwareAdapter
 from diffcalc.util import format_command_help, ExternalCommand
 from diffcalc.hkl.vlieg.geometry import VliegGeometry
-from diffcalc.hkl.you.geometry import YouGeometry
+from diffcalc.hkl.you.geometry import _YouGeometry
 from diffcalc.ub.persistence import UBCalculationPersister
+import textwrap
 
 try:
     from gda.device.scannable.scannablegroup import ScannableGroup
@@ -86,7 +88,7 @@ VLIEG_GEOMETRIES = {
 }
 
 YOU_GEOMETRIES = {
-    'sixc': diffcalc.hkl.vlieg.geometry.SixCircleGeometry,
+    'sixc': diffcalc.hkl.you.geometry.SixCircle,
 }
 
 
@@ -98,7 +100,9 @@ def add_objects_to_namespace(object_dict, namespace):
                 "so would overwrite the object %s" % nameToAdd)
     namespace.update(object_dict)
     if VERBOSE:
-        print "Added objects/methods to namespace: ", ', '.join(object_dict.keys())
+        print "Added objects/methods to namespace: "
+        lines = textwrap.wrap(', '.join(sorted(object_dict.keys())), 80)
+        print '\n'.join(lines)
 
 
 def create_objects(
@@ -123,8 +127,17 @@ def create_objects(
         print "=" * 80
     objects = {}
 
+    if engine_name.lower() not in AVAILABLE_ENGINES:
+        raise KeyError("The engine '%s' was not recognised. "
+                       "Try %r" % (engine_name, AVAILABLE_ENGINES))
+
     # Obtain geometry instance
-    geometry = _determine_vlieg_geometry(geometry)
+    if engine_name.lower() == 'vlieg':
+        geometry = _determine_vlieg_geometry(geometry)
+    elif engine_name.lower() == 'you':
+        geometry = _determine_you_geometry(geometry)
+    else:
+        raise ValueError()
 
     # Create diffractometer scannable and possibly dummy axes
     diffractometer_scannable_name = _determine_diffractometer_scannable_name(
@@ -147,9 +160,6 @@ def create_objects(
                                         energy_scannable_multiplier_to_get_KeV)
 
     # Instantiate diffcalc
-    if engine_name.lower() not in AVAILABLE_ENGINES:
-        raise KeyError("The engine '%s' was not recognised. "
-                       "Try %r" % (engine_name, AVAILABLE_ENGINES))
 
     dc = create_diffcalc(engine_name.lower(),
                           geometry,
@@ -173,10 +183,14 @@ def create_objects(
     # Create parameter/constraint scannables
     objects.update(_create_constraint_scannables(dc))
 
+    if engine_name.lower() == 'you':
+        objects['a_eq_b'] = 'a_eq_b'
+
     # Create simulated crystal counter
     if simulated_crystal_counter_name:
         ct = SimulatedCrystalCounter(simulated_crystal_counter_name,
                                      diff_scannable, geometry, objects['wl'])
+        ct.level = 10
         objects.update({ct.name: ct})
         if VERBOSE:
             print "\nCreated Simulated Crystal Counter:\n   ", ct.name
@@ -193,7 +207,8 @@ def create_objects(
     if VERBOSE:
         print "Tutorial"
         print ""
-    objects.update(_create_and_alias_diffcalcdemo(demo_commands))
+    if demo_commands:
+        objects.update(_create_and_alias_diffcalcdemo(demo_commands))
 
     if engine_name.lower() == 'vlieg':
         # add strings for transformX commands
@@ -227,7 +242,7 @@ def _determine_vlieg_geometry(geometry):
 
 
 def _determine_you_geometry(geometry):
-    if isinstance(geometry, YouGeometry):
+    if isinstance(geometry, _YouGeometry):
         return geometry
     elif type(geometry) is str:
         try:
@@ -379,7 +394,7 @@ def _create_hkl_verbose(hklverboseScannableName, diffractometerScannable,
 def _create_constraint_scannables(diffcalc):
     objects = {}
     paramNames = diffcalc.parameter_manager.settable_constraint_names
-    axisNames = diffcalc._hardware.getPhysicalAngleNames()
+    axisNames = diffcalc._hardware.get_axes_names()
     created_names = []
     for param in paramNames:
         scnname = param

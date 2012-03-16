@@ -31,8 +31,8 @@ from test.tools import mneq_
 
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry, \
     gammaOnArmToBase, gammaOnBaseToArm, SixCircleGeometry, Fivec, Fourc
-from diffcalc.hkl.vlieg.matrices import createVliegMatrices
-from diffcalc.hkl.vlieg.position import VliegPosition
+from diffcalc.hkl.vlieg.geometry import createVliegMatrices
+from diffcalc.hkl.vlieg.geometry import VliegPosition
 from diffcalc.util import nearlyEqual, radiansEquivilant as radeq
 
 

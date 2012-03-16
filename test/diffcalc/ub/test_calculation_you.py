@@ -25,10 +25,10 @@ except ImportError:
     from numjy import matrix
 
 from diffcalc.hkl.you.geometry import SixCircle
-from diffcalc.hkl.you.position import YouPosition
-from diffcalc.hkl.you.calcyou import YouUbCalcStrategy
+from diffcalc.hkl.you.geometry import YouPosition
+from diffcalc.hkl.you.calc import YouUbCalcStrategy
 from test.tools import matrixeq_
-from diffcalc.ub.calculation import UBCalculation
+from diffcalc.ub.calc import UBCalculation
 from diffcalc.ub.persistence import UbCalculationNonPersister
 
 #newub 'cubic'                   <-->  reffile('cubic)
@@ -68,7 +68,7 @@ class TestUBCalculationWithYouStrategy():
         geometry = SixCircle()  # pass through
         hardware = Mock()
         names = 'm', 'd', 'n', 'e', 'c', 'p'
-        hardware.getPhysicalAngleNames.return_value = names
+        hardware.get_axes_names.return_value = names
         self.ubcalc = UBCalculation(hardware,
                                     geometry,
                                     UbCalculationNonPersister(),

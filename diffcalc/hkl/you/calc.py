@@ -27,15 +27,15 @@ except ImportError:
 
 from diffcalc.log import logging
 from diffcalc.hkl.calcbase import HklCalculatorBase
-from diffcalc.hkl.you.matrices import createYouMatrices, calcMU, calcPHI, \
+from diffcalc.hkl.you.geometry import create_you_matrices, calcMU, calcPHI, \
     calcCHI
-from diffcalc.hkl.you.position import YouPosition
+from diffcalc.hkl.you.geometry import YouPosition
 from diffcalc.util import DiffcalcException, bound, angle_between_vectors
 from diffcalc.hkl.common import DummyParameterManager
 from diffcalc.util import cross3, z_rotation, x_rotation
-from diffcalc.ub.calculation import PaperSpecificUbCalcStrategy
+from diffcalc.ub.calc import PaperSpecificUbCalcStrategy
 
-logger = logging.getLogger("diffcalc.hkl.you.calcyou")
+logger = logging.getLogger("diffcalc.hkl.you.calc")
 I = matrix('1 0 0; 0 1 0; 0 0 1')
 y = matrix('0; 1; 0')
 
@@ -44,6 +44,7 @@ TORAD = pi / 180
 TODEG = 180 / pi
 
 PRINT_DEGENERATE = False
+
 
 def is_small(x):
     return abs(x) < SMALL
@@ -93,7 +94,10 @@ def _calc_angle_between_naz_and_qaz(theta, alpha, tau):
     top = cos(tau) - sin(alpha) * sin(theta)
     bottom = cos(alpha) * cos(theta)
     if is_small(bottom):
-        raise ValueError('cos(alpha) or cos(theta) are too small')
+        if is_small(cos(alpha)):
+            raise ValueError('cos(alpha) is too small')
+        if is_small(cos(theta)):
+            raise ValueError('cos(theta) is too small')
     return acos(bound(top / bottom))
 
 
@@ -101,7 +105,7 @@ def youAnglesToHkl(pos, wavelength, UBmatrix):
     """Calculate miller indices from position in radians.
     """
 
-    [MU, DELTA, NU, ETA, CHI, PHI] = createYouMatrices(*pos.totuple())
+    [MU, DELTA, NU, ETA, CHI, PHI] = create_you_matrices(*pos.totuple())
 
     q_lab = (NU * DELTA - I) * matrix([[0], [2 * pi / wavelength], [0]])   # 12
 
@@ -191,7 +195,7 @@ class YouUbCalcStrategy(PaperSpecificUbCalcStrategy):
 
     def calculate_q_phi(self, pos):
 
-        [MU, DELTA, NU, ETA, CHI, PHI] = createYouMatrices(*pos.totuple())
+        [MU, DELTA, NU, ETA, CHI, PHI] = create_you_matrices(*pos.totuple())
         # Equation 12: Compute the momentum transfer vector in the lab  frame
         q_lab = (NU * DELTA - I) * y
         # Transform this into the phi frame.
@@ -208,7 +212,10 @@ class YouHklCalculator(HklCalculatorBase):
         self.constraints = constraints
         self.parameter_manager = constraints  # TODO: remove need for this attr
 
-        self.n_phi = matrix([[0], [0], [1]])
+        self.constraints.n_phi = matrix([[0], [0], [1]])
+
+    def __str__(self):
+        return self.constraints.__str__()
 
     def repr_mode(self):
         return repr(self.constraints.all)
@@ -230,10 +237,10 @@ class YouHklCalculator(HklCalculatorBase):
 
         theta, qaz = _theta_and_qaz_from_detector_angles(delta, nu)      # (19)
 
-        [MU, _, _, ETA, CHI, PHI] = createYouMatrices(mu,
+        [MU, _, _, ETA, CHI, PHI] = create_you_matrices(mu,
                                            delta, nu, eta, chi, phi)
         Z = MU * ETA * CHI * PHI
-        n_lab = Z * self.n_phi
+        n_lab = Z * self.constraints.n_phi
         alpha = asin(bound((-n_lab[1, 0])))
         naz = atan2(n_lab[0, 0], n_lab[2, 0])                            # (20)
 
@@ -289,7 +296,7 @@ class YouHklCalculator(HklCalculatorBase):
 
         h_phi = self._getUBMatrix() * matrix([[h], [k], [l]])
         theta = self._calc_theta(h_phi, wavelength)
-        tau = angle_between_vectors(h_phi, self.n_phi)
+        tau = angle_between_vectors(h_phi, self.constraints.n_phi)
 
         ### Reference constraint column ###
 
@@ -356,7 +363,7 @@ class YouHklCalculator(HklCalculatorBase):
 
             phi, chi, eta, mu = self._calc_remaining_sample_angles(
                 sample_constraint_name, sample_value, q_lab, n_lab, h_phi,
-                self.n_phi)
+                self.constraints.n_phi)
 
             mu, eta, chi, phi = self._generate_final_sample_angles(
                                 mu, eta, chi, phi, (sample_constraint_name,),
@@ -367,7 +374,7 @@ class YouHklCalculator(HklCalculatorBase):
 
             if ref_constraint:
                 angles = self._calc_angles_given_two_sample_and_reference(
-                    self.constraints.sample, psi, theta, h_phi, self.n_phi)
+                    self.constraints.sample, psi, theta, h_phi, self.constraints.n_phi)
                 xi_initial, psi, mu, eta, chi, phi = angles
                 values_in_deg = tuple(v * TODEG for v in angles)
                 logger.info('Initial angles: xi=%.3f, psi=%.3f, mu=%.3f, '
@@ -890,8 +897,8 @@ class YouHklCalculator(HklCalculatorBase):
             value_constrained = name in constrained_names
             for transformed_value in _generate_transformed_values(
                 value, value_constrained):
-                if self._hardware.isAxisValueWithinLimits(name,
-                    self._hardware.cutAngle(name, transformed_value * TODEG)):
+                if self._hardware.is_axis_value_within_limits(name,
+                    self._hardware.cut_angle(name, transformed_value * TODEG)):
                     transforms_of_value_within_limits.append(
                         cut_at_minus_pi(transformed_value))
             transformed_values.append(transforms_of_value_within_limits)

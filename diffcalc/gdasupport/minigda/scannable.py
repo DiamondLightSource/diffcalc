@@ -16,24 +16,36 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+import time
+
+
 class Scannable(object):
-    """Implemetation of a subset of the gda's Scannable interface
+    """Implemtation of a subset of OpenGDA's Scannable interface
     """
 
+    level = 5
+    inputNames = []
+    extraNames = []
+    outputFormat = []
+
     def isBusy(self):
-        raise Exception("Must be overidden. Not needed in minigda yet!")
-
-    def getPosition(self):
-        return self.rawGetPosition()
-
-    def asynchronousMoveTo(self, newpos):
-        self.rawAsynchronousMoveTo(newpos)
+        raise NotImplementedError()
 
     def rawGetPosition(self):
         raise NotImplementedError()
 
     def rawAsynchronousMoveTo(self, newpos):
         raise NotImplementedError()
+
+    def waitWhileBusy(self):
+        while self.isBusy():
+            time.sleep(.1)
+
+    def getPosition(self):
+        return self.rawGetPosition()
+
+    def asynchronousMoveTo(self, newpos):
+        self.rawAsynchronousMoveTo(newpos)
 
     def atScanStart(self):
         pass
@@ -93,35 +105,32 @@ class Scannable(object):
         self.name = value
 
     def getLevel(self):
-        return self._level
+        return self.level
 
     def setLevel(self, value):
-        self._level = value
+        self.level = value
 
     def getInputNames(self):
-        return self._ioFieldNames
+        return self.inputNames
 
     def setInputNames(self, value):
-        self._ioFieldNames = value
+        self.inputNames = value
 
     def getExtraNames(self):
-        try:
-            return self._oFieldNames
-        except:
-            return []
+        return self.extraNames
 
     def setExtraNames(self, value):
-        self._oFieldNames = value
+        self.extraNames = value
 
     def getOutputFormat(self):
-        return self._formats
+        return self.outputFormat
 
     def setOutputFormat(self, value):
         if type(value) not in (tuple, list):
             raise TypeError(
                 "%s.setOutputFormat() expects tuple or list; not %s" %
                 (self.getName(), str(type(value))))
-        self._formats = value
+        self.outputFormat = value
 
     def __call__(self, newpos=None):
         if newpos is None:
@@ -130,22 +139,25 @@ class Scannable(object):
 
 
 class SingleFieldDummyScannable(Scannable):
-    '''Dummy PD Class'''
-    def __init__(self, name):
-        self.setName(name)
-        self.setInputNames([name])
-        self.setOutputFormat(['%6.4f'])
-        self.setLevel(3)
-        self.currentposition = 0.0
+
+    def __init__(self, name, initial_position=0.):
+        self.name = name
+        self.inputNames = [name]
+        self.outputFormat = ['%6.4f']
+        self.level = 3
+        self._current_position = float(initial_position)
 
     def isBusy(self):
-        return 0
+        return False
+
+    def waitWhileBusy(self):
+        return
 
     def asynchronousMoveTo(self, new_position):
-        self.currentposition = float(new_position)
+        self._current_position = float(new_position)
 
     def getPosition(self):
-        return self.currentposition
+        return self._current_position
 
 
 class DummyPD(SingleFieldDummyScannable):

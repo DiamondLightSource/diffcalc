@@ -19,7 +19,7 @@
 from datetime import datetime
 
 from diffcalc.ub.reflections import Reflection
-from diffcalc.hkl.vlieg.position  import VliegPosition as P
+from diffcalc.hkl.vlieg.geometry  import VliegPosition as P
 
 
 class SessionScenario:

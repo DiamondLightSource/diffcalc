@@ -31,9 +31,11 @@ from test.tools import assert_iterable_almost_equal, mneq_
 from diffcalc.ub.commands import UbCommands
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.util import DiffcalcException, MockRawInput
-from diffcalc.ub.calculation import UBCalculation
-from diffcalc.hkl.vlieg.calcvlieg import VliegUbCalcStrategy
+from diffcalc.ub.calc import UBCalculation
+from diffcalc.hkl.vlieg.calc import VliegUbCalcStrategy
 from test.diffcalc import scenarios
+
+diffcalc.util.DEBUG = True
 
 
 def prepareRawInput(listOfStrings):
@@ -131,7 +133,7 @@ class TestUbCommands(unittest.TestCase):
         self.assertRaises(TypeError, self.ubcommands.addref, 1, 2)
         self.assertRaises(TypeError, self.ubcommands.addref, 1, 2, 'blarghh')
         self.assertRaises(DiffcalcException,
-            self.ubcommands.addref, 1, 2, 3, (1, 2, 3, 4, 5, 6), 7)
+            self.ubcommands.addref, [1, 2, 3], (1, 2, 3, 4, 5, 6), 7)
         # start new ubcalc
         self.ubcommands.newub('testing_addref')
         reflist = self.ubcommands._ubcalc._reflist  # for conveniance
@@ -141,23 +143,23 @@ class TestUbCommands(unittest.TestCase):
         pos3 = (3.1, 3.2, 3.3, 3.4, 3.5, 3.6)
         pos4 = (4.1, 4.2, 4.3, 4.4, 4.5, 4.6)
         #
-        self.hardware.setEnergy(1.10)
-        self.hardware.setPosition(pos1)
-        self.ubcommands.addref(1.1, 1.2, 1.3)
+        self.hardware.energy = 1.10
+        self.hardware.position = pos1
+        self.ubcommands.addref([1.1, 1.2, 1.3])
         result = reflist.getReflectionInExternalAngles(1)
         eq_(result[:-1], ([1.1, 1.2, 1.3], pos1, 1.10, None))
 
-        self.hardware.setEnergy(2.10)
-        self.hardware.setPosition(pos2)
-        self.ubcommands.addref(2.1, 2.2, 2.3, 'atag')
+        self.hardware.energy = 2.10
+        self.hardware.position = pos2
+        self.ubcommands.addref([2.1, 2.2, 2.3], 'atag')
         result = reflist.getReflectionInExternalAngles(2)
         eq_(result[:-1], ([2.1, 2.2, 2.3], pos2, 2.10, 'atag'))
 
-        self.ubcommands.addref(3.1, 3.2, 3.3, pos3, 3.10)
+        self.ubcommands.addref([3.1, 3.2, 3.3], pos3, 3.10)
         result = reflist.getReflectionInExternalAngles(3)
         eq_(result[:-1], ([3.1, 3.2, 3.3], pos3, 3.10, None))
 
-        self.ubcommands.addref(4.1, 4.2, 4.3, pos4, 4.10, 'tag2')
+        self.ubcommands.addref([4.1, 4.2, 4.3], pos4, 4.10, 'tag2')
         result = reflist.getReflectionInExternalAngles(4)
         eq_(result[:-1], ([4.1, 4.2, 4.3], pos4, 4.10, 'tag2'))
 
@@ -174,15 +176,15 @@ class TestUbCommands(unittest.TestCase):
         pos4 = (4.1, 4.2, 4.3, 4.4, 4.5, 4.6)
         pos4s = ['4.1', '4.2', '4.3', '4.4', '4.5', '4.6']
         #
-        self.hardware.setEnergy(1.10)
-        self.hardware.setPosition(pos1)
+        self.hardware.energy = 1.10
+        self.hardware.position = pos1
         prepareRawInput(['1.1', '1.2', '1.3', '', ''])
         self.ubcommands.addref()
         result = reflist.getReflectionInExternalAngles(1)
         eq_(result[:-1], ([1.1, 1.2, 1.3], pos1, 1.10, None))
 
-        self.hardware.setEnergy(2.10)
-        self.hardware.setPosition(pos2)
+        self.hardware.energy = 2.10
+        self.hardware.position = pos2
         prepareRawInput(['2.1', '2.2', '2.3', '', 'atag'])
         self.ubcommands.addref()
         result = reflist.getReflectionInExternalAngles(2)
@@ -202,9 +204,9 @@ class TestUbCommands(unittest.TestCase):
         pos1 = (1.1, 1.2, 1.3, 1.4, 1.5, 1.6)
         pos2 = (2.1, 2.2, 2.3, 2.4, 2.5, 2.6)
         self.ubcommands.newub('testing_editref')
-        self.ubcommands.addref(1, 2, 3, pos1, 10, 'tag1')
-        self.hardware.setEnergy(11)
-        self.hardware.setPosition(pos2)
+        self.ubcommands.addref([1, 2, 3], pos1, 10, 'tag1')
+        self.hardware.energy = 11
+        self.hardware.position = pos2
         prepareRawInput(['1.1', '', '3.1', 'y', ''])
         self.ubcommands.editref(1)
 
@@ -217,7 +219,7 @@ class TestUbCommands(unittest.TestCase):
         pos2 = (2.1, 2.2, 2.3, 2.4, 2.5, 2.6)
         pos2s = ['2.1', '2.2', '2.3', '2.4', '2.5', '2.6']
         self.ubcommands.newub('testing_editref')
-        self.ubcommands.addref(1, 2, 3, pos1, 10, 'tag1')
+        self.ubcommands.addref([1, 2, 3], pos1, 10, 'tag1')
         prepareRawInput(['1.1', '', '3.1', 'n'] + pos2s + ['12', 'newtag'])
         self.ubcommands.editref(1)
 
@@ -231,9 +233,9 @@ class TestUbCommands(unittest.TestCase):
         self.assertRaises(TypeError, self.ubcommands.swapref, 1, 1.1)
         self.ubcommands.newub('testing_swapref')
         pos = (1.1, 1.2, 1.3, 1.4, 1.5, 1.6)
-        self.ubcommands.addref(1, 2, 3, pos, 10, 'tag1')
-        self.ubcommands.addref(1, 2, 3, pos, 10, 'tag2')
-        self.ubcommands.addref(1, 2, 3, pos, 10, 'tag3')
+        self.ubcommands.addref([1, 2, 3], pos, 10, 'tag1')
+        self.ubcommands.addref([1, 2, 3], pos, 10, 'tag2')
+        self.ubcommands.addref([1, 2, 3], pos, 10, 'tag3')
         self.ubcommands.swapref(1, 3)
         self.ubcommands.swapref(1, 3)
         self.ubcommands.swapref(3, 1)  # end flipped
@@ -253,7 +255,7 @@ class TestUbCommands(unittest.TestCase):
     def testDelref(self):
         self.ubcommands.newub('testing_swapref')
         pos = (1.1, 1.2, 1.3, 1.4, 1.5, 1.6)
-        self.ubcommands.addref(1, 2, 3, pos, 10, 'tag1')
+        self.ubcommands.addref([1, 2, 3], pos, 10, 'tag1')
         reflist = self.ubcommands._ubcalc._reflist
         reflist.getReflectionInExternalAngles(1)
         self.ubcommands.delref(1)
@@ -332,9 +334,11 @@ class TestUbCommands(unittest.TestCase):
         s = scenarios.sessions()[0]
         self.ubcommands.setlat(s.name, *s.lattice)
         r = s.ref1
-        self.ubcommands.addref(r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
+        self.ubcommands.addref(
+            [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
         r = s.ref2
-        self.ubcommands.addref(r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
+        self.ubcommands.addref(
+            [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
         self.ubcommands.calcub()
         mneq_(self.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
               4, note="wrong UB matrix after calculating U")
@@ -360,7 +364,7 @@ class TestUbCommands(unittest.TestCase):
         eq_(self.ubcalc.tau, 2.0)
         #Defaults:
         prepareRawInput(['', ''])
-        self.hardware.setPosition([None, None, None, None, 3, 4.])
+        self.hardware.position = [None, None, None, None, 3, 4.]
         self.ubcommands.sigtau()
         eq_(self.ubcalc.sigma, -3.)
         eq_(self.ubcalc.tau, -4.)

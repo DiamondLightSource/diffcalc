@@ -27,7 +27,7 @@ from diffcalc.log import logging
 from diffcalc.util import bound, AbstractPosition, DiffcalcException,\
     x_rotation, z_rotation
 from diffcalc.hkl.vlieg.geometry import VliegGeometry
-from diffcalc.ub.calculation import PaperSpecificUbCalcStrategy
+from diffcalc.ub.calc import PaperSpecificUbCalcStrategy
 from diffcalc.hkl.calcbase import HklCalculatorBase
 from diffcalc.hkl.common import DummyParameterManager
 

@@ -51,7 +51,7 @@ class UBCalculation:
     """
 
     def __init__(self, hardwareMonitorObject, diffractometerPluginObject,
-                 persister=UBCalculationPersister(), strategy=None):
+                 persister, strategy):
 
         # The diffractometer geometry is required to map the internal angles
         # into those used by this diffractometer (for display only)
@@ -104,7 +104,7 @@ class UBCalculation:
         self._name = name
         # Create empty reflection list
         self._reflist = ReflectionList(self._geometry,
-                                       self._hardware.getPhysicalAngleNames())
+                                       self._hardware.get_axes_names())
         # Clear the _crystal
         self._crystal = None
 

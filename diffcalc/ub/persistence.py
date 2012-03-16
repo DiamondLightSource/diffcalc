@@ -16,6 +16,7 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+
 class UBCalculationPersister(object):
     """Attempts to the use the gda's database to store ub calculation state
     """

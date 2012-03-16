@@ -87,7 +87,7 @@ class BaseTestDiffractionCalculatorWithData():
 
         self.assertRaises(DiffcalcException, self.d.angles_to_hkl,
                           (1, 2, 3, 4, 5, 6))  # no energy has been set yet
-        self.d._hardware.setEnergy(10)
+        self.d._hardware.energy = 10
         self.assertRaises(DiffcalcException, self.d.angles_to_hkl,
                           (1, 2, 3, 4, 5, 6))  # no ub calculated yet
         s = self.sess
@@ -98,10 +98,10 @@ class BaseTestDiffractionCalculatorWithData():
         self.d.ub.setlat(s.name, *s.lattice)
         r = s.ref1
         self.d.ub.addref(
-            r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
+            [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
         r = s.ref2
         self.d.ub.addref(
-            r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
+            [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
         self.d.ub.calcub()
 
         # check the ubcalculation is okay before continuing
@@ -123,7 +123,7 @@ class BaseTestDiffractionCalculatorWithData():
             self.assert_((abs(h - hkl[0]) < .001) & (abs(k - hkl[1]) < .001)
                          & (abs(l - hkl[2]) < .001), msg)
             # 2) specifying energy via hardware
-            self.d._hardware.setEnergy(c.energy)
+            self.d._hardware.energy = c.energy
             msg = ("wrong hkl calcualted for TestScenario=%s, "
                    "AngleTestScenario=%s, pos=%s):\n  expected hkl=%f %f %f\n"
                    "  returned hkl=%f %f %f " %
@@ -142,10 +142,10 @@ class BaseTestDiffractionCalculatorWithData():
         self.d.ub.setlat(s.name, *s.lattice)
         r = s.ref1
         self.d.ub.addref(
-            r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
+            [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
         r = s.ref2
         self.d.ub.addref(
-            r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
+            [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
         self.d.ub.calcub()
         # check the ubcalculation is okay before continuing
         # (useful to check for typos !)
@@ -170,8 +170,8 @@ class BaseTestDiffractionCalculatorWithData():
             (angles, params) = self.d.hkl_to_angles(h, k, l, c.energy)
             expectedAnglesStr = ("%f " * len(expectedangles)) % expectedangles
             anglesString = ("%f " * len(angles)) % angles
-            namesString = (("%s " * len(self.hardware.getPhysicalAngleNames()))
-                           % self.hardware.getPhysicalAngleNames())
+            namesString = (("%s " * len(self.hardware.get_axes_names()))
+                           % self.hardware.get_axes_names())
             note = ("wrong position calcualted for TestScenario=%s, "
                     "AngleTestScenario=%s, hkl=%f %f %f:\n"
                     "                       { %s }\n"
@@ -207,10 +207,10 @@ class BaseTestDiffractionCalculatorWithData():
         self.d.ub.setlat(s.name, *s.lattice)
         r = s.ref1
         self.d.ub.addref(
-            r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
+            [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
         r = s.ref2
         self.d.ub.addref(
-            r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
+            [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
         self.d.ub.calcub()
 
         # check the ubcalculation is okay before continuing
@@ -218,7 +218,7 @@ class BaseTestDiffractionCalculatorWithData():
         mneq_(self.d._ubcalc.UB,
               (matrix(s.umatrix) * (matrix(s.bmatrix))),
               4, note="wrong UB matrix after calculating U")
-        self.hardware.setEnergy(c.energy)
+        self.hardware.energy = c.energy
         # Test each hkl/position pair
         for idx in range(len(c.hklList)):
             hkl = c.hklList[idx]
@@ -233,10 +233,10 @@ class BaseTestDiffractionCalculatorWithData():
         self.d.ub.setlat(s.name, *s.lattice)
         r = s.ref1
         self.d.ub.addref(
-            r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
+            [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
         r = s.ref2
         self.d.ub.addref(
-            r.h, r.k, r.l, r.pos.totuple(), r.energy, r.tag)
+            [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
         self.d.ub.calcub()
         print "*** checkub ***"
         print self.d.checkub()
@@ -303,7 +303,7 @@ class SixCircleGammaOnArmTest(TestSixcBase):
                                                  SixCircleGammaOnArmGeometry)
         self.hklverbose = Hkl('hkl', self.sixc, self.d,
                               ('theta', '2theta', 'Bin', 'Bout', 'azimuth'))
-        self.d._hardware.setCut('phi', -180)  # cut phi at -180 to match dif
+        self.d._hardware.set_cut('phi', -180)  # cut phi at -180 to match dif
         self.orient()
 
     def orient(self):
@@ -311,9 +311,9 @@ class SixCircleGammaOnArmTest(TestSixcBase):
         self.d.ub.setlat('xtal', 3.8401, 3.8401, 5.43072)
         self.en(12.39842 / 1.24)
         self.sixc([5.000, 22.790, 0.000, 1.552, 22.400, 14.255])
-        self.d.ub.addref(1, 0, 1.0628)
+        self.d.ub.addref([1, 0, 1.0628])
         self.sixc([5.000, 22.790, 0.000, 4.575, 24.275, 101.320])
-        self.d.ub.addref(0, 1, 1.0628)
+        self.d.ub.addref([0, 1, 1.0628])
         self.d.checkub()
 
     def testDiffractionCalculatorScannableIntegration(self):
@@ -507,9 +507,9 @@ class SixcGammaOnBaseTest(TestSixcBase):
         self.en(39842 / 1)
         self.d.ub.sigtau(0, 0)
         self.sixc([0, 90, 0, 45, 45, 0])
-        self.d.ub.addref(1, 0, 1)
+        self.d.ub.addref([1, 0, 1])
         self.sixc([0, 90, 0, 45, 45, 90])
-        self.d.ub.addref(0, 1, 1)
+        self.d.ub.addref([0, 1, 1])
         self.d.checkub()
         res = self.d._ubcalc.U
         des = matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
@@ -545,9 +545,9 @@ class FiveCircleTest(unittest.TestCase):
         self.d.ub.setlat('xtal', 3.8401, 3.8401, 5.43072)
         self.en(12.39842 / 1.24)
         self.fivec([5.000, 22.790, 1.552, 22.400, 14.255])
-        self.d.ub.addref(1, 0, 1.0628)
+        self.d.ub.addref([1, 0, 1.0628])
         self.fivec([5.000, 22.790, 4.575, 24.275, 101.320])
-        self.d.ub.addref(0, 1, 1.0628)
+        self.d.ub.addref([0, 1, 1.0628])
         self.d.checkub()
 
     def testSetGammaFails(self):
@@ -582,9 +582,9 @@ class FourCircleTest(TestFourcBase):
         self.d.ub.setlat('xtal', 3.8401, 3.8401, 5.43072)
         self.en(12.39842 / 1.24)
         self.fourc([22.790, 1.552, 22.400, 14.255])
-        self.d.ub.addref(1, 0, 1.0628)
+        self.d.ub.addref([1, 0, 1.0628])
         self.fourc([22.790, 4.575, 24.275, 101.320])
-        self.d.ub.addref(0, 1, 1.0628)
+        self.d.ub.addref([0, 1, 1.0628])
         self.d.checkub()
 
     def testSetGammaFails(self):
@@ -619,9 +619,9 @@ class FourCircleWithcubic(TestFourcBase):
         self.d.ub.setlat('cube', 1, 1, 1, 90, 90, 90)
         self.en(12.39842)
         self.fourc([60, 30, 0, 0])
-        self.d.ub.addref(1, 0, 0)
+        self.d.ub.addref([1, 0, 0])
         self.fourc([60, 30, 90, 0])
-        self.d.ub.addref(0, 0, 1)
+        self.d.ub.addref([0, 0, 1])
         self.d.checkub()
 
     def testHkl100(self):

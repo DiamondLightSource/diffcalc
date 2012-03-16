@@ -1,10 +1,10 @@
-##########################
- Diffcalc Developer Guide
-##########################
+########################
+Diffcalc Developer Guide
+########################
 
 :Author: Rob Walton
-:Contact: rob.walton (at) diamond.ac.uk
-:Web site: http://www.opengda.org/
+:Contact: rob.walton (at) diamond (dot) ac (dot) uk 
+:Website: http://www.opengda.org/
 
 .. rubric:: Diffcalc: A diffraction condition calculator for diffractometer control
 
@@ -14,8 +14,9 @@
 
    intro
    package
+   quickstart_api
+   quickstart_scan
    quickstart_gda
-   quickstart_standalone
    ACKS
 
 Indices and tables

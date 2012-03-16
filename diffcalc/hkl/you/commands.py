@@ -69,18 +69,4 @@ class YouHklCommands(object):
 
         See also 'con' and 'uncon'
         """
-
-        lines = []
-        constraints = self._hklcalc.constraints
-        lines.extend(constraints.build_display_table_lines())
-        lines.append("")
-        lines.extend(constraints.report_constraints_lines())
-        lines.append("")
-        if (constraints.is_fully_constrained() and
-            not constraints.is_current_mode_implemented()):
-            lines.append(
-                "    Sorry, this constraint combination is not implemented")
-            lines.append("    Type 'help cons' for available combinations")
-        else:
-            lines.append("    Type 'help cons' for instructions")  # okay
-        print '\n'.join(lines)
+        print self._hklcalc.constraints

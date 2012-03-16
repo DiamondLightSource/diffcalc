@@ -1,0 +1,24 @@
+
+Change directory to the diffcalc project (python adds the current
+working directory to the path)::
+
+   $ cd diffcalc
+   $ ls
+   COPYING  diffcalc  doc  example  mock.py  mock.pyc  model  numjy  test
+
+If using Python make sure numpy and diffcalc can be imported::
+
+   $ Python 2.7.2+ (default, Oct  4 2011, 20:06:09) 
+   [GCC 4.6.1] on linux2
+   Type "help", "copyright", "credits" or "license" for more information.
+   >>> import numpy
+   >>> import diffcalc
+
+If using Jython make sure Jama and diffcalc can be imported::
+   
+   $ jython -Dpython.path=<diffcalc_root>:<path_to_Jama>/Jama-1.0.1.jar
+
+   Jython 2.2.1 on java1.5.0_11
+   Type "copyright", "credits" or "license" for more information.
+   >>> import Jama
+   >>> import diffcalc

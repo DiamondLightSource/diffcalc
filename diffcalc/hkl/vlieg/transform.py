@@ -21,7 +21,7 @@ from diffcalc.util import command
 from copy import copy
 from math import pi
 
-from diffcalc.hkl.vlieg.position import VliegPosition as P
+from diffcalc.hkl.vlieg.geometry import VliegPosition as P
 
 SMALL = 1e-10
 
@@ -105,17 +105,17 @@ class VliegPositionTransformer(object):
         self._geometry = geometry
         self._hardware = hardware
         self._solution_transformer = solution_transformer
-        solution_transformer.limitCheckerFunction = self.isPositionWithinLimits
+        solution_transformer.limitCheckerFunction = self.is_position_within_limits
 
     def transform(self, pos):
         # 1. Choose the correct sector/transforms
         return self._solution_transformer.transformPosition(pos)
 
-    def isPositionWithinLimits(self, position):
+    def is_position_within_limits(self, position):
         '''where position is Position object in degrees'''
         angleTuple = self._geometry.internal_position_to_physical_angles(position)
-        angleTuple = self._hardware.cutAngles(angleTuple)
-        return self._hardware.isPositionWithinLimits(angleTuple)
+        angleTuple = self._hardware.cut_angles(angleTuple)
+        return self._hardware.is_position_within_limits(angleTuple)
 
 
 class VliegTransformSelector(object):
@@ -227,12 +227,12 @@ class VliegTransformSelector(object):
         cutpos = self.cutPosition(pos)
         # -180 <= cutpos < 180, NOT the externally applied cuts
         if len(self.autosectors) > 0:
-            if self.isPositionWithinLimits(cutpos):
+            if self.is_position_within_limits(cutpos):
                 return cutpos
             else:
                 return self.autoTransformPositionBySector(cutpos)
         if len(self.autotransforms) > 0:
-            if self.isPositionWithinLimits(cutpos):
+            if self.is_position_within_limits(cutpos):
                 return cutpos
             else:
                 return self.autoTransformPositionByTransforms(pos)
@@ -278,7 +278,7 @@ class VliegTransformSelector(object):
         okaypositions = []
         for sector in self.autosectors:
             newpos = self.transformNWithoutCut(sector, pos)
-            if self.isPositionWithinLimits(newpos):
+            if self.is_position_within_limits(newpos):
                 okaysectors.append(sector)
                 okaypositions.append(newpos)
         if len(okaysectors) == 0:
@@ -301,7 +301,7 @@ class VliegTransformSelector(object):
         for transforms in possibleTransforms:
             sector = sectorFromTransforms[tuple(transforms)]
             newpos = self.cutPosition(self.transformNWithoutCut(sector, pos))
-            if self.isPositionWithinLimits(newpos):
+            if self.is_position_within_limits(newpos):
                 okaytransforms.append(transforms)
                 okaypositions.append(newpos)
         if len(okaytransforms) == 0:
@@ -344,7 +344,7 @@ class VliegTransformSelector(object):
 
         return possibleTransforms
 
-    def isPositionWithinLimits(self, pos):
+    def is_position_within_limits(self, pos):
         '''where pos os a poistion object in degrees'''
         return self.limitCheckerFunction(pos)
 

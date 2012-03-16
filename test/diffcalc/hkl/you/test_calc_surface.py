@@ -16,7 +16,7 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-# TODO: class largely copied from test_calcyou
+# TODO: class largely copied from test_calc
 
 from math import pi
 from mock import Mock
@@ -28,15 +28,15 @@ except ImportError:
     from numjy import matrix
 
 from diffcalc.hkl.you.geometry import SixCircle
-from diffcalc.hkl.willmott.calcwill_horizontal import \
+from diffcalc.hkl.willmott.calc import \
     WillmottHorizontalPosition as WillPos
-from diffcalc.hkl.you.position import YouPosition as YouPos
-from diffcalc.hkl.you.calcyou import YouUbCalcStrategy
+from diffcalc.hkl.you.geometry import YouPosition as YouPos
+from diffcalc.hkl.you.calc import YouUbCalcStrategy
 from test.tools import matrixeq_
-from diffcalc.ub.calculation import UBCalculation
+from diffcalc.ub.calc import UBCalculation
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.persistence import UbCalculationNonPersister
-from test.diffcalc.hkl.you.test_calcyou import _BaseTest
+from test.diffcalc.hkl.you.test_calc import _BaseTest
 
 
 TORAD = pi / 180
@@ -152,7 +152,7 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12_FixedMuEta():
     def setUp(self):
 
         hardware = Mock()
-        hardware.getPhysicalAngleNames.return_value = ('m', 'd', 'n', 'e', 'c',
+        hardware.get_axes_names.return_value = ('m', 'd', 'n', 'e', 'c',
                                                        'p')
         self.ubcalc = UBCalculation(hardware, SixCircle(),
                                     UbCalculationNonPersister(),
@@ -189,11 +189,11 @@ class TestFixedMuEta(_BaseTest):
                                          'eta': 0}
 
     def _configure_limits(self):
-        self.mock_hardware.setLowerLimit('nu', None)
-        self.mock_hardware.setUpperLimit('delta', 90)
-        self.mock_hardware.setLowerLimit('mu', None)
-        self.mock_hardware.setLowerLimit('eta', None)
-        self.mock_hardware.setLowerLimit('chi', None)
+        self.mock_hardware.set_lower_limit('nu', None)
+        self.mock_hardware.set_upper_limit('delta', 90)
+        self.mock_hardware.set_lower_limit('mu', None)
+        self.mock_hardware.set_lower_limit('eta', None)
+        self.mock_hardware.set_lower_limit('chi', None)
 
     def _convert_willmott_pos(self, willmott_pos):
         return  willmott_to_you_fixed_mu_eta(willmott_pos)
@@ -294,7 +294,7 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12_FixedMuChi():
 
         hardware = Mock()
         names = 'm', 'd', 'n', 'e', 'c', 'p'
-        hardware.getPhysicalAngleNames.return_value = names
+        hardware.get_axes_names.return_value = names
         self.ubcalc = UBCalculation(hardware, SixCircle(),
                                     UbCalculationNonPersister(),
                                     YouUbCalcStrategy())
@@ -357,7 +357,7 @@ class TestUBCalculationWithYouStrategy_Pt531_FixedMuChi():
 
         hardware = Mock()
         names = 'm', 'd', 'n', 'e', 'c', 'p'
-        hardware.getPhysicalAngleNames.return_value = names
+        hardware.get_axes_names.return_value = names
         self.ubcalc = UBCalculation(hardware, SixCircle(),
                                     UbCalculationNonPersister(),
                                     YouUbCalcStrategy())
@@ -396,12 +396,12 @@ class Test_Pt531_FixedMuChi(_BaseTest):
                                          'chi': pi / 2}
 
     def _configure_limits(self):
-        self.mock_hardware.setLowerLimit('nu', None)
-        #self.mock_hardware.setLowerLimit('delta', None)
-        self.mock_hardware.setUpperLimit('delta', 90)
-        self.mock_hardware.setLowerLimit('mu', None)
-        self.mock_hardware.setLowerLimit('eta', None)
-        self.mock_hardware.setLowerLimit('chi', None)
+        self.mock_hardware.set_lower_limit('nu', None)
+        #self.mock_hardware.set_lower_limit('delta', None)
+        self.mock_hardware.set_upper_limit('delta', 90)
+        self.mock_hardware.set_lower_limit('mu', None)
+        self.mock_hardware.set_lower_limit('eta', None)
+        self.mock_hardware.set_lower_limit('chi', None)
 
     def _convert_willmott_pos(self, willmott_pos):
         return  willmott_to_you_fixed_mu_chi(willmott_pos)

@@ -16,14 +16,13 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-from math import pi
 
 from nose.tools import eq_  # @UnresolvedImport
 from mock import Mock
 
 from diffcalc.hkl.you.constraints import YouConstraintManager
 from diffcalc.util import DiffcalcException
-from nose.tools import raises, ok_
+from nose.tools import raises
 
 
 def joined(d1, d2):
@@ -35,8 +34,8 @@ class TestConstraintManager:
 
     def setUp(self):
         self.hardware_monitor = Mock()
-        self.hardware_monitor.getPosition.return_value = (1.,) * 6
-        self.hardware_monitor.getPhysicalAngleNames.return_value = [
+        self.hardware_monitor.get_position.return_value = (1.,) * 6
+        self.hardware_monitor.get_axes_names.return_value = [
                                       'mu', 'delta', 'nu', 'eta', 'chi', 'phi']
         self.cm = YouConstraintManager(self.hardware_monitor)
 
@@ -339,7 +338,7 @@ class TestConstraintManager:
     def test_is_implemented_2_samp_ref_mu90_chi0(self):
         self._constrain('beta', 'mu', 'chi')
         self.cm.set_constraint('mu', 0)
-        self.cm.set_constraint('chi', pi / 2)
+        self.cm.set_constraint('chi', 90)
         eq_(self.cm.is_current_mode_implemented(), True)
 
     def test_is_implemented_2_samp_ref_mu_eta(self):

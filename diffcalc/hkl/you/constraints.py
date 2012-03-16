@@ -18,6 +18,11 @@
 
 from math import pi
 
+try:
+    from numpy import matrix
+except ImportError:
+    from numjy import matrix
+
 from diffcalc.util import DiffcalcException
 
 TODEG = 180 / pi
@@ -49,6 +54,41 @@ class YouConstraintManager(object):
         self._hardware = hardware
         self._constrained = {}
 #        self._tracking = []
+        self.n_phi = matrix([[0], [0], [1]])
+
+    def __str__(self):
+        lines = []
+#        TODO: Put somewhere with access to UB matrix!
+#        WIDTH = 13
+#        n_phi = self.n_phi
+#        fmt = "% 9.5f % 9.5f % 9.5f"
+#        lines.append("   n_phi:".ljust(WIDTH) +
+#                     fmt % (n_phi[0, 0], n_phi[1, 0], n_phi[2, 0]))
+#        if self._getUBMatrix():
+#            n_cryst = self._getUMatrix().I * self.n_phi
+#            lines.append("   n_cryst:".ljust(WIDTH) +
+#                         fmt % (n_cryst[0, 0], n_cryst[1, 0], n_cryst[2, 0]))
+#            n_recip = self._getUBMatrix().I * self.n_phi
+#            lines.append("   n_recip:".ljust(WIDTH) +
+#                         fmt % (n_recip[0, 0], n_recip[1, 0], n_recip[2, 0]))
+#        else:
+#            lines.append(
+#                "   n_cryst:".ljust(WIDTH) + ' "<<< No  U matrix >>>"')
+#            lines.append(
+#                "   n_recip:".ljust(WIDTH) + ' "<<< No UB matrix >>>"')
+
+        lines.extend(self.build_display_table_lines())
+        lines.append("")
+        lines.extend(self.report_constraints_lines())
+        lines.append("")
+        if (self.is_fully_constrained() and
+            not self.is_current_mode_implemented()):
+            lines.append(
+                "    Sorry, this constraint combination is not implemented")
+            lines.append("    Type 'help cons' for available combinations")
+        else:
+            lines.append("    Type 'help cons' for instructions")  # okay
+        return '\n'.join(lines)
 
     @property
     def available_constraint_names(self):
@@ -107,6 +147,7 @@ class YouConstraintManager(object):
         num_rows = max([len(col) for col in constraint_types])
         max_name_width = max(
             [len(name) for name in sum(constraint_types[:2], ())])
+        
         cells = []
         
         header_cells = []
@@ -114,10 +155,8 @@ class YouConstraintManager(object):
         header_cells.append('    ' + 'REF'.ljust(max_name_width))
         header_cells.append('    ' + 'SAMP')
         cells.append(header_cells)
-        
         underline_cells = ['    ' + '=' * max_name_width] * 3
         cells.append(underline_cells)
-        
         
         for n_row in range(num_rows):
             row_cells = []
@@ -315,8 +354,8 @@ class YouConstraintManager(object):
 #
 #    def update_tracked(self):
 #        if self._tracking:
-#            physical_angles = tuple(self._hardware.getPosition())
-#            angle_names = tuple(self._hardware.getPhysicalAngleNames())
+#            physical_angles = tuple(self._hardware.get_position())
+#            angle_names = tuple(self._hardware.get_axes_names())
 #            for name in self._tracking:
 #                self._constrained[name] = \
 #                    physical_angles[list(angle_names).index(name)]

@@ -20,7 +20,7 @@ from copy import deepcopy
 import datetime  # @UnusedImport for the eval below
 
 from diffcalc.util import DiffcalcException
-from diffcalc.hkl.vlieg.position import VliegPosition
+from diffcalc.hkl.vlieg.geometry import VliegPosition
 
 
 class Reflection:

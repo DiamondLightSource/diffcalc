@@ -16,18 +16,19 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+# NOTE: The underscore in this module name is work around a bug in Jython 2.5.2
+#       absolute_import implementation.
+
 from __future__ import absolute_import
-# NOTE: The underscore in this module is used because Jython 2.5.2 does
-#       not properly honour absolute_import
 
 import diffcalc.util  # @UnusedImport for flag
 
 from diffcalc.hkl.vlieg.commands import VliegHklCommands
-from diffcalc.ub.calculation import UBCalculation
-from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator
+from diffcalc.ub.calc import UBCalculation
+from diffcalc.hkl.vlieg.calc import VliegHklCalculator
 from diffcalc.util import DiffcalcException, allnum
-from diffcalc.hkl.vlieg.calcvlieg import VliegUbCalcStrategy
-from diffcalc.hkl.willmott.calcwill_horizontal import \
+from diffcalc.hkl.vlieg.calc import VliegUbCalcStrategy
+from diffcalc.hkl.willmott.calc import \
     WillmottHorizontalUbCalcStrategy, \
     WillmottHorizontalCalculator
 from diffcalc.hkl.willmott.commands import WillmottHklCommands
@@ -37,9 +38,10 @@ from diffcalc.ub.commands import UbCommands
 from diffcalc.hardware import HardwareCommands
 from diffcalc.hkl.vlieg.transform import VliegTransformSelector, \
     TransformCommands, VliegPositionTransformer
-from diffcalc.hkl.you.calcyou import YouUbCalcStrategy, YouHklCalculator
+from diffcalc.hkl.you.calc import YouUbCalcStrategy, YouHklCalculator
 from diffcalc.hkl.you.commands import YouHklCommands
 from diffcalc.hkl.you.constraints import YouConstraintManager
+from diffcalc.ub.persistence import UbCalculationNonPersister
 
 
 AVAILABLE_ENGINES = ('vlieg', 'willmott', 'you')
@@ -54,8 +56,8 @@ class DummySolutionTransformer(object):
 def create_diffcalc(engine_name,
                     geometry,
                     hardware,
-                    raise_exceptions_for_all_errors,
-                    ub_persister=None):
+                    raise_exceptions_for_all_errors=True,
+                    ub_persister=UbCalculationNonPersister()):
 
     diffcalc.util.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = \
         raise_exceptions_for_all_errors
@@ -101,8 +103,8 @@ def create_diffcalc(engine_name,
                   ub_commands, hkl_commands, hardware_commands,
                   transform_commands)
 
-    _hwname = hardware.getDiffHardwareName()
-    _angles = ', '.join(hardware.getPhysicalAngleNames())
+    _hwname = hardware.name
+    _angles = ', '.join(hardware.get_axes_names())
 
     dc.ub.commands.append(dc.checkub)
 
@@ -154,10 +156,15 @@ class Diffcalc(object):
             self.transform = transform_commands
 
     def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        return self.ub.__str__() + "\n" + self.hkl.__str__()
+        lines = []
+        lines.append("UB")
+        lines.append("==\n")
+        lines.append(self.ub.__str__())
+        lines.append("")
+        lines.append("HKL")
+        lines.append("===\n")
+        lines.append(self.hkl.__str__())
+        return '\n'.join(lines)
 
 ### Used by diffcalc scannables
 
@@ -176,7 +183,7 @@ class Diffcalc(object):
     def hkl_to_angles(self, h, k, l, energy=None):
         """Convert a given hkl vector to a set of diffractometer angles"""
         if energy is None:
-            energy = self._hardware.getEnergy()
+            energy = self._hardware.get_energy()
 
         try:
             wavelength = 12.39842 / energy
@@ -188,7 +195,7 @@ class Diffcalc(object):
         if self._transformer:
             pos = self._transformer.transform(pos)
         angle_tuple = self._geometry.internal_position_to_physical_angles(pos)
-        angle_tuple = self._hardware.cutAngles(angle_tuple)
+        angle_tuple = self._hardware.cut_angles(angle_tuple)
 
         return angle_tuple, params
 
@@ -197,7 +204,7 @@ class Diffcalc(object):
         ((h, k, l), paramDict)=angles_to_hkl(self, (a1, a2,aN), energy=None)"""
         #we will assume this is called correctly, as it is not a user command
         if energy is None:
-            energy = self._hardware.getEnergy()
+            energy = self._hardware.get_energy()
 
         try:
             wavelength = 12.39842 / energy

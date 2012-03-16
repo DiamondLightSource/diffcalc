@@ -31,22 +31,59 @@ import diffcalc.gdasupport.factory  # @UnusedImport for VERBOSE
 from diffcalc.gdasupport.minigda.command import Pos, Scan
 from test.tools import wrap_command_to_print_calls, mneq_
 
+# TODO: 'cons mu 2'   should work ?
+# TODO:  'cons nu a_eq_b mu' should work
+# TODO: Fix ' pos <h|k|l> val                 move h, k or l to val' doc string
+# TODO: look at all commands together (showref, listub, cons)
+# TODO: startup should sy to 'help ub' and 'help hkl'
+# TODO: overide help command. Perhaps just print __doc__ if it starts
+#       with '!' or '@command'
+# TODO: error handling in wrapper. check TypeError depth. Give help inside
+#       exception string.
+# TODO: parameter scannables should return current virtual angle
+#       __str__ would also show requestd
+
+# TODO: remove need for axis_par scannables - set value, consider e.g. mu scan,
+#       and moved from epics. mu scan requires mu to be same level as hkl
+#       to work efficiently
+
+# TODO: indicate in cons and after change if the mode is complete
+# TODO: indicate in cons and after change if the mode is available
+# TODO: 'con mu, nu, a_eq_b'
+# TODO: add valueless strings to namespace
+
+# TODO: implement mu_eq_nu mode
+# TODO: add eta_half_delta and mu_half_nu modes
+
+# TODO: provide fivec etc plugins (i13 first)
+# TODO: provide arbitrary virtual names (and check arbitray motor names work)
+# TODO: provide short cut mode access my number (beamline specific)
+
+# TODO: remove sigma and tau with you engine
+# TODO: handle eV / keV properly (wavelength internally, flag to energy_unit
+#       equal 'keV' (default) or 'eV'
+
+# TODO: gdasupport --> gda (check in gda first, relative path problem possible)
+# TODO: Fix .__doc__ help on hkl (metaclass syetm fails under Jython with a java base class)
+
+
+
 EXPECTED_OBJECTS = ['delref', 'en', 'uncon', 'showref', 'cons', 'l',
                     'hardware', 'checkub', 'listub', 'mu_par', 'saveubas',
                     'eta_par', 'ct', 'setmin', 'ub', 'setcut', 'chi', 'setlat',
                     'qaz', 'addref', 'swapref', 'newub', 'naz', 'sixc', 'nu',
-                    'sim', 'diffcalcdemo', 'phi', 'psi', 'sigtau', 'wl',
+                    'sim', 'phi', 'psi', 'sigtau', 'wl',
                     'setmax', 'dc', 'loadub', 'beta', 'hkl', 'delta', 'alpha',
                     'nu_par', 'trialub', 'delta_par', 'h', 'k', 'phi_par',
-                    'mu', 'setu', 'eta', 'editref', 'con', 'setub', 'c2th',
+                     'a_eq_b', 'mu', 'setu', 'eta', 'editref', 'con', 'setub', 'c2th',
                     'calcub', 'chi_par', 'hklverbose']
 
 # Placeholders for names to be added to globals (for benefit of IDE)
 delref = en = uncon = showref = cons = l = hardware = checkub = listub = None
 mu_par = saveubas = eta_par = ct = setmin = ub = setcut = chi = setlat = None
-qaz = addref = swapref = newub = naz = sixc = nu = sim = diffcalcdemo = None
+qaz = addref = swapref = newub = naz = sixc = nu = sim = None
 phi = psi = sigtau = wl = setmax = dc = loadub = beta = hkl = delta = None
-alpha = nu_par = trialub = delta_par = h = k = phi_par = mu = setu = eta = None
+alpha = nu_par = trialub = delta_par = h = k = phi_par = a_eq_b = mu = setu = eta = None
 editref = con = setub = c2th = calcub = chi_par = hklverbose = None
 
 
@@ -114,11 +151,11 @@ class TestDiffcalcFactorySixc():
 
         c2th([1, 0, 0])
         pos(sixc, [0, 60, 0, 30, 0, 0])
-        addref(1, 0, 0, 'ref1')
+        addref([1, 0, 0], 'ref1')
 
         c2th([0, 1, 0])
         pos(phi, 90)
-        addref(0, 1, 0, 'ref2')
+        addref([0, 1, 0], 'ref2')
 
     def test_orientation_phase(self):
         self._orient()
@@ -174,38 +211,25 @@ class TestDiffcalcFactorySixc():
     def test_usage_error_inside(self):
         setlat('wrong arg', 'wrong arg')
 
+from diffcalc.hkl.you.geometry import SixCircle
+from diffcalc.hardware import DummyHardwareAdapter
+from diffcalc.diffcalc_ import create_diffcalc
 
-# TODO: 'cons mu 2'   should work ?
-# TODO:  'cons nu a_eq_b mu' should work
-# TODO: Fix ' pos <h|k|l> val                 move h, k or l to val' doc string
-# TODO: look at all commands together (showref, listub, cons)
-# TODO: startup should sy to 'help ub' and 'help hkl'
-# TODO: overide help command. Perhaps just print __doc__ if it starts
-#       with '!' or '@command'
-# TODO: error handling in wrapper. check TypeError depth. Give help inside
-#       exception string.
-# TODO: parameter scannables should return current virtual angle
-#       __str__ would also show requestd
 
-# TODO: remove need for axis_par scannables - set value, consider e.g. mu scan,
-#       and moved from epics. mu scan requires mu to be same level as hkl
-#       to work efficiently
+class TestDiffcalcSixc():
 
-# TODO: indicate in cons and after change if the mode is complete
-# TODO: indicate in cons and after change if the mode is available
-# TODO: 'con mu, nu, a_eq_b'
-# TODO: add valueless strings to namespace
+    def setup(self):
+        axes = 'mu', 'delta', 'nu', 'eta', 'chi', 'phi'
+        self.hardware = DummyHardwareAdapter(axes)
+        self.dc = create_diffcalc('you', SixCircle(), self.hardware)
 
-# TODO: implement mu_eq_nu mode
-# TODO: add eta_half_delta and mu_half_nu modes
+    def test_repr(self):
+        print repr(self.dc)
+        print repr(self.dc.ub)
+        print repr(self.dc.hkl)
 
-# TODO: provide fivec etc plugins (i13 first)
-# TODO: provide arbitrary virtual names (and check arbitray motor names work)
-# TODO: provide short cut mode access my number (beamline specific)
+    def test_str(self):
+        print self.dc
+        print self.dc.ub
+        print self.dc.hkl
 
-# TODO: remove sigma and tau with you engine
-# TODO: handle eV / keV properly (wavelength internally, flag to energy_unit
-#       equal 'keV' (default) or 'eV'
-
-# TODO: gdasupport --> gda (check in gda first, relative path problem possible)
-# TODO: Fix .__doc__ help on hkl (metaclass syetm fails under Jython with a java base class)

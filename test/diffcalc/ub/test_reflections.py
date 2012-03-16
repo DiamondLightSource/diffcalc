@@ -19,7 +19,7 @@
 from datetime import datetime
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.ub.reflections import ReflectionList
-from diffcalc.hkl.vlieg.position  import VliegPosition as Pos
+from diffcalc.hkl.vlieg.geometry  import VliegPosition as Pos
 import unittest
 
 

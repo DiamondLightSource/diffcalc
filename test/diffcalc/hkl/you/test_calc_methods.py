@@ -27,12 +27,12 @@ try:
 except ImportError:
     from numjy import matrix
 
-from diffcalc.hkl.you.calcyou import YouHklCalculator, I, \
+from diffcalc.hkl.you.calc import YouHklCalculator, I, \
     _calc_angle_between_naz_and_qaz
 from test.tools import  assert_matrix_almost_equal, \
     assert_2darray_almost_equal
-from diffcalc.hkl.you.position  import YouPosition
-from test.diffcalc.hkl.vlieg.test_calcvlieg import \
+from diffcalc.hkl.you.geometry  import YouPosition
+from test.diffcalc.hkl.vlieg.test_calc import \
     createMockDiffractometerGeometry, createMockHardwareMonitor, \
     createMockUbcalc
 from test.diffcalc.test_hardware import SimpleHardwareAdapter
@@ -113,7 +113,7 @@ class Test_anglesToVirtualAngles():
     #alpha
     def test_defaultReferenceValue(self):
         # The following tests depemd on this
-        assert_matrix_almost_equal(self.calc.n_phi, matrix([[0], [0], [1]]))
+        assert_matrix_almost_equal(self.calc.constraints.n_phi, matrix([[0], [0], [1]]))
 
     def test_alpha0(self):
         self.check_angle('alpha', 0, mu=0, eta=0, chi=0, phi=0)
@@ -246,7 +246,7 @@ class Test_calc_theta():
         self.calc = YouHklCalculator(createMockUbcalc(I * 2 * pi),
                                      createMockDiffractometerGeometry(),
                                      createMockHardwareMonitor(),
-                                     None)
+                                     Mock())
         self.e = 12.398420  # 1 Angstrom
 
     def test_100(self):
@@ -273,7 +273,7 @@ class Test_calc_remaining_reference_angles_given_one():
         self.calc = YouHklCalculator(createMockUbcalc(None),
                                      createMockDiffractometerGeometry(),
                                      createMockHardwareMonitor(),
-                                     None)
+                                     Mock())
 
     def check(self, name, value, theta, tau, psi_e, alpha_e, beta_e):
         # all in deg
@@ -342,7 +342,7 @@ class Test_calc_detector_angles_given_one():
         self.calc = YouHklCalculator(createMockUbcalc(None),
                                      createMockDiffractometerGeometry(),
                                      createMockHardwareMonitor(),
-                                     None)
+                                     Mock())
 
     def check(self, name, value, theta, delta_e, nu_e, qaz_e):
         # all in deg
@@ -399,7 +399,7 @@ class Test_calc_remaining_sample_angles_given_one():
         self.calc = YouHklCalculator(createMockUbcalc(None),
                                      createMockDiffractometerGeometry(),
                                      createMockHardwareMonitor(),
-                                     None)
+                                     Mock())
 
     def check(self, name, value, Q_lab, n_lab, Q_phi, n_phi,
               phi_e, chi_e, eta_e, mu_e):
@@ -493,7 +493,7 @@ class TestSolutionGenerator():
         self.calc = YouHklCalculator(createMockUbcalc(None),
                                      createMockDiffractometerGeometry(),
                                      self.hardware,
-                                     None)
+                                     Mock())
 
     # constraint could have been 'delta', 'nu', 'qaz' or 'naz'.
 
@@ -568,7 +568,7 @@ class TestSolutionGenerator():
                 (.1, .2), ('delta', 'nu'), ('nu',)))
 
     def test_generate_possible_det_soln_with_limits_constrained_delta(self):
-        self.hardware.setLowerLimit('nu', 0)
+        self.hardware.set_lower_limit('nu', 0)
         expected = (
                     (.1, .2),
                     (.1, pi - .2),
@@ -579,7 +579,7 @@ class TestSolutionGenerator():
                 (.1, .2), ('delta', 'nu'), ('delta',)))
 
     def test_generate_possible_det_solutions_with_limits_constrained_nu(self):
-        self.hardware.setUpperLimit('delta', 0)
+        self.hardware.set_upper_limit('delta', 0)
         expected = (
                     (-.1, .2),
                     (.1 - pi, .2),  # cuts to .1-pi
@@ -590,8 +590,8 @@ class TestSolutionGenerator():
                 (.1, .2), ('delta', 'nu'), ('nu',)))
 
     def test_generate_poss_det_soln_with_limits_overly_constrained_nu(self):
-        self.hardware.setLowerLimit('delta', .3)
-        self.hardware.setUpperLimit('delta', .31)
+        self.hardware.set_lower_limit('delta', .3)
+        self.hardware.set_upper_limit('delta', .31)
         eq_(len(self.calc._generate_possible_solutions(
             (.1, .2), ('delta', 'nu'), ('nu',))), 0)
 
@@ -612,7 +612,7 @@ class TestSolutionGenerator():
         eq_(4 ** 3, len(result))
 
     def test_generate_possible_sample_solutions_fixed_chi_positive_mu(self):
-        self.hardware.setLowerLimit('mu', 0)
+        self.hardware.set_lower_limit('mu', 0)
         result = self.calc._generate_possible_solutions(
             (.1, .2, .3, .4), ('mu', 'eta', 'chi', 'phi'), ('chi',))
         generated = self._hardcoded_generate_possible_sample_solutions(
@@ -648,30 +648,30 @@ class TestSolutionGenerator():
                            _transforms if not is_small(mu) else
                            _transforms_for_zero):
             transformed_mu = (transform(mu))
-            if not self.hardware.isAxisValueWithinLimits('mu',
-                    self.hardware.cutAngle('mu', transformed_mu * TODEG)):
+            if not self.hardware.is_axis_value_within_limits('mu',
+                    self.hardware.cut_angle('mu', transformed_mu * TODEG)):
                 continue
             for transform in ((_identity,) if name == 'eta' else
                                _transforms if not is_small(eta) else
                                _transforms_for_zero):
                 transformed_eta = transform(eta)
-                if not self.hardware.isAxisValueWithinLimits('eta',
-                    self.hardware.cutAngle('eta', transformed_eta * TODEG)):
+                if not self.hardware.is_axis_value_within_limits('eta',
+                    self.hardware.cut_angle('eta', transformed_eta * TODEG)):
                     continue
                 for transform in ((_identity,) if name == 'chi' else
                                    _transforms if not is_small(chi) else
                                    _transforms_for_zero):
                     transformed_chi = transform(chi)
-                    if not self.hardware.isAxisValueWithinLimits('chi',
-                        self.hardware.cutAngle('chi',
+                    if not self.hardware.is_axis_value_within_limits('chi',
+                        self.hardware.cut_angle('chi',
                                                transformed_chi * TODEG)):
                         continue
                     for transform in ((_identity,) if name == 'phi' else
                                        _transforms if not is_small(phi) else
                                        _transforms_for_zero):
                         transformed_phi = transform(phi)
-                        if not self.hardware.isAxisValueWithinLimits('phi',
-                            self.hardware.cutAngle('phi',
+                        if not self.hardware.is_axis_value_within_limits('phi',
+                            self.hardware.cut_angle('phi',
                                                    transformed_phi * TODEG)):
                             continue
                         possible_solutions.append((

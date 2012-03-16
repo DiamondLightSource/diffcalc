@@ -114,31 +114,74 @@ class ScanDataHandler:
 
 
 class ScanDataPrinter(ScanDataHandler):
-    def callAtScanStart(self, scannables):
-        self.scannables = scannables
-        header = ""
-        for scn in self.scannables:
-            fieldNames = scn.getInputNames() + scn.getExtraNames()
-            if len(fieldNames) == 1:
-                header += "%s\t" % scn.getName()
-            else:
-                for fieldName in fieldNames:
-                    header += "%s.%s\t" % (scn.getName(), fieldName)
-        self.headerWidth = len(header.expandtabs())
-        result = (time.asctime(), '\n', '=' * self.headerWidth, '\n', header,
-                  '\n', '-' * self.headerWidth)
-        print result
 
-    def callWithScanPoint(self, positionDictIndexedByScannable):
-        result = ""
+    def __init__(self):
+        self.first_point_printed = False
+        self.widths = []
+        self.scannables = []
+
+    def callAtScanStart(self, scannables):
+        self.first_point_printed = False
+        self.scannables = scannables
+
+    def print_first_point(self, position_dict):
+        # also sets self.widths
+        header_strings = []
         for scn in self.scannables:
-            for formattedValue in scn.formatPositionFields(
-                positionDictIndexedByScannable[scn]):
-                result += formattedValue + '\t'
-        print result
+            field_names = scn.getInputNames() + scn.getExtraNames()
+            if len(field_names) == 1:
+                header_strings.append(scn.getName())
+            else:
+                for field_name in field_names:
+                    header_strings.append(field_name)
+
+        first_row_strings = []
+        for scn in self.scannables:
+            pos = position_dict[scn]
+            first_row_strings.extend(scn.formatPositionFields(pos))
+
+        self.widths = []
+        for header, pos_string in zip(header_strings, first_row_strings):
+            self.widths.append(max(len(header), len(pos_string)))
+
+        header_cells = []
+        for heading, width in zip(header_strings, self.widths):
+            header_cells.append(heading.rjust(width))
+
+        underline_cells = ['-' * w for w in self.widths]
+
+        first_row_cells = []
+        for pos, width in zip(first_row_strings, self.widths):
+            first_row_cells.append(pos.rjust(width))
+
+        #table_width = sum(self.widths) + len(self.widths * 2) - 2
+        lines = []
+        #lines.append('=' * table_width)
+        lines.append('  '.join(header_cells))
+        lines.append('  '.join(underline_cells))
+        lines.append('  '.join(first_row_cells))
+        print '\n'.join(lines)
+
+    def callWithScanPoint(self, position_dict):
+        if not self.first_point_printed:
+            self.print_first_point(position_dict)
+            self.first_point_printed = True
+        else:
+            row_strings = []
+            for scn in self.scannables:
+                pos = position_dict[scn]
+                row_strings.extend(scn.formatPositionFields(pos))
+
+            row_cells = []
+            for pos, width in zip(row_strings, self.widths):
+                row_cells.append(pos.rjust(width))
+
+            print '  '.join(row_cells)
 
     def callAtScanEnd(self):
-        print '=' * self.headerWidth
+        #table_width = sum(self.widths) + len(self.widths * 2) - 2
+        #print '=' * table_width
+        pass
 
 
 class Scan(object):
@@ -249,8 +292,12 @@ class Scan(object):
         """
 #        limit1 = float(limit1)
 #        limit2 = float(limit2)
-        increment = float(increment)
-        count = int(math.ceil((limit2 - limit1) / increment))
+        try:
+            increment = float(increment)
+        except TypeError:
+            raise TypeError(
+                "Only scaler values are supported, not GDA format vectors.")
+        count = int(math.ceil(((limit2 - limit1) + increment / 100.) / increment))
         result = []
         for n in range(count):
             result.append(limit1 + n * increment)

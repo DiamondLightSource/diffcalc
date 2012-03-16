@@ -32,21 +32,9 @@ class HklCalculatorBase(object):
         self._ubcalc = ubcalc  # to get the UBMatrix, tau and sigma
         self._geometry = geometry   # to access information about the
                                     # diffractometer geometry and mode_selector
-        self._gammaParameterName = ({'arm': 'gamma', 'base': 'oopgamma'}
-                                    [self._geometry.gamma_location])
         self._hardware = hardware  # Used for tracking parameters only
         self.raiseExceptionsIfAnglesDoNotMapBackToHkl = \
             raiseExceptionsIfAnglesDoNotMapBackToHkl
-
-    def __str__(self):
-        # should list paramemeters and indicate which are used in selected mode
-        result = "Available mode_selector:\n"
-        result += self.mode_selector.reportAvailableModes()
-        result += '\nCurrent mode:\n'
-        result += self.mode_selector.reportCurrentMode()
-        result += '\n\nParameters:\n'
-        result += self.parameter_manager.reportAllParameters()
-        return result
 
     def anglesToHkl(self, pos, wavelength):
         """

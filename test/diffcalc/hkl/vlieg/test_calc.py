@@ -29,9 +29,9 @@ except ImportError:
     from numjy import matrix
     from numjy.linalg import norm
 
-from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator, \
+from diffcalc.hkl.vlieg.calc import VliegHklCalculator, \
     _findOmegaAndChiToRotateHchiIntoQalpha, check
-from diffcalc.hkl.vlieg.matrices import createVliegMatrices
+from diffcalc.hkl.vlieg.geometry import createVliegMatrices
 from diffcalc.util import DiffcalcException
 from test.diffcalc import scenarios
 
@@ -49,8 +49,8 @@ def createMockUbcalc(UB):
 
 def createMockHardwareMonitor():
     hardware = Mock()
-    hardware.getPosition.return_value = (0.0, 0.0, 0.0)
-    hardware.getPhysicalAngleNames.return_value = 'madeup', 'alpha', 'gamma'
+    hardware.get_position.return_value = (0.0, 0.0, 0.0)
+    hardware.get_axes_names.return_value = 'madeup', 'alpha', 'gamma'
     return hardware
 
 
@@ -205,7 +205,7 @@ class BaseTestHklCalculator():
 
                 #ac.setParameter('alpha', self.calc.alpha )
                 ac.parameter_manager.setTrackParameter('alpha', True)
-                hw.getPosition.return_value = 888, self.calc.alpha, 999
+                hw.get_position.return_value = 888, self.calc.alpha, 999
                 ac.parameter_manager.set_constraint('gamma', self.calc.gamma)
 
             # Test each hkl/position pair

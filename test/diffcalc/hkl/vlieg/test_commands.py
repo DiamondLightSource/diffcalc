@@ -25,8 +25,8 @@ from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.hardware import DummyHardwareAdapter
 from diffcalc.hkl.vlieg.commands import VliegHklCommands
 from diffcalc.util import MockRawInput
-from diffcalc.hkl.vlieg.calcvlieg import VliegHklCalculator
-from diffcalc.ub.calculation import UBCalculation
+from diffcalc.hkl.vlieg.calc import VliegHklCalculator
+from diffcalc.ub.calc import UBCalculation
 
 try:
     from gdascripts.pd.dummy_pds import DummyPD  # @UnusedImport

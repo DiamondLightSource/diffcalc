@@ -23,7 +23,7 @@ from mock import Mock
 
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.hardware import DummyHardwareAdapter
-from diffcalc.hkl.vlieg.position import VliegPosition as P, \
+from diffcalc.hkl.vlieg.geometry import VliegPosition as P, \
    VliegPosition as Pos
 from diffcalc.hkl.vlieg.transform import TransformA, TransformB, TransformC, \
     transformsFromSector, TransformCommands, \
@@ -48,7 +48,7 @@ class TestVliegPositionTransformer(unittest.TestCase):
     def map(self, pos):  # @ReservedAssignment
         pos = self.transformer.transform(pos)
         angle_tuple = self.geometry.internal_position_to_physical_angles(pos)
-        angle_tuple = self.hardware.cutAngles(angle_tuple)
+        angle_tuple = self.hardware.cut_angles(angle_tuple)
         return angle_tuple
 
     def testMapDefaultSector(self):
@@ -82,7 +82,7 @@ class TestVliegPositionTransformer(unittest.TestCase):
 
     def testMapAutoSector(self):
         self.transform_commands._sectorSelector.addAutoTransorm(1)
-        self.hardware.setLowerLimit('c', 0)
+        self.hardware.set_lower_limit('c', 0)
 
         eq_(self.map(Pos(1, 2, 3, 4, -5, 6)),
             (1, 2, 3, 4 - 180, 5, (6 - 180) + 360))
@@ -236,10 +236,10 @@ class TestVliegTransformSelector(unittest.TestCase):
         self.assertEquals(self.ss.autosectors, [2, 3])
         self.assertEquals(self.ss.autotransforms, [])
 
-    def testIsPositionWithinLimits(self):
-        self.assertEquals(self.ss.isPositionWithinLimits(None), True)
+    def testis_position_within_limits(self):
+        self.assertEquals(self.ss.is_position_within_limits(None), True)
         self.limitChecker.okay = False
-        self.assertEquals(self.ss.isPositionWithinLimits(None), False)
+        self.assertEquals(self.ss.is_position_within_limits(None), False)
 
     def test__repr__(self):
         self.ss.setSector(0)

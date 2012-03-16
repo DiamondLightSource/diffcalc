@@ -26,8 +26,9 @@ except ImportError:
         Scannable as PseudoDevice
 
 from diffcalc.ub.crystal import CrystalUnderTest
-from diffcalc.hkl.vlieg.calcvlieg import vliegAnglesToHkl
-from diffcalc.hkl.vlieg.matrices import calcCHI, calcPHI
+from diffcalc.hkl.you.calc import youAnglesToHkl
+from diffcalc.hkl.vlieg.calc import vliegAnglesToHkl
+from diffcalc.hkl.you.geometry import calcCHI, calcPHI
 
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -56,7 +57,7 @@ class Gaussian(Equation):
 class SimulatedCrystalCounter(PseudoDevice):
 
     def __init__(self, name, diffractometerScannable, geometryPlugin,
-                 wavelengthScannable, equation=Gaussian(.01)):
+                 wavelengthScannable, equation=Gaussian(.01), engine='you'):
         self.setName(name)
         self.setInputNames([name + '_count'])
         self.setOutputFormat(['%7.5f'])
@@ -66,6 +67,7 @@ class SimulatedCrystalCounter(PseudoDevice):
         self.geometry = geometryPlugin
         self.wavelengthScannable = wavelengthScannable
         self.equation = equation
+        self.engine = engine
 
         self.cut = None
         self.UB = None
@@ -93,7 +95,7 @@ class SimulatedCrystalCounter(PseudoDevice):
     def asynchronousMoveTo(self, exposureTime):
         self.exposureTime = exposureTime
         if self.pause:
-            time.sleep(exposureTime)
+            time.sleep(exposureTime)  # Should not technically block!
 
     def getPosition(self):
         h, k, l = self.getHkl()
@@ -107,7 +109,12 @@ class SimulatedCrystalCounter(PseudoDevice):
             self.diffractometerScannable.getPosition())
         pos.changeToRadians()
         wavelength = self.wavelengthScannable.getPosition()
-        return vliegAnglesToHkl(pos, wavelength, self.UB)
+        if self.engine.lower() == 'vlieg':
+            return vliegAnglesToHkl(pos, wavelength, self.UB)
+        elif self.engine.lower() == 'you':
+            return youAnglesToHkl(pos, wavelength, self.UB)
+        else:
+            raise ValueError(self.engine)
 
     def isBusy(self):
         return False

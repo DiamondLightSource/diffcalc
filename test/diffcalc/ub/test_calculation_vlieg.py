@@ -28,12 +28,12 @@ except ImportError:
     from numjy import matrix
 
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
-from diffcalc.hkl.vlieg.position import VliegPosition as Pos
+from diffcalc.hkl.vlieg.geometry import VliegPosition as Pos
 from test.tools import matrixeq_, mneq_
-from diffcalc.ub.calculation import UBCalculation
+from diffcalc.ub.calc import UBCalculation
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.util import DiffcalcException
-from diffcalc.hkl.vlieg.calcvlieg import VliegUbCalcStrategy
+from diffcalc.hkl.vlieg.calc import VliegUbCalcStrategy
 from test.diffcalc import scenarios
 
 I = matrix('1 0 0; 0 1 0; 0 0 1')
@@ -41,7 +41,7 @@ TORAD = pi / 180
 
 
 class MockMonitor(object):
-    def getPhysicalAngleNames(self):
+    def get_axes_names(self):
         return ('a', 'd', 'g', 'o', 'c', 'p')
 
 
@@ -310,7 +310,7 @@ class TestUBCalcWithCubic():
 
     def setUp(self):
         hardware = Mock()
-        hardware.getPhysicalAngleNames.return_value = \
+        hardware.get_axes_names.return_value = \
             ('a', 'd', 'g', 'o', 'c', 'p')
         self.ubcalc = UBCalculation(hardware,
                                     SixCircleGammaOnArmGeometry(),

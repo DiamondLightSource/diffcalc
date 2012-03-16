@@ -31,7 +31,7 @@ from diffcalc.gdasupport.scannable.hkl import Hkl
 from diffcalc.gdasupport.scannable.parameter import \
     DiffractionCalculatorParameter
 from mock import Mock
-from diffcalc.hkl.vlieg.parameters import VliegParameterManager
+from diffcalc.hkl.vlieg.constraints import VliegParameterManager
 from diffcalc.diffcalc_ import Diffcalc
 from diffcalc.hardware import HardwareAdapter
 try:
@@ -221,7 +221,7 @@ class Test(unittest.TestCase):
     def testCreateParameterScannables(self):
         dc = MockDiffcalc()
         dc._hardware = Mock(spec=HardwareAdapter)
-        dc._hardware.getPhysicalAngleNames.return_value = 'alpha',
+        dc._hardware.get_axes_names.return_value = 'alpha',
         dc.parameter_manager = Mock(spec=VliegParameterManager)
         #dc.parameter_manager.get
         dc.parameter_manager.settable_constraint_names = {

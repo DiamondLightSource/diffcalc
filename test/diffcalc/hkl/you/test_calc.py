@@ -24,17 +24,19 @@ try:
 except ImportError:
     from numjy import matrix
 
-from diffcalc.hkl.you.calcyou import YouHklCalculator
+from diffcalc.hkl.you.calc import YouHklCalculator
 from diffcalc.hkl.you.constraints import YouConstraintManager
 from test.tools import assert_array_almost_equal, \
     assert_second_dict_almost_in_first
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.util import y_rotation, z_rotation, DiffcalcException
 from test.diffcalc.test_hardware import SimpleHardwareAdapter
-from test.diffcalc.hkl.vlieg.test_calcvlieg import \
+from test.diffcalc.hkl.vlieg.test_calc import \
     createMockDiffractometerGeometry, createMockUbcalc
-from diffcalc.hkl.you.position import YouPosition as Pos, YouPosition as P
-
+from diffcalc.hkl.you.geometry import YouPosition as Pos, YouPosition as P,\
+    YouPosition
+from test.tools import arrayeq_
+from diffcalc.hkl.you.calc import youAnglesToHkl
 
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -61,11 +63,11 @@ class _BaseTest():
         self.calc = YouHklCalculator(self.mock_ubcalc, self.mock_geometry,
                                      self.mock_hardware, self.constraints)
 
-        self.mock_hardware.setLowerLimit('delta', 0)
-        self.mock_hardware.setUpperLimit('delta', 179.999)
-        self.mock_hardware.setLowerLimit('mu', 0)
-        self.mock_hardware.setLowerLimit('eta', 0)
-        self.mock_hardware.setLowerLimit('chi', -10)
+        self.mock_hardware.set_lower_limit('delta', 0)
+        self.mock_hardware.set_upper_limit('delta', 179.999)
+        self.mock_hardware.set_lower_limit('mu', 0)
+        self.mock_hardware.set_lower_limit('eta', 0)
+        self.mock_hardware.set_lower_limit('chi', -10)
 
         self.places = 11
 
@@ -394,7 +396,7 @@ class TestFixedChiPhiPsiMode_DiamondI07SurfaceNormalHorizontal(_TestCubic):
 
     def setup(self):
         _TestCubic.setup(self)
-        self.mock_hardware.setLowerLimit('nu', 0)
+        self.mock_hardware.set_lower_limit('nu', 0)
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'a_eq_b': None}
         self.wavelength = 1
         self.UB = I * 2 * pi
@@ -475,16 +477,16 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
 
     def setup(self):
         _TestCubic.setup(self)
-        self.mock_hardware.setLowerLimit('nu', 0)
+        self.mock_hardware.set_lower_limit('nu', 0)
         self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0,
                                          'a_eq_b': None}
         self.wavelength = 1
         self.UB = I * 2 * pi
         self.places = 4
 
-        self.mock_hardware.setLowerLimit('mu', None)
-        self.mock_hardware.setLowerLimit('eta', None)
-        self.mock_hardware.setLowerLimit('chi', None)
+        self.mock_hardware.set_lower_limit('mu', None)
+        self.mock_hardware.set_lower_limit('eta', None)
+        self.mock_hardware.set_lower_limit('chi', None)
 
     def _configure_ub(self):
         self.mock_ubcalc.UB = self.UB
@@ -555,3 +557,37 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
         self._check((.7, .8, 1),  # betaout=30
                     P(mu=30, delta=57.0626, nu=96.86590, eta=86.6739, chi=0,
                       phi=0))
+
+
+def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
+    return YouPosition(mu, delta, gamma, eta, chi, phi)
+
+
+class TestAnglesToHkl_I16Examples():
+
+    def __init__(self):
+        self.UB1 = matrix((
+           (0.9996954135095477, -0.01745240643728364, -0.017449748351250637),
+           (0.01744974835125045, 0.9998476951563913, -0.0003045864904520898),
+           (0.017452406437283505, -1.1135499981271473e-16, 0.9998476951563912))
+            ) * (2 * pi)
+        self.WL1 = 1  # Angstrom
+
+    def test_anglesToHkl_mu_0_gam_0(self):
+        pos = posFromI16sEuler(1, 1, 30, 0, 60, 0).inRadians()
+        arrayeq_(youAnglesToHkl(pos, self.WL1, self.UB1), [1, 0, 0])
+
+    def test_anglesToHkl_mu_0_gam_10(self):
+        pos = posFromI16sEuler(1, 1, 30, 0, 60, 10).inRadians()
+        arrayeq_(youAnglesToHkl(pos, self.WL1, self.UB1),
+                 [1.00379806, -0.006578435, 0.08682408])
+
+    def test_anglesToHkl_mu_10_gam_0(self):
+        pos = posFromI16sEuler(1, 1, 30, 10, 60, 0).inRadians()
+        arrayeq_(youAnglesToHkl(pos, self.WL1, self.UB1),
+                 [0.99620193, 0.0065784359, 0.08682408])
+
+    def test_anglesToHkl_arbitrary(self):
+        pos = posFromI16sEuler(1.9, 2.9, 30.9, 0.9, 60.9, 2.9).inRadians()
+        arrayeq_(youAnglesToHkl(pos, self.WL1, self.UB1),
+                 [1.01174189, 0.02368622, 0.06627361])

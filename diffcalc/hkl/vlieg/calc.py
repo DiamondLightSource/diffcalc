@@ -28,13 +28,13 @@ except ImportError:
 from diffcalc.hkl.calcbase import HklCalculatorBase
 from diffcalc.hkl.vlieg.transform import TransformCInRadians
 from diffcalc.util import dot3, cross3, bound, differ
-from diffcalc.hkl.vlieg.matrices import createVliegMatrices, \
+from diffcalc.hkl.vlieg.geometry import createVliegMatrices, \
     createVliegsPsiTransformationMatrix, \
     createVliegsSurfaceTransformationMatrices, calcPHI
-from diffcalc.hkl.vlieg.position import VliegPosition
-from diffcalc.hkl.vlieg.parameters import VliegParameterManager
-from diffcalc.hkl.vlieg.modes import ModeSelector
-from diffcalc.ub.calculation import PaperSpecificUbCalcStrategy
+from diffcalc.hkl.vlieg.geometry import VliegPosition
+from diffcalc.hkl.vlieg.constraints import VliegParameterManager
+from diffcalc.hkl.vlieg.constraints import ModeSelector
+from diffcalc.ub.calc import PaperSpecificUbCalcStrategy
 
 
 TORAD = pi / 180
@@ -113,13 +113,24 @@ class VliegHklCalculator(HklCalculatorBase):
         r = raiseExceptionsIfAnglesDoNotMapBackToHkl
         HklCalculatorBase.__init__(self, ubcalc, geometry, hardware,
                                    raiseExceptionsIfAnglesDoNotMapBackToHkl=r)
-
+        self._gammaParameterName = ({'arm': 'gamma', 'base': 'oopgamma'}
+                                    [self._geometry.gamma_location])
         self.mode_selector = ModeSelector(self._geometry, None,
                                           self._gammaParameterName)
         self.parameter_manager = VliegParameterManager(
             self._geometry, self._hardware, self.mode_selector,
             self._gammaParameterName)
         self.mode_selector.setParameterManager(self.parameter_manager)
+
+    def __str__(self):
+        # should list paramemeters and indicate which are used in selected mode
+        result = "Available mode_selector:\n"
+        result += self.mode_selector.reportAvailableModes()
+        result += '\nCurrent mode:\n'
+        result += self.mode_selector.reportCurrentMode()
+        result += '\n\nParameters:\n'
+        result += self.parameter_manager.reportAllParameters()
+        return result
 
     def _anglesToHkl(self, pos, wavelength):
         """

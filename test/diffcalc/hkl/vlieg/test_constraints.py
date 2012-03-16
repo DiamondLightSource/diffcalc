@@ -18,11 +18,34 @@
 
 import unittest
 
-from diffcalc.hkl.vlieg.modes import ModeSelector
-from diffcalc.hkl.vlieg.parameters import VliegParameterManager
+from diffcalc.hkl.vlieg.constraints import ModeSelector, VliegParameterManager
 from diffcalc.util import DiffcalcException
-from test.diffcalc.hkl.vlieg.test_calcvlieg import \
+from test.diffcalc.hkl.vlieg.test_calc import \
     createMockHardwareMonitor, createMockDiffractometerGeometry
+
+
+class TestModeSelector(unittest.TestCase):
+
+    def setUp(self):
+
+        self.ms = ModeSelector(createMockDiffractometerGeometry(),
+                               parameterManager=None)
+        self.pm = VliegParameterManager(createMockDiffractometerGeometry(),
+                                        None, self.ms)
+        self.ms.setParameterManager(self.pm)
+
+    def testSetModeByIndex(self):
+        self.ms.setModeByIndex(0)
+        self.assert_(self.ms.getMode().name == '4cFixedw')
+        self.ms.setModeByIndex(1)
+        self.assert_(self.ms.getMode().name == '4cBeq')
+
+    def testGetMode(self):
+        # tested implicetely by testSetmode
+        pass
+
+    def testShowAvailableModes(self):
+        print self.ms.reportAvailableModes()
 
 
 class TestParameterManager(unittest.TestCase):
@@ -50,7 +73,7 @@ class TestParameterManager(unittest.TestCase):
         self.pm.setTrackParameter('alpha', True)
         self.assertEqual(self.pm.isParameterTracked('alpha'), True)
         self.assertRaises(DiffcalcException, self.pm.set_constraint, 'alpha', 10)
-        self.hw.getPosition.return_value = 888, 11, 999
+        self.hw.get_position.return_value = 888, 11, 999
         self.assertEqual(self.pm.get_constraint('alpha'), 11)
 
         print self.pm.reportAllParameters()
@@ -61,7 +84,7 @@ class TestParameterManager(unittest.TestCase):
         self.pm.setTrackParameter('alpha', False)
         self.assertEqual(self.pm.isParameterTracked('alpha'), False)
         self.assertEqual(self.pm.get_constraint('alpha'), 11)
-        self.hw.getPosition.return_value = 888, 12, 999
+        self.hw.get_position.return_value = 888, 12, 999
         self.assertEqual(self.pm.get_constraint('alpha'), 11)
         self.pm.set_constraint('alpha', 13)
         self.assertEqual(self.pm.get_constraint('alpha'), 13)
