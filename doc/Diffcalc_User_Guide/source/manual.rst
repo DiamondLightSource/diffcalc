@@ -1,6 +1,12 @@
 Introduction
 ============
 
+.. warning::
+
+   This manual refers to the 'Vlieg' calculation available in Diffcalc I. By
+   default Diffcalc II now uses its 'You' engine. This manual will be updated
+   soon. For now the developer guide shows how the new constraint system works.
+
 This manual assumes that you are running Diffcalc within the external
 framework of the GDA or Minigda and that Diffcalc has been configured
 for the six circle diffractometer pictured here:
