@@ -739,7 +739,10 @@ def _findOmegaAndChiToRotateHchiIntoQalpha(h_chi, q_alpha):
             p = atan(b/a) + {0 if a>=0
                             {pi if a<0
         """
-        p = atan(b / a)
+        if a == 0:
+            p = pi / 2 if b >= 0 else - pi / 2
+        else:
+            p = atan(b / a)
         if a < 0:
             p = p + pi
         guts = c / sqrt(a ** 2 + b ** 2)
@@ -835,7 +838,7 @@ def _findOmegaAndChiToRotateHchiIntoQalpha(h_chi, q_alpha):
         print "         Returning a -ve one. Try the mapper"
         return solutions[0]
 
-    if len(positive_chi_solutions) >= 1:
+    if len(positive_chi_solutions) > 1:
         print ("INFO: Multiple +ve chi solutions were found [(omega, chi) ...]"
              " = " + str(positive_chi_solutions))
         print "      Returning the first"
