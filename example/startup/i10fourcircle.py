@@ -62,7 +62,7 @@ diffcalcObjects = create_objects(
 	axis_scannable_list = (tth, th, chi, phi),
 	energy_scannable = denergy,
 	energy_scannable_multiplier_to_get_KeV = .001,
-	geometry_plugin = 'fourc',
+	geometry = 'fourc',
 	hklverbose_virtual_angles_to_report=('2theta','Bin','Bout','azimuth'),
 	demo_commands = demoCommands
 )
