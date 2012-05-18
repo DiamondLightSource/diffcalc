@@ -38,10 +38,10 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'contents'
+master_doc = 'index'
 
 # General information about the project.
-project = u'Diffcalc User Guide'
+project = u'Diffcalc'
 copyright = u'2011-%s, Diamond Light Source' % time.strftime('%Y')
 
 # The version info for the project you're documenting, acts as replacement for
@@ -116,7 +116,7 @@ html_theme_options = {
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = None
+html_logo = 'diffcalc_web.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -184,13 +184,15 @@ latex_paper_size = 'a4'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ('contents', 'Diffcalc_User_Guide.tex', u'Diffcalc User Guide',
+    ('user/contents', 'diffcalc_user_guide.tex', u'Diffcalc User Guide',
+    u'Diamond Light Source', 'manual'),
+    ('developer/contents', 'diffcalc_developer_guide.tex', u'Diffcalc Developer Guide',
     u'Diamond Light Source', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
-# the title page.
-#latex_logo = None
+# the title page
+latex_logo = 'diffcalc_pdf.png'
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
