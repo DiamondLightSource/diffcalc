@@ -1,6 +1,6 @@
-####################################
- Diffcalc User and Deveeloper Guide
-####################################
+###################################
+ Diffcalc User and Developer Guide
+###################################
 
 :Author: Rob Walton
 :Contact: rob.walton (at) diamond.ac.uk
