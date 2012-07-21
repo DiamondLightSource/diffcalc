@@ -108,8 +108,8 @@ class UbCommands(object):
     def ub(self):
         """ub -- show the complete state of the ub calculation
         """
-        wavelength = float(self._hardware.get_wavelength())
-        energy = float(self._hardware.get_energy())
+        #wavelength = float(self._hardware.get_wavelength())
+        #energy = float(self._hardware.get_energy())
         print self._ubcalc.__str__()
 
 ### UB lattice ###

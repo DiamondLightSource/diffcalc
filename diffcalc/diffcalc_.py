@@ -57,7 +57,9 @@ def create_diffcalc(engine_name,
                     geometry,
                     hardware,
                     raise_exceptions_for_all_errors=True,
-                    ub_persister=UbCalculationNonPersister()):
+                    ub_persister=UbCalculationNonPersister(),
+                    diffractometer_name = None, # used for user help if no hardware plugin given
+                    diffractometer_axes_names = None):         # used for user help if no hardware plugin given
 
     diffcalc.util.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = \
         raise_exceptions_for_all_errors
@@ -65,12 +67,19 @@ def create_diffcalc(engine_name,
     if engine_name not in AVAILABLE_ENGINES:
         raise ValueError(engine_name + ' not supported')
 
+    if hardware:
+        if diffractometer_name or diffractometer_axes_names:
+            raise ValueError("If hardware is specified, diffractometer_name and diffractometer_axes_names "
+                             "will not be used (and should not be set explicitly)")
+        diffractometer_name = hardware.name
+        diffractometer_axes_names = hardware.get_axes_names()
+
     # UB calculator
     strategy_classes = {'vlieg': VliegUbCalcStrategy,
                         'willmott': WillmottHorizontalUbCalcStrategy,
                         'you': YouUbCalcStrategy}
     ubcalc_strategy = strategy_classes[engine_name]()
-    ubcalc = UBCalculation(hardware, geometry, ub_persister, ubcalc_strategy)
+    ubcalc = UBCalculation(diffractometer_axes_names, geometry, ub_persister, ubcalc_strategy)
     ub_commands = UbCommands(hardware, geometry, ubcalc)
 
     # Hkl
@@ -83,7 +92,7 @@ def create_diffcalc(engine_name,
         hkl_commands = WillmottHklCommands(hklcalc)
     elif engine_name == 'you':
         hklcalc = YouHklCalculator(
-            ubcalc, geometry, hardware, YouConstraintManager(hardware))
+            ubcalc, geometry, hardware, YouConstraintManager(hardware, geometry.fixed_constraints))
         hkl_commands = YouHklCommands(hklcalc)
 
     # Hardware
@@ -103,8 +112,8 @@ def create_diffcalc(engine_name,
                   ub_commands, hkl_commands, hardware_commands,
                   transform_commands)
 
-    _hwname = hardware.name
-    _angles = ', '.join(hardware.get_axes_names())
+    _hwname = diffractometer_name
+    _angles = ', '.join(diffractometer_axes_names)
 
     dc.ub.commands.append(dc.checkub)
 

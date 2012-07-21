@@ -50,7 +50,7 @@ class TestUbCommands(unittest.TestCase):
         names = 'alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'
         self.hardware = DummyHardwareAdapter(names)
         self.geometry = SixCircleGammaOnArmGeometry()
-        self.ubcalc = UBCalculation(self.hardware,
+        self.ubcalc = UBCalculation(names,
                                     self.geometry,
                                     UbCalculationNonPersister(),
                                     VliegUbCalcStrategy())

@@ -47,6 +47,8 @@ from test.diffcalc import scenarios
 import diffcalc.util  # @UnusedImport to overide raw_input
 
 
+diffcalc.util.DEBUG = True
+
 def prepareRawInput(listOfStrings):
     diffcalc.util.raw_input = MockRawInput(listOfStrings)
 

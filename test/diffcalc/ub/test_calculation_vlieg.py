@@ -40,18 +40,13 @@ I = matrix('1 0 0; 0 1 0; 0 0 1')
 TORAD = pi / 180
 
 
-class MockMonitor(object):
-    def get_axes_names(self):
-        return ('a', 'd', 'g', 'o', 'c', 'p')
-
 
 class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
 
     def setUp(self):
         self.geometry = SixCircleGammaOnArmGeometry()
-        self.hardware = MockMonitor()
         self.ubcalc = UBCalculation(
-            self.hardware, self.geometry, UbCalculationNonPersister(),
+            ('a', 'd', 'g', 'o', 'c', 'p'), self.geometry, UbCalculationNonPersister(),
             VliegUbCalcStrategy())
         self.time = datetime.now()
 
