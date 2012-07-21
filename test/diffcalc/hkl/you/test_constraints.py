@@ -23,7 +23,7 @@ from mock import Mock
 from diffcalc.hkl.you.constraints import YouConstraintManager
 from diffcalc.util import DiffcalcException
 from nose.tools import raises
-
+from nose.tools import assert_raises  # @UnresolvedImport
 
 def joined(d1, d2):
     d1.update(d2)
@@ -445,6 +445,8 @@ class TestConstraintManager:
         eq_(self.cm.set_constraint('alpha', 1.), 'alpha : --- --> 1.0')
         eq_(self.cm.set_constraint('alpha', 2.), 'alpha : 1.0 --> 2.0')
 
+
+
 #    def test_track_fails(self):
 #        try:
 #            self.cm.track('not_a_constraint')
@@ -485,3 +487,78 @@ class TestConstraintManager:
 #        self.cm.untrack('delta')
 #        self.cm.set_constraint('delta', 2.)
 #        eq_(self.cm.track('delta'), 'delta : 2.0 ~~> 1.0 (tracking)')
+
+class TestConstraintManagerWithFourCircles:
+
+    def setUp(self):
+        self.cm = YouConstraintManager(None, {'nu': 0, 'mu': 0})    
+
+    def test_init(self):
+        eq_(self.cm.all, {'nu': 0, 'mu': 0})
+        eq_(self.cm.detector, {'nu': 0})
+        eq_(self.cm.reference, {})
+        eq_(self.cm.sample, {'mu': 0})
+        eq_(self.cm.naz, {})
+
+    def test_build_initial_display_table_with_fixed_detector(self):
+        self.cm = YouConstraintManager(None, {'nu': 0})
+        print self.cm.build_display_table_lines()
+        eq_(self.cm.build_display_table_lines(),
+            ['    REF        SAMP',
+             '    ======     ======',
+             '    a_eq_b     mu',
+             '    alpha      eta',
+             '    beta       chi',
+             '    psi        phi'])
+        
+    def test_build_initial_display_table_with_fixed_sample(self):
+        self.cm = YouConstraintManager(None, {'mu': 0})
+        print self.cm.build_display_table_lines()
+        eq_(self.cm.build_display_table_lines(),
+            ['    DET        REF        SAMP',
+             '    ======     ======     ======',
+             '    delta      a_eq_b     eta',
+             '    nu         alpha      chi',
+             '    qaz        beta       phi',
+             '    naz        psi'])
+        
+    def test_build_initial_display_table_for_four_circle(self):
+        self.cm = YouConstraintManager(None, {'mu': 0, 'nu': 0})
+        print self.cm.build_display_table_lines()
+        eq_(self.cm.build_display_table_lines(),
+            ['    REF        SAMP',
+             '    ======     ======',
+             '    a_eq_b     eta',
+             '    alpha      chi',
+             '    beta       phi',
+             '    psi'])
+        
+    def test_constrain_fixed_detector_angle(self):
+        assert_raises(DiffcalcException, self.cm.constrain, 'delta')
+        assert_raises(DiffcalcException, self.cm.constrain, 'nu')
+        assert_raises(DiffcalcException, self.cm.constrain, 'naz')
+        assert_raises(DiffcalcException, self.cm.constrain, 'qaz')
+
+    def test_unconstrain_fixed_detector_angle(self):
+        assert_raises(DiffcalcException, self.cm.unconstrain, 'delta')
+        assert_raises(DiffcalcException, self.cm.unconstrain, 'nu')
+        assert_raises(DiffcalcException, self.cm.unconstrain, 'naz')
+        assert_raises(DiffcalcException, self.cm.unconstrain, 'qaz')
+        
+    def test_set_constrain_fixed_detector_angle(self):
+        assert_raises(DiffcalcException, self.cm.set_constraint, 'delta', 0)
+        assert_raises(DiffcalcException, self.cm.set_constraint, 'nu', 0)
+        assert_raises(DiffcalcException, self.cm.set_constraint, 'naz', 0)
+        assert_raises(DiffcalcException, self.cm.set_constraint, 'qaz', 0)
+    
+    @raises(DiffcalcException)
+    def test_constrain_fixed_sample_angle(self):
+        self.cm.constrain('mu')
+
+    @raises(DiffcalcException)
+    def test_unconstrain_fixed_sample_angle(self):
+        self.cm.unconstrain('mu')
+
+    @raises(DiffcalcException)
+    def test_set_constrain_fixed_sample_angle(self):
+        self.cm.set_constraint('mu', 0)

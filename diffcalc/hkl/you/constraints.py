@@ -50,11 +50,14 @@ number_single_sample = (len(det_constraints) * len(ref_constraints) *
 
 class YouConstraintManager(object):
 
-    def __init__(self, hardware):
+    def __init__(self, hardware, fixed_constraints = {}):
         self._hardware = hardware
         self._constrained = {}
 #        self._tracking = []
         self.n_phi = matrix([[0], [0], [1]])
+        self._hide_detector_constraint = False # default
+        self._fixed_samp_constraints = ()
+        self._fix_constraints(fixed_constraints)
 
     def __str__(self):
         lines = []
@@ -135,6 +138,20 @@ class YouConstraintManager(object):
         names.sort(key=lambda name: list(all_constraints).index(name))
         return tuple(names)
 
+    def _fix_constraints(self, fixed_constraints):
+        for name in fixed_constraints:
+            self.constrain(name)
+            self.set_constraint(name, fixed_constraints[name])
+        
+        if self.detector or self.naz:    
+            self._hide_detector_constraint = True
+        
+        fixed_samp_constraints = list(self.sample.keys())
+        if 'mu' in self.sample or 'nu' in self.detector:
+            fixed_samp_constraints.append('mu_is_nu')
+        self._fixed_samp_constraints = tuple(fixed_samp_constraints)
+        
+
     def is_constrained(self, name):
         return name in self._constrained
 
@@ -142,20 +159,28 @@ class YouConstraintManager(object):
         return self._constrained[name]
 
     def build_display_table_lines(self):
-        constraint_types = (det_constraints, ref_constraints,
-                            samp_constraints)
+        unfixed_samp_constraints = list(samp_constraints)
+        for name in self._fixed_samp_constraints:
+            unfixed_samp_constraints.remove(name)
+        if self._hide_detector_constraint:
+            constraint_types = (ref_constraints, unfixed_samp_constraints)
+        else:
+            constraint_types = (det_constraints, ref_constraints,
+                                unfixed_samp_constraints)
         num_rows = max([len(col) for col in constraint_types])
         max_name_width = max(
-            [len(name) for name in sum(constraint_types[:2], ())])
+            [len(name) for name in sum(constraint_types[:-1], ())])
         
         cells = []
         
         header_cells = []
-        header_cells.append('    ' + 'DET'.ljust(max_name_width))
+        if not self._hide_detector_constraint:
+            header_cells.append('    ' + 'DET'.ljust(max_name_width))
         header_cells.append('    ' + 'REF'.ljust(max_name_width))
         header_cells.append('    ' + 'SAMP')
         cells.append(header_cells)
-        underline_cells = ['    ' + '=' * max_name_width] * 3
+        
+        underline_cells = ['    ' + '=' * max_name_width] * len(constraint_types)
         cells.append(underline_cells)
         
         for n_row in range(num_rows):
@@ -233,6 +258,9 @@ class YouConstraintManager(object):
         return label
 
     def constrain(self, name):
+        if self._is_constraint_fixed(name):
+            raise DiffcalcException('%s is not a valid constraint name')
+        
         if name in self.all:
             return "%s is already constrained." % name.capitalize()
         elif name in det_constraints:
@@ -243,6 +271,10 @@ class YouConstraintManager(object):
             return self._constrain_sample(name)
         else:
             raise DiffcalcException('%s is not a valid constraint name')
+
+    def _is_constraint_fixed(self, name):
+        return ((name in det_constraints and self._hide_detector_constraint) or
+                (name in samp_constraints and name in self._fixed_samp_constraints))
 
     def _constrain_detector(self, name):
         if self.naz:
@@ -292,6 +324,8 @@ class YouConstraintManager(object):
             raise self._could_not_constrain_exception(name)
 
     def unconstrain(self, name):
+        if self._is_constraint_fixed(name):
+            raise DiffcalcException('%s is not a valid constraint name')
         if name in self._constrained:
             del self._constrained[name]
         else:
@@ -312,6 +346,8 @@ class YouConstraintManager(object):
                 'value.' % locals())
 
     def set_constraint(self, name, value):  # @ReservedAssignment
+        if self._is_constraint_fixed(name):
+            raise DiffcalcException('%s is not a valid constraint name')
         self._check_constraint_settable(name)
 #        if name in self._tracking:
 #            raise DiffcalcException(
