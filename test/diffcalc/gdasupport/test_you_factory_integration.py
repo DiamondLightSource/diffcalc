@@ -29,7 +29,8 @@ except ImportError:
 from diffcalc.gdasupport.factory import create_objects
 import diffcalc.gdasupport.factory  # @UnusedImport for VERBOSE
 from diffcalc.gdasupport.minigda.command import Pos, Scan
-from test.tools import wrap_command_to_print_calls, mneq_
+from test.tools import wrap_command_to_print_calls, mneq_, aneq_,\
+    assert_dict_almost_equal
 
 # TODO: 'cons mu 2'   should work ?
 # TODO:  'cons nu a_eq_b mu' should work
@@ -210,26 +211,3 @@ class TestDiffcalcFactorySixc():
     @raises(TypeError)
     def test_usage_error_inside(self):
         setlat('wrong arg', 'wrong arg')
-
-from diffcalc.hkl.you.geometry import SixCircle
-from diffcalc.hardware import DummyHardwareAdapter
-from diffcalc.diffcalc_ import create_diffcalc
-
-
-class TestDiffcalcSixc():
-
-    def setup(self):
-        axes = 'mu', 'delta', 'nu', 'eta', 'chi', 'phi'
-        self.hardware = DummyHardwareAdapter(axes)
-        self.dc = create_diffcalc('you', SixCircle(), self.hardware)
-
-    def test_repr(self):
-        print repr(self.dc)
-        print repr(self.dc.ub)
-        print repr(self.dc.hkl)
-
-    def test_str(self):
-        print self.dc
-        print self.dc.ub
-        print self.dc.hkl
-
