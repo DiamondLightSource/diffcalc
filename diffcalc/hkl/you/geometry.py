@@ -27,8 +27,9 @@ from diffcalc.util import x_rotation, z_rotation, y_rotation
 
 class _YouGeometry(object):
 
-    def __init__(self, name):
+    def __init__(self, name, fixed_constraints ):
         self.name = name
+        self.fixed_constraints = fixed_constraints
 
     def physical_angles_to_internal_position(self, physicalAngles):
         raise NotImplementedError()
@@ -49,7 +50,7 @@ class _YouGeometry(object):
 
 class SixCircle(_YouGeometry):
     def __init__(self):
-        _YouGeometry.__init__(self, name='sixc')
+        _YouGeometry.__init__(self, 'sixc', {})
 
     def physical_angles_to_internal_position(self, physical_angle_tuple):
         # mu, delta, nu, eta, chi, phi
@@ -57,6 +58,23 @@ class SixCircle(_YouGeometry):
 
     def internal_position_to_physical_angles(self, internal_position):
         return internal_position.totuple()
+
+
+class FourCircle(_YouGeometry):
+    """For a diffractometer with angles:
+          delta, eta, chi, phi
+    """
+    def __init__(self):
+        _YouGeometry.__init__(self, 'fourc', {'mu': 0, 'nu': 0})
+
+    def physical_angles_to_internal_position(self, physical_angle_tuple):
+        # mu, delta, nu, eta, chi, phi
+        delta, eta, chi, phi = physical_angle_tuple
+        return YouPosition(0, delta, 0, eta, chi, phi)
+
+    def internal_position_to_physical_angles(self, internal_position):
+        _, delta, _, eta, chi, phi = internal_position.totuple()
+        return delta, eta, chi, phi
 
 #==============================================================================
 

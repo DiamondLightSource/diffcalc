@@ -73,6 +73,7 @@ def create_diffcalc(engine_name,
                              "will not be used (and should not be set explicitly)")
         diffractometer_name = hardware.name
         diffractometer_axes_names = hardware.get_axes_names()
+        # TODO: The hkl calculator still requires a hardware plugin to check limits. Not specifying one results in errors.
 
     # UB calculator
     strategy_classes = {'vlieg': VliegUbCalcStrategy,
@@ -202,7 +203,7 @@ class Diffcalc(object):
 
         (pos, params) = self._hklcalc.hklToAngles(h, k, l, wavelength)
         if self._transformer:
-            pos = self._transformer.transform(pos)
+            pos = self._transformer.transform(pos) # Vlieg only
         angle_tuple = self._geometry.internal_position_to_physical_angles(pos)
         angle_tuple = self._hardware.cut_angles(angle_tuple)
 

@@ -891,18 +891,20 @@ class YouHklCalculator(HklCalculatorBase):
 
     def _generate_possible_solutions(self, values, names, constrained_names):
 
+        # Expand each value into a list of values
         transformed_values = []
         for value, name in zip(values, names):
-            transforms_of_value_within_limits = []
-            value_constrained = name in constrained_names
-            for transformed_value in _generate_transformed_values(
-                value, value_constrained):
-                if self._hardware.is_axis_value_within_limits(name,
-                    self._hardware.cut_angle(name, transformed_value * TODEG)):
-                    transforms_of_value_within_limits.append(
-                        cut_at_minus_pi(transformed_value))
-            transformed_values.append(transforms_of_value_within_limits)
+            transformed_values.append([])
+            if name in constrained_names:
+                transformed_values[-1].append(cut_at_minus_pi(value))
+            else:             
+                for transformed_value in _generate_transformed_values(value, False):
+                    in_limits = self._hardware.is_axis_value_within_limits(name,
+                        self._hardware.cut_angle(name, transformed_value * TODEG))
+                    if in_limits:
+                        transformed_values[-1].append(cut_at_minus_pi(transformed_value))
 
+        # Generate all combinations of the transformed values
         def expand(tuples_so_far, b):
             r = []
             for tuple_so_far in tuples_so_far:
