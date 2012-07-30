@@ -1,7 +1,7 @@
 Development
 ===========
 
-The files are kept here_ on github_. See bootcamp_ for an introduction to
+The files are kept here_ on github_. See bootcamp for an introduction to
 using github. To contribute please fork the project. Otherwise you can make
 a read-only clone or export.
 
