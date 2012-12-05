@@ -129,7 +129,7 @@ class UbCommands(object):
         """
 
         if name is None:  # Interactive
-            name = promptForInput(" name")
+            name = promptForInput("crystal name")
             a = promptForNumber('    a', 1)
             b = promptForNumber('    b', a)
             c = promptForNumber('    c', a)
