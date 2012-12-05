@@ -91,4 +91,3 @@ class TestYouHklCommands:
         self.hklcalc.constraints.is_fully_constrained.return_value = True
         self.hklcalc.constraints.is_current_mode_implemented.return_value = False
         self.commands.con('phi', 'chi', 'eta')
-        1/0

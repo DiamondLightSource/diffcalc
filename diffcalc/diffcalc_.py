@@ -80,8 +80,8 @@ def create_diffcalc(engine_name,
                         'willmott': WillmottHorizontalUbCalcStrategy,
                         'you': YouUbCalcStrategy}
     ubcalc_strategy = strategy_classes[engine_name]()
-    ubcalc = UBCalculation(diffractometer_axes_names, geometry, ub_persister, ubcalc_strategy)
     include_sigtau = engine_name in('vlieg', 'willmott')
+    ubcalc = UBCalculation(diffractometer_axes_names, geometry, ub_persister, ubcalc_strategy, include_sigtau)
     ub_commands = UbCommands(hardware, geometry, ubcalc, include_sigtau)
 
     # Hkl
