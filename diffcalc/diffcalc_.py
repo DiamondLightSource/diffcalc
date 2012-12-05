@@ -140,7 +140,7 @@ def create_diffcalc(engine_name,
     dc.hkl.commands.append(ExternalCommand(
         'pos hkl [h k l] -- move to hkl position'))
     dc.hkl.commands.append(ExternalCommand(
-        'pos <h|k|l> val -- move h, k or l to val'))
+        'pos {h|k|l} val -- move h, k or l to val'))
     dc.hkl.commands.append(ExternalCommand(
         'sim hkl [h k l] -- simulate move to hkl position'))
 
