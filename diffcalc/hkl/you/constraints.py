@@ -345,6 +345,9 @@ class YouConstraintManager(object):
                 'Could not set %(name)s. This constraint takes no '
                 'value.' % locals())
 
+    def clear_constraints(self):
+        self._constrained = {}
+
     def set_constraint(self, name, value):  # @ReservedAssignment
         if self._is_constraint_fixed(name):
             raise DiffcalcException('%s is not a valid constraint name')
