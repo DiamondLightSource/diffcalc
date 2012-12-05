@@ -32,42 +32,6 @@ from diffcalc.gdasupport.minigda.command import Pos, Scan
 from test.tools import wrap_command_to_print_calls, mneq_, aneq_,\
     assert_dict_almost_equal
 
-# TODO: 'cons mu 2'   should work ?
-# TODO:  'cons nu a_eq_b mu' should work
-# TODO: Fix ' pos <h|k|l> val                 move h, k or l to val' doc string
-# TODO: look at all commands together (showref, listub, cons)
-# TODO: startup should sy to 'help ub' and 'help hkl'
-# TODO: overide help command. Perhaps just print __doc__ if it starts
-#       with '!' or '@command'
-# TODO: error handling in wrapper. check TypeError depth. Give help inside
-#       exception string.
-# TODO: parameter scannables should return current virtual angle
-#       __str__ would also show requestd
-
-# TODO: remove need for axis_par scannables - set value, consider e.g. mu scan,
-#       and moved from epics. mu scan requires mu to be same level as hkl
-#       to work efficiently
-
-# TODO: indicate in cons and after change if the mode is complete
-# TODO: indicate in cons and after change if the mode is available
-# TODO: 'con mu, nu, a_eq_b'
-# TODO: add valueless strings to namespace
-
-# TODO: implement mu_eq_nu mode
-# TODO: add eta_half_delta and mu_half_nu modes
-
-# TODO: provide fivec etc plugins (i13 first)
-# TODO: provide arbitrary virtual names (and check arbitray motor names work)
-# TODO: provide short cut mode access my number (beamline specific)
-
-# TODO: remove sigma and tau with you engine
-# TODO: handle eV / keV properly (wavelength internally, flag to energy_unit
-#       equal 'keV' (default) or 'eV'
-
-# TODO: gdasupport --> gda (check in gda first, relative path problem possible)
-# TODO: Fix .__doc__ help on hkl (metaclass syetm fails under Jython with a java base class)
-
-
 
 EXPECTED_OBJECTS = ['delref', 'en', 'uncon', 'showref', 'cons', 'l',
                     'hardware', 'checkub', 'listub', 'mu_par', 'saveubas',
