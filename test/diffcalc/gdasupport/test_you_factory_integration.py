@@ -33,7 +33,7 @@ from test.tools import wrap_command_to_print_calls, mneq_, aneq_,\
     assert_dict_almost_equal
 
 
-EXPECTED_OBJECTS = ['delref', 'en', 'uncon', 'showref', 'cons', 'l',
+EXPECTED_OBJECTS = ['delref', 'en', 'uncon', 'showref', 'l',
                     'hardware', 'checkub', 'listub', 'mu_par', 'saveubas',
                     'eta_par', 'ct', 'setmin', 'ub', 'setcut', 'chi', 'setlat',
                     'qaz', 'addref', 'swapref', 'newub', 'naz', 'sixc', 'nu',
@@ -44,7 +44,7 @@ EXPECTED_OBJECTS = ['delref', 'en', 'uncon', 'showref', 'cons', 'l',
                     'calcub', 'chi_par', 'hklverbose']
 
 # Placeholders for names to be added to globals (for benefit of IDE)
-delref = en = uncon = showref = cons = l = hardware = checkub = listub = None
+delref = en = uncon = showref = l = hardware = checkub = listub = None
 mu_par = saveubas = eta_par = ct = setmin = ub = setcut = chi = setlat = None
 qaz = addref = swapref = newub = naz = sixc = nu = sim = None
 phi = psi = sigtau = wl = setmax = dc = loadub = beta = hkl = delta = None
@@ -137,12 +137,12 @@ class TestDiffcalcFactorySixc():
         self._orient()
         call_scannable(hkl)
 
-    def test_help_cons(self):
-        help(cons)
+    def test_help_con(self):
+        help(con)
 
     def test_constraint_mgmt(self):
         diffcalc.util.DEBUG = True
-        cons()  # TODO: show constrained values underneath
+        con()  # TODO: show constrained values underneath
 
     def test_hkl_move_no_constraints(self):
         raise SkipTest()

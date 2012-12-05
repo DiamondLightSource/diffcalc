@@ -174,7 +174,7 @@ angle 'beta'::
 
 To check the constraints::
    
-    >>> dc.hkl.cons()
+    >>> dc.hkl.con()
        DET        REF        SAMP
        ======     ======     ======
        delta  --> a_eq_b --> mu
@@ -187,7 +187,7 @@ To check the constraints::
        a_eq_b
        mu: 0.0000
    
-       Type 'help cons' for instructions
+       Type 'help con' for instructions
 
 Limits can be set to help Diffcalc choose a solution::   
 
