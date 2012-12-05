@@ -14,10 +14,6 @@ List needs review. Unordered. RobW.
 
 - remove need for axis_par scannables - set value, consider e.g. mu scan, and moved from epics. mu scan requires mu to be same level as hkl to work efficiently
 
-- indicate in cons and after change if the mode is complete
-
-- indicate in cons and after change if the mode is available
-
 - implement mu_eq_nu mode
 
 - add eta_half_delta and mu_half_nu modes

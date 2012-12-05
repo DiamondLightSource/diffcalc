@@ -88,9 +88,9 @@ class YouConstraintManager(object):
             not self.is_current_mode_implemented()):
             lines.append(
                 "    Sorry, this constraint combination is not implemented")
-            lines.append("    Type 'help cons' for available combinations")
+            lines.append("    Type 'help con' for available combinations")
         else:
-            lines.append("    Type 'help cons' for instructions")  # okay
+            lines.append("    Type 'help con' for instructions")  # okay
         return '\n'.join(lines)
 
     @property
@@ -260,7 +260,6 @@ class YouConstraintManager(object):
     def constrain(self, name):
         if self._is_constraint_fixed(name):
             raise DiffcalcException('%s is not a valid constraint name')
-        
         if name in self.all:
             return "%s is already constrained." % name.capitalize()
         elif name in det_constraints:
@@ -270,7 +269,7 @@ class YouConstraintManager(object):
         elif name in samp_constraints:
             return self._constrain_sample(name)
         else:
-            raise DiffcalcException('%s is not a valid constraint name')
+            raise DiffcalcException("%s is not a valid constraint name. Type 'con' for a table of constraint name" % name)
 
     def _is_constraint_fixed(self, name):
         return ((name in det_constraints and self._hide_detector_constraint) or

@@ -291,7 +291,7 @@ class YouHklCalculator(HklCalculatorBase):
         if not self.constraints.is_current_mode_implemented():
             raise DiffcalcException(
                 "\nSorry, the selected constraint combination is valid but "
-                "is not implemented.")
+                "is not implemented. Type 'help con' for implemented combinations")
 
         h_phi = self._getUBMatrix() * matrix([[h], [k], [l]])
         theta = self._calc_theta(h_phi, wavelength)

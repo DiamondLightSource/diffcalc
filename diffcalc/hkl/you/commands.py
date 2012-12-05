@@ -56,6 +56,11 @@ class YouHklCommands(object):
         """
         args = list(args)
         msg = self.handle_con(args)
+        if (self._hklcalc.constraints.is_fully_constrained() and 
+            not self._hklcalc.constraints.is_current_mode_implemented()):
+            msg += ("\n\nWARNING:. The selected constraint combination is valid but "
+                "is not implemented.\n\nType 'help con' to see implemented combinations")
+
         if msg:
             print msg
  

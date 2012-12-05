@@ -80,3 +80,15 @@ class TestYouHklCommands:
         self.hklcalc.constraints.constrain.assert_has_calls(calls)
         calls = [call('cona', 1), call('conb', 2), call('conc', 3)]
         self.hklcalc.constraints.set_constraint.assert_has_calls(calls)
+
+        
+    def test_con_messages_and_help_visually(self):
+        self.commands.con()
+        print "**"
+        print self.commands.con.__doc__
+        
+    def test_con_message_display_whenn_selecting_an_unimplmented_mode(self):
+        self.hklcalc.constraints.is_fully_constrained.return_value = True
+        self.hklcalc.constraints.is_current_mode_implemented.return_value = False
+        self.commands.con('phi', 'chi', 'eta')
+        1/0

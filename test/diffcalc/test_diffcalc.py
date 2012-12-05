@@ -22,6 +22,9 @@ from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc.util import format_command_help
 import diffcalc.hkl.you.geometry
 
+import diffcalc.util
+diffcalc.util.DEBUG = True
+
 
 class TestDiffcalcYouSixc():
     """
@@ -49,3 +52,4 @@ class TestDiffcalcYouSixc():
     def test_hkl_help_visually(self):
         print "-" * 80 + "\nhkl:"
         print format_command_help(self.dc.hkl.commands)
+
