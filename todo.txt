@@ -1,10 +1,6 @@
 List needs review. Unordered. RobW.
 
-- Fix ' pos <h|k|l> val                 move h, k or l to val' doc string
-
 - look at all commands together (showref, listub, cons)
-
-- startup should say to try 'help ub' and 'help hkl'
 
 - overide help command. Perhaps just print __doc__ if it starts with '!' or '@command'
 

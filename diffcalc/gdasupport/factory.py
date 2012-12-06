@@ -219,7 +219,9 @@ def create_objects(
         print "=" * 80
     objects['ub'].im_func.__doc__ = format_command_help(dc.ub.commands)
     Hkl.dynamic_docstring = format_command_help(dc.hkl.commands)
-
+    print "-" * 80
+    print "For help type 'help ub' and 'help hkl'."
+    print "-" * 80
     return objects
 
 
