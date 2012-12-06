@@ -18,7 +18,6 @@
 
 from diffcalc.hkl.common import getNameFromScannableOrString
 from diffcalc.util import command
-from numbers import Number
 
 
 class YouHklCommands(object):
@@ -75,7 +74,7 @@ class YouHklCommands(object):
         while args:
             scn_or_str = args.pop(0)
             name = getNameFromScannableOrString(scn_or_str)
-            if args and isinstance(args[0], Number):
+            if args and isinstance(args[0], (int, long, float)):
                 value = args.pop(0)
             else:
                 value = None
