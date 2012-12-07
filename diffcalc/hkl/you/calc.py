@@ -60,6 +60,11 @@ def sequence_ne(a_seq, b_seq):
             return False
     return True
 
+def pair_nearly_in_pair_list(pair, pair_list):
+        for a, b in pair_list:
+            if ne(pair[0], a) and ne(pair[1], b):
+                return True
+        return False
 
 def sign(x):
     return 1 if x > 0 else -1
@@ -776,10 +781,18 @@ class YouHklCalculator(HklCalculatorBase):
                 closest_index = min(enumerate(th_errs), key=lambda x: x[1])[0]
                 delta_nu_pairs = (other_pairs +
                                   [pairs_close_to_90[closest_index]])
+        delta_nu_pairs = self._merge_nearly_equal_detector_angle_pairs(delta_nu_pairs)
         delta, nu = self._choose_detector_angles(delta_nu_pairs)
 
         return delta, nu
 
+    def _merge_nearly_equal_detector_angle_pairs(self, delta_nu_pairs):
+        merged = []
+        for pair in delta_nu_pairs:
+            if not pair_nearly_in_pair_list(pair, merged):
+                merged.append(pair)
+        return merged
+    
     def _generate_final_sample_angles(
             self, mu_, eta_, chi_, phi_, sample_constraint_names, delta, nu,
             wavelength, hkl, ref_constraint_name, ref_constraint_value):
