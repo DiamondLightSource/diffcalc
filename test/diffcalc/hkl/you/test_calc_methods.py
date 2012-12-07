@@ -30,7 +30,7 @@ except ImportError:
 from diffcalc.hkl.you.calc import YouHklCalculator, I, \
     _calc_angle_between_naz_and_qaz
 from test.tools import  assert_matrix_almost_equal, \
-    assert_2darray_almost_equal
+    assert_2darray_almost_equal, aneq_
 from diffcalc.hkl.you.geometry  import YouPosition
 from test.diffcalc.hkl.vlieg.test_calc import \
     createMockDiffractometerGeometry, createMockHardwareMonitor, \
@@ -334,7 +334,31 @@ class Test_calc_remaining_reference_angles_given_one():
 #    def test_psi_given0(self):
 #        self.check('psi', 90, theta=10, tau=45, psi_e=90,
 #                    alpha_e=7.0530221302831952, beta_e=7.0530221302831952)
+    
+    def test_merge_nearly_equal_detector_angle_pairs_different(self):
+        pairs = [(1,2), (1,2.1)]
+        assert_2darray_almost_equal(
+            self.calc._merge_nearly_equal_detector_angle_pairs(pairs), pairs)
 
+    def test_merge_nearly_equal_detector_angle_pairs_1(self):
+        pairs = [(1, 2), (1, 2)]
+        assert_2darray_almost_equal(
+            self.calc._merge_nearly_equal_detector_angle_pairs(pairs), [(1, 2)])
+
+    def test_merge_nearly_equal_detector_angle_pairs_2(self):
+        pairs = [(1, 2), (1, 2), (1, 2)]
+        assert_2darray_almost_equal(
+            self.calc._merge_nearly_equal_detector_angle_pairs(pairs), [(1, 2)])
+
+    def test_merge_nearly_equal_detector_angle_pairs_3(self):
+        pairs = [(1, 2.2), (1, 2), (1, 2), (1, 2)]
+        assert_2darray_almost_equal(
+            self.calc._merge_nearly_equal_detector_angle_pairs(pairs), [(1, 2.2), (1, 2)])
+
+    def test_merge_nearly_equal_detector_angle_pairs_4(self):
+        pairs = [(1, 2.2), (1, 2), (1, 2), (1, 2.2)]
+        assert_2darray_almost_equal(
+            self.calc._merge_nearly_equal_detector_angle_pairs(pairs), [(1, 2.2), (1, 2)])
 
 class Test_calc_detector_angles_given_one():
 
