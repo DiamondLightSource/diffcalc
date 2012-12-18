@@ -63,14 +63,10 @@ class UBCalculation:
         self._clear()
 
     def _clear(self):
-        self._U = None
-        self._UB = None
         self._name = None
         self._crystal = None
         self._reflist = None
-        self._okayToAutoCalculateUB = True
-        self._uSetManually = False
-        self._ubSetManually = False
+
         # The UB matrix is used to find or set the orientation of a set of
         # planes described by an hkl vector. The U matrix can be used to find
         # or set the orientation of the crystal lattices' y axis. If there is
@@ -84,6 +80,16 @@ class UBCalculation:
         # omega circle axis.
         self._tau = 0  # degrees
         self._sigma = 0  # degrees
+        self._clear_ub()
+
+    def _clear_ub(self):
+        self._U = None
+        self._UB = None
+        self._okayToAutoCalculateUB = True
+        self._uSetManually = False
+        self._ubSetManually = False
+        self._or0 = None
+        self._or1 = None
 
 ### State ###
     def start_new(self, name):
@@ -153,6 +159,16 @@ class UBCalculation:
             state['ub'] = self._UB.tolist()
         else:
             state['ub'] = None
+            
+        if self._or0:
+            state['or0'] = self._or0
+        else:
+            state['or0'] = None
+            
+        if self._or1:
+            state['or1'] = self._or1
+        else:
+            state['or1'] = None
 
         return state
 
@@ -165,8 +181,13 @@ class UBCalculation:
         self._sigma = state['sigma']
         if state['u'] is not None:
             self.set_U_manually(state['u'])
-        if state['ub'] is not None:
+        elif state['ub'] is not None:
             self.set_UB_manually(state['ub'])
+        elif state['or0'] is not None:
+            if state['or1'] is None:
+                self.calculate_UB_from_primary_only()
+            else:
+                self.calculate_UB()
 
     def __str__(self):
         WIDTH = 13
@@ -385,20 +406,21 @@ class UBCalculation:
         if m.shape[0] != 3 or m.shape[1] != 3:
             raise  ValueError("Expects 3*3 matrix")
 
+        if self._UB is None:
+            print "Calculating UB matrix."
+        else:
+            print "Recalculating UB matrix."
+
+        self._clear_ub()
         self._U = m
         if self._crystal is None:
             raise DiffcalcException(
                 "A crystal must be specified before manually setting U")
         self._UB = self._U * self._crystal.B
-        if self._UB is None:
-            print "Calculating UB matrix."
-        else:
-            print "Recalculating UB matrix."
         print ("NOTE: A new UB matrix will not be automatically calculated "
                "when the orientation reflections are modified.")
         self._okayToAutoCalculateUB = False
         self._uSetManually = True
-        self._ubSetManually = False
         self.save()
 
     def set_UB_manually(self, m):
@@ -411,9 +433,9 @@ class UBCalculation:
         if m.shape[0] != 3 or m.shape[1] != 3:
             raise  ValueError("Expects 3*3 matrix")
 
+        self._clear_ub()
         self._UB = m
         self._okayToAutoCalculateUB = False
-        self._uSetManually = False
         self._ubSetManually = True
         self.save()
 
@@ -449,9 +471,6 @@ class UBCalculation:
         # u1a, u2a: measured reflection vectors in alpha frame
         # u1p, u2p: measured reflection vectors in phi frame
 
-        self._okayToAutoCalculateUB = True
-        self._uSetManually = False
-        self._ubSetManually = False
 
         # Get hkl and angle values for the first two refelctions
         if self._reflist is None:
@@ -507,8 +526,11 @@ class UBCalculation:
 
         Tc = hstack([t1c, t2c, t3c])
         Tp = hstack([t1p, t2p, t3p])
+        self._clear_ub()
         self._U = Tp * Tc.I
         self._UB = self._U * B
+        self._or0 = 1
+        self._or1 = 2
 
         self.save()
 
@@ -565,19 +587,20 @@ class UBCalculation:
         m[1][2] = -u * rsin + v * w * (1 - rcos)
         m[2][2] = rcos + w * w * (1 - rcos)
 
-        self._U = matrix(m)
-        self._UB = self._U * B
-
         if self._UB is None:
             print "Calculating UB matrix from the first reflection only."
         else:
             print "Recalculating UB matrix from the first reflection only."
         print ("NOTE: A new UB matrix will not be automatically calculated "
                "when the orientation reflections are modified.")
-        self._okayToAutoCalculateUB = False
-        self._uSetManually = False
-        self._ubSetManually = False
 
+        self._clear_ub()
+        
+        self._U = matrix(m)
+        self._UB = self._U * B
+
+        self._okayToAutoCalculateUB = False
+        self._or0 = 1
         self.save()
 
     def get_hkl_plane_distance(self, hkl):
