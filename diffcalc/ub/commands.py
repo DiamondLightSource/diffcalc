@@ -73,11 +73,11 @@ class UbCommands(object):
         if name is None:
             # interactive
             name = promptForInput('calculation name')
-            self._ubcalc.newCalculation(name)
+            self._ubcalc.start_new(name)
             self.setlat()
         elif isinstance(name, str):
             # just trying might cause confusion here
-            self._ubcalc.newCalculation(name)
+            self._ubcalc.start_new(name)
         else:
             raise TypeError()
 
@@ -136,13 +136,13 @@ class UbCommands(object):
             alpha = promptForNumber('alpha', 90)
             beta = promptForNumber('beta', 90)
             gamma = promptForNumber('gamma', 90)
-            self._ubcalc.setLattice(name, a, b, c, alpha, beta, gamma)
+            self._ubcalc.set_lattice(name, a, b, c, alpha, beta, gamma)
 
         elif (isinstance(name, str) and
               len(args) in (1, 2, 3, 4, 6) and
               allnum(args)):
             # first arg is string and rest are numbers
-            self._ubcalc.setLattice(name, *args)
+            self._ubcalc.set_lattice(name, *args)
         else:
             raise TypeError()
 
@@ -155,7 +155,7 @@ class UbCommands(object):
             wl = self._hardware.get_wavelength()
         else:
             wl = 12.39842 / en
-        d = self._ubcalc.getHklPlaneDistance(hkl)
+        d = self._ubcalc.get_hkl_plane_distance(hkl)
         return 2.0 * asin(wl / (d * 2)) * TODEG
 
 ### Surface stuff ###
@@ -227,7 +227,7 @@ class UbCommands(object):
             if tag == '':
                 tag = None
             pos = self._geometry.physical_angles_to_internal_position(positionList)
-            self._ubcalc.addReflection(h, k, l, pos, energy, tag,
+            self._ubcalc.add_reflection(h, k, l, pos, energy, tag,
                                        datetime.now())
         elif len(args) in (1, 2, 3, 4):
             args = list(args)
@@ -250,7 +250,7 @@ class UbCommands(object):
                     raise TypeError()
             else:
                 tag = None
-            self._ubcalc.addReflection(h, k, l, pos, energy, tag,
+            self._ubcalc.add_reflection(h, k, l, pos, energy, tag,
                                        datetime.now())
         else:
             raise TypeError()
@@ -263,7 +263,7 @@ class UbCommands(object):
 
         # Get old reflection values
         [oldh, oldk, oldl], oldExternalAngles, oldEnergy, oldTag, oldT = \
-            self._ubcalc.getReflectionInExternalAngles(num)
+            self._ubcalc.get_reflection_in_external_angles(num)
         del oldT  # current time will be used.
 
         h = promptForNumber('h', oldh)
@@ -296,14 +296,14 @@ class UbCommands(object):
         if tag == '':
             tag = None
         pos = self._geometry.physical_angles_to_internal_position(positionList)
-        self._ubcalc.editReflection(num, h, k, l, pos, energy, tag,
+        self._ubcalc.edit_reflection(num, h, k, l, pos, energy, tag,
                                     datetime.now())
 
     @command
     def delref(self, num):
         """delref num -- deletes a reflection (numbered from 1)
         """
-        self._ubcalc.delReflection(int(num))
+        self._ubcalc.del_reflection(int(num))
 
     @command
     def swapref(self, num1=None, num2=None):
@@ -312,9 +312,9 @@ class UbCommands(object):
         swapref num1 num2 -- swaps two reflections (numbered from 1)
         """
         if num1 is None and num2 is None:
-            self._ubcalc.swapReflections(1, 2)
+            self._ubcalc.swap_reflections(1, 2)
         elif isinstance(num1, int) and isinstance(num2, int):
-            self._ubcalc.swapReflections(num1, num2)
+            self._ubcalc.swap_reflections(num1, num2)
         else:
             raise TypeError()
 
@@ -329,7 +329,7 @@ class UbCommands(object):
             if U is None:
                 return  # an error will have been printed or thrown
         if self._is3x3TupleOrList(U):
-            self._ubcalc.setUManually(U)
+            self._ubcalc.set_U_manually(U)
         else:
             raise TypeError("U must be given as 3x3 list or tuple")
 
@@ -341,7 +341,7 @@ class UbCommands(object):
             if UB is None:
                 return  # an error will have been printed or thrown
         if self._is3x3TupleOrList(UB):
-            self._ubcalc.setUBManually(UB)
+            self._ubcalc.set_UB_manually(UB)
         else:
             raise TypeError("UB must be given as 3x3 list or tuple")
 
@@ -365,13 +365,13 @@ class UbCommands(object):
     def calcub(self):
         """calcub -- (re)calculate u matrix from ref1 and ref2.
         """
-        self._ubcalc.calculateUB()
+        self._ubcalc.calculate_UB()
 
     @command
     def trialub(self):
         """trialub -- (re)calculate u matrix from ref1 only (check carefully).
         """
-        self._ubcalc.calculateUBFromPrimaryOnly()
+        self._ubcalc.calculate_UB_from_primary_only()
 
     def _is3x3TupleOrList(self, m):
         if type(m) not in (list, tuple):

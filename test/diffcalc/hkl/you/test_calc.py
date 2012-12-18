@@ -558,6 +558,53 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
                     P(mu=30, delta=57.0626, nu=96.86590, eta=86.6739, chi=0,
                       phi=0))
 
+class SkipTestFixedChiPhiPsiModeSurfaceNormalVerticalI16(_TestCubic):
+    # testing with Chris N. for pre christmas 2012 i16 experiment
+
+    def setup(self):
+        _TestCubic.setup(self)
+        self.mock_hardware.set_lower_limit('nu', 0)
+        self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0,
+                                         'a_eq_b': None}
+        self.wavelength = 1
+        self.UB = I * 2 * pi
+        self.places = 4
+
+        self.mock_hardware.set_lower_limit('mu', None)
+        self.mock_hardware.set_lower_limit('eta', None)
+        self.mock_hardware.set_lower_limit('chi', None)
+
+    def _configure_ub(self):
+        self.mock_ubcalc.UB = self.UB
+
+    def _check(self, hkl, pos, virtual_expected={}, fails=False):
+#        self._check_angles_to_hkl(
+#            '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        if fails:
+            self._check_hkl_to_angles_fails(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        else:
+            self._check_hkl_to_angles(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+
+    def testHkl_1_1_0(self):
+        self._check((1, 1, 0.001),  # betaout=0
+                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0))
+        #(-89.9714,  89.9570,  90.0382,  90.0143,  90.0000,  0.0000)
+
+    def testHkl_1_1_05(self):
+        self._check((1, 1, 0.5),  # betaout=0
+                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0))
+
+    def testHkl_1_1_1(self):
+        self._check((1, 1, 1),  # betaout=0
+                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0))
+        #    (-58.6003,  42.7342,  132.9004,  106.3249,  90.0000,  0.0000
+
+    def testHkl_1_1_15(self):
+        self._check((1, 1, 1.5),  # betaout=0
+                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0))
+
 
 def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
     return YouPosition(mu, delta, gamma, eta, chi, phi)

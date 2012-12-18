@@ -146,21 +146,21 @@ class TestUbCommands(unittest.TestCase):
         self.hardware.energy = 1.10
         self.hardware.position = pos1
         self.ubcommands.addref([1.1, 1.2, 1.3])
-        result = reflist.getReflectionInExternalAngles(1)
+        result = reflist.get_reflection_in_external_angles(1)
         eq_(result[:-1], ([1.1, 1.2, 1.3], pos1, 1.10, None))
 
         self.hardware.energy = 2.10
         self.hardware.position = pos2
         self.ubcommands.addref([2.1, 2.2, 2.3], 'atag')
-        result = reflist.getReflectionInExternalAngles(2)
+        result = reflist.get_reflection_in_external_angles(2)
         eq_(result[:-1], ([2.1, 2.2, 2.3], pos2, 2.10, 'atag'))
 
         self.ubcommands.addref([3.1, 3.2, 3.3], pos3, 3.10)
-        result = reflist.getReflectionInExternalAngles(3)
+        result = reflist.get_reflection_in_external_angles(3)
         eq_(result[:-1], ([3.1, 3.2, 3.3], pos3, 3.10, None))
 
         self.ubcommands.addref([4.1, 4.2, 4.3], pos4, 4.10, 'tag2')
-        result = reflist.getReflectionInExternalAngles(4)
+        result = reflist.get_reflection_in_external_angles(4)
         eq_(result[:-1], ([4.1, 4.2, 4.3], pos4, 4.10, 'tag2'))
 
     def testAddrefInteractively(self):
@@ -180,24 +180,24 @@ class TestUbCommands(unittest.TestCase):
         self.hardware.position = pos1
         prepareRawInput(['1.1', '1.2', '1.3', '', ''])
         self.ubcommands.addref()
-        result = reflist.getReflectionInExternalAngles(1)
+        result = reflist.get_reflection_in_external_angles(1)
         eq_(result[:-1], ([1.1, 1.2, 1.3], pos1, 1.10, None))
 
         self.hardware.energy = 2.10
         self.hardware.position = pos2
         prepareRawInput(['2.1', '2.2', '2.3', '', 'atag'])
         self.ubcommands.addref()
-        result = reflist.getReflectionInExternalAngles(2)
+        result = reflist.get_reflection_in_external_angles(2)
         eq_(result[:-1], ([2.1, 2.2, 2.3], pos2, 2.10, 'atag'))
 
         prepareRawInput(['3.1', '3.2', '3.3', 'n'] + pos3s + ['3.10', ''])
         self.ubcommands.addref()
-        result = reflist.getReflectionInExternalAngles(3)
+        result = reflist.get_reflection_in_external_angles(3)
         eq_(result[:-1], ([3.1, 3.2, 3.3], pos3, 3.10, None))
 
         prepareRawInput(['4.1', '4.2', '4.3', 'n'] + pos4s + ['4.10', 'tag2'])
         self.ubcommands.addref()
-        result = reflist.getReflectionInExternalAngles(4)
+        result = reflist.get_reflection_in_external_angles(4)
         eq_(result[:-1], ([4.1, 4.2, 4.3], pos4, 4.10, 'tag2'))
 
     def testEditRefInteractivelyWithCurrentPosition(self):
@@ -211,7 +211,7 @@ class TestUbCommands(unittest.TestCase):
         self.ubcommands.editref(1)
 
         reflist = self.ubcommands._ubcalc._reflist  # for conveniance
-        result = reflist.getReflectionInExternalAngles(1)
+        result = reflist.get_reflection_in_external_angles(1)
         eq_(result[:-1], ([1.1, 2, 3.1], pos2, 11, 'tag1'))
 
     def testEditRefInteractivelyWithEditedPosition(self):
@@ -224,7 +224,7 @@ class TestUbCommands(unittest.TestCase):
         self.ubcommands.editref(1)
 
         reflist = self.ubcommands._ubcalc._reflist
-        result = reflist.getReflectionInExternalAngles(1)
+        result = reflist.get_reflection_in_external_angles(1)
         eq_(result[:-1], ([1.1, 2, 3.1], pos2, 12, 'newtag'))
 
     def testSwapref(self):
@@ -240,15 +240,15 @@ class TestUbCommands(unittest.TestCase):
         self.ubcommands.swapref(1, 3)
         self.ubcommands.swapref(3, 1)  # end flipped
         reflist = self.ubcommands._ubcalc._reflist
-        tag1 = reflist.getReflectionInExternalAngles(1)[3]
-        tag2 = reflist.getReflectionInExternalAngles(2)[3]
-        tag3 = reflist.getReflectionInExternalAngles(3)[3]
+        tag1 = reflist.get_reflection_in_external_angles(1)[3]
+        tag2 = reflist.get_reflection_in_external_angles(2)[3]
+        tag3 = reflist.get_reflection_in_external_angles(3)[3]
         eq_(tag1, 'tag3')
         eq_(tag2, 'tag2')
         eq_(tag3, 'tag1')
         self.ubcommands.swapref()
-        tag1 = reflist.getReflectionInExternalAngles(1)[3]
-        tag2 = reflist.getReflectionInExternalAngles(2)[3]
+        tag1 = reflist.get_reflection_in_external_angles(1)[3]
+        tag2 = reflist.get_reflection_in_external_angles(2)[3]
         eq_(tag1, 'tag2')
         eq_(tag2, 'tag3')
 
@@ -257,9 +257,9 @@ class TestUbCommands(unittest.TestCase):
         pos = (1.1, 1.2, 1.3, 1.4, 1.5, 1.6)
         self.ubcommands.addref([1, 2, 3], pos, 10, 'tag1')
         reflist = self.ubcommands._ubcalc._reflist
-        reflist.getReflectionInExternalAngles(1)
+        reflist.get_reflection_in_external_angles(1)
         self.ubcommands.delref(1)
-        self.assertRaises(IndexError, reflist.getReflectionInExternalAngles, 1)
+        self.assertRaises(IndexError, reflist.get_reflection_in_external_angles, 1)
 
     def testSetu(self):
         # just test calling this method

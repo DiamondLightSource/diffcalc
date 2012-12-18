@@ -88,7 +88,7 @@ class CrystalUnderTest(object):
         was a problem calculating this'''
         return self._bMatrix
 
-    def getHklPlaneDistance(self, hkl):
+    def get_hkl_plane_distance(self, hkl):
         '''Calculates and returns the distance between planes'''
         h, k, l = hkl
         c1 = self._a1 * self._a2 * cos(self._beta3)

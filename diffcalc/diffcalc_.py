@@ -235,10 +235,10 @@ class Diffcalc(object):
         s = "\n    %7s  %4s  %4s  %4s    %6s   %6s   %6s     TAG\n" % \
         ('ENERGY', 'H', 'K', 'L', 'H_COMP', 'K_COMP', 'L_COMP')
 
-        if self._ubcalc.getReflist() is None:
+        if self._ubcalc.reflist is None:
             s += "<<empty>>"
         else:
-            reflist = self._ubcalc.getReflist()
+            reflist = self._ubcalc.reflist
             if len(reflist) == 0:
                 s += "<<empty>>"
             for n in range(len(reflist)):

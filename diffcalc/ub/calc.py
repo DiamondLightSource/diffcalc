@@ -26,7 +26,6 @@ except ImportError:
     from numjy.linalg import norm
 
 from diffcalc.ub.crystal import CrystalUnderTest
-from diffcalc.ub.persistence import UBCalculationPersister
 from diffcalc.ub.reflections import ReflectionList
 from diffcalc.util import DiffcalcException, cross3, dot3
 
@@ -56,21 +55,22 @@ class UBCalculation:
         # The diffractometer geometry is required to map the internal angles
         # into those used by this diffractometer (for display only)
 
-        self._name = None
-        self._crystal = None
-        self._reflist = None
-        self._U = None
-        self._UB = None
         self._diffractometer_axes_names = diffractometer_axes_names
         self._geometry = diffractometerPluginObject
-        self._okayToAutoCalculateUB = True  # True unless U or UB set manually.
-        self._uSetManually = False
-        self._ubSetManually = False
         self._persister = persister
         self._strategy = strategy
         self._include_sigtau = include_sigtau
-        # when calclulateUB called manualy.
+        self._clear()
 
+    def _clear(self):
+        self._U = None
+        self._UB = None
+        self._name = None
+        self._crystal = None
+        self._reflist = None
+        self._okayToAutoCalculateUB = True
+        self._uSetManually = False
+        self._ubSetManually = False
         # The UB matrix is used to find or set the orientation of a set of
         # planes described by an hkl vector. The U matrix can be used to find
         # or set the orientation of the crystal lattices' y axis. If there is
@@ -86,22 +86,22 @@ class UBCalculation:
         self._sigma = 0  # degrees
 
 ### State ###
-    def newCalculation(self, name):
-        """newCalculation(name) --- creates a new blank ub calculation"""
+    def start_new(self, name):
+        """start_new(name) --- creates a new blank ub calculation"""
         # Create storage object if name does not exist (TODO)
         if name in self._persister.list():
             print ("No UBCalculation started: There is already a calculation "
                    "called: " + name)
             print "Saved calculations: " + repr(self._persister.list())
-        self._newCalculationWithoutSaving(name)
+        self._start_new_without_save(name)
         self.save()
 
-    def _newCalculationWithoutSaving(self, name):
+    def _start_new_without_save(self, name):
 
         # NOTE the Diffraction calculator is expecting this object to exist in
         # the long run. We can't remove this entire object, and recreate it.
         # It also contains a required link to the angle calculator.
-        self.reInit()
+        self._clear()
         self._name = name
         # Create empty reflection list
         self._reflist = ReflectionList(self._geometry,
@@ -156,28 +156,16 @@ class UBCalculation:
         return state
 
     def restoreState(self, state):
-        self._newCalculationWithoutSaving(state['name'])
+        self._start_new_without_save(state['name'])
         if state['crystal'] is not None:
-            self._setLattice(**state['crystal'])
+            self._set_lattice(**state['crystal'])
         self._reflist.restoreFromStateDict(state['reflist'])
         self._tau = state['tau']
         self._sigma = state['sigma']
         if state['u'] is not None:
-            self.setUManually(state['u'])
+            self.set_U_manually(state['u'])
         if state['ub'] is not None:
-            self.setUBManually(state['ub'])
-
-    def reInit(self):
-        self._U = None
-        self._UB = None
-        self._name = None
-        self._crystal = None
-        self._reflist = None
-        self._okayToAutoCalculateUB = True
-        self._uSetManually = False
-        self._ubSetManually = False
-        self._tau = 0  # degrees
-        self._sigma = 0  # degrees
+            self.set_UB_manually(state['ub'])
 
     def __str__(self):
         WIDTH = 13
@@ -229,15 +217,16 @@ class UBCalculation:
         lines.extend(self._reflist.str_lines())
         return '\n'.join(lines)
 
-    def getName(self):
+    @property
+    def name(self):
         return self._name
 ### Lattice ###
 
-    def setLattice(self, name, *shortform):
+    def set_lattice(self, name, *shortform):
         """
         Converts a list shortform crystal parameter specification to a six-long
         tuple returned as . Returns None if wrong number of input args. See
-        setLattice() for a description of the shortforms supported.
+        set_lattice() for a description of the shortforms supported.
 
         shortformLattice -- a tuple as follows:
              [a]         - assumes cubic
@@ -247,10 +236,10 @@ class UBCalculation:
            [a,b,c,alp,bet,gam]) - for arbitrary
            where all measurements in angstroms and angles in degrees
         """
-        self._setLatticeWithoutSaving(name, *shortform)
+        self._set_lattice_without_saving(name, *shortform)
         self.save()
 
-    def _setLatticeWithoutSaving(self, name, *shortform):
+    def _set_lattice_without_saving(self, name, *shortform):
         sf = shortform
         if len(sf) == 1:
             fullform = (sf[0], sf[0], sf[0], 90., 90., 90.)  # cubic
@@ -262,14 +251,14 @@ class UBCalculation:
             fullform = (sf[0], sf[1], sf[2], 90., 90., sf[3])   # mon/hex gam
                                                                 # not 90
         elif len(sf) == 5:
-            raise ValueError("wrong length input to setLattice")
+            raise ValueError("wrong length input to set_lattice")
         elif len(sf) == 6:
             fullform = sf  # triclinic/arbitrary
         else:
-            raise ValueError("wrong length input to setLattice")
-        self._setLattice(name, *fullform)
+            raise ValueError("wrong length input to set_lattice")
+        self._set_lattice(name, *fullform)
 
-    def _setLattice(self, name, a, b, c, alpha, beta, gamma):
+    def _set_lattice(self, name, a, b, c, alpha, beta, gamma):
         """set lattice parameters in degrees"""
         if self._name is None:
             raise DiffcalcException(
@@ -282,9 +271,6 @@ class UBCalculation:
             self._UB = None
             print "Warning: the old UB calculation has been cleared."
             print "         Use 'calcub' to recalculate with old reflections."
-
-    def dispLattice(self):
-        print self._crystal.__str__()
 
 ### Surface normal stuff ###
 
@@ -318,20 +304,14 @@ class UBCalculation:
 
 ### Reflections ###
 
-    def dispReflectionList(self):
-        if self._reflist is None:
-            return "No UBCalculation loaded"
-        else:
-            return self._reflist.toStringWithExternalAngles()
-
-    def addReflection(self, h, k, l, position, energy, tag, time):
-        """addReflection(h, k, l, position, tag=None) -- adds a reflection
+    def add_reflection(self, h, k, l, position, energy, tag, time):
+        """add_reflection(h, k, l, position, tag=None) -- adds a reflection
 
         position is in degrees and in the systems internal representation.
         """
         if self._reflist is None:
             raise DiffcalcException("No UBCalculation loaded")
-        self._reflist.addReflection(h, k, l, position, energy, tag, time)
+        self._reflist.add_reflection(h, k, l, position, energy, tag, time)
         self.save()  # incase autocalculateUbAndReport fails
 
         # If second reflection has just been added then calculateUB
@@ -339,15 +319,15 @@ class UBCalculation:
             self._autocalculateUbAndReport()
         self.save()
 
-    def editReflection(self, num, h, k, l, position, energy, tag, time):
+    def edit_reflection(self, num, h, k, l, position, energy, tag, time):
         """
-        editReflection(num, h, k, l, position, tag=None) -- adds a reflection
+        edit_reflection(num, h, k, l, position, tag=None) -- adds a reflection
 
         position is in degrees and in the systems internal representation.
         """
         if self._reflist is None:
             raise DiffcalcException("No UBCalculation loaded")
-        self._reflist.editReflection(num, h, k, l, position, energy, tag, time)
+        self._reflist.edit_reflection(num, h, k, l, position, energy, tag, time)
 
         # If first or second reflection has been changed and there are at least
         # two reflections then recalculate  UB
@@ -355,19 +335,19 @@ class UBCalculation:
             self._autocalculateUbAndReport()
         self.save()
 
-    def getReflectionInExternalAngles(self, num):
+    def get_reflection_in_external_angles(self, num):
         # num starts at 1 position in degrees
-        return self._reflist.getReflectionInExternalAngles(num)
+        return self._reflist.get_reflection_in_external_angles(num)
 
-    def delReflection(self, reflectionNumber):
+    def del_reflection(self, reflectionNumber):
         self._reflist.removeReflection(reflectionNumber)
         if ((reflectionNumber == 1 or reflectionNumber == 2) and
             (self._U != None)):
             self._autocalculateUbAndReport()
         self.save()
 
-    def swapReflections(self, num1, num2):
-        self._reflist.swapReflections(num1, num2)
+    def swap_reflections(self, num1, num2):
+        self._reflist.swap_reflections(num1, num2)
         if ((num1 == 1 or num1 == 2 or num2 == 1 or num2 == 2) and
             (self._U != None)):
             self._autocalculateUbAndReport()
@@ -387,13 +367,14 @@ class UBCalculation:
                 print "Calculating UB matrix."
             else:
                 print "Recalculating UB matrix."
-            self.calculateUB()
+            self.calculate_UB()
 
-    def getReflist(self):
+    @property
+    def reflist(self):
         return self._reflist
 ### Calculations ###
 
-    def setUManually(self, m):
+    def set_U_manually(self, m):
         """Manually sets U. matrix must be 3*3 Jama or python matrix.
         Turns off aution UB calcualtion."""
 
@@ -419,7 +400,7 @@ class UBCalculation:
         self._ubSetManually = False
         self.save()
 
-    def setUBManually(self, m):
+    def set_UB_manually(self, m):
         """Manually sets UB. matrix must be 3*3 Jama or python matrix.
         Turns off aution UB calcualtion."""
 
@@ -435,7 +416,7 @@ class UBCalculation:
         self._ubSetManually = True
         self.save()
 
-    def setTrialUMatrix(self, omega_u):  # add chi_u, phi_u for surface diff
+    def set_trial_U(self, omega_u):  # add chi_u, phi_u for surface diff
         print "Sorry, this command is not hooked up to anything yet"
 
     @property
@@ -453,7 +434,7 @@ class UBCalculation:
         else:
             return self._UB
 
-    def calculateUB(self):
+    def calculate_UB(self):
         """
         Calculate orientation matrix. Uses first two orientation reflections
         as in Busang and Levy, but for the diffractometer in Lohmeier and
@@ -530,7 +511,7 @@ class UBCalculation:
 
         self.save()
 
-    def calculateUBFromPrimaryOnly(self):
+    def calculate_UB_from_primary_only(self):
         """
         Calculate orientation matrix with the shortest absolute angle change.
         Uses first orientation reflection
@@ -598,6 +579,6 @@ class UBCalculation:
 
         self.save()
 
-    def getHklPlaneDistance(self, hkl):
+    def get_hkl_plane_distance(self, hkl):
         """Calculates and returns the distance between planes"""
-        return self._crystal.getHklPlaneDistance(hkl)
+        return self._crystal.get_hkl_plane_distance(hkl)

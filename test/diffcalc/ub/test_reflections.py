@@ -31,12 +31,12 @@ class TestReflectionList(unittest.TestCase):
                                       ['a', 'd', 'g', 'o', 'c', 'p'])
         self.time = datetime.now()
         pos = Pos(0.1, 0.2, 0.3, 0.4, 0.5, 0.6)
-        self.reflist.addReflection(1, 2, 3, pos, 1000, "ref1", self.time)
+        self.reflist.add_reflection(1, 2, 3, pos, 1000, "ref1", self.time)
         pos = Pos(0.11, 0.22, 0.33, 0.44, 0.55, 0.66)
-        self.reflist.addReflection(1.1, 2.2, 3.3, pos, 1100, "ref2", self.time)
+        self.reflist.add_reflection(1.1, 2.2, 3.3, pos, 1100, "ref2", self.time)
 
-    def testAddReflection(self):
-        self.assert_(len(self.reflist) == 2, "addReflection or __len__ failed")
+    def test_add_reflection(self):
+        self.assert_(len(self.reflist) == 2, "add_reflection or __len__ failed")
 
     def testGetReflection(self):
         answered = self.reflist.getReflection(1)
@@ -51,9 +51,9 @@ class TestReflectionList(unittest.TestCase):
         desired = ([1.1, 2.2, 3.3], pos, 1100, "ref2", self.time)
         self.assert_(answered == desired, "removeReflection failed")
 
-    def testEditReflection(self):
+    def testedit_reflection(self):
         ps = Pos(0.1, 0.2, 0.3, 0.4, 0.5, 0.6)
-        self.reflist.editReflection(1, 10, 20, 30, ps, 1000, "new1", self.time)
+        self.reflist.edit_reflection(1, 10, 20, 30, ps, 1000, "new1", self.time)
         self.assertEqual(self.reflist.getReflection(1),
                          ([10, 20, 30], ps, 1000, "new1", self.time))
         pos = Pos(0.11, 0.22, 0.33, 0.44, 0.55, 0.66)
@@ -61,7 +61,7 @@ class TestReflectionList(unittest.TestCase):
                          ([1.1, 2.2, 3.3], pos, 1100, "ref2", self.time))
 
     def testSwapReflection(self):
-        self.reflist.swapReflections(1, 2)
+        self.reflist.swap_reflections(1, 2)
         pos = Pos(0.11, 0.22, 0.33, 0.44, 0.55, 0.66)
         self.assertEqual(self.reflist.getReflection(1),
                      ([1.1, 2.2, 3.3], pos, 1100, "ref2", self.time))

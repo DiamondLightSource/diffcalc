@@ -62,7 +62,7 @@ class ReflectionList:
         self._reflist = []   # Will be a list of Reflections
         self._externalAngleNames = externalAngleNames
 
-    def addReflection(self, h, k, l, position, energy, tag, time):
+    def add_reflection(self, h, k, l, position, energy, tag, time):
         """adds a reflection, position in degrees
         """
         if type(position) in (list, tuple):
@@ -73,7 +73,7 @@ class ReflectionList:
         self._reflist += [Reflection(h, k, l, position, energy, tag,
                                      time.__repr__())]
 
-    def editReflection(self, num, h, k, l, position, energy, tag, time):
+    def edit_reflection(self, num, h, k, l, position, energy, tag, time):
         """num starts at 1"""
         if type(position) in (list, tuple):
             position = VliegPosition(*position)
@@ -92,7 +92,7 @@ class ReflectionList:
         r = deepcopy(self._reflist[num - 1])  # for convenience
         return [r.h, r.k, r.l], deepcopy(r.pos), r.energy, r.tag, eval(r.time)
 
-    def getReflectionInExternalAngles(self, num):
+    def get_reflection_in_external_angles(self, num):
         """getReflection(num) --> ( [h, k, l], (angle1...angleN), energy, tag )
         -- num starts at 1 position in degrees"""
         r = deepcopy(self._reflist[num - 1])  # for convenience
@@ -103,7 +103,7 @@ class ReflectionList:
     def removeReflection(self, num):
         del self._reflist[num - 1]
 
-    def swapReflections(self, num1, num2):
+    def swap_reflections(self, num1, num2):
         orig1 = self._reflist[num1 - 1]
         self._reflist[num1 - 1] = self._reflist[num2 - 1]
         self._reflist[num2 - 1] = orig1
@@ -126,7 +126,7 @@ class ReflectionList:
         lines.append(format % values)
 
         for n in range(len(self._reflist)):
-            ref_tuple = self.getReflectionInExternalAngles(n + 1)
+            ref_tuple = self.get_reflection_in_external_angles(n + 1)
             [h, k, l], externalAngles, energy, tag, _ = ref_tuple
             if tag is None:
                 tag = ""
@@ -154,4 +154,4 @@ class ReflectionList:
         for key in keys:
             reflectionDict = dictOfReflectionDicts[key]
             reflectionDict['time'] = eval(reflectionDict['time'])
-            self.addReflection(**reflectionDict)
+            self.add_reflection(**reflectionDict)

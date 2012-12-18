@@ -75,9 +75,9 @@ class TestUBCalculationWithYouStrategy():
                                     YouUbCalcStrategy())
 
     def testAgainstI16Results(self):
-        self.ubcalc.newCalculation('cubcalc')
-        self.ubcalc.setLattice('latt', 1, 1, 1, 90, 90, 90)
-        self.ubcalc.addReflection(1, 0, 0, REF1a, EN1, '100', None)
-        self.ubcalc.addReflection(0, 0, 1, REF1b, EN1, '001', None)
-        self.ubcalc.calculateUB()
+        self.ubcalc.start_new('cubcalc')
+        self.ubcalc.set_lattice('latt', 1, 1, 1, 90, 90, 90)
+        self.ubcalc.add_reflection(1, 0, 0, REF1a, EN1, '100', None)
+        self.ubcalc.add_reflection(0, 0, 1, REF1b, EN1, '001', None)
+        self.ubcalc.calculate_UB()
         matrixeq_(self.ubcalc.UB, UB1)
