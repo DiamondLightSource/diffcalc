@@ -96,6 +96,27 @@ class TestUBCalculationWithYouStrategy():
         
         eq_(self.ubcalc._crystal.getLattice(), ('latt', 1, 1, 1, 90, 90, 90))
         
+    def test_save_and_restore_ubcalc_with_reflections(self):
+        NAME = 'test_save_and_restore_ubcalc_with_reflections'
+        self.ubcalc.start_new(NAME)
+        self.ubcalc.add_reflection(1, 0, 0, REF1a, EN1, '100', None)
+        self.ubcalc.add_reflection(0, 0, 1, REF1b, EN1, '001', None)
+        self.ubcalc.add_reflection(0, 0, 1.5, REF1b, EN1, '001_5', None)
+        ref1 = self.ubcalc.get_reflection(1)
+        ref2 = self.ubcalc.get_reflection(2)
+        ref3 = self.ubcalc.get_reflection(3)
+        
+        eq_(self.ubcalc.get_reflection(1), ref1)
+        eq_(self.ubcalc.get_reflection(2), ref2)
+        eq_(self.ubcalc.get_reflection(3), ref3)
+        
+        self.ubcalc.start_new(NAME + '2')
+        self.ubcalc.load(NAME)
+        
+        eq_(self.ubcalc.get_reflection(1), ref1)
+        eq_(self.ubcalc.get_reflection(2), ref2)
+        eq_(self.ubcalc.get_reflection(3), ref3)
+        
     def test_save_and_restore_ubcalc_with_UB_from_two_ref(self):
         NAME = 'test_save_and_restore_ubcalc_with_UB_from_two_ref'
         self.ubcalc.start_new(NAME)
@@ -146,3 +167,5 @@ class TestUBCalculationWithYouStrategy():
         self.ubcalc.load(NAME)
         
         matrixeq_(self.ubcalc.UB, U * 2 * pi)
+
+

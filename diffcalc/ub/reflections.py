@@ -23,7 +23,7 @@ from diffcalc.util import DiffcalcException
 from diffcalc.hkl.vlieg.geometry import VliegPosition
 
 
-class Reflection:
+class _Reflection:
     """A reflection"""
     def __init__(self, h, k, l, position, energy, tag, time):
 
@@ -70,7 +70,7 @@ class ReflectionList:
                 position = self._geometry.create_position(*position)
             except AttributeError:
                 position = VliegPosition(*position)
-        self._reflist += [Reflection(h, k, l, position, energy, tag,
+        self._reflist += [_Reflection(h, k, l, position, energy, tag,
                                      time.__repr__())]
 
     def edit_reflection(self, num, h, k, l, position, energy, tag, time):
@@ -78,7 +78,7 @@ class ReflectionList:
         if type(position) in (list, tuple):
             position = VliegPosition(*position)
         try:
-            self._reflist[num - 1] = Reflection(h, k, l, position, energy, tag,
+            self._reflist[num - 1] = _Reflection(h, k, l, position, energy, tag,
                                                 time.__repr__())
         except IndexError:
             raise DiffcalcException("There is no reflection " + repr(num)

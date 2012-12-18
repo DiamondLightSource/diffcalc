@@ -357,9 +357,18 @@ class UBCalculation:
             self._autocalculateUbAndReport()
         self.save()
 
+    def get_reflection(self, num):
+        """--> ( [h, k, l], position, energy, tag, time
+        num starts at 1, position in degrees"""
+        return self._reflist.getReflection(num)
+
     def get_reflection_in_external_angles(self, num):
-        # num starts at 1 position in degrees
+        """--> ( [h, k, l], position, energy, tag, time
+        num starts at 1, position in degrees"""
         return self._reflist.get_reflection_in_external_angles(num)
+    
+    def get_number_reflections(self):
+        return 0 if self._reflist is None else len(self._reflist)
 
     def del_reflection(self, reflectionNumber):
         self._reflist.removeReflection(reflectionNumber)
@@ -391,9 +400,9 @@ class UBCalculation:
                 print "Recalculating UB matrix."
             self.calculate_UB()
 
-    @property
-    def reflist(self):
-        return self._reflist
+#    @property
+#    def reflist(self):
+#        return self._reflist
 ### Calculations ###
 
     def set_U_manually(self, m):

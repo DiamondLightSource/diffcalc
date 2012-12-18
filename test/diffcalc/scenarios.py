@@ -18,7 +18,7 @@
 
 from datetime import datetime
 
-from diffcalc.ub.reflections import Reflection
+from diffcalc.ub.reflections import _Reflection
 from diffcalc.hkl.vlieg.geometry  import VliegPosition as P
 
 
@@ -85,10 +85,10 @@ session1.name = "b16_270608"
 session1.time = datetime.now()
 session1.lattice = ((3.8401, 3.8401, 5.43072, 90, 90, 90))
 session1.bmatrix = (((1.636204, 0, 0), (0, 1.636204, 0), (0, 0, 1.156971)))
-session1.ref1 = Reflection(1, 0, 1.0628,
+session1.ref1 = _Reflection(1, 0, 1.0628,
                            P(5.000, 22.790, 0.000, 1.552, 22.400, 14.255),
                            10, 'ref1', session1.time)
-session1.ref2 = Reflection(0, 1, 1.0628,
+session1.ref2 = _Reflection(0, 1, 1.0628,
                            P(5.000, 22.790, 0.000, 4.575, 24.275, 101.320),
                            10, 'ref2', session1.time)
 session1.umatrix = ((0.997161, -0.062217, 0.042420),
@@ -104,9 +104,9 @@ session2 = SessionScenario()
 session2.name = "cubic_from_bliss_tutorial"
 session2.time = datetime.now()
 session2.lattice = ((1.54, 1.54, 1.54, 90, 90, 90))
-session2.ref1 = Reflection(1, 0, 0, P(0, 60, 0, 30, 0, 0),
+session2.ref1 = _Reflection(1, 0, 0, P(0, 60, 0, 30, 0, 0),
                            12.39842 / 1.54, 'ref1', session2.time)
-session2.ref2 = Reflection(0, 1, 0, P(0, 60, 0, 30, 0, -90),
+session2.ref2 = _Reflection(0, 1, 0, P(0, 60, 0, 30, 0, -90),
                            12.39842 / 1.54, 'ref2', session2.time)
 session2.bmatrix = (((4.07999, 0, 0), (0, 4.07999, 0), (0, 0, 4.07999)))
 session2.umatrix = (((1, 0, 0), (0, -1, 0), (0, 0, -1)))
@@ -137,10 +137,10 @@ session3.bmatrix = (((1.636204, 0, 0), (0, 1.636204, 0), (0, 0, 1.156971)))
 session3.umatrix = ((0.997161, -0.062217, 0.042420),
                (0.062542, 0.998022, -0.006371),
                (-0.041940, 0.009006, 0.999080))
-session3.ref1 = Reflection(1, 0, 1.0628,
+session3.ref1 = _Reflection(1, 0, 1.0628,
                            P(5.000, 22.790, 0.000, 1.552, 22.400, 14.255),
                            12.39842 / 1.24, 'ref1', session3.time)
-session3.ref2 = Reflection(0, 1, 1.0628,
+session3.ref2 = _Reflection(0, 1, 1.0628,
                            P(5.000, 22.790, 0.000, 4.575, 24.275, 101.320),
                            12.39842 / 1.24, 'ref2', session3.time)
 session3.ref1calchkl = (1, 0, 1.0628)
