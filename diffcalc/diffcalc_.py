@@ -57,9 +57,12 @@ def create_diffcalc(engine_name,
                     geometry,
                     hardware,
                     raise_exceptions_for_all_errors=True,
-                    ub_persister=UbCalculationNonPersister(),
+                    ub_persister=None,
                     diffractometer_name = None, # used for user help if no hardware plugin given
                     diffractometer_axes_names = None):         # used for user help if no hardware plugin given
+
+    if not ub_persister:
+        ub_persister = UbCalculationNonPersister()
 
     diffcalc.util.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = \
         raise_exceptions_for_all_errors

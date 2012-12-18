@@ -93,6 +93,7 @@ class UBCalculation:
             print ("No UBCalculation started: There is already a calculation "
                    "called: " + name)
             print "Saved calculations: " + repr(self._persister.list())
+            return
         self._start_new_without_save(name)
         self.save()
 
