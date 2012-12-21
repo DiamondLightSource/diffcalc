@@ -94,7 +94,7 @@ class TestUBCalculationWithYouStrategy():
         self.ubcalc.start_new(NAME + '2')
         self.ubcalc.load(NAME)
         
-        eq_(self.ubcalc._crystal.getLattice(), ('latt', 1, 1, 1, 90, 90, 90))
+        eq_(self.ubcalc._state.crystal.getLattice(), ('latt', 1, 1, 1, 90, 90, 90))
         
     def test_save_and_restore_ubcalc_with_reflections(self):
         NAME = 'test_save_and_restore_ubcalc_with_reflections'
@@ -105,7 +105,6 @@ class TestUBCalculationWithYouStrategy():
         ref1 = self.ubcalc.get_reflection(1)
         ref2 = self.ubcalc.get_reflection(2)
         ref3 = self.ubcalc.get_reflection(3)
-        
         eq_(self.ubcalc.get_reflection(1), ref1)
         eq_(self.ubcalc.get_reflection(2), ref2)
         eq_(self.ubcalc.get_reflection(3), ref3)

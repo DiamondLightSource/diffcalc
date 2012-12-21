@@ -154,3 +154,6 @@ class YouPosition(AbstractPosition):
     def __str__(self):
         return ("YouPosition(mu %r delta: %r nu: %r eta: %r chi: %r  phi: %r)"
                 % self.totuple())
+    
+    def __eq__(self, other):
+        return self.totuple() == other.totuple()

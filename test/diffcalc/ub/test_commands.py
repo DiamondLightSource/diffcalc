@@ -60,7 +60,7 @@ class TestUbCommands(unittest.TestCase):
 
     def testNewUb(self):
         self.ubcommands.newub('test1')
-        eq_(self.ubcommands._ubcalc._name, 'test1')
+        eq_(self.ubcommands._ubcalc._state.name, 'test1')
         self.assertRaises(TypeError, self.ubcommands.newub, 1)
 
     def testNewUbInteractively(self):
@@ -92,32 +92,32 @@ class TestUbCommands(unittest.TestCase):
         self.assertRaises(TypeError, self.ubcommands.setlat, 'HCl')
         self.ubcommands.setlat('NaCl', 1.1)
         ubcalc = self.ubcommands._ubcalc
-        eq_(('NaCl', 1.1, 1.1, 1.1, 90, 90, 90), ubcalc._crystal.getLattice())
+        eq_(('NaCl', 1.1, 1.1, 1.1, 90, 90, 90), ubcalc._state.crystal.getLattice())
         self.ubcommands.setlat('NaCl', 1.1, 2.2)
-        eq_(('NaCl', 1.1, 1.1, 2.2, 90, 90, 90), ubcalc._crystal.getLattice())
+        eq_(('NaCl', 1.1, 1.1, 2.2, 90, 90, 90), ubcalc._state.crystal.getLattice())
         self.ubcommands.setlat('NaCl', 1.1, 2.2, 3.3)
-        eq_(('NaCl', 1.1, 2.2, 3.3, 90, 90, 90), ubcalc._crystal.getLattice())
+        eq_(('NaCl', 1.1, 2.2, 3.3, 90, 90, 90), ubcalc._state.crystal.getLattice())
         self.ubcommands.setlat('NaCl', 1.1, 2.2, 3.3, 91)
-        eq_(('NaCl', 1.1, 2.2, 3.3, 90, 90, 91), ubcalc._crystal.getLattice())
+        eq_(('NaCl', 1.1, 2.2, 3.3, 90, 90, 91), ubcalc._state.crystal.getLattice())
         self.assertRaises(
             TypeError, self.ubcommands.setlat, ('NaCl', 1.1, 2.2, 3.3, 91, 92))
         self.ubcommands.setlat('NaCl', 1.1, 2.2, 3.3, 91, 92, 93)
         assert_iterable_almost_equal(
             ('NaCl', 1.1, 2.2, 3.3, 91, 92, 92.99999999999999),
-             ubcalc._crystal.getLattice())
+             ubcalc._state.crystal.getLattice())
 
     def testSetlatInteractive(self):
         self.ubcommands.newub('testing_setlatinteractive')
         prepareRawInput(['xtal', '1', '2', '3', '91', '92', '93'])
         self.ubcommands.setlat()
-        getLattice = self.ubcommands._ubcalc._crystal.getLattice
+        getLattice = self.ubcommands._ubcalc._state.crystal.getLattice
         assert_iterable_almost_equal(getLattice(),
                          ('xtal', 1., 2., 3., 91, 92, 92.999999999999986))
 
         #Defaults:
         prepareRawInput(['xtal', '', '', '', '', '', ''])
         self.ubcommands.setlat()
-        getLattice = self.ubcommands._ubcalc._crystal.getLattice
+        getLattice = self.ubcommands._ubcalc._state.crystal.getLattice
         eq_(getLattice(), ('xtal', 1., 1., 1., 90, 90, 90))
 
     def testShowref(self):
@@ -132,11 +132,9 @@ class TestUbCommands(unittest.TestCase):
         self.assertRaises(TypeError, self.ubcommands.addref, 1)
         self.assertRaises(TypeError, self.ubcommands.addref, 1, 2)
         self.assertRaises(TypeError, self.ubcommands.addref, 1, 2, 'blarghh')
-        self.assertRaises(DiffcalcException,
-            self.ubcommands.addref, [1, 2, 3], (1, 2, 3, 4, 5, 6), 7)
         # start new ubcalc
         self.ubcommands.newub('testing_addref')
-        reflist = self.ubcommands._ubcalc._reflist  # for conveniance
+        reflist = self.ubcommands._ubcalc._state.reflist  # for conveniance
 
         pos1 = (1.1, 1.2, 1.3, 1.4, 1.5, 1.6)
         pos2 = (2.1, 2.2, 2.3, 2.4, 2.5, 2.6)
@@ -167,7 +165,7 @@ class TestUbCommands(unittest.TestCase):
         prepareRawInput([])
         # start new ubcalc
         self.ubcommands.newub('testing_addref')
-        reflist = self.ubcommands._ubcalc._reflist  # for conveniance
+        reflist = self.ubcommands._ubcalc._state.reflist  # for conveniance
 
         pos1 = (1.1, 1.2, 1.3, 1.4, 1.5, 1.6)
         pos2 = (2.1, 2.2, 2.3, 2.4, 2.5, 2.6)
@@ -210,7 +208,7 @@ class TestUbCommands(unittest.TestCase):
         prepareRawInput(['1.1', '', '3.1', 'y', ''])
         self.ubcommands.editref(1)
 
-        reflist = self.ubcommands._ubcalc._reflist  # for conveniance
+        reflist = self.ubcommands._ubcalc._state.reflist  # for conveniance
         result = reflist.get_reflection_in_external_angles(1)
         eq_(result[:-1], ([1.1, 2, 3.1], pos2, 11, 'tag1'))
 
@@ -223,7 +221,7 @@ class TestUbCommands(unittest.TestCase):
         prepareRawInput(['1.1', '', '3.1', 'n'] + pos2s + ['12', 'newtag'])
         self.ubcommands.editref(1)
 
-        reflist = self.ubcommands._ubcalc._reflist
+        reflist = self.ubcommands._ubcalc._state.reflist
         result = reflist.get_reflection_in_external_angles(1)
         eq_(result[:-1], ([1.1, 2, 3.1], pos2, 12, 'newtag'))
 
@@ -239,7 +237,7 @@ class TestUbCommands(unittest.TestCase):
         self.ubcommands.swapref(1, 3)
         self.ubcommands.swapref(1, 3)
         self.ubcommands.swapref(3, 1)  # end flipped
-        reflist = self.ubcommands._ubcalc._reflist
+        reflist = self.ubcommands._ubcalc._state.reflist
         tag1 = reflist.get_reflection_in_external_angles(1)[3]
         tag2 = reflist.get_reflection_in_external_angles(2)[3]
         tag3 = reflist.get_reflection_in_external_angles(3)[3]
@@ -256,7 +254,7 @@ class TestUbCommands(unittest.TestCase):
         self.ubcommands.newub('testing_swapref')
         pos = (1.1, 1.2, 1.3, 1.4, 1.5, 1.6)
         self.ubcommands.addref([1, 2, 3], pos, 10, 'tag1')
-        reflist = self.ubcommands._ubcalc._reflist
+        reflist = self.ubcommands._ubcalc._state.reflist
         reflist.get_reflection_in_external_angles(1)
         self.ubcommands.delref(1)
         self.assertRaises(IndexError, reflist.get_reflection_in_external_angles, 1)

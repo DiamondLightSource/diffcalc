@@ -182,8 +182,8 @@ class UbCommands(object):
     @command
     def showref(self):
         """showref -- shows full reflection list"""
-        if self._ubcalc._reflist:
-            print '\n'.join(self._ubcalc._reflist.str_lines())
+        if self._ubcalc._state.reflist:
+            print '\n'.join(self._ubcalc._state.reflist.str_lines())
         else:
             print "<<< No UB calculation started >>>"
 
