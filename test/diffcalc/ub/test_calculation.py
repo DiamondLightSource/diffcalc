@@ -19,7 +19,7 @@
 from diffcalc.hkl.you.calc import YouUbCalcStrategy
 from diffcalc.hkl.you.geometry import SixCircle, YouPosition
 from diffcalc.ub.calc import UBCalculation
-from diffcalc.ub.persistence import UbCalculationNonPersister
+from diffcalc.ub.persistence import UBCalculationJSONPersister
 from math import pi
 from mock import Mock
 from nose.tools import eq_
@@ -59,9 +59,11 @@ class TestUBCalculationWithYouStrategy():
         hardware = Mock()
         names = 'm', 'd', 'n', 'e', 'c', 'p'
         hardware.get_axes_names.return_value = names
+        self.tmpdir = tempfile.mkdtemp()
+        print self.tmpdir
         self.ubcalc = UBCalculation(hardware,
                                     geometry,
-                                    UbCalculationNonPersister(),
+                                    UBCalculationJSONPersister(self.tmpdir),
                                     YouUbCalcStrategy())
 
     def testAgainstI16Results(self):

@@ -17,6 +17,10 @@
 ###
 
 from math import acos, cos, sin, pi
+try:
+    from collection import OrderedDict
+except ImportError:
+    from simplejson import OrderedDict
 
 try:
     from numpy import matrix, hstack
@@ -85,17 +89,18 @@ class _UBCalcState():
         return nothing_set or or0_and_or1_used
     
     def getState(self):
-        return {
-                'name': self.name,
-                'tau': self.tau,
-                'sigma': self.sigma,
-                'crystal': None if self.crystal is None else self.crystal.getStateDict(),
-                'reflist': None if self.reflist is None else self.reflist.getStateDict(),
-                'u': None if self.manual_U is None else self.manual_U.tolist(),
-                'ub': None if self.manual_UB is None else self.manual_UB.tolist(),
-                'or0': self.or0,
-                'or1': self.or1,
-                }
+        s = OrderedDict()
+        s['name'] = self.name
+        s['crystal'] = None if self.crystal is None else self.crystal.getStateDict()
+        s['reflist'] = None if self.reflist is None else self.reflist.getStateDict()
+        s['tau'] = self.tau
+        s['sigma'] = self.sigma
+        s['u'] = None if self.manual_U is None else self.manual_U.tolist()
+        s['ub'] = None if self.manual_UB is None else self.manual_UB.tolist()
+        s['or0'] = self.or0
+        s['or1'] = self.or1
+        return s
+                           
 
     def configure_calc_type(self,
                             manual_U=None,

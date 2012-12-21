@@ -19,13 +19,16 @@
 import os
 import shutil
 import unittest
+import tempfile
+import time
+from nose.tools import eq_
 
 try:
     from gda.configuration.properties import LocalProperties
 except ImportError:
     print "Could not import LocalProperties to configure database locations."
 
-from diffcalc.ub.persistence import UbCalculationNonPersister
+from diffcalc.ub.persistence import UbCalculationNonPersister, UBCalculationJSONPersister
 
 
 def prepareEmptyGdaVarFolder():
@@ -41,7 +44,57 @@ def prepareEmptyGdaVarFolder():
 class TestUBCalculationNonPersister(unittest.TestCase):
 
     def setUp(self):
-        self.p = UbCalculationNonPersister()
+        self.persister = UbCalculationNonPersister()
 
     def testSaveAndLoad(self):
-        self.p.save('string1', 'ub1')
+        self.persister.save('string1', 'ub1')
+
+
+class TestUBCalculationJSONPersister(unittest.TestCase):
+
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+        print self.tmpdir
+        self.persister = UBCalculationJSONPersister(self.tmpdir)
+        f = open(os.path.join(self.tmpdir, 'unexpected_file'), 'w')
+        f.close()
+        
+    def test_list_with_empty_dir(self):
+        eq_(self.persister.list(), [])
+        
+    def test_save_load(self):
+        d = {'a' : 1, 'b': 2}
+        self.persister.save(d, 'first')
+        eq_(self.persister.load('first'), d)
+
+    def test_save_overwites(self):
+        d1 = {'a' : 1, 'b': 2}
+        self.persister.save(d1, 'first')
+        eq_(self.persister.load('first'), d1)
+
+        d2 = {'a' : 3, 'b': 4, 'c' : 5}
+        self.persister.save(d2, 'first')
+        eq_(self.persister.load('first'), d2)
+
+    def test_list(self):
+        d = {'a' : 1, 'b': 2}
+        self.persister.save(d, 'first')
+        eq_(self.persister.list(), ['first'])
+        
+    def test_multiple_list(self):
+        d = {'a' : 1, 'b': 2}
+        self.persister.save(d, 'first')
+        time.sleep(.5)
+        self.persister.save(d, 'second')
+        time.sleep(.5)
+        self.persister.save(d, 'alphabetically_first')
+        eq_(self.persister.list(), ['alphabetically_first', 'second', 'first'])
+        
+    def test_remove_list(self):
+        d = {'a' : 1, 'b': 2}
+        self.persister.save(d, 'first')
+        self.persister.remove('first')
+        eq_(self.persister.list(), [])
+        
+    
+

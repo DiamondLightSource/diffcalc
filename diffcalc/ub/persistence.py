@@ -16,6 +16,66 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+from __future__ import with_statement
+
+import os, glob
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
+
+def is_writable(directory):
+    """Return true if the file is writable from the current user
+    """
+    probe = os.path.join(directory, "probe")
+    try:
+        open(probe, 'w')
+    except IOError:
+        return False
+    else:
+        os.remove(probe)
+        return True
+
+def check_directory_appropriate(directory):
+
+    if not os.path.exists(directory):
+        raise IOError("'%s' does not exist")
+    
+    if not os.path.isdir(directory):
+        raise IOError("'%s' is not a directory")
+    
+    if not is_writable(directory):
+        raise IOError("'%s' is not writable")
+
+
+class UBCalculationJSONPersister(object):
+
+    def __init__(self, directory):
+        check_directory_appropriate(directory)
+        self.directory = directory
+        
+    def filepath(self, name):
+        return os.path.join(self.directory, name + '.json')
+        
+    def save(self, state, name):
+        with open(self.filepath(name), 'w') as f:
+            json.dump(state, f, indent=4, separators=(',', ': '))
+
+    def load(self, name):
+        with open(self.filepath(name), 'r') as f:
+            return json.load(f)
+
+    def list(self):  # @ReservedAssignment
+        files = filter(os.path.isfile, glob.glob(os.path.join(self.directory, '*.json')))
+        files.sort(key=lambda x: os.path.getmtime(x))
+        files.reverse()
+        return [os.path.basename(f + '.json').split('.json')[0] for f in files]
+
+    def remove(self, name):
+        os.remove(self.filepath(name))
+
+
 
 class UBCalculationPersister(object):
     """Attempts to the use the gda's database to store ub calculation state
