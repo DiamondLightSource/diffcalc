@@ -16,11 +16,13 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+from diffcalc.ub.calcstate import decode_ubcalcstate
+from diffcalc.ub.calcstate import UBCalcState
+from diffcalc.ub.crystal import CrystalUnderTest
+from diffcalc.ub.reflections import ReflectionList
+from diffcalc.util import DiffcalcException, cross3, dot3
 from math import acos, cos, sin, pi
-try:
-    from collection import OrderedDict
-except ImportError:
-    from simplejson import OrderedDict
+
 
 try:
     from numpy import matrix, hstack
@@ -29,24 +31,22 @@ except ImportError:
     from numjy import matrix, hstack
     from numjy.linalg import norm
 
-from diffcalc.ub.crystal import CrystalUnderTest
-from diffcalc.ub.reflections import ReflectionList
-from diffcalc.util import DiffcalcException, cross3, dot3
 
 SMALL = 1e-7
 TODEG = 180 / pi
 
 
-        # The UB matrix is used to find or set the orientation of a set of
-        # planes described by an hkl vector. The U matrix can be used to find
-        # or set the orientation of the crystal lattices' y axis. If there is
-        # crystal miscut the crystal lattices y axis is not parallel to the
-        # crystals optical surface normal. For surface diffraction experiments,
-        # where not only the crystal lattice must be oriented appropriately but
-        # so must the crystal's optical surface, two angles tau and sigma are
-        # used to describe the difference between the two. Sigma is (minus) the
-        # ammount of chi axis rotation and tau (minus) the ammount of phi axis
-        # rotation needed to move the surface normal into the direction of the
+#The UB matrix is used to find or set the orientation of a set of
+#planes described by an hkl vector. The U matrix can be used to find
+#or set the orientation of the crystal lattices' y axis. If there is
+#crystal miscut the crystal lattices y axis is not parallel to the
+#crystals optical surface normal. For surface diffraction experiments,
+#where not only the crystal lattice must be oriented appropriately but
+#so must the crystal's optical surface, two angles tau and sigma are
+#used to describe the difference between the two. Sigma is (minus) the
+#ammount of chi axis rotation and tau (minus) the ammount of phi axis
+#rotation needed to move the surface normal into the direction of the
+
 
 class PaperSpecificUbCalcStrategy(object):
 
@@ -54,63 +54,6 @@ class PaperSpecificUbCalcStrategy(object):
         """Calculate hkl in the phi frame in units of 2 * pi / lambda from
         pos object in radians"""
         raise NotImplementedError()
-
-class _UBCalcState():
-    
-    def __init__(self,
-                 name=None,
-                 crystal=None,
-                 reflist=None,
-                 tau=0,
-                 sigma=0,
-                 manual_U=None,
-                 manual_UB=None,
-                 or0=None,
-                 or1=None):
-
-        assert reflist != None
-        self.name = name
-        self.crystal = crystal
-        self.reflist = reflist
-        self.tau = tau  # degrees
-        self.sigma = sigma  # degrees
-        self.manual_U = manual_U
-        self.manual_UB = manual_UB
-        self.or0 = or0
-        self.or1 = or1
-        
-    @property
-    def is_okay_to_autocalculate_ub(self):
-        nothing_set = ((self.manual_U is None) and 
-                       (self.manual_UB is None) and 
-                       (self.or0 is None) and 
-                       (self.or1 is None))
-        or0_and_or1_used =  (self.or0 is not None) and (self.or1 is not None)
-        return nothing_set or or0_and_or1_used
-    
-    def getState(self):
-        s = OrderedDict()
-        s['name'] = self.name
-        s['crystal'] = None if self.crystal is None else self.crystal.getStateDict()
-        s['reflist'] = None if self.reflist is None else self.reflist.getStateDict()
-        s['tau'] = self.tau
-        s['sigma'] = self.sigma
-        s['u'] = None if self.manual_U is None else self.manual_U.tolist()
-        s['ub'] = None if self.manual_UB is None else self.manual_UB.tolist()
-        s['or0'] = self.or0
-        s['or1'] = self.or1
-        return s
-                           
-
-    def configure_calc_type(self,
-                            manual_U=None,
-                            manual_UB=None,
-                            or0=None,
-                            or1=None):
-        self.manual_U = manual_U
-        self.manual_UB = manual_UB
-        self.or0 = or0
-        self.or1 = or1
 
 
 class UBCalculation:
@@ -139,7 +82,7 @@ class UBCalculation:
         # the long run. We can't remove this entire object, and recreate it.
         # It also contains a required link to the angle calculator.
         reflist = ReflectionList(self._geometry, self._diffractometer_axes_names)
-        self._state = _UBCalcState(name=name, reflist=reflist)
+        self._state = UBCalcState(name=name, reflist=reflist)
         self._U = None
         self._UB = None
         self._state.configure_calc_type()
@@ -158,26 +101,7 @@ class UBCalculation:
 
     def load(self, name):
         state = self._persister.load(name)
-        
-        if state['crystal'] is not None:
-            crystal = CrystalUnderTest(**state['crystal'])
-        else:
-            crystal = None
-        
-        reflist = ReflectionList(self._geometry, self._diffractometer_axes_names)
-        reflist.restoreFromStateDict(state['reflist'])
-        
-        
-        self._state = _UBCalcState(name=state['name'],
-                                   crystal=crystal,
-                                   reflist=reflist,
-                                   tau=state['tau'],
-                                   sigma=state['sigma'],
-                                   manual_U=state['u'],
-                                   manual_UB=state['ub'],
-                                   or0=state['or0'],
-                                   or1=state['or1'])
-        
+        self._state = decode_ubcalcstate(state, self._geometry, self._diffractometer_axes_names)
         if self._state.manual_U is not None:
             self.set_U_manually(self._state.manual_U)
         elif self._state.manual_UB is not None:
@@ -189,14 +113,12 @@ class UBCalculation:
                 self.calculate_UB()
         else:
             pass
-
     def save(self):
         self.saveas(self._state.name)
 
     def saveas(self, name):
-        state = self.getState()
         self._state.name = name
-        self._persister.save(state, name)
+        self._persister.save(self._state, name)
 
     def listub(self):
         return self._persister.list()

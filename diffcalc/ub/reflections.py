@@ -18,7 +18,6 @@
 
 from copy import deepcopy
 import datetime  # @UnusedImport for the eval below
-
 from diffcalc.util import DiffcalcException
 from diffcalc.hkl.vlieg.geometry import VliegPosition
 
@@ -31,7 +30,7 @@ class _Reflection:
         self.k = float(k)
         self.l = float(l)
         self.pos = position
-        self.tag = tag
+        self.tag = tag    
         self.energy = float(energy)      # energy=12.39842/lambda
         self.wavelength = 12.3984 / self.energy
         self.time = time
@@ -43,24 +42,16 @@ class _Reflection:
                 self.pos.alpha, self.pos.delta, self.pos.gamma, self.pos.omega,
                 self.pos.chi, self.pos.phi, self.tag, self.time))
 
-    def getStateDict(self):
-        return {
-            'h': self.h,
-            'k': self.k,
-            'l': self.l,
-            'position': self.pos.totuple(),
-            'energy': self.energy,
-            'tag': self.tag,
-            'time': self.time
-        }
-
 
 class ReflectionList:
 
-    def __init__(self, diffractometerPluginObject, externalAngleNames):
+    def __init__(self, diffractometerPluginObject, externalAngleNames, reflections=None):
         self._geometry = diffractometerPluginObject
-        self._reflist = []   # Will be a list of Reflections
         self._externalAngleNames = externalAngleNames
+        if reflections is None:
+            reflections = []
+        self._reflist = reflections   # Will be a list of Reflections
+            
 
     def add_reflection(self, h, k, l, position, energy, tag, time):
         """adds a reflection, position in degrees
@@ -135,23 +126,3 @@ class ReflectionList:
             values = (n + 1, energy, h, k, l) + externalAngles + (tag,)
             lines.append(format % values)
         return lines
-
-    def getStateDict(self):
-        """returns dict of form:
-        {
-        'ref_0' : reflectionDict0,
-        'ref_1' : reflectionDict1 ...
-        }
-        """
-        state = {}
-        for n, ref in enumerate(self._reflist):
-            state['ref_' + str(n)] = ref.getStateDict()
-        return state
-
-    def restoreFromStateDict(self, dictOfReflectionDicts):
-        keys = dictOfReflectionDicts.keys()
-        keys.sort()
-        for key in keys:
-            reflectionDict = dictOfReflectionDicts[key]
-            reflectionDict['time'] = eval(reflectionDict['time'])
-            self.add_reflection(**reflectionDict)

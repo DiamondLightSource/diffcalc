@@ -89,18 +89,3 @@ class TestReflectionList(unittest.TestCase):
             'time': repr(self.time)
         }
         return ref_0, ref_1
-
-    def testGetState(self):
-        ref_0, ref_1 = self.createRefStateDicts()
-        expected = {'ref_0': ref_0, 'ref_1': ref_1}
-        self.assertEqual(expected, self.reflist.getStateDict())
-
-    def testRestoreFromStateDict(self):
-        ref_0, ref_1 = self.createRefStateDicts()
-        stateDict = {'ref_0': ref_0, 'ref_1': ref_1}
-        self.reflist = ReflectionList(self._geometry,
-                                      ['a', 'd', 'g', 'o', 'c', 'p'])
-        self.reflist.restoreFromStateDict(stateDict)
-        ref_0, ref_1 = self.createRefStateDicts()
-        stateDict = {'ref_0': ref_0, 'ref_1': ref_1}
-        self.assertEqual(stateDict, self.reflist.getStateDict())

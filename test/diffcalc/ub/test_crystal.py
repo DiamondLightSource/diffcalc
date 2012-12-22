@@ -60,19 +60,3 @@ class TestCrystalUnderTest(unittest.TestCase):
     def test__str__(self):
         cut = CrystalUnderTest("HCl", 1, 2, 3, 4, 5, 6)
         print cut.__str__()
-
-    def testGetState(self):
-        cut = CrystalUnderTest("HCl", 1, 2, 3, 4, 5, 6)
-        expected = {
-            'name': 'HCl',
-            'a': 1,
-            'b': 2,
-            'c': 3,
-            'alpha': 4,
-            'beta': 5,
-            'gamma': 6
-        }
-        assert_dict_almost_equal(expected, cut.getStateDict())
-
-        cut = CrystalUnderTest(**expected)
-        assert_dict_almost_equal(expected, cut.getStateDict())

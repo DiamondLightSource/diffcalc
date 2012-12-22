@@ -25,6 +25,7 @@ from mock import Mock
 from nose.tools import eq_
 from test.tools import matrixeq_
 import tempfile
+import datetime
 
 try:
     from numpy import matrix
@@ -101,9 +102,10 @@ class TestUBCalculationWithYouStrategy():
     def test_save_and_restore_ubcalc_with_reflections(self):
         NAME = 'test_save_and_restore_ubcalc_with_reflections'
         self.ubcalc.start_new(NAME)
-        self.ubcalc.add_reflection(1, 0, 0, REF1a, EN1, '100', None)
-        self.ubcalc.add_reflection(0, 0, 1, REF1b, EN1, '001', None)
-        self.ubcalc.add_reflection(0, 0, 1.5, REF1b, EN1, '001_5', None)
+        now = datetime.datetime.now()
+        self.ubcalc.add_reflection(1, 0, 0, REF1a, EN1, '100', now)
+        self.ubcalc.add_reflection(0, 0, 1, REF1b, EN1, '001', now)
+        self.ubcalc.add_reflection(0, 0, 1.5, REF1b, EN1, '001_5', now)
         ref1 = self.ubcalc.get_reflection(1)
         ref2 = self.ubcalc.get_reflection(2)
         ref3 = self.ubcalc.get_reflection(3)

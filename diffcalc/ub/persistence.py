@@ -19,6 +19,8 @@
 from __future__ import with_statement
 
 import os, glob
+from diffcalc.ub.calcstate import UBCalcStateEncoder
+
 try:
     import json
 except ImportError:
@@ -60,7 +62,9 @@ class UBCalculationJSONPersister(object):
         
     def save(self, state, name):
         with open(self.filepath(name), 'w') as f:
-            json.dump(state, f, indent=4, separators=(',', ': '))
+            json.dump(state, f, indent=4, cls=UBCalcStateEncoder)
+        with open(self.filepath(name), 'r') as f:
+            print ''.join(f.readlines())
 
     def load(self, name):
         with open(self.filepath(name), 'r') as f:

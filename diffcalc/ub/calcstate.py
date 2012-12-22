@@ -1,0 +1,143 @@
+from diffcalc.hkl.vlieg.geometry import VliegPosition
+from diffcalc.ub.crystal import CrystalUnderTest
+from diffcalc.ub.reflections import ReflectionList, _Reflection
+from math import pi
+import dateutil.parser
+import datetime
+
+try:
+    from collection import OrderedDict
+except ImportError:
+    from simplejson import OrderedDict
+
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
+try:
+    from numpy import matrix
+except ImportError:
+    from numjy import matrix
+
+
+TODEG = 180 / pi
+
+
+class UBCalcState():
+    
+    def __init__(self, name=None, crystal=None, reflist=None, tau=0, sigma=0,
+                 manual_U=None, manual_UB=None, or0=None, or1=None):
+
+        assert reflist is not None
+        self.name = name
+        self.crystal = crystal
+        self.reflist = reflist
+        self.tau = tau  # degrees
+        self.sigma = sigma  # degrees
+        self.manual_U = manual_U
+        self.manual_UB = manual_UB
+        self.or0 = or0
+        self.or1 = or1
+        
+    @property
+    def is_okay_to_autocalculate_ub(self):
+        nothing_set = ((self.manual_U is None) and 
+                       (self.manual_UB is None) and 
+                       (self.or0 is None) and 
+                       (self.or1 is None))
+        or0_and_or1_used =  (self.or0 is not None) and (self.or1 is not None)
+        return nothing_set or or0_and_or1_used
+    
+
+    def configure_calc_type(self,
+                            manual_U=None,
+                            manual_UB=None,
+                            or0=None,
+                            or1=None):
+        self.manual_U = manual_U
+        self.manual_UB = manual_UB
+        self.or0 = or0
+        self.or1 = or1
+
+
+class UBCalcStateEncoder(json.JSONEncoder):
+    
+    def default(self, obj):
+        
+        if isinstance(obj, UBCalcState):
+            d = OrderedDict()
+            d['name'] = obj.name
+            d['crystal'] = obj.crystal
+            d['reflist'] = obj.reflist
+            d['tau'] = obj.tau
+            d['sigma'] = obj.sigma
+            d['u'] = obj.manual_U
+            d['ub'] = obj.manual_UB
+            d['or0'] = obj.or0
+            d['or1'] = obj.or1
+            return d
+        
+        if isinstance(obj, CrystalUnderTest):
+            return repr([obj._name, obj._a1, obj._a2, obj._a3, obj._alpha1 * TODEG,
+                         obj._alpha2 * TODEG, obj._alpha3 * TODEG])
+            
+        if isinstance(obj, matrix):
+            l = [', '.join((repr(e) for e in row)) for row in obj.tolist()]
+            return l
+        
+        if isinstance(obj, ReflectionList):
+            d = OrderedDict()
+            for n, ref in enumerate(obj._reflist):
+                d[str(n+1)] = ref
+            return d
+
+        if isinstance(obj, _Reflection):
+            d = OrderedDict()
+            d['tag'] = obj.tag
+            d['hkl'] = repr([obj.h, obj.k, obj.l])
+            d['pos'] = repr(list(obj.pos.totuple()))
+            d['energy'] = obj.energy
+            dt = eval(obj.time)
+            d['time'] = None if dt is None else dt.isoformat()
+            return d
+        
+        
+        return json.JSONEncoder.default(self, obj)
+
+
+def decode_ubcalcstate(state, geometry, diffractometer_axes_names):
+    return UBCalcState(
+        name=state['name'],
+        crystal=state['crystal'] and CrystalUnderTest(*eval(state['crystal'])),
+        reflist=decode_reflist(state['reflist'], geometry, diffractometer_axes_names),
+        tau=state['tau'],
+        sigma=state['sigma'],
+        manual_U=state['u'] and decode_matrix(state['u']),
+        manual_UB=state['ub'] and decode_matrix(state['ub']),
+        or0=state['or0'],
+        or1=state['or1']
+        )
+
+
+def decode_matrix(rows):
+    return matrix([[eval(e) for e in row.split(', ')] for row in rows])
+
+
+def decode_reflist(reflist_dict, geometry, diffractometer_axes_names):
+    reflections = []
+    for key in sorted(reflist_dict.keys()):
+        reflections.append(decode_reflection(reflist_dict[key], geometry))
+        
+    return ReflectionList(geometry, diffractometer_axes_names, reflections)
+
+
+def decode_reflection(ref_dict, geometry):
+    h, k, l = eval(ref_dict['hkl'])
+    time = ref_dict['time'] and dateutil.parser.parse(ref_dict['time'])
+    pos_tuple = eval(ref_dict['pos'])
+    try:
+        position = geometry.create_position(*pos_tuple)
+    except AttributeError:
+        position = VliegPosition(*pos_tuple)
+    return _Reflection(h, k, l, position, ref_dict['energy'], str(ref_dict['tag']), repr(time))
