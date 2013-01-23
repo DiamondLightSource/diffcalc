@@ -16,6 +16,8 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+DEBUG = False
+
 try:
     from gda.device.scannable.scannablegroup import \
         ScannableMotionWithScannableFieldsBase
@@ -69,7 +71,10 @@ class Hkl(ScannableMotionWithScannableFieldsBase):
         try:
             (pos, _) = self._diffcalc.hkl_to_angles(hkl[0], hkl[1], hkl[2])
         except DiffcalcException, e:
-            raise DiffcalcException(e.message)
+            if DEBUG:
+                raise
+            else:
+                raise DiffcalcException(e.message)
         self.diffhw.asynchronousMoveTo(pos)
 
     def rawGetPosition(self):
