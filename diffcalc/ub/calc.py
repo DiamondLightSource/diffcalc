@@ -51,7 +51,7 @@ class UBCalculation:
     """
 
     def __init__(self, diffractometer_axes_names, diffractometerPluginObject,
-                 persister, strategy):
+                 persister, strategy, include_sigtau=True):
 
         # The diffractometer geometry is required to map the internal angles
         # into those used by this diffractometer (for display only)
@@ -68,6 +68,7 @@ class UBCalculation:
         self._ubSetManually = False
         self._persister = persister
         self._strategy = strategy
+        self._include_sigtau = include_sigtau
         # when calclulateUB called manualy.
 
         # The UB matrix is used to find or set the orientation of a set of
@@ -188,10 +189,11 @@ class UBCalculation:
         lines.append("")
         lines.append(
             "   name:".ljust(WIDTH) + self._name.rjust(9))
-        lines.append(
-            "   sigma:".ljust(WIDTH) + ("% 9.5f" % self._sigma).rjust(9))
-        lines.append(
-            "   tau:".ljust(WIDTH) + ("% 9.5f" % self._tau).rjust(9))
+        if self._include_sigtau:
+            lines.append(
+                "   sigma:".ljust(WIDTH) + ("% 9.5f" % self._sigma).rjust(9))
+            lines.append(
+                "   tau:".ljust(WIDTH) + ("% 9.5f" % self._tau).rjust(9))
 
         lines.append("")
         lines.append("CRYSTAL")

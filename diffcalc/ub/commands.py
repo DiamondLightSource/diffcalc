@@ -31,7 +31,7 @@ TODEG = 180 / pi
 
 class UbCommands(object):
 
-    def __init__(self, hardware, geometry, ubcalc):
+    def __init__(self, hardware, geometry, ubcalc, include_sigtau=True):
         self._hardware = hardware
         self._geometry = geometry
         self._ubcalc = ubcalc
@@ -57,6 +57,9 @@ class UbCommands(object):
                          self.setub,
                          self.calcub,
                          self.trialub]
+        if not include_sigtau:
+            self.commands.remove('Surface')
+            self.commands.remove(self.sigtau)
 
     def __str__(self):
         return self._ubcalc.__str__()
@@ -126,7 +129,7 @@ class UbCommands(object):
         """
 
         if name is None:  # Interactive
-            name = promptForInput(" name")
+            name = promptForInput("crystal name")
             a = promptForNumber('    a', 1)
             b = promptForNumber('    b', a)
             c = promptForNumber('    c', a)

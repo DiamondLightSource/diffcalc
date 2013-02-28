@@ -26,33 +26,17 @@ class YouHklCommands(object):
         self._hklcalc = hklcalc
         self.commands = ['CONSTRAINTS',
                          self.con,
-                         self.uncon,
-                         self.cons]
+                         self.uncon]
 
     def __str__(self):
         return self._hklcalc.__str__()
 
     @command
-    def con(self, scn_or_string, value=None):
-        """con <constraint> {value}-- constrains and optionally sets constraint
+    def con(self, *args):
         """
-        name = getNameFromScannableOrString(scn_or_string)
-        self._hklcalc.constraints.constrain(name)
-        if value is not None:
-            self._hklcalc.constraints.set_constraint(name, value)
-        print '\n'.join(self._hklcalc.constraints.report_constraints_lines())
-
-    @command
-    def uncon(self, scn_or_string):
-        """uncon <constraint> -- remove constraint
-        """
-        name = getNameFromScannableOrString(scn_or_string)
-        self._hklcalc.constraints.unconstrain(name)
-        print '\n'.join(self._hklcalc.constraints.report_constraints_lines())
-
-    @command
-    def cons(self):
-        """cons -- list available constraints and values
+        con -- list available constraints and values
+        con <name> {val} -- constrains and optionally sets one constraint
+        con <name> {val} <name> {val} <name> {val} -- clears and then fully constrains
 
         Select three constraints using 'con' and 'uncon'. Choose up to one
         from each of the sample and detector columns and up to three from
@@ -67,6 +51,54 @@ class YouHklCommands(object):
             2 x samp and 1 x det:  0 of 6
             3 x samp:              0 of 4
 
-        See also 'con' and 'uncon'
+        See also 'uncon'
         """
-        print self._hklcalc.constraints
+        args = list(args)
+        msg = self.handle_con(args)
+        if (self._hklcalc.constraints.is_fully_constrained() and 
+            not self._hklcalc.constraints.is_current_mode_implemented()):
+            msg += ("\n\nWARNING:. The selected constraint combination is valid but "
+                "is not implemented.\n\nType 'help con' to see implemented combinations")
+
+        if msg:
+            print msg
+ 
+    def handle_con(self, args):
+        if not args:
+            return self._hklcalc.constraints.__str__()
+        
+        if len(args) > 6:
+            raise TypeError("Unexpected args: " + str(args))
+        
+        cons_value_pairs = []
+        while args:
+            scn_or_str = args.pop(0)
+            name = getNameFromScannableOrString(scn_or_str)
+            if args and isinstance(args[0], (int, long, float)):
+                value = args.pop(0)
+            else:
+                value = None
+            cons_value_pairs.append((name, value))
+        
+        if len(cons_value_pairs) == 1:
+            pass
+        elif len(cons_value_pairs) == 3:
+            self._hklcalc.constraints.clear_constraints()
+        else:
+            raise TypeError("Either one or three constraints must be specified")
+        for name, value in cons_value_pairs:
+            self._hklcalc.constraints.constrain(name)
+            if value is not None:
+                self._hklcalc.constraints.set_constraint(name, value)
+        return '\n'.join(self._hklcalc.constraints.report_constraints_lines())
+
+
+    @command
+    def uncon(self, scn_or_string):
+        """uncon <name> -- remove constraint
+
+        See also 'con'
+        """
+        name = getNameFromScannableOrString(scn_or_string)
+        self._hklcalc.constraints.unconstrain(name)
+        print '\n'.join(self._hklcalc.constraints.report_constraints_lines())

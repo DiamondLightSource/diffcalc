@@ -81,6 +81,12 @@ class TestConstraintManager:
         eq_(self.cm.all, {'delta': None, 'mu': None})
         eq_(self.cm.unconstrain('delta'), None)
         eq_(self.cm.all, {'mu': None})
+        
+    def test_clear_constraints(self):
+        self.cm.constrain('delta')
+        self.cm.constrain('mu')
+        self.cm.clear_constraints()
+        eq_(self.cm.all, {})
 
     def test_unconstrain_bad(self):
         eq_(self.cm.all, {})

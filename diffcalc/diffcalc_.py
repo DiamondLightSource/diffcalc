@@ -80,8 +80,9 @@ def create_diffcalc(engine_name,
                         'willmott': WillmottHorizontalUbCalcStrategy,
                         'you': YouUbCalcStrategy}
     ubcalc_strategy = strategy_classes[engine_name]()
-    ubcalc = UBCalculation(diffractometer_axes_names, geometry, ub_persister, ubcalc_strategy)
-    ub_commands = UbCommands(hardware, geometry, ubcalc)
+    include_sigtau = engine_name in('vlieg', 'willmott')
+    ubcalc = UBCalculation(diffractometer_axes_names, geometry, ub_persister, ubcalc_strategy, include_sigtau)
+    ub_commands = UbCommands(hardware, geometry, ubcalc, include_sigtau)
 
     # Hkl
     if engine_name == 'vlieg':
@@ -139,7 +140,7 @@ def create_diffcalc(engine_name,
     dc.hkl.commands.append(ExternalCommand(
         'pos hkl [h k l] -- move to hkl position'))
     dc.hkl.commands.append(ExternalCommand(
-        'pos <h|k|l> val -- move h, k or l to val'))
+        'pos {h|k|l} val -- move h, k or l to val'))
     dc.hkl.commands.append(ExternalCommand(
         'sim hkl [h k l] -- simulate move to hkl position'))
 

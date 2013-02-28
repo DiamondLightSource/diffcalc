@@ -86,7 +86,7 @@ Add these to the root namespace for easy interactive use::
    >>> add_objects_to_namespace(_objects, globals())
    >>> ===============================================================
    >>> Added objects/methods to namespace:
-   >>> addref, alpha, beta, c2th, calcub, checkub, chi_par, con, cons,
+   >>> addref, alpha, beta, c2th, calcub, checkub, chi_par, con,
    >>> ct, dc, delref, delta_par, editref, eta_par, h, hardware, hkl,
    >>> hklverbose, k, l, listub, loadub, mu_par, naz, newub, nu_par,
    >>> phi_par, psi, qaz, saveubas, setcut, setlat, setmax, setmin,
@@ -261,7 +261,7 @@ angle 'beta'::
 
 To check the constraints::
    
-    >>> cons()
+    >>> con()
         DET        REF        SAMP
         ======     ======     ======
         delta  --> a_eq_b --> mu
@@ -274,7 +274,7 @@ To check the constraints::
         a_eq_b
         mu: 0.0000
    
-        Type 'help cons' for instructions
+        Type 'help con' for instructions
 
 Limits can be set to help (or in somfe cases alow) Diffcalc choose a
 solution::
