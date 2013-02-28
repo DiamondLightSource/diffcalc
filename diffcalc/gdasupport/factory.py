@@ -449,3 +449,17 @@ def _create_and_alias_diffcalcdemo(demoCommands):
     print ("Or type 'diffcalcdemo' to run this script. "
            "(Caution, will move the diffractometer!)")
     return objects
+
+def override_gda_help_command(global_dict):
+    print "Overriding gda's standard help command"
+    _gdahelp_orig = global_dict['_gdahelp']  # @UndefinedVariable
+    
+    def _gdahelp(o):
+        _gdahelp_orig(o)
+        try:
+            print  o.__doc__
+        except:
+            pass
+    
+alias("help")
+
