@@ -456,12 +456,15 @@ def override_gda_help_command(global_dict):
     print "Overriding gda's standard help command"
     _gdahelp_orig = global_dict['_gdahelp']  # @UndefinedVariable
     
-    def _gdahelp(o):
-        _gdahelp_orig(o)
-        try:
-            print  o.__doc__
-        except:
-            pass
+    def _gdahelp(o=None):
+        if o is None:
+            _gdahelp_orig(o)
+        else:
+            try:
+                print o.__doc__
+            except:
+                _gdahelp_orig(o)
+    global_dict['_gdahelp'] = _gdahelp
     
 alias("help")
 
