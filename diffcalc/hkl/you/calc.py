@@ -217,10 +217,14 @@ class YouHklCalculator(HklCalculatorBase):
         self.constraints = constraints
         self.parameter_manager = constraints  # TODO: remove need for this attr
 
-        self.constraints.n_phi = matrix([[0], [0], [1]])
-
     def __str__(self):
         return self.constraints.__str__()
+
+    def _get_n_phi(self):
+        return self._ubcalc.reference.n_phi
+    
+    def _get_ubmatrix(self):
+        return self._getUBMatrix()  # for consistency
 
     def repr_mode(self):
         return repr(self.constraints.all)
@@ -228,7 +232,7 @@ class YouHklCalculator(HklCalculatorBase):
     def _anglesToHkl(self, pos, wavelength):
         """Calculate miller indices from position in radians.
         """
-        return youAnglesToHkl(pos, wavelength, self._getUBMatrix())
+        return youAnglesToHkl(pos, wavelength, self._get_ubmatrix())
 
     def _anglesToVirtualAngles(self, pos, _wavelength):
         """Calculate pseudo-angles in radians from position in radians.
@@ -245,7 +249,7 @@ class YouHklCalculator(HklCalculatorBase):
         [MU, _, _, ETA, CHI, PHI] = create_you_matrices(mu,
                                            delta, nu, eta, chi, phi)
         Z = MU * ETA * CHI * PHI
-        n_lab = Z * self.constraints.n_phi
+        n_lab = Z * self._get_n_phi()
         alpha = asin(bound((-n_lab[1, 0])))
         naz = atan2(n_lab[0, 0], n_lab[2, 0])                            # (20)
 
@@ -298,9 +302,9 @@ class YouHklCalculator(HklCalculatorBase):
                 "\nSorry, the selected constraint combination is valid but "
                 "is not implemented. Type 'help con' for implemented combinations")
 
-        h_phi = self._getUBMatrix() * matrix([[h], [k], [l]])
+        h_phi = self._get_ubmatrix() * matrix([[h], [k], [l]])
         theta = self._calc_theta(h_phi, wavelength)
-        tau = angle_between_vectors(h_phi, self.constraints.n_phi)
+        tau = angle_between_vectors(h_phi, self._get_n_phi())
 
         ### Reference constraint column ###
 
@@ -367,7 +371,7 @@ class YouHklCalculator(HklCalculatorBase):
 
             phi, chi, eta, mu = self._calc_remaining_sample_angles(
                 sample_constraint_name, sample_value, q_lab, n_lab, h_phi,
-                self.constraints.n_phi)
+                self._get_n_phi())
 
             mu, eta, chi, phi = self._generate_final_sample_angles(
                                 mu, eta, chi, phi, (sample_constraint_name,),
@@ -378,7 +382,7 @@ class YouHklCalculator(HklCalculatorBase):
 
             if ref_constraint:
                 angles = self._calc_angles_given_two_sample_and_reference(
-                    self.constraints.sample, psi, theta, h_phi, self.constraints.n_phi)
+                    self.constraints.sample, psi, theta, h_phi, self._get_n_phi())
                 xi_initial, psi, mu, eta, chi, phi = angles
                 values_in_deg = tuple(v * TODEG for v in angles)
                 logger.info('Initial angles: xi=%.3f, psi=%.3f, mu=%.3f, '
