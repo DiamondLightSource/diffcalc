@@ -44,6 +44,7 @@ def createMockUbcalc(UB):
     ubcalc.tau = 0
     ubcalc.sigma = 0
     ubcalc.UB = UB
+    ubcalc.reference.n_phi = matrix([[0], [0], [1]])
     return ubcalc
 
 

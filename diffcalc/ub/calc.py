@@ -17,6 +17,7 @@
 ###
 
 from math import acos, cos, sin, pi
+from diffcalc.ub.reference import YouReference
 
 try:
     from numpy import matrix, hstack
@@ -26,7 +27,6 @@ except ImportError:
     from numjy.linalg import norm
 
 from diffcalc.ub.crystal import CrystalUnderTest
-from diffcalc.ub.persistence import UBCalculationPersister
 from diffcalc.ub.reflections import ReflectionList
 from diffcalc.util import DiffcalcException, cross3, dot3
 
@@ -84,6 +84,8 @@ class UBCalculation:
         # omega circle axis.
         self._tau = 0  # degrees
         self._sigma = 0  # degrees
+        
+        self.reference = YouReference(self)
 
 ### State ###
     def newCalculation(self, name):
