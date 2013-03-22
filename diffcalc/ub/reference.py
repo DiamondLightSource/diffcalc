@@ -56,17 +56,16 @@ class YouReference(object):
     def __str__(self):
         lines = []
         if self._n_phi_configured is not None:
-            lines.append("n_phi configured:" + self._pretty_vector(self._n_phi_configured))
+            lines.append("configured n_phi: " + self._pretty_vector(self._n_phi_configured))
         elif self._n_hkl_configured is not None:
-            lines.append("n_hkl configured:" + self._pretty_vector(self._n_hkl_configured))
+            lines.append("configured n_hkl: " + self._pretty_vector(self._n_hkl_configured))
         else:
             raise AssertionError("Neither a manual n_phi nor n_hkl is configured")
         lines.append("           n_phi: " + self._pretty_vector(self.n_phi))
         lines.append("           n_hkl: " + self._pretty_vector(self.n_hkl))
+        lines.append("")
+        lines.append("To change: set n_hkl_configured or n_phi_configured property.")
         return '\n'.join(lines)
-        
-        
     
-        
-        
-    
+    def __repr__(self):
+        return self.__str__()
