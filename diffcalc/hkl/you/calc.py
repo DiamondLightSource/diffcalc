@@ -31,7 +31,6 @@ from diffcalc.hkl.you.geometry import create_you_matrices, calcMU, calcPHI, \
     calcCHI
 from diffcalc.hkl.you.geometry import YouPosition
 from diffcalc.util import DiffcalcException, bound, angle_between_vectors
-from diffcalc.hkl.common import DummyParameterManager
 from diffcalc.util import cross3, z_rotation, x_rotation
 from diffcalc.ub.calc import PaperSpecificUbCalcStrategy
 
@@ -191,11 +190,6 @@ def _generate_transformed_values(value, constrained=False):
         yield pi - value
 
 
-class NoSolutionException(Exception):
-    # TODO: Remove this when possible
-    pass
-
-
 class YouUbCalcStrategy(PaperSpecificUbCalcStrategy):
 
     def calculate_q_phi(self, pos):
@@ -349,9 +343,13 @@ class YouHklCalculator(HklCalculatorBase):
             delta = atan2(sin(qaz) * sin(nu), cos(qaz))
 
         if det_constraint or naz_constraint:
-            delta, nu = self._generate_final_detector_angles(
-                        delta, nu, qaz, theta, det_constraint_name)
-
+            delta_nu_pairs = self._generate_detector_angle_pairs(
+                             delta, nu, qaz, theta, det_constraint_name)
+            if not delta_nu_pairs:
+                raise DiffcalcException('No detector solutions were found,'
+                                        'please unconstrain detector limits')
+            delta, nu = self._choose_detector_angles(delta_nu_pairs)
+        
         ### Sample constraint column ###
 
         samp_constraints = self.constraints.sample
@@ -373,10 +371,15 @@ class YouHklCalculator(HklCalculatorBase):
                 sample_constraint_name, sample_value, q_lab, n_lab, h_phi,
                 self._get_n_phi())
 
-            mu, eta, chi, phi = self._generate_final_sample_angles(
+            mu_eta_chi_phi_tuples = self._generate_sample_angle_tuples(
                                 mu, eta, chi, phi, (sample_constraint_name,),
                                 delta, nu, wavelength, (h, k, l),
                                 ref_constraint_name, ref_constraint_value)
+            
+            if not mu_eta_chi_phi_tuples:
+                raise DiffcalcException('No sample solutions were found,'
+                                        'please un-constrain sample limits')
+            mu, eta, chi, phi = self._choose_sample_angles(mu_eta_chi_phi_tuples)
 
         elif len(samp_constraints) == 2:
 
@@ -399,20 +402,21 @@ class YouHklCalculator(HklCalculatorBase):
                     delta, nu, qaz = self._calc_remaining_detector_angles(
                         'qaz', qaz, theta)
 
-                    try:
-                        delta, nu = self._generate_final_detector_angles(
-                                    delta, nu, qaz, theta, 'qaz')
-                    except NoSolutionException:
+                    delta_nu_pairs = self._generate_detector_angle_pairs(
+                                delta, nu, qaz, theta, 'qaz')
+                    if not delta_nu_pairs:
                         continue
+                    delta, nu = self._choose_detector_angles(delta_nu_pairs)
+      
                     logger.info("delta=%.3f, nu=%.3f",
                                 delta * TODEG, nu * TODEG)
-                    try:
-                        mu, eta, chi, phi = self._generate_final_sample_angles(
-                            mu, eta, chi, phi, samp_constraints.keys(), delta,
-                            nu, wavelength, (h, k, l), ref_constraint_name,
-                            ref_constraint_value)
-                    except NoSolutionException:
+                    mu_eta_chi_phi_tuples = self._generate_sample_angle_tuples(
+                        mu, eta, chi, phi, samp_constraints.keys(), delta,
+                        nu, wavelength, (h, k, l), ref_constraint_name,
+                        ref_constraint_value)
+                    if not mu_eta_chi_phi_tuples:
                         continue
+                    mu, eta, chi, phi = self._choose_sample_angles(mu_eta_chi_phi_tuples)
 
                     solution_found = True
                     break
@@ -749,14 +753,14 @@ class YouHklCalculator(HklCalculatorBase):
                 'constraints and one reference!:' + str(samp_constraints))
         return xi, psi, mu, eta, chi, phi
 
-    def _generate_final_detector_angles(self, initial_delta, initial_nu, qaz,
+    def _generate_detector_angle_pairs(self, initial_delta, initial_nu, qaz,
                                         theta, det_constraint_name):
         if (ne(initial_delta, pi / 2) and
             ('nu' not in self.constraints.detector)):
             if PRINT_DEGENERATE:
                 print ('DEGENERATE: with delta=90, nu is degenerate: choosing '
                        'nu = 0 (allowed because nu is unconstrained)')
-            return initial_delta, 0  # delta, nu
+            return ((initial_delta, 0), )  # delta, nu
 
         logger.info('initial detector solution - delta=% 7.3f, nu=% 7.3f',
                     initial_delta * TODEG, initial_nu * TODEG)
@@ -786,9 +790,7 @@ class YouHklCalculator(HklCalculatorBase):
                 delta_nu_pairs = (other_pairs +
                                   [pairs_close_to_90[closest_index]])
         delta_nu_pairs = self._merge_nearly_equal_detector_angle_pairs(delta_nu_pairs)
-        delta, nu = self._choose_detector_angles(delta_nu_pairs)
-
-        return delta, nu
+        return delta_nu_pairs
 
     def _merge_nearly_equal_detector_angle_pairs(self, delta_nu_pairs):
         merged = []
@@ -797,7 +799,7 @@ class YouHklCalculator(HklCalculatorBase):
                 merged.append(pair)
         return merged
     
-    def _generate_final_sample_angles(
+    def _generate_sample_angle_tuples(
             self, mu_, eta_, chi_, phi_, sample_constraint_names, delta, nu,
             wavelength, hkl, ref_constraint_name, ref_constraint_value):
 
@@ -811,7 +813,7 @@ class YouHklCalculator(HklCalculatorBase):
         mu_eta_chi_phi_tuples = self._filter_valid_sample_solutions(
             delta, nu, possible_tuples, wavelength, hkl, ref_constraint_name,
             ref_constraint_value)
-        return self._choose_sample_angles(mu_eta_chi_phi_tuples)
+        return mu_eta_chi_phi_tuples
 
     def _filter_valid_sample_solutions(
         self, delta, nu, possible_mu_eta_chi_phi_tuples, wavelength, hkl,
@@ -858,22 +860,17 @@ class YouHklCalculator(HklCalculatorBase):
         return mu_eta_chi_phi_tuples
 
     def _choose_detector_angles(self, delta_nu_pairs):
+        assert delta_nu_pairs, "delta_nu_pairs is empty"
         if len(delta_nu_pairs) > 1:
             delta_nu_pairs_degrees = [[v * TODEG for v in pair]
                                       for pair in delta_nu_pairs]
             raise DiffcalcException(
                 'Multiple detector solutions were found: delta, nu = %s, '
                 'please constrain detector limits' % delta_nu_pairs_degrees)
-        if len(delta_nu_pairs) == 0:
-            raise NoSolutionException('No detector solutions were found,'
-                                      'please unconstrain detector limits')
         return delta_nu_pairs[0]
 
     def _choose_sample_angles(self, mu_eta_chi_phi_tuples):
-
-        if len(mu_eta_chi_phi_tuples) == 0:
-            raise NoSolutionException('No sample solutions were found,'
-                            'please un-constrain sample limits')
+        assert mu_eta_chi_phi_tuples, "mu_eta_chi_phi_tuples is empty"
 
         if len(mu_eta_chi_phi_tuples) == 1:
             return mu_eta_chi_phi_tuples[0]
