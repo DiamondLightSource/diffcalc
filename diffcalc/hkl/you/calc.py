@@ -280,6 +280,7 @@ class YouHklCalculator(HklCalculatorBase):
         return {'theta': theta, 'qaz': qaz, 'alpha': alpha,
                 'naz': naz, 'tau': tau, 'psi': psi, 'beta': beta}
 
+
     def _hklToAngles(self, h, k, l, wavelength):
         """(pos, virtualAngles) = hklToAngles(h, k, l, wavelength) --- with
         Position object pos and the virtual angles returned in degrees. Some
@@ -295,6 +296,17 @@ class YouHklCalculator(HklCalculatorBase):
             raise DiffcalcException(
                 "\nSorry, the selected constraint combination is valid but "
                 "is not implemented. Type 'help con' for implemented combinations")
+              
+        # constraints are dictionaries  
+        ref_constraint = self.constraints.reference
+        if ref_constraint:
+            ref_constraint_name, ref_constraint_value = ref_constraint.items()[0]
+        det_constraint = self.constraints.detector
+        naz_constraint = self.constraints.naz
+        samp_constraints = self.constraints.sample
+            
+        assert not (det_constraint and naz_constraint), (
+               "Two 'detector' constraints given")
 
         h_phi = self._get_ubmatrix() * matrix([[h], [k], [l]])
         theta = self._calc_theta(h_phi, wavelength)
@@ -302,138 +314,39 @@ class YouHklCalculator(HklCalculatorBase):
 
         ### Reference constraint column ###
 
-        ref_constraint = self.constraints.reference
         if ref_constraint:
-            # An angle for the reference vector (n) is given      (Section 5.2)
-            ref_constraint_name, ref_constraint_value = (
-                ref_constraint.items()[0])
+            # An angle for the reference vector (n) is given      (Section 5.2)         
             psi, alpha, _ = self._calc_remaining_reference_angles(
                 ref_constraint_name, ref_constraint_value, theta, tau)
-        else:
-            raise RuntimeError(
-            'No code yet to handle the absence of a reference constraint!')
 
         ### Detector constraint column ###
 
-        det_constraint = self.constraints.detector
-        naz_constraint = self.constraints.naz
-        assert not (det_constraint and naz_constraint), (
-               "Two 'detector' constraints given")
-
-        if det_constraint:
-            # One of the detector angles is given                 (Section 5.1)
-            det_constraint_name, det_constraint = det_constraint.items()[0]
-            delta, nu, qaz = self._calc_remaining_detector_angles(
-                det_constraint_name, det_constraint, theta)
-            naz_qaz_angle = _calc_angle_between_naz_and_qaz(theta, alpha, tau)
-            naz = qaz - naz_qaz_angle
-#            if (naz < -SMALL) or (naz >= pi):
-#                naz = qaz + naz_qaz_angle
-
-        elif naz_constraint:
-            # The 'detector' angle naz is given:
-            det_constraint_name, det_constraint = naz_constraint.items()[0]
-            naz_name, naz = det_constraint_name, det_constraint
-            assert naz_name == 'naz'
-            naz_qaz_angle = _calc_angle_between_naz_and_qaz(theta, alpha, tau)
-            qaz = naz - naz_qaz_angle
-#            if (qaz < -SMALL) or (qaz >= pi):
-#                qaz = naz + naz_qaz_angle
-            nu = atan2(sin(2 * theta) * cos(qaz), cos(2 * theta))
-            delta = atan2(sin(qaz) * sin(nu), cos(qaz))
-
         if det_constraint or naz_constraint:
-            delta_nu_pairs = self._generate_detector_angle_pairs(
-                             delta, nu, qaz, theta, det_constraint_name)
-            if not delta_nu_pairs:
-                raise DiffcalcException('No detector solutions were found,'
-                                        'please unconstrain detector limits')
-            delta, nu = self._choose_detector_angles(delta_nu_pairs)
+            qaz, naz, delta, nu = self._calc_det_angles_given_det_or_naz_constraint(
+                                  det_constraint, naz_constraint, theta, tau, alpha)
         
         ### Sample constraint column ###
 
-        samp_constraints = self.constraints.sample
-
         if len(samp_constraints) == 1:
-            # JUST ONE SAMPLE ANGLE GIVEN
             # a detector and reference constraint will have been given
-            sample_constraint_name, sample_value = samp_constraints.items()[0]
-
-            q_lab = matrix([[cos(theta) * sin(qaz)],
-                            [-sin(theta)],
-                            [cos(theta) * cos(qaz)]])                    # (18)
-
-            n_lab = matrix([[cos(alpha) * sin(naz)],
-                            [-sin(alpha)],
-                            [cos(alpha) * cos(naz)]])                    # (20)
-
-            phi, chi, eta, mu = self._calc_remaining_sample_angles(
-                sample_constraint_name, sample_value, q_lab, n_lab, h_phi,
-                self._get_n_phi())
-
-            mu_eta_chi_phi_tuples = self._generate_sample_angle_tuples(
-                                mu, eta, chi, phi, (sample_constraint_name,),
-                                delta, nu, wavelength, (h, k, l),
-                                ref_constraint_name, ref_constraint_value)
-            
-            if not mu_eta_chi_phi_tuples:
-                raise DiffcalcException('No sample solutions were found,'
-                                        'please un-constrain sample limits')
-            mu, eta, chi, phi = self._choose_sample_angles(mu_eta_chi_phi_tuples)
+            mu, eta, chi, phi = self._calc_sample_angles_from_one_sample_constraint(
+                h, k, l, wavelength, samp_constraints, h_phi, theta,
+                ref_constraint_name, ref_constraint_value, alpha, qaz, naz,
+                delta, nu)
 
         elif len(samp_constraints) == 2:
-
-            if ref_constraint:
-                angles = self._calc_angles_given_two_sample_and_reference(
-                    self.constraints.sample, psi, theta, h_phi, self._get_n_phi())
-                xi_initial, psi, mu, eta, chi, phi = angles
-                values_in_deg = tuple(v * TODEG for v in angles)
-                logger.info('Initial angles: xi=%.3f, psi=%.3f, mu=%.3f, '
-                            'eta=%.3f, chi=%.3f, phi=%.3f' % values_in_deg)
-
-                # Try to find a solution for each possible transformed xi
-                solution_found = False
-                for xi in _generate_transformed_values(xi_initial, False):
-                    qaz = xi + pi / 2
-                    if qaz > 2 * pi:
-                        qaz -= 2 * pi
-                    logger.info("---Trying qaz=%.3f (from xi=%.3f)",
-                                qaz * TODEG, xi * TODEG)
-                    delta, nu, qaz = self._calc_remaining_detector_angles(
-                        'qaz', qaz, theta)
-
-                    delta_nu_pairs = self._generate_detector_angle_pairs(
-                                delta, nu, qaz, theta, 'qaz')
-                    if not delta_nu_pairs:
-                        continue
-                    delta, nu = self._choose_detector_angles(delta_nu_pairs)
-      
-                    logger.info("delta=%.3f, nu=%.3f",
-                                delta * TODEG, nu * TODEG)
-                    mu_eta_chi_phi_tuples = self._generate_sample_angle_tuples(
-                        mu, eta, chi, phi, samp_constraints.keys(), delta,
-                        nu, wavelength, (h, k, l), ref_constraint_name,
-                        ref_constraint_value)
-                    if not mu_eta_chi_phi_tuples:
-                        continue
-                    mu, eta, chi, phi = self._choose_sample_angles(mu_eta_chi_phi_tuples)
-
-                    solution_found = True
-                    break
-                if not solution_found:
-                    raise Exception('No solutions were found, please '
-                                    'unconstrain detector or sample limits')
-            else:
-                raise DiffcalcException('No code yet to handle 2 sample '
-                                        'and a detector constraint!')
+            assert ref_constraint, ('No code yet to handle 2 sample '
+                                    'without a reference constraint!')
+            angles = self._calc_sample_given_two_sample_and_reference(
+                h, k, l, wavelength, samp_constraints, h_phi, theta,
+                ref_constraint_name, ref_constraint_value, psi)
+            mu, delta, nu, eta, chi, phi = angles
 
         elif len(samp_constraints) == 3:
-            raise DiffcalcException(
-                'No code yet to handle 3 sample constraints!')
+            assert False, 'No code yet to handle 3 sample constraints!'
 
         else:
-            raise AssertionError('1,2 or 3 sample constraints expected, not: ',
-                                  len(samp_constraints))
+            assert False, 'Unexpected sample constraints: ' + str(samp_constraints)
 
         # Create position
         position = YouPosition(mu, delta, nu, eta, chi, phi)
@@ -516,12 +429,42 @@ class YouHklCalculator(HklCalculatorBase):
 
         return psi, alpha, beta
 
+    def _calc_det_angles_given_det_or_naz_constraint(
+            self, det_constraint, naz_constraint, theta, tau, alpha):
+        
+        assert det_constraint or naz_constraint
+        
+        if det_constraint:
+            # One of the detector angles is given                 (Section 5.1)
+            det_constraint_name, det_constraint = det_constraint.items()[0]
+            delta, nu, qaz = self._calc_remaining_detector_angles(
+                             det_constraint_name, det_constraint, theta)
+            naz_qaz_angle = _calc_angle_between_naz_and_qaz(theta, alpha, tau)
+            naz = qaz - naz_qaz_angle
+            
+        elif naz_constraint: # The 'detector' angle naz is given:
+            det_constraint_name, det_constraint = naz_constraint.items()[0]
+            naz_name, naz = det_constraint_name, det_constraint
+            assert naz_name == 'naz'
+            naz_qaz_angle = _calc_angle_between_naz_and_qaz(theta, alpha, tau)
+            qaz = naz - naz_qaz_angle
+            nu = atan2(sin(2 * theta) * cos(qaz), cos(2 * theta))
+            delta = atan2(sin(qaz) * sin(nu), cos(qaz))
+            
+        delta_nu_pairs = self._generate_detector_angle_pairs(
+                         delta, nu, qaz, theta, det_constraint_name)
+        if not delta_nu_pairs:
+            raise DiffcalcException('No detector solutions were found,'
+                'please unconstrain detector limits')
+        delta, nu = self._choose_detector_angles(delta_nu_pairs)
+        
+        return qaz, naz, delta, nu
+
     def _calc_remaining_detector_angles(self, constraint_name,
                                         constraint_value, theta):
         """Return delta, nu and qaz given one detector angle
         """
         #                                                         (section 5.1)
-
         # Find qaz using various derivations of 17 and 18
         if constraint_name == 'delta':
             delta = constraint_value
@@ -569,6 +512,69 @@ class YouHklCalculator(HklCalculatorBase):
                 delta = sign(qaz) * acos(bound(cos(2 * theta) / cos(nu)))
 
         return delta, nu, qaz
+
+    def _calc_sample_angles_from_one_sample_constraint(
+            self, h, k, l, wavelength, samp_constraints, h_phi, theta,
+            ref_constraint_name, ref_constraint_value, alpha, qaz, naz, delta, nu):
+        
+        sample_constraint_name, sample_value = samp_constraints.items()[0]
+        q_lab = matrix([[cos(theta) * sin(qaz)], 
+                [-sin(theta)], 
+                [cos(theta) * cos(qaz)]]) # (18)
+        n_lab = matrix([[cos(alpha) * sin(naz)], 
+                [-sin(alpha)], 
+                [cos(alpha) * cos(naz)]]) # (20)
+        phi, chi, eta, mu = self._calc_remaining_sample_angles(
+            sample_constraint_name, sample_value, q_lab, n_lab, h_phi, 
+            self._get_n_phi())
+        mu_eta_chi_phi_tuples = self._generate_sample_angle_tuples(
+            mu, eta, chi, phi, (sample_constraint_name, ), 
+            delta, nu, wavelength, (h, k, l), 
+            ref_constraint_name, ref_constraint_value)
+        if not mu_eta_chi_phi_tuples:
+            raise DiffcalcException('No sample solutions were found,'
+                'please un-constrain sample limits')
+        mu, eta, chi, phi = self._choose_sample_angles(mu_eta_chi_phi_tuples)
+        return mu, eta, chi, phi
+
+    def _calc_sample_given_two_sample_and_reference(
+            self, h, k, l, wavelength, samp_constraints, h_phi, theta,
+            ref_constraint_name, ref_constraint_value, psi):
+        
+        angles = self._calc_initial_sample_angles_given_two_sample_and_reference(
+                 samp_constraints, psi, theta, h_phi, self._get_n_phi())
+        xi_initial, psi, mu, eta, chi, phi = angles
+        values_in_deg = tuple(v * TODEG for v in angles)
+        logger.info('Initial angles: xi=%.3f, psi=%.3f, mu=%.3f, '
+            'eta=%.3f, chi=%.3f, phi=%.3f' % 
+            values_in_deg) # Try to find a solution for each possible transformed xi
+        solution_found = False
+        for xi in _generate_transformed_values(xi_initial, False):
+            qaz = xi + pi / 2
+            if qaz > 2 * pi:
+                qaz -= 2 * pi
+            logger.info("---Trying qaz=%.3f (from xi=%.3f)", qaz * TODEG, xi * TODEG)
+            delta, nu, qaz = self._calc_remaining_detector_angles(
+                'qaz', qaz, theta)
+            delta_nu_pairs = self._generate_detector_angle_pairs(
+                delta, nu, qaz, theta, 'qaz')
+            if not delta_nu_pairs:
+                continue
+            delta, nu = self._choose_detector_angles(delta_nu_pairs)
+            logger.info("delta=%.3f, nu=%.3f", delta * TODEG, nu * TODEG)
+            mu_eta_chi_phi_tuples = self._generate_sample_angle_tuples(
+                mu, eta, chi, phi, samp_constraints.keys(), delta, 
+                nu, wavelength, (h, k, l), ref_constraint_name, 
+                ref_constraint_value)
+            if not mu_eta_chi_phi_tuples:
+                continue
+            mu, eta, chi, phi = self._choose_sample_angles(mu_eta_chi_phi_tuples)
+            solution_found = True
+            break
+        if not solution_found:
+            raise Exception('No solutions were found, please '
+                'unconstrain detector or sample limits')
+        return mu, delta, nu, eta, chi, phi
 
     def _calc_remaining_sample_angles(self, constraint_name, constraint_value,
                                       q_lab, n_lab, q_phi, n_phi):
@@ -672,7 +678,7 @@ class YouHklCalculator(HklCalculatorBase):
 
         raise ValueError('Given angle must be one of phi, chi, eta or mu')
 
-    def _calc_angles_given_two_sample_and_reference(
+    def _calc_initial_sample_angles_given_two_sample_and_reference(
             self, samp_constraints, psi, theta, q_phi, n_phi):
         """Available combinations:
         chi, phi, reference
