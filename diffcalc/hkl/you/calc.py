@@ -308,6 +308,7 @@ class YouHklCalculator(HklCalculatorBase):
         assert not (det_constraint and naz_constraint), (
                "Two 'detector' constraints given")
 
+
         h_phi = self._get_ubmatrix() * matrix([[h], [k], [l]])
         theta = self._calc_theta(h_phi, wavelength)
         tau = angle_between_vectors(h_phi, self._get_n_phi())
