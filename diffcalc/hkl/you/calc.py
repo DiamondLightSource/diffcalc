@@ -81,7 +81,7 @@ def cut_at_minus_pi(value):
 def _calc_N(Q, n):
     """Return N as described by Equation 31"""
     Q = Q * (1 / norm(Q))
-    n = n * (1 / norm(Q))
+    n = n * (1 / norm(n))
     if is_small(angle_between_vectors(Q, n)):
         raise ValueError('Q and n are parallel and cannot be used to create '
                          'an orthonormal matrix')
