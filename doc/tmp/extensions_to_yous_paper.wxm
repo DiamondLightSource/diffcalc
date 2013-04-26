@@ -1,5 +1,5 @@
 /* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
-/* [ Created with wxMaxima version 12.01.0 ] */
+/* [ Created with wxMaxima version 11.08.0 ] */
 
 /* [wxMaxima: input   start ] */
 Rx:matrix([1,0,0],[0, cos(theta), -sin(theta)],[0, sin(theta), cos(theta)])$
@@ -401,8 +401,124 @@ factor(bot);
 trigsimp(top/bot);
 /* [wxMaxima: input   end   ] */
 
+/* [wxMaxima: title   start ]
+5.5 subset with eta=chi=0 & phi set
+   [wxMaxima: title   end   ] */
+
 /* [wxMaxima: input   start ] */
-subst(1,);
+matrix([cos(theta)*sin(qaz)], [-sin(theta)], [cos(theta)*cos(qaz)]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+h_phi:matrix([h1], [h2], [h3]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+Z:MU.ETA.CHI.PHI;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+eq68yterm:-sin(theta) = ((Z.h_phi))[2][1];
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+expands(%);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+eq68_chi_eta_0:subst(0, chi, subst(0, eta, Z.h_phi));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+eq68_chi_eta_0_yterm:-sin(theta)=eq68_chi_eta_0[2];
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+subst(0, chi, subst(0, eta, eq68yterm));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+a;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+ratsubst(a, -h3, eq68_chi_eta_0_yterm);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+a:-h3;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+b:-h1*sin(phi) +h2*cos(phi);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+c:-sin(theta);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+ratsubst(cc, c, ratsubst(bb, b, ratsubst(aa, a, eq68_chi_eta_0_yterm)));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+arcsin(c/sqrt(a^2+b^2)) - arctan(b, a);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+eq68_chi_eta_0[1] /eq68_chi_eta_0[2];
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+without chi=eta=0
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+eq68yterm:-sin(theta) = ((Z.h_phi))[2][1];
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+expand(eq68yterm);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+solve for mu unknown
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+c:-sin(theta);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+a:sin(chi)*h2*sin(phi) + sin(chi)*h1*cos(phi) - cos(chi)*h3;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+b: -cos(chi)*sin(eta)*h2*sin(phi) -cos(eta)*h1*sin(phi)  +cos(eta)*h2*cos(phi) -cos(chi)*sin(eta)*h1*cos(phi) - sin(chi)*sin(eta)*h3;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+expand(subst(a, aa, subst(b, bb, -sin(theta)=aa*sin(mu) + bb*cos(mu))));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Check a and b expand to produce original (Okay)
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+expand(eq68yterm);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Check against special case above (Okay)
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+subst(0, chi, subst(0, eta, a));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+subst(0, chi, subst(0, eta, b));
 /* [wxMaxima: input   end   ] */
 
 /* Maxima can't load/batch files which end with a comment! */

@@ -49,7 +49,7 @@ class YouHklCommands(object):
                                    mu & eta
                                    chi=90 & mu=0 (2.5 of 6)
             2 x samp and 1 x det:  0 of 6
-            3 x samp:              0 of 4
+            3 x samp:              eta, chi & phi (1 of 4)
 
         See also 'uncon'
         """

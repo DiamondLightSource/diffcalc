@@ -230,6 +230,8 @@ class YouConstraintManager(object):
             raise ValueError("Three constraints required")
         
         if len(self.sample) == 3:
+            if set(self.sample.keys()) == set(['chi', 'phi', 'eta']):
+                return True
             return False
 
         if len(self.sample) == 1:

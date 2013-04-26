@@ -99,7 +99,7 @@ class _BaseTest():
         self.zrot, self.yrot = zrot, yrot
         self._configure_ub()
         hkl, virtual = self.calc.anglesToHkl(pos, wavelength)
-        assert_array_almost_equal(hkl, hkl_expected, self.places)
+        assert_array_almost_equal(hkl, hkl_expected, self.places, note="***Test incorrect*** : the desired settings do not map to the target hkl")
         assert_second_dict_almost_in_first(virtual, virtual_expected)
 
     @raises(DiffcalcException)
@@ -557,6 +557,70 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
         self._check((.7, .8, 1),  # betaout=30
                     P(mu=30, delta=57.0626, nu=96.86590, eta=86.6739, chi=0,
                       phi=0))
+
+
+class TestConstrain3Sample_ChiPhiEta(_TestCubic):
+
+    def setup(self):
+        _TestCubic.setup(self)
+        self.mock_hardware.set_lower_limit('nu', 0)
+        self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0,
+                                         'a_eq_b': None}
+        self.wavelength = 1
+        self.UB = I * 2 * pi
+        self.places = 4
+
+        self.mock_hardware.set_lower_limit('mu', None)
+        self.mock_hardware.set_lower_limit('eta', None)
+        self.mock_hardware.set_lower_limit('chi', None)
+
+    def _configure_ub(self):
+        self.mock_ubcalc.UB = self.UB
+
+    def _check(self, hkl, pos, virtual_expected={}, fails=False):
+        self._check_angles_to_hkl(
+            '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        if fails:
+            self._check_hkl_to_angles_fails(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        else:
+            self._check_hkl_to_angles(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+
+    def testHkl_all0_001(self):
+        self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0}
+        self._check((0, 0, 1),
+                    P(mu=30, delta=0, nu=60, eta=0, chi=0, phi=0))
+
+    def testHkl_all0_010(self):
+        self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0}
+        self._check((0, 1, 0),
+                    P(mu=120, delta=0, nu=60, eta=0, chi=0, phi=0))
+
+    def testHkl_all0_011(self):
+        self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0}
+        self._check((0, 1, 1),
+                    P(mu=90, delta=0, nu=90, eta=0, chi=0, phi=0))
+        
+    def testHkl_phi30_100(self):
+        self.constraints._constrained = {'chi': 0, 'phi': 30 * TORAD, 'eta': 0}
+        self._check((1, 0, 0),
+                    P(mu=0, delta=60, nu=0, eta=0, chi=0, phi=30))
+        
+    def testHkl_eta30_100(self):
+        self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 30 * TORAD}
+        self._check((1, 0, 0),
+                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0))
+        
+    def testHkl_phi90_110(self):
+        self.constraints._constrained = {'chi': 0, 'phi': 90 * TORAD, 'eta': 0}
+        self._check((1, 1, 0),
+                    P(mu=0, delta=90, nu=0, eta=0, chi=0, phi=90))
+        
+    def testHkl_eta90_110(self):
+        self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 90 * TORAD}
+        self._check((1, 1, 0),
+                    P(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0))
 
 
 def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):

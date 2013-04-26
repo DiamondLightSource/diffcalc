@@ -16,7 +16,7 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-from math import pi, sin, cos, tan, acos, atan2, asin, sqrt
+from math import pi, sin, cos, tan, acos, atan2, asin, sqrt, atan
 
 try:
     from numpy import matrix
@@ -68,6 +68,8 @@ def pair_nearly_in_pair_list(pair, pair_list):
 def sign(x):
     return 1 if x > 0 else -1
 
+def normalised(vector):
+    return vector * (1 / norm(vector))
 
 def cut_at_minus_pi(value):
     if value < (-pi - SMALL):
@@ -79,15 +81,15 @@ def cut_at_minus_pi(value):
 
 def _calc_N(Q, n):
     """Return N as described by Equation 31"""
-    Q = Q * (1 / norm(Q))
-    n = n * (1 / norm(n))
+    Q = normalised(Q)
+    n = normalised(n)
     if is_small(angle_between_vectors(Q, n)):
         raise ValueError('Q and n are parallel and cannot be used to create '
                          'an orthonormal matrix')
     Qxn = cross3(Q, n)
     QxnxQ = cross3(Qxn, Q)
-    QxnxQ = QxnxQ * (1 / norm(QxnxQ))
-    Qxn = Qxn * (1 / norm(Qxn))
+    QxnxQ = normalised(QxnxQ)
+    Qxn = normalised(Qxn)
     return matrix([[Q[0, 0], QxnxQ[0, 0], Qxn[0, 0]],
                    [Q[1, 0], QxnxQ[1, 0], Qxn[1, 0]],
                    [Q[2, 0], QxnxQ[2, 0], Qxn[2, 0]]])
@@ -344,7 +346,38 @@ class YouHklCalculator(HklCalculatorBase):
             mu, delta, nu, eta, chi, phi = angles
 
         elif len(samp_constraints) == 3:
-            assert False, 'No code yet to handle 3 sample constraints!'
+            if not 'mu' in samp_constraints:
+                eta_ = self.constraints.sample['eta']
+                chi_ = self.constraints.sample['chi']
+                phi_ = self.constraints.sample['phi']
+                two_mu_qaz_pairs = _mu_and_qaz_from_eta_chi_phi(eta_, chi_, phi_, theta, h_phi)
+            else:
+                raise DiffcalcException(
+                        'No code yet to handle this combination of 3 sample constraints!')
+            
+            # TODO: Code duplicated above
+            solution_found = False
+            for mu_, qaz in two_mu_qaz_pairs:
+                logger.debug("--- Trying mu_:%.f qaz_%.f", mu_ * TODEG, qaz *TODEG)
+                delta_, nu_, _ = self._calc_remaining_detector_angles('qaz', qaz, theta)
+                delta_nu_pairs = self._generate_detector_angle_pairs(delta_, nu_, qaz, theta, 'qaz')
+                if not delta_nu_pairs:
+                    continue
+                delta, nu = self._choose_detector_angles(delta_nu_pairs)
+                logger.info("delta=%.3f, nu=%.3f", delta * TODEG, nu * TODEG)
+                
+                mu_eta_chi_phi_tuples = self._generate_sample_angle_tuples(
+                mu_, eta_, chi_, phi_, samp_constraints.keys(), delta, 
+                nu, wavelength, (h, k, l), None, None)
+                if not mu_eta_chi_phi_tuples:
+                    continue
+                mu, eta, chi, phi = self._choose_sample_angles(mu_eta_chi_phi_tuples)
+                solution_found = True
+                break
+            if not solution_found:
+                raise Exception('No solutions were found, please '
+                                'unconstrain detector or sample limits')   
+   
 
         else:
             assert False, 'Unexpected sample constraints: ' + str(samp_constraints)
@@ -837,7 +870,9 @@ class YouHklCalculator(HklCalculatorBase):
 
             if hkl_okay:
                 virtual_angles = self._anglesToVirtualAngles(pos, wavelength)
-                if ref_constraint_name == 'a_eq_b':
+                if not ref_constraint_name:
+                    virtual_okay = True;
+                elif ref_constraint_name == 'a_eq_b':
                     virtual_okay = ne(virtual_angles['alpha'],
                                       virtual_angles['beta'])
                 else:
@@ -938,3 +973,44 @@ class YouHklCalculator(HklCalculatorBase):
             return r
 
         return reduce(expand, transformed_values)
+
+def _mu_and_qaz_from_eta_chi_phi(eta, chi, phi, theta, h_phi):
+    
+    h_phi_norm = normalised(h_phi)                                    # (68,69) 
+    h1, h2, h3 = h_phi_norm[0, 0], h_phi_norm[1, 0], h_phi_norm[2, 0]
+    a = sin(chi) * h2 * sin(phi) + sin(chi) * h1 * cos(phi) - cos(chi) * h3
+    b = (- cos(chi) * sin(eta) * h2 * sin(phi)
+         - cos(eta) * h1 * sin(phi) + cos(eta) * h2 * cos(phi)
+         - cos(chi) * sin(eta) * h1 * cos(phi)
+         - sin(chi) * sin(eta) * h3)
+    c = -sin(theta)
+    sin_bit = bound(c / sqrt(a * a + b * b))
+    mu1 = asin(sin_bit) - atan2(b, a)
+    mu2 = pi - asin(sin_bit) - atan2(b, a)
+
+    mu1 = cut_at_minus_pi(mu1)
+    mu2 = cut_at_minus_pi(mu2)
+    
+    # TODO: This special case should be *removed* when the gernal case has shown
+    # toencompass it. It exists as fallback for a particular i16 experiment in
+    # May 2013 --RobW.
+#     if eta == chi == 0:
+#         logger.debug("Testing against simplified equations for eta == chi == 0")
+#         a = - h3
+#         b = - h1 * sin(phi) + h2 * cos(phi)
+#         sin_bit = bound(c / sqrt(a * a + b * b))
+#         mu_simplified = pi - asin(sin_bit) - atan2(b, a)
+#         mu_simplified = cut_at_minus_pi(mu_simplified)
+#         if not ne(mu_simplified, mu):
+#             raise AssertionError("mu_simplified != mu , %f!=%f" % (mu_simplified, mu))
+        
+    
+    [MU, _, _, ETA, CHI, PHI] = create_you_matrices(mu1, None, None, eta, chi, phi)
+    h_lab = MU * ETA * CHI * PHI * h_phi                                 # (11)
+    qaz1 = atan(h_lab[0, 0] / h_lab[2, 0])
+
+    [MU, _, _, ETA, CHI, PHI] = create_you_matrices(mu2, None, None, eta, chi, phi)
+    h_lab = MU * ETA * CHI * PHI * h_phi                                 # (11)
+    qaz2 = atan(h_lab[0, 0] / h_lab[2, 0])
+
+    return (mu1, qaz1) , (mu2, qaz2)
