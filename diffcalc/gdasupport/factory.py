@@ -465,6 +465,8 @@ def override_gda_help_command(global_dict):
             except:
                 _gdahelp_orig(o)
     global_dict['_gdahelp'] = _gdahelp
-    
-alias("help")
 
+try:
+    alias("help")
+except NameError:
+    pass  # alias command available in the gda Jython environment
