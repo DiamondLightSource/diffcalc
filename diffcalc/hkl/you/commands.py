@@ -18,6 +18,7 @@
 
 from diffcalc.hkl.common import getNameFromScannableOrString
 from diffcalc.util import command
+from diffcalc.hkl.you.calc import YouHklCalculator
 
 
 class YouHklCommands(object):
@@ -102,3 +103,61 @@ class YouHklCommands(object):
         name = getNameFromScannableOrString(scn_or_string)
         self._hklcalc.constraints.unconstrain(name)
         print '\n'.join(self._hklcalc.constraints.report_constraints_lines())
+
+    @command 
+    def allhkl(self, hkl, wavelength=None):
+        """allhkl [h k l] -- print all hkl solutions ignoring limits
+
+        """
+        hardware = self._hklcalc._hardware
+        geometry = self._hklcalc._geometry
+        if wavelength is None:
+            wavelength = hardware.get_wavelength()
+        h, k, l = hkl
+        pos_virtual_angles_pairs = self._hklcalc.hkl_to_all_angles(
+                                        h, k, l, wavelength)
+        cells = []
+        # virtual_angle_names = list(pos_virtual_angles_pairs[0][1].keys())
+        # virtual_angle_names.sort()
+        virtual_angle_names = ['qaz', 'psi', 'naz', 'tau', 'theta', 'alpha', 'beta']
+        header_cells = list(hardware.get_axes_names()) + [' '] + virtual_angle_names
+        cells.append(['%9s' % s for s in header_cells])
+        cells.append([''] * len(header_cells))
+        
+
+        for pos, virtual_angles in pos_virtual_angles_pairs:
+            row_cells = []
+
+
+            angle_tuple = geometry.internal_position_to_physical_angles(pos)
+            angle_tuple = hardware.cut_angles(angle_tuple)
+            for val in angle_tuple:
+                row_cells.append('%9.4f' % val)
+            
+            row_cells.append('|')
+            
+            for name in virtual_angle_names:
+                row_cells.append('%9.4f' %  virtual_angles[name])
+            cells.append(row_cells)
+                
+                
+        column_widths = []
+        for col in range(len(cells[0])):
+            widths = []
+            for row in range(len(cells)):
+                cell = cells[row][col]
+                width = len(cell.strip())
+                widths.append(width)
+            column_widths.append(max(widths))
+        
+        lines = []
+        for row_cells in cells:
+            trimmed_row_cells = []
+            for cell, width in zip(row_cells, column_widths):
+                trimmed_cell = cell.strip().rjust(width)
+                trimmed_row_cells.append(trimmed_cell)
+            lines.append('  '.join(trimmed_row_cells))
+        print '\n'.join(lines)
+
+
+

@@ -22,6 +22,7 @@ from diffcalc.hkl.you.geometry import SixCircle, FourCircle
 from math import pi
 from test.tools import mneq_, aneq_, assert_dict_almost_equal
 import diffcalc.gdasupport.factory # @UnusedImport for VERBOSE
+import diffcalc.util
 
 try:
     from numpy import matrix
@@ -97,6 +98,11 @@ class TestDiffcalcSixc(_BaseCubic):
         angles_calc, param_calc = self.dc.hkl_to_angles(h, k, l)
         aneq_(angles_calc, self.angles)
         assert_dict_almost_equal(param_calc, self.param)
+        
+    def test_allhkl(self):
+        diffcalc.util.DEBUG = True
+        self.dc.hkl.con('eta', 0, 'chi', 0, 'phi', 0)
+        self.dc.hkl.allhkl([.1, 0, .01], 1)
 
 
 class TestDiffcalcFourc(_BaseCubic):

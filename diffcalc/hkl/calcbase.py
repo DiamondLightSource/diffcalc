@@ -83,50 +83,50 @@ class HklCalculatorBase(object):
 
         # to degrees:
         pos.changeToDegrees()
+        
         for key, val in virtualAngles.items():
             if val is not None:
                 virtualAngles[key] = val * TODEG
 
-        (hkl, _) = self.anglesToHkl(pos, wavelength)
+        self._verify_pos_map_to_hkl(h, k, l, wavelength, pos)
+
+        virtualAnglesReadback = self._verify_virtual_angles(h, k, l, wavelength, pos, virtualAngles)
+
+        return pos, virtualAnglesReadback
+
+    def _verify_pos_map_to_hkl(self, h, k, l, wavelength, pos):
+        hkl, _ = self.anglesToHkl(pos, wavelength)
         e = 0.001
-        if ((abs(hkl[0] - h) > e) or
-            (abs(hkl[1] - k) > e) or
+        if ((abs(hkl[0] - h) > e) or (abs(hkl[1] - k) > e) or 
             (abs(hkl[2] - l) > e)):
-            s = ("ERROR: The angles calculated for hkl=(%f,%f,%f) were %s.\n" %
-                 (h, k, l, str(pos)))
-            s += ("Converting these angles back to hkl resulted in hkl="
-                  "(%f,%f,%f)" % (hkl[0], hkl[1], hkl[2]))
+            s = "ERROR: The angles calculated for hkl=(%f,%f,%f) were %s.\n" % (h, k, l, str(pos))
+            s += "Converting these angles back to hkl resulted in hkl="\
+            "(%f,%f,%f)" % (hkl[0], hkl[1], hkl[2])
             if self.raiseExceptionsIfAnglesDoNotMapBackToHkl:
                 raise DiffcalcException(s)
             else:
                 print s
 
+    def _verify_virtual_angles(self, h, k, l, wavelength, pos, virtualAngles):
         # Check that the virtual angles calculated/fixed during the hklToAngles
-        # those read back from pos using anglesToVirtualAngles
+    # those read back from pos using anglesToVirtualAngles
         virtualAnglesReadback = self.anglesToVirtualAngles(pos, wavelength)
-
         for key, val in virtualAngles.items():
-            if val != None:  # Some values calculated in some mode_selector
+            if val != None: # Some values calculated in some mode_selector
                 r = virtualAnglesReadback[key]
-                if ((differ(val, r, .00001) and
-                     differ(val, r + 360, .00001) and
-                     differ(val, r - 360, .00001))):
-                    s = ("ERROR: The angles calculated for hkl=(%f,%f,%f) with"
-                         " mode=%s were %s.\n" % (h, k, l, self.repr_mode(),
-                         str(pos)))
-                    s += ("During verification the virtual angle %s resulting "
-                          "from (or set for) this calculation of %f" %
-                          (key, val))
-                    s += ("did not match that calculated by "
-                          "anglesToVirtualAngles of %f" %
-                          virtualAnglesReadback[key])
-
+                if ((differ(val, r, .00001) and differ(val, r + 360, .00001) and differ(val, r - 360, .00001))):
+                    s = "ERROR: The angles calculated for hkl=(%f,%f,%f) with"\
+                    " mode=%s were %s.\n" % (h, k, l, self.repr_mode(), str(pos))
+                    s += "During verification the virtual angle %s resulting "\
+                    "from (or set for) this calculation of %f" % (key, val)
+                    s += "did not match that calculated by "\
+                    "anglesToVirtualAngles of %f" % virtualAnglesReadback[key]
                     if self.raiseExceptionsIfAnglesDoNotMapBackToHkl:
                         raise DiffcalcException(s)
                     else:
                         print s
-
-        return pos, virtualAnglesReadback
+        
+        return virtualAnglesReadback
 
     def repr_mode(self):
         pass

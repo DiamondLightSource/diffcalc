@@ -622,6 +622,31 @@ class TestConstrain3Sample_ChiPhiEta(_TestCubic):
         self._check((1, 1, 0),
                     P(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0))
 
+    def testHkl_all0_1(self):
+        self.mock_hardware.set_upper_limit('delta', 91)
+        self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0 * TORAD}
+        self._check((.01, .01, .1),
+                    P(mu=8.6194, delta=0.5730, nu=5.7607, eta=0, chi=0, phi=0))
+
+    def testHkl_all0_2(self):
+        self.mock_hardware.set_upper_limit('delta', 91)
+        self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0 * TORAD}
+        self._check((0, 0, .1),
+                    P(mu=2.8660, delta=0, nu=5.7320, eta=0, chi=0, phi=0))
+
+    def testHkl_all0_3(self):
+        self.mock_hardware.set_upper_limit('delta', 91)
+        self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0 * TORAD}
+        self._check((.1, 0, .01),
+                    P(mu=30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0))
+
+    def testHkl_show_all_solutionsall0_3(self):
+        self.mock_hardware.set_upper_limit('delta', 91)
+        self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0 * TORAD}
+        self._check((.1, 0, .01),
+                    P(mu=30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0))
+        print self.calc.hkl_to_all_angles(.1, 0, .01, 1)
+
 
 def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
     return YouPosition(mu, delta, gamma, eta, chi, phi)

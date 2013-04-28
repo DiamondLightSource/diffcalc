@@ -367,38 +367,4 @@ class YouConstraintManager(object):
     def get_constraint(self, name):
         value = self.all[name]
         return None if value is None else value * TODEG
-
-    def update_tracked(self):
-        pass  # not used
-
-#    def track(self, name):
-#        self._check_constraint_settable(name, 'track')
-#        if name not in trackable_constraints:
-#            raise DiffcalcException(
-#"""Could not configure %s to track as this constraint is not associated with a
-#physical angle.""" % name)
-#        elif name in self._tracking:
-#            return "%s was already configured to track." % name.capitalize()
-#        else:
-#            old_value = self.all[name]
-#            old = str(old_value) if old_value is not None else '---'
-#            self._tracking.append(name)
-#            self.update_tracked()
-#            new = str(self.all[name])
-#            return "%(name)s : %(old)s ~~> %(new)s (tracking)" % locals()
-#
-#    def untrack(self, name):
-#        if name not in self._tracking:
-#            return "%s was not configured to track." % name.capitalize()
-#        self._tracking.remove(name)
-#
-#    def update_tracked(self):
-#        if self._tracking:
-#            physical_angles = tuple(self._hardware.get_position())
-#            angle_names = tuple(self._hardware.get_axes_names())
-#            for name in self._tracking:
-#                self._constrained[name] = \
-#                    physical_angles[list(angle_names).index(name)]
-#
-#    def is_tracking(self, name):
-#        return name in self._tracking
+    
