@@ -42,6 +42,7 @@ TORAD = pi / 180
 TODEG = 180 / pi
 I = matrix('1 0 0; 0 1 0; 0 0 1')
 
+from diffcalc.hkl.you.constraints import NUNAME
 
 class Pair:
 
@@ -57,7 +58,7 @@ class _BaseTest():
     def setup(self):
         self.mock_ubcalc = createMockUbcalc(None)
         self.mock_geometry = createMockDiffractometerGeometry()
-        names = ['delta', 'nu', 'mu', 'eta', 'chi', 'phi']
+        names = ['delta', NUNAME, 'mu', 'eta', 'chi', 'phi']
         self.mock_hardware = SimpleHardwareAdapter(names)
         self.constraints = YouConstraintManager(self.mock_hardware)
         self.calc = YouHklCalculator(self.mock_ubcalc, self.mock_geometry,
@@ -180,7 +181,7 @@ class TestCubicVertical_aeqb(_TestCubicVertical):
 
     def setup(self):
         _TestCubicVertical.setup(self)
-        self.constraints._constrained = {'a_eq_b': None, 'mu': 0, 'nu': 0}
+        self.constraints._constrained = {'a_eq_b': None, 'mu': 0, NUNAME: 0}
 
 
 class TestCubicVertical_psi_90(_TestCubicVertical):
@@ -188,7 +189,7 @@ class TestCubicVertical_psi_90(_TestCubicVertical):
 
     def setup(self):
         _TestCubicVertical.setup(self)
-        self.constraints._constrained = {'psi': 90 * TORAD, 'mu': 0, 'nu': 0}
+        self.constraints._constrained = {'psi': 90 * TORAD, 'mu': 0, NUNAME: 0}
 
 
 class TestCubicVertical_qaz_90(_TestCubicVertical):
@@ -298,7 +299,7 @@ class TestAgainstSpecSixcB16_270608(_BaseTest):
                     (0, 0, 1.156971)))
 
         self.UB = U * B
-        self.constraints._constrained = {'a_eq_b': None, 'mu': 0, 'nu': 0}
+        self.constraints._constrained = {'a_eq_b': None, 'mu': 0, NUNAME: 0}
         self.places = 2  # TODO: the Vlieg code got this to 3 decimal places
 
     def _configure_ub(self):
@@ -353,7 +354,7 @@ class SkipTestThreeTwoCircleForDiamondI06andI10(_BaseTest):
 
     def setup(self):
         _BaseTest.setup(self)
-        self.constraints._constrained = {'phi': -pi / 2, 'nu': 0, 'mu': 0}
+        self.constraints._constrained = {'phi': -pi / 2, NUNAME: 0, 'mu': 0}
         self.wavelength = 12.39842 / 1.650
 
     def _configure_ub(self):
@@ -396,7 +397,7 @@ class TestFixedChiPhiPsiMode_DiamondI07SurfaceNormalHorizontal(_TestCubic):
 
     def setup(self):
         _TestCubic.setup(self)
-        self.mock_hardware.set_lower_limit('nu', 0)
+        self.mock_hardware.set_lower_limit(NUNAME, 0)
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'a_eq_b': None}
         self.wavelength = 1
         self.UB = I * 2 * pi
@@ -477,7 +478,7 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
 
     def setup(self):
         _TestCubic.setup(self)
-        self.mock_hardware.set_lower_limit('nu', 0)
+        self.mock_hardware.set_lower_limit(NUNAME, 0)
         self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0,
                                          'a_eq_b': None}
         self.wavelength = 1
@@ -563,7 +564,7 @@ class TestConstrain3Sample_ChiPhiEta(_TestCubic):
 
     def setup(self):
         _TestCubic.setup(self)
-        self.mock_hardware.set_lower_limit('nu', 0)
+        self.mock_hardware.set_lower_limit(NUNAME, 0)
         self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0,
                                          'a_eq_b': None}
         self.wavelength = 1

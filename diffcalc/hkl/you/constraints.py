@@ -28,6 +28,7 @@ from diffcalc.util import DiffcalcException
 TODEG = 180 / pi
 TORAD = pi / 180
 
+NUNAME = 'gam'
 
 def filter_dict(d, keys):
     """Return a copy of d containing only keys that are in keys"""
@@ -35,12 +36,11 @@ def filter_dict(d, keys):
     return dict((k, d[k]) for k in keys if k in d.keys())
 
 
-det_constraints = ('delta', 'nu', 'qaz', 'naz')
+det_constraints = ('delta', NUNAME, 'qaz', 'naz')
 ref_constraints = ('a_eq_b', 'alpha', 'beta', 'psi')
-samp_constraints = ('mu', 'eta', 'chi', 'phi', 'mu_is_nu')
+samp_constraints = ('mu', 'eta', 'chi', 'phi', 'mu_is_' + NUNAME)
 
-trackable_constraints = ('delta', 'nu', 'mu', 'eta', 'chi', 'phi')
-valueless_constraints = ('a_eq_b', 'mu_is_nu')
+valueless_constraints = ('a_eq_b', 'mu_is_' + NUNAME)
 all_constraints = det_constraints + ref_constraints + samp_constraints
 
 
@@ -147,8 +147,8 @@ class YouConstraintManager(object):
             self._hide_detector_constraint = True
         
         fixed_samp_constraints = list(self.sample.keys())
-        if 'mu' in self.sample or 'nu' in self.detector:
-            fixed_samp_constraints.append('mu_is_nu')
+        if 'mu' in self.sample or NUNAME in self.detector:
+            fixed_samp_constraints.append('mu_is_' + NUNAME)
         self._fixed_samp_constraints = tuple(fixed_samp_constraints)
         
 

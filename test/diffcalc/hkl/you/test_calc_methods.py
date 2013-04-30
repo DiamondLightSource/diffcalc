@@ -38,6 +38,7 @@ from test.diffcalc.hkl.vlieg.test_calc import \
 from test.diffcalc.test_hardware import SimpleHardwareAdapter
 from diffcalc.util import DiffcalcException
 
+from diffcalc.hkl.you.constraints import NUNAME
 
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -378,14 +379,14 @@ class Test_calc_detector_angles_given_one():
             assert_almost_equal(qaz * TODEG, qaz_e)
 
     def test_nu_given0(self):
-        self.check('nu', 0, theta=3, delta_e=6, nu_e=0, qaz_e=90)
+        self.check(NUNAME, 0, theta=3, delta_e=6, nu_e=0, qaz_e=90)
 
     def test_nu_given1(self):
-        self.check('nu', 10, theta=7.0530221302831952,
+        self.check(NUNAME, 10, theta=7.0530221302831952,
                    delta_e=10, nu_e=10, qaz_e=None)
 
     def test_nu_given2(self):
-        self.check('nu', 6, theta=3, delta_e=0, nu_e=6, qaz_e=0)
+        self.check(NUNAME, 6, theta=3, delta_e=0, nu_e=6, qaz_e=0)
 
     def test_delta_given0(self):
         self.check('delta', 0, theta=3, delta_e=0, nu_e=6, qaz_e=0)
@@ -512,14 +513,14 @@ class Test_calc_remaining_sample_angles_given_one():
 class TestSolutionGenerator():
     def setup(self):
 
-        names = ['delta', 'nu', 'mu', 'eta', 'chi', 'phi']
+        names = ['delta', NUNAME, 'mu', 'eta', 'chi', 'phi']
         self.hardware = SimpleHardwareAdapter(names)
         self.calc = YouHklCalculator(createMockUbcalc(None),
                                      createMockDiffractometerGeometry(),
                                      self.hardware,
                                      Mock())
 
-    # constraint could have been 'delta', 'nu', 'qaz' or 'naz'.
+    # constraint could have been 'delta', NUNAME, 'qaz' or 'naz'.
 
     def test_generate_possible_det_soln_no_limits_constrained_qaz_or_naz(self):
         # we will enfoce the order too, incase this later effects heuristically
@@ -545,10 +546,10 @@ class TestSolutionGenerator():
 
         assert_2darray_almost_equal(expected,
             self.calc._generate_possible_solutions(
-                (.1, .2), ('delta', 'nu'), ('naz',)))
+                (.1, .2), ('delta', NUNAME), ('naz',)))
         assert_2darray_almost_equal(expected,
             self.calc._generate_possible_solutions(
-                (.1, .2), ('delta', 'nu'), ('qaz',)))
+                (.1, .2), ('delta', NUNAME), ('qaz',)))
 
     def test_generate_poss_det_soln_no_lim_cons_qaz_or_naz_delta_and_nu_at_zro(self):  # @IgnorePep8
         # we will enfoce the order too, incase this later effects hearistically
@@ -562,10 +563,10 @@ class TestSolutionGenerator():
 
         assert_2darray_almost_equal(expected,
             self.calc._generate_possible_solutions(
-                (-2e-9, 2e-9), ('delta', 'nu'), ('naz',)))
+                (-2e-9, 2e-9), ('delta', NUNAME), ('naz',)))
         assert_2darray_almost_equal(expected,
             self.calc._generate_possible_solutions(
-                (-2e-9, 2e-9), ('delta', 'nu'), ('qaz',)))
+                (-2e-9, 2e-9), ('delta', NUNAME), ('qaz',)))
 
     def test_generate_possible_det_solutions_no_limits_constrained_delta(self):
         expected = (
@@ -577,7 +578,7 @@ class TestSolutionGenerator():
 
         assert_2darray_almost_equal(expected,
                 self.calc._generate_possible_solutions(
-                    (.1, .2), ('delta', 'nu'), ('delta',)))
+                    (.1, .2), ('delta', NUNAME), ('delta',)))
 
     def test_generate_possible_det_solutions_no_limits_constrained_nu(self):
         expected = (
@@ -589,10 +590,10 @@ class TestSolutionGenerator():
 
         assert_2darray_almost_equal(expected,
             self.calc._generate_possible_solutions(
-                (.1, .2), ('delta', 'nu'), ('nu',)))
+                (.1, .2), ('delta', NUNAME), (NUNAME,)))
 
     def test_generate_possible_det_soln_with_limits_constrained_delta(self):
-        self.hardware.set_lower_limit('nu', 0)
+        self.hardware.set_lower_limit(NUNAME, 0)
         expected = (
                     (.1, .2),
                     (.1, pi - .2),
@@ -600,7 +601,7 @@ class TestSolutionGenerator():
 
         assert_2darray_almost_equal(expected,
             self.calc._generate_possible_solutions(
-                (.1, .2), ('delta', 'nu'), ('delta',)))
+                (.1, .2), ('delta', NUNAME), ('delta',)))
 
     def test_generate_possible_det_solutions_with_limits_constrained_nu(self):
         self.hardware.set_upper_limit('delta', 0)
@@ -611,13 +612,13 @@ class TestSolutionGenerator():
 
         assert_2darray_almost_equal(expected,
             self.calc._generate_possible_solutions(
-                (.1, .2), ('delta', 'nu'), ('nu',)))
+                (.1, .2), ('delta', NUNAME), (NUNAME,)))
 
     def test_generate_poss_det_soln_with_limits_overly_constrained_nu(self):
         self.hardware.set_lower_limit('delta', .3)
         self.hardware.set_upper_limit('delta', .31)
         eq_(len(self.calc._generate_possible_solutions(
-            (.1, .2), ('delta', 'nu'), ('nu',))), 0)
+            (.1, .2), ('delta', NUNAME), (NUNAME,))), 0)
 
     def test_generate_possible_sample_solutions(self):
         result = self.calc._generate_possible_solutions(

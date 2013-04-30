@@ -34,6 +34,7 @@ from diffcalc.util import DiffcalcException, bound, angle_between_vectors
 from diffcalc.util import cross3, z_rotation, x_rotation
 from diffcalc.ub.calc import PaperSpecificUbCalcStrategy
 
+from diffcalc.hkl.you.constraints import NUNAME
 logger = logging.getLogger("diffcalc.hkl.you.calc")
 I = matrix('1 0 0; 0 1 0; 0 0 1')
 y = matrix('0; 1; 0')
@@ -151,7 +152,7 @@ def _tidy_degenerate_solutions(pos, constraints):
             if PRINT_DEGENERATE:
                 print ('DEGENERATE: with chi=0, phi and eta are colinear:'
                        'choosing eta = delta/2 by adding % 7.3f to eta and '
-                       'removing it from phi. (mu=nu=0 only)' % (eta_diff * TODEG))
+                       'removing it from phi. (mu=%s=0 only)' % (eta_diff * TODEG, NUNAME))
                 print '            original:', original
 
     elif delta_constrained_to_0 and eta_constrained_to_0:
@@ -163,8 +164,8 @@ def _tidy_degenerate_solutions(pos, constraints):
             pos.phi += mu_diff
             if PRINT_DEGENERATE:
                 print ('DEGENERATE: with chi=90, phi and mu are colinear: choosing'
-                       ' mu = nu/2 by adding % 7.3f to mu and to phi. '
-                       '(delta=eta=0 only)' % (mu_diff * TODEG))
+                       ' mu = %s/2 by adding % 7.3f to mu and to phi. '
+                       '(delta=eta=0 only)' % (NUNAME, mu_diff * TODEG))
                 print '            original:', original
 
     return pos
@@ -549,7 +550,7 @@ class YouHklCalculator(HklCalculatorBase):
                     'theta is so small (%.4f).' % theta * TODEG)
             qaz = asin(bound(sin(delta) / sin_2theta))              # (17 & 18)
 
-        elif constraint_name == 'nu':
+        elif constraint_name == NUNAME:
             nu = constraint_value
 #            cos_delta = cos(2*theta) / cos(nu)#<--fails when nu = 90
 #            delta = acos(bound(cos_delta))
@@ -562,8 +563,8 @@ class YouHklCalculator(HklCalculatorBase):
             cos_qaz = tan(nu) / tan(2 * theta)
             if abs(cos_qaz) > 1 + SMALL:
                 raise DiffcalcException(
-                    'The specified nu=%.4f is greater than the 2theta (%.4f)'
-                    % (nu, theta))
+                    'The specified %s=%.4f is greater than the 2theta (%.4f)'
+                    % (NUNAME, nu, theta))
             qaz = acos(bound(cos_qaz))
 
         elif constraint_name == 'qaz':
@@ -574,7 +575,7 @@ class YouHklCalculator(HklCalculatorBase):
                 constraint_name + ' is not an explicit detector angle '
                 '(naz cannot be handled here)')
 
-        if constraint_name != 'nu':
+        if constraint_name != NUNAME:
             nu = atan2(sin(2 * theta) * cos(qaz), cos(2 * theta))
 
         if constraint_name != 'delta':
@@ -635,7 +636,7 @@ class YouHklCalculator(HklCalculatorBase):
             if not delta_nu_pairs:
                 continue
             delta, nu = self._choose_detector_solution(delta_nu_pairs)
-            logger.info("delta=%.3f, nu=%.3f", delta * TODEG, nu * TODEG)
+            logger.info("delta=%.3f, %s=%.3f", delta * TODEG, NUNAME, nu * TODEG)
             mu_eta_chi_phi_tuples = self._generate_sample_solutions(
                 mu, eta, chi, phi, samp_constraints.keys(), delta, 
                 nu, wavelength, (h, k, l), ref_constraint_name, 
@@ -775,7 +776,7 @@ class YouHklCalculator(HklCalculatorBase):
             delta_nu_pairs = self._generate_detector_solutions(
                 delta_, nu_, qaz, theta, 'qaz', filter_out_of_limits)
             for delta, nu in delta_nu_pairs:
-                logger.info("delta=%.3f, nu=%.3f", delta * TODEG, nu * TODEG)
+                logger.info("delta=%.3f, %s=%.3f", delta * TODEG, NUNAME, nu * TODEG)
     #                delta, nu = self._choose_detector_solution(delta_nu_pairs)
                 mu_eta_chi_phi_tuples = self._generate_sample_solutions(
                     mu_, eta_, chi_, phi_, samp_constraints.keys(), delta, 
@@ -885,16 +886,17 @@ class YouHklCalculator(HklCalculatorBase):
                                         theta, det_constraint_name,
                                         filter_out_of_limits=True):
         if (ne(initial_delta, pi / 2) and
-            ('nu' not in self.constraints.detector)):
+            (NUNAME not in self.constraints.detector)):
             if PRINT_DEGENERATE:
-                print ('DEGENERATE: with delta=90, nu is degenerate: choosing '
-                       'nu = 0 (allowed because nu is unconstrained)')
+                print (('DEGENERATE: with delta=90, %s is degenerate: choosing '
+                       '%s = 0 (allowed because %s is unconstrained)') %
+                       (NUNAME, NUNAME, NUNAME))
             return ((initial_delta, 0), )  # delta, nu
 
-        logger.info('initial detector solution - delta=% 7.3f, nu=% 7.3f',
-                    initial_delta * TODEG, initial_nu * TODEG)
+        logger.info('initial detector solution - delta=% 7.3f, %s=% 7.3f',
+                    initial_delta * TODEG, NUNAME, initial_nu * TODEG)
         possible_delta_nu_pairs = self._generate_possible_solutions(
-            [initial_delta, initial_nu], ['delta', 'nu'],
+            [initial_delta, initial_nu], ['delta', NUNAME],
             (det_constraint_name,), filter_out_of_limits)
         delta_nu_pairs = _filter_detector_solutions_by_theta_and_qaz(
             possible_delta_nu_pairs, theta, qaz)
@@ -1091,11 +1093,11 @@ def _mu_and_qaz_from_eta_chi_phi(eta, chi, phi, theta, h_phi):
     
     [MU, _, _, ETA, CHI, PHI] = create_you_matrices(mu1, None, None, eta, chi, phi)
     h_lab = MU * ETA * CHI * PHI * h_phi                                 # (11)
-    qaz1 = atan(h_lab[0, 0] / h_lab[2, 0])
+    qaz1 = atan2(h_lab[0, 0] , h_lab[2, 0])
 
     [MU, _, _, ETA, CHI, PHI] = create_you_matrices(mu2, None, None, eta, chi, phi)
     h_lab = MU * ETA * CHI * PHI * h_phi                                 # (11)
-    qaz2 = atan(h_lab[0, 0] / h_lab[2, 0])
+    qaz2 = atan2(h_lab[0, 0] , h_lab[2, 0])
 
     return (mu1, qaz1) , (mu2, qaz2)
 
@@ -1105,5 +1107,5 @@ def _raise_multiple_detector_solutions_found(delta_nu_pairs):
     delta_nu_pairs_degrees = [[v * TODEG for v in pair]
                                   for pair in delta_nu_pairs]
     raise DiffcalcException(
-        'Multiple detector solutions were found: delta, nu = %s, '
-        'please constrain detector limits' % delta_nu_pairs_degrees)
+        'Multiple detector solutions were found: delta, %s = %s, '
+        'please constrain detector limits' % NUNAME, delta_nu_pairs_degrees)

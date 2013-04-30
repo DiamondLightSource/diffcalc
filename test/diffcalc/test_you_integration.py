@@ -23,6 +23,7 @@ from math import pi
 from test.tools import mneq_, aneq_, assert_dict_almost_equal
 import diffcalc.gdasupport.factory # @UnusedImport for VERBOSE
 import diffcalc.util
+from diffcalc.hkl.you.constraints import NUNAME
 
 try:
     from numpy import matrix
@@ -54,7 +55,7 @@ class _BaseCubic():
 class TestDiffcalcSixc(_BaseCubic):
 
     def setup(self):
-        axes = 'mu', 'delta', 'nu', 'eta', 'chi', 'phi'
+        axes = 'mu', 'delta', NUNAME, 'eta', 'chi', 'phi'
         #axes = 'my_mu', 'my_delta', 'my_nu', 'my_eta', 'my_chi', 'my_phi' # TODO: Make pass!
         self.hardware = DummyHardwareAdapter(axes)
         self.dc = create_diffcalc('you', SixCircle(), self.hardware)
@@ -75,7 +76,7 @@ class TestDiffcalcSixc(_BaseCubic):
     def test_hkl_to_angles_bypassing_hardware_plugin(self):
         self.dc.hkl.con('a_eq_b')
         self.dc.hkl.con('mu', 0)
-        self.dc.hkl.con('nu', 0)
+        self.dc.hkl.con(NUNAME, 0)
 
         h, k, l = self.hkl
         angles_calc, param_calc = self.dc.hkl_to_angles(h, k, l, self.en)
@@ -91,7 +92,7 @@ class TestDiffcalcSixc(_BaseCubic):
     def test_hkl_to_angles(self):
         self.dc.hkl.con('a_eq_b')
         self.dc.hkl.con('mu', 0)
-        self.dc.hkl.con('nu', 0)
+        self.dc.hkl.con(NUNAME, 0)
 
         h, k, l = self.hkl
         self.energy = self.en

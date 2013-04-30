@@ -24,6 +24,7 @@ TORAD = pi / 180
 TODEG = 180 / pi
 from diffcalc.util import x_rotation, z_rotation, y_rotation
 
+from diffcalc.hkl.you.constraints import NUNAME
 
 class _YouGeometry(object):
 
@@ -65,7 +66,7 @@ class FourCircle(_YouGeometry):
           delta, eta, chi, phi
     """
     def __init__(self):
-        _YouGeometry.__init__(self, 'fourc', {'mu': 0, 'nu': 0})
+        YouGeometry.__init__(self, 'fourc', {'mu': 0, NUNAME: 0})
 
     def physical_angles_to_internal_position(self, physical_angle_tuple):
         # mu, delta, nu, eta, chi, phi

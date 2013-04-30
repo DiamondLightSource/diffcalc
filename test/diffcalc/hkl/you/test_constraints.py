@@ -25,6 +25,8 @@ from diffcalc.util import DiffcalcException
 from nose.tools import raises
 from nose.tools import assert_raises  # @UnresolvedImport
 
+from diffcalc.hkl.you.constraints import NUNAME
+
 def joined(d1, d2):
     d1.update(d2)
     return d1
@@ -36,7 +38,7 @@ class TestConstraintManager:
         self.hardware_monitor = Mock()
         self.hardware_monitor.get_position.return_value = (1.,) * 6
         self.hardware_monitor.get_axes_names.return_value = [
-                                      'mu', 'delta', 'nu', 'eta', 'chi', 'phi']
+                                      'mu', 'delta', NUNAME, 'eta', 'chi', 'phi']
         self.cm = YouConstraintManager(self.hardware_monitor)
 
     def test_init(self):
@@ -57,10 +59,10 @@ class TestConstraintManager:
             ['    DET        REF        SAMP',
              '    ======     ======     ======',
              '    delta      a_eq_b     mu',
-             '    nu     o-> alpha  --> eta',
+             '    %s o-> alpha  --> eta' % NUNAME.ljust(6),
              '--> qaz        beta       chi',
              '    naz        psi        phi',
-             '                          mu_is_nu'])
+             '                          mu_is_%s' % NUNAME])
 
 
 #"""
@@ -277,17 +279,17 @@ class TestConstraintManager:
             ['!   3 more constraints required'])
 
     def test_report_constraints_one_with_value(self):
-        self.cm.constrain('nu')
-        self.cm.set_constraint('nu', 9.12343)
+        self.cm.constrain(NUNAME)
+        self.cm.set_constraint(NUNAME, 9.12343)
         eq_(self.cm.report_constraints_lines(),
             ['!   2 more constraints required',
-             '    nu: 9.1234'])
+             '    %s: 9.1234' % NUNAME])
 
     def test_report_constraints_one_with_novalue(self):
-        self.cm.constrain('nu')
+        self.cm.constrain(NUNAME)
         eq_(self.cm.report_constraints_lines(),
             ['!   2 more constraints required',
-             '!   nu: ---'])
+             '!   %s: ---' % NUNAME])
 
     def test_report_constraints_one_with_valueless(self):
         self.cm.constrain('a_eq_b')
@@ -497,17 +499,17 @@ class TestConstraintManager:
 class TestConstraintManagerWithFourCircles:
 
     def setUp(self):
-        self.cm = YouConstraintManager(None, {'nu': 0, 'mu': 0})    
+        self.cm = YouConstraintManager(None, {NUNAME: 0, 'mu': 0})    
 
     def test_init(self):
-        eq_(self.cm.all, {'nu': 0, 'mu': 0})
-        eq_(self.cm.detector, {'nu': 0})
+        eq_(self.cm.all, {NUNAME: 0, 'mu': 0})
+        eq_(self.cm.detector, {NUNAME: 0})
         eq_(self.cm.reference, {})
         eq_(self.cm.sample, {'mu': 0})
         eq_(self.cm.naz, {})
 
     def test_build_initial_display_table_with_fixed_detector(self):
-        self.cm = YouConstraintManager(None, {'nu': 0})
+        self.cm = YouConstraintManager(None, {NUNAME: 0})
         print self.cm.build_display_table_lines()
         eq_(self.cm.build_display_table_lines(),
             ['    REF        SAMP',
@@ -524,12 +526,12 @@ class TestConstraintManagerWithFourCircles:
             ['    DET        REF        SAMP',
              '    ======     ======     ======',
              '    delta      a_eq_b     eta',
-             '    nu         alpha      chi',
+             '    %s     alpha      chi' % NUNAME.ljust(6),
              '    qaz        beta       phi',
              '    naz        psi'])
         
     def test_build_initial_display_table_for_four_circle(self):
-        self.cm = YouConstraintManager(None, {'mu': 0, 'nu': 0})
+        self.cm = YouConstraintManager(None, {'mu': 0, NUNAME: 0})
         print self.cm.build_display_table_lines()
         eq_(self.cm.build_display_table_lines(),
             ['    REF        SAMP',
@@ -541,19 +543,19 @@ class TestConstraintManagerWithFourCircles:
         
     def test_constrain_fixed_detector_angle(self):
         assert_raises(DiffcalcException, self.cm.constrain, 'delta')
-        assert_raises(DiffcalcException, self.cm.constrain, 'nu')
+        assert_raises(DiffcalcException, self.cm.constrain, NUNAME)
         assert_raises(DiffcalcException, self.cm.constrain, 'naz')
         assert_raises(DiffcalcException, self.cm.constrain, 'qaz')
 
     def test_unconstrain_fixed_detector_angle(self):
         assert_raises(DiffcalcException, self.cm.unconstrain, 'delta')
-        assert_raises(DiffcalcException, self.cm.unconstrain, 'nu')
+        assert_raises(DiffcalcException, self.cm.unconstrain, NUNAME)
         assert_raises(DiffcalcException, self.cm.unconstrain, 'naz')
         assert_raises(DiffcalcException, self.cm.unconstrain, 'qaz')
         
     def test_set_constrain_fixed_detector_angle(self):
         assert_raises(DiffcalcException, self.cm.set_constraint, 'delta', 0)
-        assert_raises(DiffcalcException, self.cm.set_constraint, 'nu', 0)
+        assert_raises(DiffcalcException, self.cm.set_constraint, NUNAME, 0)
         assert_raises(DiffcalcException, self.cm.set_constraint, 'naz', 0)
         assert_raises(DiffcalcException, self.cm.set_constraint, 'qaz', 0)
     

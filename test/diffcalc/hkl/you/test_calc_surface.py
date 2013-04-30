@@ -37,7 +37,7 @@ from diffcalc.ub.calc import UBCalculation
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from test.diffcalc.hkl.you.test_calc import _BaseTest
-
+from diffcalc.hkl.you.constraints import NUNAME
 
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -189,7 +189,7 @@ class TestFixedMuEta(_BaseTest):
                                          'eta': 0}
 
     def _configure_limits(self):
-        self.mock_hardware.set_lower_limit('nu', None)
+        self.mock_hardware.set_lower_limit(NUNAME, None)
         self.mock_hardware.set_upper_limit('delta', 90)
         self.mock_hardware.set_lower_limit('mu', None)
         self.mock_hardware.set_lower_limit('eta', None)
@@ -396,7 +396,7 @@ class Test_Pt531_FixedMuChi(_BaseTest):
                                          'chi': pi / 2}
 
     def _configure_limits(self):
-        self.mock_hardware.set_lower_limit('nu', None)
+        self.mock_hardware.set_lower_limit(NUNAME, None)
         #self.mock_hardware.set_lower_limit('delta', None)
         self.mock_hardware.set_upper_limit('delta', 90)
         self.mock_hardware.set_lower_limit('mu', None)
