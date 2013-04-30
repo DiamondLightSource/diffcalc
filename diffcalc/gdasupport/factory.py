@@ -31,7 +31,7 @@ import diffcalc.hkl.you.geometry
 from diffcalc.hardware import ScannableHardwareAdapter
 from diffcalc.util import format_command_help, ExternalCommand
 from diffcalc.hkl.vlieg.geometry import VliegGeometry
-from diffcalc.hkl.you.geometry import _YouGeometry
+from diffcalc.hkl.you.geometry import YouGeometry
 from diffcalc.ub.persistence import UBCalculationPersister
 import textwrap
 
@@ -244,7 +244,7 @@ def _determine_vlieg_geometry(geometry):
 
 
 def _determine_you_geometry(geometry):
-    if isinstance(geometry, _YouGeometry):
+    if isinstance(geometry, YouGeometry):
         return geometry
     elif type(geometry) is str:
         try:

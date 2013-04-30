@@ -26,7 +26,7 @@ from diffcalc.util import x_rotation, z_rotation, y_rotation
 
 from diffcalc.hkl.you.constraints import NUNAME
 
-class _YouGeometry(object):
+class YouGeometry(object):
 
     def __init__(self, name, fixed_constraints ):
         self.name = name
@@ -49,9 +49,9 @@ class _YouGeometry(object):
 #==============================================================================
 
 
-class SixCircle(_YouGeometry):
+class SixCircle(YouGeometry):
     def __init__(self):
-        _YouGeometry.__init__(self, 'sixc', {})
+        YouGeometry.__init__(self, 'sixc', {})
 
     def physical_angles_to_internal_position(self, physical_angle_tuple):
         # mu, delta, nu, eta, chi, phi
@@ -61,7 +61,7 @@ class SixCircle(_YouGeometry):
         return internal_position.totuple()
 
 
-class FourCircle(_YouGeometry):
+class FourCircle(YouGeometry):
     """For a diffractometer with angles:
           delta, eta, chi, phi
     """
