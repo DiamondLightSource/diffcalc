@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
-
+from __future__ import absolute_import
 
 from diffcalc.gdasupport.factory import \
     create_objects, add_objects_to_namespace
@@ -37,10 +37,10 @@ from diffcalc.gdasupport.minigda.scannable import SingleFieldDummyScannable
 
 print '=' * 80
 print "Creating dummy scannables:"
-print "   mu, delta, nu, eta, chi, phi and en"
+print "   mu, delta, gam, eta, chi, phi and en"
 mu = SingleFieldDummyScannable('mu')
 delta = SingleFieldDummyScannable('delta')
-nu = SingleFieldDummyScannable('nu')
+gam = SingleFieldDummyScannable('gam')
 eta = SingleFieldDummyScannable('eta')
 chi = SingleFieldDummyScannable('chi')
 phi = SingleFieldDummyScannable('phi')
@@ -52,7 +52,7 @@ virtual_angles = ('theta', 'qaz', 'alpha', 'naz', 'tau', 'psi', 'beta')
 _objects = create_objects(
     engine_name='you',
     geometry='sixc',
-    axis_scannable_list=(mu, delta, nu, eta, chi, phi),
+    axis_scannable_list=(mu, delta, gam, eta, chi, phi),
     energy_scannable=en,
     hklverbose_virtual_angles_to_report=virtual_angles,
     simulated_crystal_counter_name='ct',
@@ -142,8 +142,8 @@ def demo_constrain():
     echo("con('mu', 0)")
     con('mu', 0)  # @UndefinedVariable
 
-    echo("cons()")
-    cons()  # @UndefinedVariable
+    echo("con()")
+    con()  # @UndefinedVariable
 
     echo("setmin(delta, 0)")
     setmin(delta, 0)  # @UndefinedVariable
@@ -168,9 +168,3 @@ def demo_scan():
     con(psi)  # @UndefinedVariable
     echo("scan(psi, 0, 90, 10, hkl, [1, 0, 1], eta, chi, phi, ct, .1)")
     scan(psi, 0, 90, 10, hkl, [1, 0, 1], eta, chi, phi, ct, .1)  # @UndefinedVariable
-    
-demo_all()
-print "*" * 80
-print "*" * 80
-print "*" * 80
-demo_scan()
