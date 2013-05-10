@@ -39,8 +39,8 @@ def demo_all():
     print "CONSTRAIN\n"
     demo_constrain()
 
-    print "MOVE"
-    demo_move()
+    print "CALC\n"
+    demo_calc()
 
 
 def demo_setup():
@@ -52,8 +52,8 @@ def demo_setup():
     print "\n>>> from diffcalc.diffcalc_ import create_diffcalc"
     from diffcalc.diffcalc_ import create_diffcalc
 
-    print "\n>>> hardware = DummyHardwareAdapter(('mu', 'delta', 'nu', 'eta', 'chi', 'phi'))"
-    hardware = DummyHardwareAdapter(('mu', 'delta', 'nu', 'eta', 'chi', 'phi'))
+    print "\n>>> hardware = DummyHardwareAdapter(('mu', 'delta', 'gam', 'eta', 'chi', 'phi'))"
+    hardware = DummyHardwareAdapter(('mu', 'delta', 'gam', 'eta', 'chi', 'phi'))
     print "\n>>> dc = create_diffcalc('you', SixCircle(), hardware)"
     dc = create_diffcalc('you', SixCircle(), hardware)
 
@@ -85,7 +85,7 @@ def demo_orient():
     print "\n>>> dc.ub.c2th([1, 0, 0])                            # energy from hardware"
     print dc.ub.c2th([1, 0, 0])
 
-    print "\n>>> hardware.position = 0, 60, 0, 30, 0, 0           # mu del nu eta chi phi"
+    print "\n>>> hardware.position = 0, 60, 0, 30, 0, 0           # mu del gam eta chi phi"
     hardware.position = 0, 60, 0, 30, 0, 0
 
     print "\n>>> dc.ub.addref([1, 0, 0])                          # energy from hardware"
@@ -130,14 +130,14 @@ def demo_constrain():
     print "\n >>> dc.hkl.con('mu', 0)"
     dc.hkl.con('mu', 0)
 
-    print "\n >>> dc.hkl.cons()"
-    dc.hkl.cons()
+    print "\n >>> dc.hkl.con()"
+    dc.hkl.con()
 
     print "\n >>> hardware.set_lower_limit('delta', 0)"
     hardware.set_lower_limit('delta', 0)
 
 
-def demo_move():
+def demo_calc():
     print "\n >>> dc.hkl_to_angles(1, 0, 0)                        # energy from hardware"
     print dc.hkl_to_angles(1, 0, 0)
 
@@ -154,4 +154,4 @@ def demo_move():
     hkl = cos(10 * TORAD), sin(10 * TORAD), 0
 
     print "\n >>> dc.hkl_to_angles(*hkl)                           # energy from hardware"
-    dc.hkl_to_angles(*hkl)
+    print dc.hkl_to_angles(*hkl)

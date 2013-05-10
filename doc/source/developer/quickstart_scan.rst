@@ -33,11 +33,13 @@ the -i and -m) and type ``demo_all()``::
 
    $ python -i -m example/startup/sixcircle
    >>> demo_all()
+   >>> demo_scan()
 
 Or with IPython::
 
-   $ ipython example/startup/sixcircle.py
+   $ ipython -i example/startup/sixcircle.py
    >>> demo_all()
+   >>> demo_scan()
 
 Alternatively start Python or IPython and cut and paste lines from the rest of
 this tutorial::

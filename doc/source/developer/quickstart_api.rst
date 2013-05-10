@@ -31,7 +31,7 @@ the -i and -m) and type ``demo_all()``::
 
 Or with IPython::
 
-   $ ipython example/startup/sixcircle_api.py
+   $ ipython -i example/startup/sixcircle_api.py
    >>> demo_all()
 
 Alternatively start Python or IPython and cut and paste lines from the rest of

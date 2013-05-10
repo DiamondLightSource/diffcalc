@@ -39,8 +39,11 @@ class Wavelength(DummyPD):
             (12.39842 / pos) / self.energyScannableMultiplierToGetKeV)
 
     def getPosition(self):
-        return 12.39842 / (self.energyScannable.getPosition() *
-                           self.energyScannableMultiplierToGetKeV)
+        energy = self.energyScannable.getPosition()
+        if energy == 0:
+            raise Exception(
+                      "The energy is 0, so no wavelength could be calculated.run_All()")
+        return 12.39842 / (energy * self.energyScannableMultiplierToGetKeV)
 
     def isBusy(self):
         return self.energyScannable.isBusy()
