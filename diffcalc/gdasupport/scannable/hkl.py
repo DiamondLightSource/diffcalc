@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
+import platform
 
 DEBUG = False
 
@@ -37,8 +38,9 @@ class _DynamicDocstringMetaclass(type):
 
 
 class Hkl(ScannableMotionWithScannableFieldsBase):
-
-    #__metaclass__ = _DynamicDocstringMetaclass  # TODO: Removed to fix Jython
+    
+    if platform.system() != 'Java':
+        __metaclass__ = _DynamicDocstringMetaclass  # TODO: Removed to fix Jython
 
     dynamic_docstring = 'Hkl Scannable'
 
