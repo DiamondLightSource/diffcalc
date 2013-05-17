@@ -216,6 +216,11 @@ class YouUbCalcStrategy(PaperSpecificUbCalcStrategy):
         return PHI.I * CHI.I * ETA.I * MU.I * q_lab
 
 
+UNREACHABLE_MSG = (
+    'The current combination of constraints with %s = %.4f\n'
+    'prohibits a solution for the specified reflection.')
+
+
 class YouHklCalculator(HklCalculatorBase):
 
     def __init__(self, ubcalc, geometry, hardware, constraints,
@@ -456,9 +461,9 @@ class YouHklCalculator(HklCalculatorBase):
         """
         if sin(tau) == 0:
             raise DiffcalcException(
-                'The constraint %s could not be used to determine a unique '
-                'azimuth (psi) as the scattering vector (Q) and the reference '
-                'vector (n) are parallel' % name)
+                'The scattering vector (Q) and the reference vector (n) are\n'
+                'parallel. The constraint %s could not be used to determine a\n'
+                'unique azimuthal rotation about the Q vector.' % name)
         if cos(theta) == 0:
             raise DiffcalcException(
                 'The constraint %s could not be used to determine a unique '
@@ -471,14 +476,13 @@ class YouHklCalculator(HklCalculatorBase):
             sin_alpha = (cos(tau) * sin(theta) -
                          cos(theta) * sin(tau) * cos(psi))
             if abs(sin_alpha) > 1 + SMALL:
-                raise DiffcalcException(
-                 'No reflection can be reached where psi = %.4f.' % psi)
+                raise DiffcalcException(UNREACHABLE_MSG % (name, value * TODEG))
             alpha = asin(bound(sin_alpha))
             # Equation 27 for beta
             sin_beta = cos(tau) * sin(theta) + cos(theta) * sin(tau) * cos(psi)
             if abs(sin_beta) > 1 + SMALL:
-                raise DiffcalcException(
-                 'No reflection can be reached where psi = %.4f.' % psi)
+                raise DiffcalcException(UNREACHABLE_MSG % (name, value * TODEG))
+
             beta = asin(bound(sin_beta))
 
         elif name == 'a_eq_b':
@@ -487,21 +491,27 @@ class YouHklCalculator(HklCalculatorBase):
         elif name == 'alpha':
             alpha = value                                                # (24)
             sin_beta = 2 * sin(theta) * cos(tau) - sin(alpha)
+            if abs(sin_beta) > 1 + SMALL:
+                raise DiffcalcException(UNREACHABLE_MSG % (name, value * TODEG))
             beta = asin(sin_beta)
 
         elif name == 'beta':
             beta = value
             sin_alpha = 2 * sin(theta) * cos(tau) - sin(beta)            # (24)
             if abs(sin_alpha) > 1 + SMALL:
-                raise DiffcalcException(
-                 'No reflection can be reached where beta = %.4f.' % beta)
+                raise DiffcalcException(UNREACHABLE_MSG % (name, value * TODEG))
+
             alpha = asin(sin_alpha)
 
         if name != 'psi':
-            cos_psi = ((cos(tau) * sin(theta) - sin(alpha)) /
+            cos_psi = ((cos(tau) * sin(theta) - sin(alpha)) /            # (28)
                        (sin(tau) * cos(theta)))
-            psi = acos(bound(cos_psi))
+            if abs(cos_psi) > (1 + SMALL):
+                hint = "\nAlpha may be too low?" if name == 'alpha' else "";
+                raise DiffcalcException(UNREACHABLE_MSG % (name, value * TODEG) + hint)
+            # TODO: If set, alpha is probably too low
 
+            psi = acos(bound(cos_psi))
         return psi, alpha, beta
 
     def _calc_det_angles_given_det_or_naz_constraint(
@@ -1108,4 +1118,4 @@ def _raise_multiple_detector_solutions_found(delta_nu_pairs):
                                   for pair in delta_nu_pairs]
     raise DiffcalcException(
         'Multiple detector solutions were found: delta, %s = %s, '
-        'please constrain detector limits' % NUNAME, delta_nu_pairs_degrees)
+        'please constrain detector limits' % (NUNAME, delta_nu_pairs_degrees))
