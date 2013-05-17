@@ -353,12 +353,12 @@ class YouHklCalculator(HklCalculatorBase):
 
         if not self.constraints.is_fully_constrained():
             raise DiffcalcException(
-                "\nDiffcalc is not fully constrained.\n"
+                "Diffcalc is not fully constrained.\n"
                 "Type 'help con' for instructions")
 
         if not self.constraints.is_current_mode_implemented():
             raise DiffcalcException(
-                "\nSorry, the selected constraint combination is valid but "
+                "Sorry, the selected constraint combination is valid but "
                 "is not implemented. Type 'help con' for implemented combinations")
               
         # constraints are dictionaries  

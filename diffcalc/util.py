@@ -60,9 +60,11 @@ class DiffcalcException(Exception):
     """
     def __str__(self):
         lines = []
-        lines.append('DiffcalcException:')
         for msg_line in self.message.split('\n'):
-            lines.append('! ' + msg_line)
+            lines.append('* ' + msg_line)
+        width = max(len(l) for l in lines)
+        lines.insert(0, '\n\n' + '*' * width)
+        lines.append('*' * width)
         return '\n'.join(lines)
 
 
@@ -358,6 +360,6 @@ def call_command(f, args):
         # NOTE: TypeErrors resulting from bugs in the core code will be
         # erroneously caught here! TODO: check depth of TypeError stack
         raise TypeError('\n\nUSAGE:\n' + f.__doc__)
-    except DiffcalcException:
+    except DiffcalcException, e:
         # TODO: log and create a new one to shorten stack trace for user
-        raise
+        raise DiffcalcException(e.message)
