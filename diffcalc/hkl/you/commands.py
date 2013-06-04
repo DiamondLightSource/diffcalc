@@ -27,7 +27,8 @@ class YouHklCommands(object):
         self._hklcalc = hklcalc
         self.commands = ['CONSTRAINTS',
                          self.con,
-                         self.uncon]
+                         self.uncon,
+                         self.allhkl]
 
     def __str__(self):
         return self._hklcalc.__str__()
