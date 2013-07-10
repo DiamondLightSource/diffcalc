@@ -33,22 +33,22 @@ from test.tools import wrap_command_to_print_calls, mneq_, aneq_,\
     assert_dict_almost_equal
 
 
-EXPECTED_OBJECTS = ['delref', 'en', 'uncon', 'showref', 'l',
+EXPECTED_OBJECTS = set(['delref', 'en', 'uncon', 'showref', 'l',
                     'hardware', 'checkub', 'listub', 'mu_par', 'saveubas',
                     'eta_par', 'ct', 'setmin', 'ub', 'setcut', 'chi', 'setlat',
-                    'qaz', 'addref', 'swapref', 'newub', 'naz', 'sixc', 'nu',
+                    'qaz', 'addref', 'swapref', 'newub', 'naz', 'sixc', 'gam',
                     'sim', 'phi', 'psi', 'wl',
                     'setmax', 'dc', 'loadub', 'beta', 'hkl', 'delta', 'alpha',
-                    'nu_par', 'trialub', 'delta_par', 'h', 'k', 'phi_par',
+                    'gam_par', 'trialub', 'delta_par', 'h', 'k', 'phi_par',
                      'a_eq_b', 'mu', 'setu', 'eta', 'editref', 'con', 'setub', 'c2th',
-                    'calcub', 'chi_par', 'hklverbose']
+                    'calcub', 'chi_par', 'hklverbose', 'allhkl'])
 
 # Placeholders for names to be added to globals (for benefit of IDE)
 delref = en = uncon = showref = l = hardware = checkub = listub = None
 mu_par = saveubas = eta_par = ct = setmin = ub = setcut = chi = setlat = None
-qaz = addref = swapref = newub = naz = sixc = nu = sim = None
+qaz = addref = swapref = newub = naz = sixc = gam = sim = None
 phi = psi = sigtau = wl = setmax = dc = loadub = beta = hkl = delta = None
-alpha = nu_par = trialub = delta_par = h = k = phi_par = a_eq_b = mu = setu = eta = None
+alpha = gam_par = trialub = delta_par = h = k = phi_par = a_eq_b = mu = setu = eta = None
 editref = con = setub = c2th = calcub = chi_par = hklverbose = None
 
 
@@ -71,7 +71,7 @@ class TestDiffcalcFactorySixc():
     """
 
     def setup(self):
-        axis_names = ('mu', 'delta', 'nu', 'eta', 'chi', 'phi')
+        axis_names = ('mu', 'delta', 'gam', 'eta', 'chi', 'phi')
         virtual_angles = ('theta', 'qaz', 'alpha', 'naz', 'tau', 'psi', 'beta')
         self.objects = create_objects(
             engine_name='you',
@@ -89,7 +89,10 @@ class TestDiffcalcFactorySixc():
                 globals()[name] = obj
 
     def test_created_objects(self):
-        eq_(set(self.objects.keys()), set(EXPECTED_OBJECTS))
+        created_objects = set(self.objects.keys())
+        print "Unexpected objects:", created_objects.difference(EXPECTED_OBJECTS)
+        print "Missing objects:", EXPECTED_OBJECTS.difference(created_objects)
+        eq_(created_objects, EXPECTED_OBJECTS)
 
     def test_help_visually(self):
         print "\n>>> help ub"
@@ -153,7 +156,7 @@ class TestDiffcalcFactorySixc():
         raise SkipTest()
         self._orient()
         con(mu)
-        con(nu)
+        con(gam)
         con('a_eq_b')
         con('a_eq_b')
         pos(hkl, [1, 0, 0])
@@ -161,10 +164,10 @@ class TestDiffcalcFactorySixc():
     def test_hkl_move_okay(self):
         self._orient()
         con(mu)
-        con(nu)
+        con(gam)
         con('a_eq_b')
         pos(mu_par, 0)
-        pos(nu_par, 0)  # TODO: Fails with qaz=90
+        pos(gam_par, 0)  # TODO: Fails with qaz=90
         pos(hkl, [1, 1, 0])  # TODO: prints DEGENERATE. necessary?
         call_scannable(sixc)
 
