@@ -53,38 +53,38 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
 ### State ###
 
     def testNewCalculation(self):
-        self.ubcalc.newCalculation('testcalc')
-        self.assertEqual(self.ubcalc.getName(), 'testcalc',
+        self.ubcalc.start_new('testcalc')
+        self.assertEqual(self.ubcalc.name, 'testcalc',
                          "Name not set by newCalcualtion")
 
     @raises(DiffcalcException)
     def testNewCalculationHasNoU(self):
-        self.ubcalc.newCalculation('testcalc')
+        self.ubcalc.start_new('testcalc')
         print self.ubcalc.U
 
     @raises(DiffcalcException)
     def testNewCalculationHasNoUB(self):
-        self.ubcalc.newCalculation('testcalc')
+        self.ubcalc.start_new('testcalc')
         print self.ubcalc.UB
 
 ### Lattice ###
 
     def testSetLattice(self):
         # Not much to test, just make sure no exceptions
-        self.ubcalc.newCalculation('testcalc')
-        self.ubcalc.setLattice('testlattice', 4.0004, 4.0004, 2.27, 90, 90, 90)
+        self.ubcalc.start_new('testcalc')
+        self.ubcalc.set_lattice('testlattice', 4.0004, 4.0004, 2.27, 90, 90, 90)
 
 ### Calculations ###
 
-    def testSetUManually(self):
+    def testset_U_manually(self):
 
         # Test the calculations with U=I
         U = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         for sess in scenarios.sessions():
             self.setUp()
-            self.ubcalc.newCalculation('testcalc')
-            self.ubcalc.setLattice(sess.name, *sess.lattice)
-            self.ubcalc.setUManually(U)
+            self.ubcalc.start_new('testcalc')
+            self.ubcalc.set_lattice(sess.name, *sess.lattice)
+            self.ubcalc.set_U_manually(U)
             # Check the U matrix
             mneq_(self.ubcalc.U, matrix(U), 4,
                   note="wrong U after manually setting U")
@@ -100,32 +100,32 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
 
     @raises(DiffcalcException)
     def testGetUMatrix(self):
-        self.ubcalc.newCalculation('testcalc')
+        self.ubcalc.start_new('testcalc')
         print self.ubcalc.U
 
     @raises(DiffcalcException)
     def testGetUBMatrix(self):
-        self.ubcalc.newCalculation('testcalc')
+        self.ubcalc.start_new('testcalc')
         print self.ubcalc.UB
 
     def testCalculateU(self):
 
         for sess in scenarios.sessions():
             self.setUp()
-            self.ubcalc.newCalculation('testcalc')
+            self.ubcalc.start_new('testcalc')
             # Skip this test case unless it contains a umatrix
             if sess.umatrix is None:
                 continue
 
-            self.ubcalc.setLattice(sess.name, *sess.lattice)
+            self.ubcalc.set_lattice(sess.name, *sess.lattice)
             ref1 = sess.ref1
             ref2 = sess.ref2
             t = sess.time
-            self.ubcalc.addReflection(
+            self.ubcalc.add_reflection(
                 ref1.h, ref1.k, ref1.l, ref1.pos, ref1.energy, ref1.tag, t)
-            self.ubcalc.addReflection(
+            self.ubcalc.add_reflection(
                 ref2.h, ref2.k, ref2.l, ref2.pos, ref2.energy, ref2.tag, t)
-            self.ubcalc.calculateUB()
+            self.ubcalc.calculate_UB()
             returned = self.ubcalc.U.tolist()
             print "*Required:"
             print sess.umatrix
@@ -140,140 +140,26 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
         print self.ubcalc.__str__()
 
         print "***"
-        self.ubcalc.newCalculation('test')
+        self.ubcalc.start_new('test')
         print self.ubcalc.__str__()
 
         print "***"
-        self.ubcalc.setLattice(sess.name, *sess.lattice)
+        self.ubcalc.set_lattice(sess.name, *sess.lattice)
         print self.ubcalc.__str__()
 
         print "***"
         ref1 = sess.ref1
         ref2 = sess.ref2
         t = sess.time
-        self.ubcalc.addReflection(
+        self.ubcalc.add_reflection(
             ref1.h, ref1.k, ref1.l, ref1.pos, ref1.energy, ref1.tag, t)
-        self.ubcalc.addReflection(
+        self.ubcalc.add_reflection(
             ref2.h, ref2.k, ref2.l, ref2.pos, ref2.energy, ref2.tag, t)
         print self.ubcalc.__str__()
 
         print "***"
-        self.ubcalc.calculateUB()
+        self.ubcalc.calculate_UB()
         print self.ubcalc.__str__()
-
-    def getSess1State(self):
-        sess = scenarios.sessions()[0]
-        crystal = {'gamma': 90.0, 'alpha': 90.0, 'c': 5.43072, 'beta': 90.0,
-                   'b': 3.8401, 'a': 3.8401, 'name': 'b16_270608'}
-        ref1 = {'position': (5.0, 22.79, 0.0, 4.575, 24.275, 101.32),
-                'tag': 'ref2', 'l': 1.0628, 'energy': 10., 'k': 1., 'h': 0.,
-                'time': repr(sess.time)}
-        ref0 = {'position': (5.0, 22.79, 0.0, 1.552, 22.4, 14.255),
-                'tag': 'ref1', 'l': 1.0628, 'energy': 10., 'k': 0., 'h': 1.,
-                'time': repr(sess.time)}
-        return {
-                'tau': 0,
-                'ub': None,
-                'sigma': 0,
-                'crystal': crystal,
-                'u': None,
-                'reflist': {'ref_1': ref1, 'ref_0': ref0},
-                'name': 'test'
-        }
-
-    def testGetState(self):
-        sess = scenarios.sessions()[0]
-        self.ubcalc.newCalculation('test')
-        self.ubcalc.setLattice(sess.name, *sess.lattice)
-        ref1 = sess.ref1
-        ref2 = sess.ref2
-        t = sess.time
-        self.ubcalc.addReflection(
-            ref1.h, ref1.k, ref1.l, ref1.pos, ref1.energy, ref1.tag, t)
-        self.ubcalc.addReflection(
-            ref2.h, ref2.k, ref2.l, ref2.pos, ref2.energy, ref2.tag, t)
-        expectedState = self.getSess1State()
-        self.assertEquals(expectedState, self.ubcalc.getState())
-
-    def testRestoreState(self):
-        state = self.getSess1State()
-        self.ubcalc.newCalculation('unwanted one')
-        self.ubcalc.restoreState(state)
-        state = self.getSess1State()
-        self.assertEquals(state, self.ubcalc.getState())
-
-    def testGetStateWithManualU(self):
-        sess = scenarios.sessions()[0]
-        self.ubcalc.newCalculation('test')
-        self.ubcalc.setLattice(sess.name, *sess.lattice)
-        ref1 = sess.ref1
-        ref2 = sess.ref2
-        t = sess.time
-        self.ubcalc.addReflection(
-            ref1.h, ref1.k, ref1.l, ref1.pos, ref1.energy, ref1.tag, t)
-        self.ubcalc.addReflection(
-            ref2.h, ref2.k, ref2.l, ref2.pos, ref2.energy, ref2.tag, t)
-        self.ubcalc.setUManually([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-        state = self.ubcalc.getState()
-        self.assertEqual(self.ubcalc.U.tolist(), state['u'])
-        expectedState = self.getSess1State()
-        expectedState['u'] = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-        self.assertEquals(expectedState, state)
-
-    def testRestoreStateWithManualU(self):
-        setState = self.getSess1State()
-        setState['u'] = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-        self.ubcalc.newCalculation('unwanted one')
-        self.ubcalc.restoreState(setState)
-
-        self.assertEquals([[1, 2, 3], [4, 5, 6], [7, 8, 9]],
-                          self.ubcalc.U.tolist())
-
-    def testGetStateWithManualUB(self):
-        sess = scenarios.sessions()[0]
-        self.ubcalc.newCalculation('test')
-        self.ubcalc.setLattice(sess.name, *sess.lattice)
-        ref1 = sess.ref1
-        ref2 = sess.ref2
-        t = sess.time
-        self.ubcalc.addReflection(
-            ref1.h, ref1.k, ref1.l, ref1.pos, ref1.energy, ref1.tag, t)
-        self.ubcalc.addReflection(
-            ref2.h, ref2.k, ref2.l, ref2.pos, ref2.energy, ref2.tag, t)
-        self.ubcalc.setUBManually([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-        state = self.ubcalc.getState()
-        self.assertEqual(self.ubcalc.UB.tolist(), state['ub'])
-        expectedState = self.getSess1State()
-        expectedState['ub'] = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-        self.assertEquals(expectedState, state)
-
-    def testRestoreStateWithManualUB(self):
-        setState = self.getSess1State()
-        setState['ub'] = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-        self.ubcalc.newCalculation('unwanted one')
-        self.ubcalc.restoreState(setState)
-        self.assertEquals([[1, 2, 3], [4, 5, 6], [7, 8, 9]],
-                          self.ubcalc.UB.tolist())
-
-#    #TODO: hkl calculation oddity: (CUBIC, 1, 0, 0, CUBIC_EN) -->
-#    #({alpha: 0.0 delta: 60.00000000000001 gamma: 0.0 omega: -59.9999999999999
-#    # chi: 7.016709298534875e-15  phi: 90.0}, {'Bin': -6.07664850350169e-15,
-#    # 'Bout': 6.07664850350169e-15, '2theta': 60.00000000000001,
-#    #'azimuth': 7.0167092985348775e-15})
-#    def calculateIdealBisectingPosition(self, lattice_args, h, k, l, energy):
-#        ubcalc = UBCalculation(self.hardware, self.geometry,
-#                               UbCalculationNonPersister())
-#        ubcalc.newCalculation('xtalubcalc')
-#        ubcalc.setLattice("xtal", *lattice_args)
-#        ubcalc.setUManually(I)
-#        ac = VliegHklCalculator(ubcalc, self.geometry, self.hardware, True)
-#        ac.mode_selector.setModeByIndex(1)
-#        return ac.hklToAngles(h, k, l, energy)
-
-#    def testCalculateIdealBisectingPosition(self):
-#        # this is part of the harness
-#        print "test"
-#        print self.calculateIdealBisectingPosition(CUBIC, 1, 0, 0, CUBIC_EN)
 
 
 def x_rotation(mu_or_alpha):
@@ -311,14 +197,14 @@ class TestUBCalcWithCubic():
                                     SixCircleGammaOnArmGeometry(),
                                     UbCalculationNonPersister(),
                                     VliegUbCalcStrategy())
-        self.ubcalc.newCalculation('xtalubcalc')
-        self.ubcalc.setLattice("xtal", *CUBIC)
+        self.ubcalc.start_new('xtalubcalc')
+        self.ubcalc.set_lattice("xtal", *CUBIC)
         self.energy = CUBIC_EN
 
     def addref(self, hklref):
         hkl, position = hklref
         now = datetime.now()
-        self.ubcalc.addReflection(
+        self.ubcalc.add_reflection(
             hkl[0], hkl[1], hkl[2], position, self.energy, "ref", now)
 
 
@@ -398,7 +284,7 @@ class TestUBCalcWithcubicOneRef(TestUBCalcWithCubic):
     def check(self, testname, hklref, expectedUMatrix):
         print testname
         self.addref(hklref)
-        self.ubcalc.calculateUBFromPrimaryOnly()
+        self.ubcalc.calculate_UB_from_primary_only()
         matrixeq_(expectedUMatrix, self.ubcalc.U)
 
     def test_with_squarely_mounted(self):

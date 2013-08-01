@@ -57,9 +57,12 @@ def create_diffcalc(engine_name,
                     geometry,
                     hardware,
                     raise_exceptions_for_all_errors=True,
-                    ub_persister=UbCalculationNonPersister(),
+                    ub_persister=None,
                     diffractometer_name = None, # used for user help if no hardware plugin given
                     diffractometer_axes_names = None):         # used for user help if no hardware plugin given
+
+    if not ub_persister:
+        ub_persister = UbCalculationNonPersister()
 
     diffcalc.util.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = \
         raise_exceptions_for_all_errors
@@ -235,22 +238,19 @@ class Diffcalc(object):
         s = "\n    %7s  %4s  %4s  %4s    %6s   %6s   %6s     TAG\n" % \
         ('ENERGY', 'H', 'K', 'L', 'H_COMP', 'K_COMP', 'L_COMP')
 
-        if self._ubcalc.getReflist() is None:
+        nref = self._ubcalc.get_number_reflections()
+        if not nref:
             s += "<<empty>>"
-        else:
-            reflist = self._ubcalc.getReflist()
-            if len(reflist) == 0:
-                s += "<<empty>>"
-            for n in range(len(reflist)):
-                hklguess, pos, energy, tag, time = reflist.getReflection(n + 1)
-                wavelength = 12.39842 / energy
-                hkl, params = self._hklcalc.anglesToHkl(pos, wavelength)
-                del time, params
-                if tag is None:
-                    tag = ""
-                s += ("% 2d % 6.4f % 4.2f % 4.2f % 4.2f   % 6.4f  % 6.4f  "
-                      "% 6.4f  %6s\n" % (n + 1, energy, hklguess[0],
-                      hklguess[1], hklguess[2], hkl[0], hkl[1], hkl[2], tag))
+        for n in range(nref):
+            hklguess, pos, energy, tag, time = self._ubcalc.get_reflection(n + 1)
+            wavelength = 12.39842 / energy
+            hkl, params = self._hklcalc.anglesToHkl(pos, wavelength)
+            del time, params
+            if tag is None:
+                tag = ""
+            s += ("% 2d % 6.4f % 4.2f % 4.2f % 4.2f   % 6.4f  % 6.4f  "
+                  "% 6.4f  %6s\n" % (n + 1, energy, hklguess[0],
+                  hklguess[1], hklguess[2], hkl[0], hkl[1], hkl[2], tag))
         print s
 
     @command

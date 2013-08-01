@@ -117,15 +117,15 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12():
                                     WillmottHorizontalUbCalcStrategy())
 
     def testAgainstResultsFromJan_27_2010(self):
-        self.ubcalc.newCalculation('test')
-        self.ubcalc.setLattice('Si_5_5_12', 7.68, 53.48, 75.63, 90, 90, 90)
-        self.ubcalc.addReflection(
+        self.ubcalc.start_new('test')
+        self.ubcalc.set_lattice('Si_5_5_12', 7.68, 53.48, 75.63, 90, 90, 90)
+        self.ubcalc.add_reflection(
             Si_5_5_12_HKL0[0], Si_5_5_12_HKL0[1], Si_5_5_12_HKL0[2],
             Si_5_5_12_REF0, 12.39842 / Si_5_5_12_WAVELENGTH, 'ref0', None)
-        self.ubcalc.addReflection(
+        self.ubcalc.add_reflection(
             Si_5_5_12_HKL1[0], Si_5_5_12_HKL1[1], Si_5_5_12_HKL1[2],
             Si_5_5_12_REF1, 12.39842 / Si_5_5_12_WAVELENGTH, 'ref1', None)
-        self.ubcalc.calculateUB()
+        self.ubcalc.calculate_UB()
         print "U: ", self.ubcalc.U
         print "UB: ", self.ubcalc.UB
         matrixeq_(self.ubcalc.U, Si_5_5_12_U_DIFFCALC)
@@ -254,15 +254,15 @@ class TestUBCalculationWithWillmotStrategy_Pt531():
                                     WillmottHorizontalUbCalcStrategy())
 
     def testAgainstResultsFromJan_27_2010(self):
-        self.ubcalc.newCalculation('test')
-        self.ubcalc.setLattice('Pt531', 6.204, 4.806, 23.215, 90, 90, 49.8)
-        self.ubcalc.addReflection(
+        self.ubcalc.start_new('test')
+        self.ubcalc.set_lattice('Pt531', 6.204, 4.806, 23.215, 90, 90, 49.8)
+        self.ubcalc.add_reflection(
             Pt531_HKL0[0], Pt531_HKL0[1], Pt531_HKL0[2], Pt531_REF0,
             12.39842 / Pt531_WAVELENGTH, 'ref0', None)
-        self.ubcalc.addReflection(
+        self.ubcalc.add_reflection(
             Pt531_HKL1[0], Pt531_HKL1[1], Pt531_HKL1[2], Pt531_REF1,
             12.39842 / Pt531_WAVELENGTH, 'ref1', None)
-        self.ubcalc.calculateUB()
+        self.ubcalc.calculate_UB()
         print "U: ", self.ubcalc.U
         print "UB: ", self.ubcalc.UB
         matrixeq_(self.ubcalc.U, Pt531_U_DIFFCALC)

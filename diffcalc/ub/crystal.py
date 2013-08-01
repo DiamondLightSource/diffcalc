@@ -88,7 +88,7 @@ class CrystalUnderTest(object):
         was a problem calculating this'''
         return self._bMatrix
 
-    def getHklPlaneDistance(self, hkl):
+    def get_hkl_plane_distance(self, hkl):
         '''Calculates and returns the distance between planes'''
         h, k, l = hkl
         c1 = self._a1 * self._a2 * cos(self._beta3)
@@ -128,13 +128,3 @@ class CrystalUnderTest(object):
         return(self._name, self._a1, self._a2, self._a3, self._alpha1 * TODEG,
                self._alpha2 * TODEG, self._alpha3 * TODEG)
 
-    def getStateDict(self):
-        return {
-            'name': self._name,
-            'a': self._a1,
-            'b': self._a2,
-            'c': self._a3,
-            'alpha': self._alpha1 * TODEG,
-            'beta': self._alpha2 * TODEG,
-            'gamma': self._alpha3 * TODEG
-        }
