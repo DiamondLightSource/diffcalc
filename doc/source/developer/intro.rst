@@ -17,7 +17,7 @@ The foundations for this type of calculation were laid by by Busing &
 Levi in their classic paper [Busing1967]_. Diffcalc's orientation
 algorithm is taken from this paper. Busing & Levi also provided the
 original definition of the coordinate frames and of the U and B
-matrices used describe a crystal's orientation and to convert between
+matrices used to describe a crystal's orientation and to convert between
 Cartesian and reciprical lattice space.
 
 Geometry plugins are used to adapt the six circle model used
