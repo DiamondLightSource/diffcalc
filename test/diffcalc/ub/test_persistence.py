@@ -21,7 +21,7 @@ import shutil
 import unittest
 import tempfile
 import time
-from nose.tools import eq_
+from nose.tools import eq_  # @UnresolvedImport
 
 try:
     from gda.configuration.properties import LocalProperties

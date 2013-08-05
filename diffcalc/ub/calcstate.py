@@ -2,8 +2,7 @@ from diffcalc.hkl.vlieg.geometry import VliegPosition
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.reflections import ReflectionList, _Reflection
 from math import pi
-import dateutil.parser
-import datetime
+import datetime  # @UnusedImport For crazy time eval code!
 
 try:
     from collection import OrderedDict
@@ -98,7 +97,7 @@ class UBCalcStateEncoder(json.JSONEncoder):
             d['hkl'] = repr([obj.h, obj.k, obj.l])
             d['pos'] = repr(list(obj.pos.totuple()))
             d['energy'] = obj.energy
-            dt = eval(obj.time)
+            dt = eval(obj.time)  # e.g. --> datetime.datetime(2013, 8, 5, 15, 47, 7, 962432)
             d['time'] = None if dt is None else dt.isoformat()
             return d
         
@@ -134,10 +133,18 @@ def decode_reflist(reflist_dict, geometry, diffractometer_axes_names):
 
 def decode_reflection(ref_dict, geometry):
     h, k, l = eval(ref_dict['hkl'])
-    time = ref_dict['time'] and dateutil.parser.parse(ref_dict['time'])
+    time = ref_dict['time'] and gt(ref_dict['time'])
     pos_tuple = eval(ref_dict['pos'])
     try:
         position = geometry.create_position(*pos_tuple)
     except AttributeError:
         position = VliegPosition(*pos_tuple)
     return _Reflection(h, k, l, position, ref_dict['energy'], str(ref_dict['tag']), repr(time))
+
+
+# From: http://stackoverflow.com/questions/127803/how-to-parse-iso-formatted-date-in-python
+def gt(dt_str):
+    dt, _, us= dt_str.partition(".")
+    dt= datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
+    us= int(us.rstrip("Z"), 10)
+    return dt + datetime.timedelta(microseconds=us)
