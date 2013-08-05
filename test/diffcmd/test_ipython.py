@@ -1,6 +1,6 @@
 from nose.tools import assert_sequence_equal  # @UnresolvedImport
 from nose.tools import eq_
-from diffcmd.ipython import parser
+from diffcmd.ipython import parse
 
 
 class CallableNamedObject(object):
@@ -32,7 +32,7 @@ d = {
        
          
 def check(s, *expected):
-    assert_sequence_equal(parser.parse(s, d), expected)    
+    assert_sequence_equal(parse(s, d), expected)    
 
 
 def assert_raises_syntax_error_with_message(msg, func, *args, **kwargs):
@@ -50,7 +50,7 @@ def test_parse_spaces():
 
 def test_parse_commas():
     assert_raises_syntax_error_with_message(
-        'unexpected comma', parser.parse, '1 2, 3', d)
+        'unexpected comma', parse, '1 2, 3', d)
     
 def test_parse_numbers():
     check('1', 1)
@@ -64,8 +64,8 @@ def test_parse_negative_numbers():
 
 def test_parse_negative_number_with_space_between_sign_and_digit():
     msg = 'could not evaluate: "-"'
-    assert_raises_syntax_error_with_message(msg, parser.parse, '- 1', d)
-    assert_raises_syntax_error_with_message(msg, parser.parse, '1 - 1', d)
+    assert_raises_syntax_error_with_message(msg, parse, '- 1', d)
+    assert_raises_syntax_error_with_message(msg, parse, '1 - 1', d)
 
 def test_parse_strings():
     check("'s1'", 's1')
@@ -138,9 +138,9 @@ def test_parse_lists_and_others():
     
 def test_parse_unexpected_list_closure():
     msg = 'could not evaluate: "1, 2], 3"'
-    assert_raises_syntax_error_with_message(msg, parser.parse, '1 2] 3', d)
-    assert_raises_syntax_error_with_message(msg, parser.parse, '1 2 ] 3', d)
-    assert_raises_syntax_error_with_message(msg, parser.parse, '1 2 ]3', d)
+    assert_raises_syntax_error_with_message(msg, parse, '1 2] 3', d)
+    assert_raises_syntax_error_with_message(msg, parse, '1 2 ] 3', d)
+    assert_raises_syntax_error_with_message(msg, parse, '1 2 ]3', d)
     
 def test_parse_with_trailing_comments():
     check('1# comment', 1)

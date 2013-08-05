@@ -1,10 +1,9 @@
-'''
-Created on Aug 1, 2013
-
-@author: walton
-'''
-
 import re
+from functools import wraps
+from IPython.core.magic import register_line_magic
+
+
+GLOBAL_NAMESPACE_DICT = {}
 
 MATH_OPERATORS = set(['-', '+', '/', '*'])
 
@@ -74,7 +73,6 @@ def _tokenify(s):
     # tokens are now separated by spaces
     
     tokens = space_finder.split(s)[1::2]
-    print "tokens:", tokens
     tokens = [tok for tok in tokens if tok != '']
     return tokens
 
@@ -99,3 +97,14 @@ def parse(s, d):
     except SyntaxError:
         raise SyntaxError('could not evaluate: "%s"' % s)
     return args
+
+
+def parse_line(f):
+    '''A decorator that parses a single string argument into a list of arguments
+    and calls the wrapped function with these.
+    '''
+    @wraps(f)
+    def wrapper(line):
+        args = parse(line, GLOBAL_NAMESPACE_DICT)
+        return f(*args)
+    return wrapper
