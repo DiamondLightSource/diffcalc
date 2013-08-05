@@ -4,7 +4,7 @@
 
 :Author: Rob Walton
 :Contact: rob.walton (at) diamond.ac.uk
-:Web site: http://www.opengda.org/
+:Web site: https://github.com/DiamondLightSource/diffcalc
 
 .. rubric:: Diffcalc: A Diffraction Condition Calculator for Diffractometer Control
 
