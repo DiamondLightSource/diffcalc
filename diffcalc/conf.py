@@ -34,12 +34,13 @@ class Settings(object):
         self.GEOMETRY = None
         self.HARDWARE = None
         self.ENGINE_NAME = None
+        self.UBCALC_PERSISTER = None
         
     def configure(self,
-                 hardware,
-                 geometry,
-                 engine_name,
-                 ubcalc_perister):
+                 hardware=None,
+                 geometry=None,
+                 engine_name=None,
+                 ubcalc_perister=None):
         
         if engine_name not in AVAILABLE_ENGINES:
             raise AssertionError('unkown engine: %s' % engine_name )

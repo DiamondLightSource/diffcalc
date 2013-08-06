@@ -19,146 +19,149 @@
 from diffcalc.hkl.common import getNameFromScannableOrString
 from diffcalc.util import command
 from diffcalc.hkl.you.calc import YouHklCalculator
+from diffcalc.conf import settings
 
 
-class YouHklCommands(object):
+from diffcalc.ub import ub
+from diffcalc.hkl.you.constraints import YouConstraintManager
 
-    def __init__(self, hklcalc):
-        self._hklcalc = hklcalc
-        self.commands = ['CONSTRAINTS',
-                         self.con,
-                         self.uncon,
-                         self.allhkl]
+_fixed_constraints = settings.GEOMETRY.fixed_constraints  # @UndefinedVariable
 
-    def __str__(self):
-        return self._hklcalc.__str__()
+constraint_manager = YouConstraintManager(settings.HARDWARE, _fixed_constraints)
 
-    @command
-    def con(self, *args):
-        """
-        con -- list available constraints and values
-        con <name> {val} -- constrains and optionally sets one constraint
-        con <name> {val} <name> {val} <name> {val} -- clears and then fully constrains
+_hklcalc = YouHklCalculator(
+    ub._ubcalc, settings.GEOMETRY, settings.HARDWARE, constraint_manager)
 
-        Select three constraints using 'con' and 'uncon'. Choose up to one
-        from each of the sample and detector columns and up to three from
-        the sample column.
 
-        Not all constraint combinations are currently available:
+def __str__(self):
+    return _hklcalc.__str__()
 
-            1 x samp:              all 80 of 80
-            2 x samp and 1 x ref:  chi & phi
-                                   mu & eta
-                                   chi=90 & mu=0 (2.5 of 6)
-            2 x samp and 1 x det:  0 of 6
-            3 x samp:              eta, chi & phi (1 of 4)
+@command
+def con(*args):
+    """
+    con -- list available constraints and values
+    con <name> {val} -- constrains and optionally sets one constraint
+    con <name> {val} <name> {val} <name> {val} -- clears and then fully constrains
 
-        See also 'uncon'
-        """
-        args = list(args)
-        msg = self.handle_con(args)
-        if (self._hklcalc.constraints.is_fully_constrained() and 
-            not self._hklcalc.constraints.is_current_mode_implemented()):
-            msg += ("\n\nWARNING:. The selected constraint combination is valid but "
-                "is not implemented.\n\nType 'help con' to see implemented combinations")
+    Select three constraints using 'con' and 'uncon'. Choose up to one
+    from each of the sample and detector columns and up to three from
+    the sample column.
 
-        if msg:
-            print msg
- 
-    def handle_con(self, args):
-        if not args:
-            return self._hklcalc.constraints.__str__()
-        
-        if len(args) > 6:
-            raise TypeError("Unexpected args: " + str(args))
-        
-        cons_value_pairs = []
-        while args:
-            scn_or_str = args.pop(0)
-            name = getNameFromScannableOrString(scn_or_str)
-            if args and isinstance(args[0], (int, long, float)):
-                value = args.pop(0)
-            else:
-                value = None
-            cons_value_pairs.append((name, value))
-        
-        if len(cons_value_pairs) == 1:
-            pass
-        elif len(cons_value_pairs) == 3:
-            self._hklcalc.constraints.clear_constraints()
+    Not all constraint combinations are currently available:
+
+        1 x samp:              all 80 of 80
+        2 x samp and 1 x ref:  chi & phi
+                               mu & eta
+                               chi=90 & mu=0 (2.5 of 6)
+        2 x samp and 1 x det:  0 of 6
+        3 x samp:              eta, chi & phi (1 of 4)
+
+    See also 'uncon'
+    """
+    args = list(args)
+    msg = handle_con(args)
+    if (_hklcalc.constraints.is_fully_constrained() and 
+        not _hklcalc.constraints.is_current_mode_implemented()):
+        msg += ("\n\nWARNING:. The selected constraint combination is valid but "
+            "is not implemented.\n\nType 'help con' to see implemented combinations")
+
+    if msg:
+        print msg
+
+def handle_con(args):
+    if not args:
+        return _hklcalc.constraints.__str__()
+    
+    if len(args) > 6:
+        raise TypeError("Unexpected args: " + str(args))
+    
+    cons_value_pairs = []
+    while args:
+        scn_or_str = args.pop(0)
+        name = getNameFromScannableOrString(scn_or_str)
+        if args and isinstance(args[0], (int, long, float)):
+            value = args.pop(0)
         else:
-            raise TypeError("Either one or three constraints must be specified")
-        for name, value in cons_value_pairs:
-            self._hklcalc.constraints.constrain(name)
-            if value is not None:
-                self._hklcalc.constraints.set_constraint(name, value)
-        return '\n'.join(self._hklcalc.constraints.report_constraints_lines())
+            value = None
+        cons_value_pairs.append((name, value))
+    
+    if len(cons_value_pairs) == 1:
+        pass
+    elif len(cons_value_pairs) == 3:
+        _hklcalc.constraints.clear_constraints()
+    else:
+        raise TypeError("Either one or three constraints must be specified")
+    for name, value in cons_value_pairs:
+        _hklcalc.constraints.constrain(name)
+        if value is not None:
+            _hklcalc.constraints.set_constraint(name, value)
+    return '\n'.join(_hklcalc.constraints.report_constraints_lines())
 
 
-    @command
-    def uncon(self, scn_or_string):
-        """uncon <name> -- remove constraint
+@command
+def uncon(scn_or_string):
+    """uncon <name> -- remove constraint
 
-        See also 'con'
-        """
-        name = getNameFromScannableOrString(scn_or_string)
-        self._hklcalc.constraints.unconstrain(name)
-        print '\n'.join(self._hklcalc.constraints.report_constraints_lines())
+    See also 'con'
+    """
+    name = getNameFromScannableOrString(scn_or_string)
+    _hklcalc.constraints.unconstrain(name)
+    print '\n'.join(_hklcalc.constraints.report_constraints_lines())
 
-    @command 
-    def allhkl(self, hkl, wavelength=None):
-        """allhkl [h k l] -- print all hkl solutions ignoring limits
+@command 
+def allhkl(hkl, wavelength=None):
+    """allhkl [h k l] -- print all hkl solutions ignoring limits
 
-        """
-        hardware = self._hklcalc._hardware
-        geometry = self._hklcalc._geometry
-        if wavelength is None:
-            wavelength = hardware.get_wavelength()
-        h, k, l = hkl
-        pos_virtual_angles_pairs = self._hklcalc.hkl_to_all_angles(
-                                        h, k, l, wavelength)
-        cells = []
-        # virtual_angle_names = list(pos_virtual_angles_pairs[0][1].keys())
-        # virtual_angle_names.sort()
-        virtual_angle_names = ['qaz', 'psi', 'naz', 'tau', 'theta', 'alpha', 'beta']
-        header_cells = list(hardware.get_axes_names()) + [' '] + virtual_angle_names
-        cells.append(['%9s' % s for s in header_cells])
-        cells.append([''] * len(header_cells))
+    """
+    hardware = _hklcalc._hardware
+    geometry = _hklcalc._geometry
+    if wavelength is None:
+        wavelength = hardware.get_wavelength()
+    h, k, l = hkl
+    pos_virtual_angles_pairs = _hklcalc.hkl_to_all_angles(
+                                    h, k, l, wavelength)
+    cells = []
+    # virtual_angle_names = list(pos_virtual_angles_pairs[0][1].keys())
+    # virtual_angle_names.sort()
+    virtual_angle_names = ['qaz', 'psi', 'naz', 'tau', 'theta', 'alpha', 'beta']
+    header_cells = list(hardware.get_axes_names()) + [' '] + virtual_angle_names
+    cells.append(['%9s' % s for s in header_cells])
+    cells.append([''] * len(header_cells))
+    
+
+    for pos, virtual_angles in pos_virtual_angles_pairs:
+        row_cells = []
+
+
+        angle_tuple = geometry.internal_position_to_physical_angles(pos)
+        angle_tuple = hardware.cut_angles(angle_tuple)
+        for val in angle_tuple:
+            row_cells.append('%9.4f' % val)
         
-
-        for pos, virtual_angles in pos_virtual_angles_pairs:
-            row_cells = []
-
-
-            angle_tuple = geometry.internal_position_to_physical_angles(pos)
-            angle_tuple = hardware.cut_angles(angle_tuple)
-            for val in angle_tuple:
-                row_cells.append('%9.4f' % val)
-            
-            row_cells.append('|')
-            
-            for name in virtual_angle_names:
-                row_cells.append('%9.4f' %  virtual_angles[name])
-            cells.append(row_cells)
-                
-                
-        column_widths = []
-        for col in range(len(cells[0])):
-            widths = []
-            for row in range(len(cells)):
-                cell = cells[row][col]
-                width = len(cell.strip())
-                widths.append(width)
-            column_widths.append(max(widths))
+        row_cells.append('|')
         
-        lines = []
-        for row_cells in cells:
-            trimmed_row_cells = []
-            for cell, width in zip(row_cells, column_widths):
-                trimmed_cell = cell.strip().rjust(width)
-                trimmed_row_cells.append(trimmed_cell)
-            lines.append('  '.join(trimmed_row_cells))
-        print '\n'.join(lines)
+        for name in virtual_angle_names:
+            row_cells.append('%9.4f' %  virtual_angles[name])
+        cells.append(row_cells)
+            
+            
+    column_widths = []
+    for col in range(len(cells[0])):
+        widths = []
+        for row in range(len(cells)):
+            cell = cells[row][col]
+            width = len(cell.strip())
+            widths.append(width)
+        column_widths.append(max(widths))
+    
+    lines = []
+    for row_cells in cells:
+        trimmed_row_cells = []
+        for cell, width in zip(row_cells, column_widths):
+            trimmed_cell = cell.strip().rjust(width)
+            trimmed_row_cells.append(trimmed_cell)
+        lines.append('  '.join(trimmed_row_cells))
+    print '\n'.join(lines)
 
 
 
