@@ -18,11 +18,14 @@
 
 from __future__ import absolute_import
 
-from diffcalc.util import DiffcalcException
+from diffcalc.util import DiffcalcException, format_command_help
+from diffcalc import settings
 
 SMALL = 1e-8
 
 from diffcalc.util import command
+
+__all__ = ['hardware', 'setcut', 'setmin', 'setmax']
 
 
 def getNameFromScannableOrString(o):
@@ -32,57 +35,55 @@ def getNameFromScannableOrString(o):
             return str(o)
 
 
-class HardwareCommands(object):
 
-    def __init__(self, hardware):
-        self._hardware = hardware
-        self.commands = ['Hardware',
-                         self.hardware,
-                         self.setcut,
-                         self.setmin,
-                         self.setmax]
+@command
+def hardware():
+    """hardware  -- show diffcalc limits and cuts"""
+    print settings.hardware.repr_sector_limits_and_cuts()  # @UndefinedVariable
 
-    @command
-    def hardware(self):
-        """hardware  -- show diffcalc limits and cuts"""
-        print self._hardware.repr_sector_limits_and_cuts()
-
-    @command
-    def setcut(self, scannable_or_string=None, val=None):
-        """setcut {axis_scannable {val}} -- sets cut angle
-        setcut {name {val}} -- sets cut angle
-        """
-        if scannable_or_string is None and val is None:
-            print self._hardware.repr_sector_limits_and_cuts()
+@command
+def setcut(scannable_or_string=None, val=None):
+    """setcut {axis_scannable {val}} -- sets cut angle
+    setcut {name {val}} -- sets cut angle
+    """
+    if scannable_or_string is None and val is None:
+        print settings.hardware.repr_sector_limits_and_cuts()  # @UndefinedVariable
+    else:
+        name = getNameFromScannableOrString(scannable_or_string)
+        if val is None:
+            print '%s: %f' % (name, settings.hardware.get_cuts()[name])  # @UndefinedVariable
         else:
-            name = getNameFromScannableOrString(scannable_or_string)
-            if val is None:
-                print '%s: %f' % (name, self._hardware.get_cuts()[name])
-            else:
-                oldcut = self._hardware.get_cuts()[name]
-                self._hardware.set_cut(name, float(val))
-                newcut = self._hardware.get_cuts()[name]
-                print '%s: %f --> %f' % (name, oldcut, newcut)
+            oldcut = settings.hardware.get_cuts()[name]  # @UndefinedVariable
+            settings.hardware.set_cut(name, float(val))  # @UndefinedVariable
+            newcut = settings.hardware.get_cuts()[name]  # @UndefinedVariable
+            print '%s: %f --> %f' % (name, oldcut, newcut)
 
-    @command
-    def setmin(self, name=None, val=None):
-        """setmin {axis {val}} -- set lower limits used by auto sector code (None to clear)""" #@IgnorePep8
-        self._setMinOrMax(name, val, self._hardware.set_lower_limit)
+@command
+def setmin(name=None, val=None):
+    """setmin {axis {val}} -- set lower limits used by auto sector code (None to clear)""" #@IgnorePep8
+    _setMinOrMax(name, val, settings.hardware.set_lower_limit)  # @UndefinedVariable
 
-    @command
-    def setmax(self, name=None, val=None):
-        """setmax {name {val}} -- sets upper limits used by auto sector code (None to clear)""" #@IgnorePep8
-        self._setMinOrMax(name, val, self._hardware.set_upper_limit)
+@command
+def setmax(name=None, val=None):
+    """setmax {name {val}} -- sets upper limits used by auto sector code (None to clear)""" #@IgnorePep8
+    _setMinOrMax(name, val, settings.hardware.set_upper_limit)  # @UndefinedVariable
 
-    def _setMinOrMax(self, name, val, setMethod):
-        if name is None:
-            print self._hardware.repr_sector_limits_and_cuts()
+def _setMinOrMax(name, val, setMethod):
+    if name is None:
+        print settings.hardware.repr_sector_limits_and_cuts()  # @UndefinedVariable
+    else:
+        name = getNameFromScannableOrString(name)
+        if val is None:
+            print settings.hardware.repr_sector_limits_and_cuts(name)  # @UndefinedVariable
         else:
-            name = getNameFromScannableOrString(name)
-            if val is None:
-                print self.repr_sector_limits_and_cuts(name)
-            else:
-                setMethod(name, float(val))
+            setMethod(name, float(val))
+
+
+commands_for_help = ['Hardware',
+                     hardware,
+                     setcut,
+                     setmin,
+                     setmax]
 
 
 class HardwareAdapter(object):
