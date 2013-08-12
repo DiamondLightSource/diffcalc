@@ -399,11 +399,6 @@ class TransformCommands(object):
 
     def __init__(self, sector_selector):
         self._sectorSelector = sector_selector
-        self.commands = ['Transform',
-                         self.transform,
-                         self.transforma,
-                         self.transformb,
-                         self.transformc]
 
     @command
     def transform(self):

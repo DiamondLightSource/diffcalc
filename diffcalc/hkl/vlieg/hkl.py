@@ -18,117 +18,122 @@
 
 from diffcalc.hkl.common import getNameFromScannableOrString
 from diffcalc.util import command
+from diffcalc import settings
 
 
+from diffcalc.ub import ub
+from diffcalc.hkl.vlieg.calc import VliegHklCalculator
 
 
-class VliegHklCommands(object):
-    """Commands to configure hkl mode and parameters.
+__all__ = ['hklmode', 'setpar', 'trackalpha', 'trackgamma', 'trackphi',
+           'parameter_manager', 'hklcalc']
+
+
+hklcalc = VliegHklCalculator(ub.ubcalc, settings.geometry, settings.hardware)
+
+parameter_manager = hklcalc.parameter_manager
+
+def __str__(self):
+    return hklcalc.__str__()
+
+@command
+def hklmode(num=None):
+    """hklmode {num} -- changes mode or shows current and available modes and all settings""" #@IgnorePep8
+
+    if num is None:
+        print hklcalc.__str__()
+    else:
+        hklcalc.mode_selector.setModeByIndex(int(num))
+        pm = hklcalc.parameter_manager
+        print (hklcalc.mode_selector.reportCurrentMode() + "\n" +
+               pm.reportParametersUsedInCurrentMode())
+
+def _setParameter(name, value):
+    hklcalc.parameter_manager.set_constraint(name, value)
+
+def _getParameter(name):
+    return hklcalc.parameter_manager.get_constraint(name)
+
+@command
+def setpar(scannable_or_string=None, val=None):
+    """setpar {parameter_scannable {{val}} -- sets or shows a parameter'
+    setpar {parameter_name {val}} -- sets or shows a parameter'
     """
 
-    def __init__(self, hklcalc, geometry):
-        self._geometry = geometry
-        self._hklcalc = hklcalc
-        self.commands = ['Constraints',
-                         self.hklmode,
-                         self.setpar,
-                         self.trackalpha,
-                         self.trackgamma,
-                         self.trackphi]
-
-    def __str__(self):
-        return self._hklcalc.__str__()
-
-    @command
-    def hklmode(self, num=None):
-        """hklmode {num} -- changes mode or shows current and available modes and all settings""" #@IgnorePep8
-
-        if num is None:
-            print self._hklcalc.__str__()
+    if scannable_or_string is None:
+        #show all
+        parameterDict = hklcalc.parameter_manager.getParameterDict()
+        names = parameterDict.keys()
+        names.sort()
+        for name in names:
+            print _representParameter(name)
+    else:
+        name = getNameFromScannableOrString(scannable_or_string)
+        if val is None:
+            _representParameter(name)
         else:
-            self._hklcalc.mode_selector.setModeByIndex(int(num))
-            pm = self._hklcalc.parameter_manager
-            print (self._hklcalc.mode_selector.reportCurrentMode() + "\n" +
-                   pm.reportParametersUsedInCurrentMode())
+            oldval = _getParameter(name)
+            _setParameter(name, float(val))
+            print _representParameter(name, oldval, float(val))
 
-    def _setParameter(self, name, value):
-        self._hklcalc.parameter_manager.set_constraint(name, value)
-
-    def _getParameter(self, name):
-        return self._hklcalc.parameter_manager.get_constraint(name)
-
-    @command
-    def setpar(self, scannable_or_string=None, val=None):
-        """setpar {parameter_scannable {{val}} -- sets or shows a parameter'
-        setpar {parameter_name {val}} -- sets or shows a parameter'
-        """
-
-        if scannable_or_string is None:
-            #show all
-            parameterDict = self._hklcalc.parameter_manager.getParameterDict()
-            names = parameterDict.keys()
-            names.sort()
-            for name in names:
-                print self._representParameter(name)
+def _representParameter(name, oldval=None, newval=None):
+    flags = ''
+    if hklcalc.parameter_manager.isParameterTracked(name):
+        flags += '(tracking hardware) '
+    if settings.geometry.parameter_fixed(name):  # @UndefinedVariable
+        flags += '(fixed by geometry) '
+    pm = hklcalc.parameter_manager
+    if not pm.isParameterUsedInSelectedMode(name):
+        flags += '(not relevant in this mode) '
+    if oldval is None:
+        val = _getParameter(name)
+        if val is None:
+            val = "---"
         else:
-            name = getNameFromScannableOrString(scannable_or_string)
-            if val is None:
-                self._representParameter(name)
-            else:
-                oldval = self._getParameter(name)
-                self._setParameter(name, float(val))
-                print self._representParameter(name, oldval, float(val))
+            val = str(val)
+        return "%s: %s %s" % (name, val, flags)
+    else:
+        return "%s: %s --> %f %s" % (name, oldval, newval, flags)
 
-    def _representParameter(self, name, oldval=None, newval=None):
-        flags = ''
-        if self._hklcalc.parameter_manager.isParameterTracked(name):
-            flags += '(tracking hardware) '
-        if self._geometry.parameter_fixed(name):
-            flags += '(fixed by geometry) '
-        pm = self._hklcalc.parameter_manager
-        if not pm.isParameterUsedInSelectedMode(name):
-            flags += '(not relevant in this mode) '
-        if oldval is None:
-            val = self._getParameter(name)
-            if val is None:
-                val = "---"
-            else:
-                val = str(val)
-            return "%s: %s %s" % (name, val, flags)
-        else:
-            return "%s: %s --> %f %s" % (name, oldval, newval, flags)
+def _checkInputAndSetOrShowParameterTracking(name, b=None):
+    """
+    for track-parameter commands: If no args displays parameter settings,
+    otherwise sets the tracking switch for the given parameter and displays
+    settings.
+    """
+    # set if arg given
+    if b is not None:
+        hklcalc.parameter_manager.setTrackParameter(name, b)
+    # Display:
+    lastValue = _getParameter(name)
+    if lastValue is None:
+        lastValue = "---"
+    else:
+        lastValue = str(lastValue)
+    flags = ''
+    if hklcalc.parameter_manager.isParameterTracked(name):
+        flags += '(tracking hardware)'
+    print "%s: %s %s" % (name, lastValue, flags)
 
-    def __checkInputAndSetOrShowParameterTracking(self, name, b=None):
-        """
-        for track-parameter commands: If no args displays parameter settings,
-        otherwise sets the tracking switch for the given parameter and displays
-        settings.
-        """
-        # set if arg given
-        if b is not None:
-            self._hklcalc.parameter_manager.setTrackParameter(name, b)
-        # Display:
-        lastValue = self._getParameter(name)
-        if lastValue is None:
-            lastValue = "---"
-        else:
-            lastValue = str(lastValue)
-        flags = ''
-        if self._hklcalc.parameter_manager.isParameterTracked(name):
-            flags += '(tracking hardware)'
-        print "%s: %s %s" % (name, lastValue, flags)
+@command
+def trackalpha(b=None):
+    """trackalpha {boolean} -- determines wether alpha parameter will track alpha axis""" #@IgnorePep8
+    _checkInputAndSetOrShowParameterTracking('alpha', b)
 
-    @command
-    def trackalpha(self, b=None):
-        """trackalpha {boolean} -- determines wether alpha parameter will track alpha axis""" #@IgnorePep8
-        self.__checkInputAndSetOrShowParameterTracking('alpha', b)
+@command
+def trackgamma(b=None):
+    """trackgamma {boolean} -- determines wether gamma parameter will track alpha axis""" #@IgnorePep8
+    _checkInputAndSetOrShowParameterTracking('gamma', b)
 
-    @command
-    def trackgamma(self, b=None):
-        """trackgamma {boolean} -- determines wether gamma parameter will track alpha axis""" #@IgnorePep8
-        self.__checkInputAndSetOrShowParameterTracking('gamma', b)
-
-    @command
-    def trackphi(self, b=None):
-        """trackphi {boolean} -- determines wether phi parameter will track phi axis""" #@IgnorePep8
-        self.__checkInputAndSetOrShowParameterTracking('phi', b)
+@command
+def trackphi(b=None):
+    """trackphi {boolean} -- determines wether phi parameter will track phi axis""" #@IgnorePep8
+    _checkInputAndSetOrShowParameterTracking('phi', b)
+  
+  
+commands_for_help = ['Mode',
+                     hklmode,
+                     setpar,
+                     trackalpha,
+                     trackgamma,
+                     trackphi]

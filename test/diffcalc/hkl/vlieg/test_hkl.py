@@ -23,10 +23,10 @@ from mock import Mock
 import diffcalc.util  # @UnusedImport to overide raw_input
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.hardware import DummyHardwareAdapter
-from diffcalc.hkl.vlieg.commands import VliegHklCommands
 from diffcalc.util import MockRawInput
 from diffcalc.hkl.vlieg.calc import VliegHklCalculator
 from diffcalc.ub.calc import UBCalculation
+from diffcalc.ub.persistence import UbCalculationNonPersister
 
 try:
     from gdascripts.pd.dummy_pds import DummyPD  # @UnusedImport
@@ -49,8 +49,13 @@ class TestHklCommands(unittest.TestCase):
         self.mock_ubcalc = Mock(spec=UBCalculation)
         self.hklcalc = VliegHklCalculator(self.mock_ubcalc, self.geometry,
                                           self.hardware, True)
-        self.hkl = VliegHklCommands(self.hklcalc, self.geometry)
-        diffcalc.util.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
+        from diffcalc import settings
+        settings.configure(hardware=self.hardware, geometry=self.geometry,
+                           ubcalc_persister=UbCalculationNonPersister())
+        from diffcalc.hkl.vlieg import hkl
+        reload(hkl)
+        hkl.hklcalc = self.hklcalc
+        self.hkl = hkl
         prepareRawInput([])
 
     def testHklmode(self):
@@ -65,11 +70,11 @@ class TestHklCommands(unittest.TestCase):
         self.hkl.setpar('alpha')
         self.hkl.setpar('alpha', 1)
         self.hkl.setpar('alpha', 1.1)
-        pm = self.hkl._hklcalc.parameter_manager
+        pm = self.hkl.hklcalc.parameter_manager
         self.assertEqual(pm.get_constraint('alpha'), 1.1)
 
     def testSetWithScannable(self):
         alpha = DummyPD('alpha')
         self.hkl.setpar(alpha, 1.1)
-        pm = self.hkl._hklcalc.parameter_manager
+        pm = self.hkl.hklcalc.parameter_manager
         self.assertEqual(pm.get_constraint('alpha'), 1.1)
