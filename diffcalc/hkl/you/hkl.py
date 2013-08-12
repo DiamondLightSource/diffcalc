@@ -16,25 +16,31 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+from __future__ import absolute_import
+
 from diffcalc.hkl.common import getNameFromScannableOrString
 from diffcalc.util import command
 from diffcalc.hkl.you.calc import YouHklCalculator
-from diffcalc.conf import settings
+from diffcalc import settings
 
 
-from diffcalc.ub import ub
+
+import diffcalc.ub.ub
 from diffcalc.hkl.you.constraints import YouConstraintManager
 
-_fixed_constraints = settings.GEOMETRY.fixed_constraints  # @UndefinedVariable
+__all__ = ['allhkl', 'con', 'uncon', 'hklcalc', 'constraint_manager']
 
-constraint_manager = YouConstraintManager(settings.HARDWARE, _fixed_constraints)
 
-_hklcalc = YouHklCalculator(
-    ub._ubcalc, settings.GEOMETRY, settings.HARDWARE, constraint_manager)
+_fixed_constraints = settings.geometry.fixed_constraints  # @UndefinedVariable
+
+constraint_manager = YouConstraintManager(settings.hardware, _fixed_constraints)
+
+hklcalc = YouHklCalculator(
+    diffcalc.ub.ub.ubcalc, settings.geometry, settings.hardware, constraint_manager)
 
 
 def __str__(self):
-    return _hklcalc.__str__()
+    return hklcalc.__str__()
 
 @command
 def con(*args):
@@ -59,18 +65,18 @@ def con(*args):
     See also 'uncon'
     """
     args = list(args)
-    msg = handle_con(args)
-    if (_hklcalc.constraints.is_fully_constrained() and 
-        not _hklcalc.constraints.is_current_mode_implemented()):
+    msg = _handle_con(args)
+    if (hklcalc.constraints.is_fully_constrained() and 
+        not hklcalc.constraints.is_current_mode_implemented()):
         msg += ("\n\nWARNING:. The selected constraint combination is valid but "
             "is not implemented.\n\nType 'help con' to see implemented combinations")
 
     if msg:
         print msg
 
-def handle_con(args):
+def _handle_con(args):
     if not args:
-        return _hklcalc.constraints.__str__()
+        return hklcalc.constraints.__str__()
     
     if len(args) > 6:
         raise TypeError("Unexpected args: " + str(args))
@@ -88,14 +94,14 @@ def handle_con(args):
     if len(cons_value_pairs) == 1:
         pass
     elif len(cons_value_pairs) == 3:
-        _hklcalc.constraints.clear_constraints()
+        hklcalc.constraints.clear_constraints()
     else:
         raise TypeError("Either one or three constraints must be specified")
     for name, value in cons_value_pairs:
-        _hklcalc.constraints.constrain(name)
+        hklcalc.constraints.constrain(name)
         if value is not None:
-            _hklcalc.constraints.set_constraint(name, value)
-    return '\n'.join(_hklcalc.constraints.report_constraints_lines())
+            hklcalc.constraints.set_constraint(name, value)
+    return '\n'.join(hklcalc.constraints.report_constraints_lines())
 
 
 @command
@@ -105,20 +111,20 @@ def uncon(scn_or_string):
     See also 'con'
     """
     name = getNameFromScannableOrString(scn_or_string)
-    _hklcalc.constraints.unconstrain(name)
-    print '\n'.join(_hklcalc.constraints.report_constraints_lines())
+    hklcalc.constraints.unconstrain(name)
+    print '\n'.join(hklcalc.constraints.report_constraints_lines())
 
 @command 
 def allhkl(hkl, wavelength=None):
     """allhkl [h k l] -- print all hkl solutions ignoring limits
 
     """
-    hardware = _hklcalc._hardware
-    geometry = _hklcalc._geometry
+    hardware = hklcalc._hardware
+    geometry = hklcalc._geometry
     if wavelength is None:
         wavelength = hardware.get_wavelength()
     h, k, l = hkl
-    pos_virtual_angles_pairs = _hklcalc.hkl_to_all_angles(
+    pos_virtual_angles_pairs = hklcalc.hkl_to_all_angles(
                                     h, k, l, wavelength)
     cells = []
     # virtual_angle_names = list(pos_virtual_angles_pairs[0][1].keys())
@@ -164,4 +170,9 @@ def allhkl(hkl, wavelength=None):
     print '\n'.join(lines)
 
 
-
+commands_for_help = ['Constraints',
+                     con,
+                     uncon,
+                     'Hkl',
+                     allhkl
+                     ]

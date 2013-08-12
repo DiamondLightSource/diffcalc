@@ -17,83 +17,77 @@
 ###
 
 
-from diffcalc.util import DiffcalcException
 from mock import Mock, call
-from nose.tools import assert_raises  # @UnresolvedImport
-from nose.tools import raises, eq_  # @UnresolvedImport
-import diffcalc.util
-from diffcalc.conf import settings
+from diffcalc import settings
+
+import diffcalc
 diffcalc.util.DEBUG = True
 
 
-class TestYouHklCommands:
+hkl = None
+def setup_module():
+    global hkl
+    settings.configure(hardware=Mock(), geometry=Mock())
+    settings.set_engine_name('you')
+    settings.geometry.fixed_constraints = {}
+    
+    from diffcalc.hkl.you import hkl
+    reload(hkl)
+    
+    hkl.hklcalc = Mock()
+    hkl.hklcalc.constraints.report_constraints_lines.return_value = ['report1', 'report2']
 
-    def setUp(self):
-        settings.configure(hardware=Mock(), geometry=Mock(), engine_name='you')
-        settings.GEOMETRY.fixed_constraints = {}
-        
-        from diffcalc.hkl.you import hkl
-        reload(hkl)
-        
-        self.hkl = hkl
-        self.hkl._hklcalc = Mock()
-        self.hkl._hklcalc.constraints.report_constraints_lines.return_value = ['report1', 'report2']
 
-#    def test__str__(self):
-#        self.hkl._hklcalc.__str__.return_value = 'abc'
-#        eq_(self.hkl.__str__(), 'abc')
+def test_con_with_1_constraint():
+    hkl.con('cona')
+    hkl.hklcalc.constraints.constrain.assert_called_with('cona')
 
-    def test_con_with_1_constraint(self):
-        self.hkl.con('cona')
-        self.hkl._hklcalc.constraints.constrain.assert_called_with('cona')
+def test_con_with_1_constraint_with_value():
+    hkl.con('cona', 123)
+    hkl.hklcalc.constraints.constrain.assert_called_with('cona')
+    hkl.hklcalc.constraints.set_constraint.assert_called_with('cona', 123)
 
-    def test_con_with_1_constraint_with_value(self):
-        self.hkl.con('cona', 123)
-        self.hkl._hklcalc.constraints.constrain.assert_called_with('cona')
-        self.hkl._hklcalc.constraints.set_constraint.assert_called_with('cona', 123)
+def test_con_with_3_constraints():
+    hkl.con('cona', 'conb', 'conc')
+    hkl.hklcalc.constraints.clear_constraints.assert_called()
+    calls = [call('cona'), call('conb'), call('conc')]
+    hkl.hklcalc.constraints.constrain.assert_has_calls(calls)
 
-    def test_con_with_3_constraints(self):
-        self.hkl.con('cona', 'conb', 'conc')
-        self.hkl._hklcalc.constraints.clear_constraints.assert_called()
-        calls = [call('cona'), call('conb'), call('conc')]
-        self.hkl._hklcalc.constraints.constrain.assert_has_calls(calls)
+def test_con_with_3_constraints_first_val():
+    hkl.con('cona', 1, 'conb', 'conc')
+    hkl.hklcalc.constraints.clear_constraints.assert_called()
+    calls = [call('cona'), call('conb'), call('conc')]
+    hkl.hklcalc.constraints.constrain.assert_has_calls(calls)
+    hkl.hklcalc.constraints.set_constraint.assert_called_with('cona', 1)
 
-    def test_con_with_3_constraints_first_val(self):
-        self.hkl.con('cona', 1, 'conb', 'conc')
-        self.hkl._hklcalc.constraints.clear_constraints.assert_called()
-        calls = [call('cona'), call('conb'), call('conc')]
-        self.hkl._hklcalc.constraints.constrain.assert_has_calls(calls)
-        self.hkl._hklcalc.constraints.set_constraint.assert_called_with('cona', 1)
-
-    def test_con_with_3_constraints_second_val(self):
-        self.hkl.con('cona', 'conb', 2, 'conc')
-        self.hkl._hklcalc.constraints.clear_constraints.assert_called()
-        calls = [call('cona'), call('conb'), call('conc')]
-        self.hkl._hklcalc.constraints.constrain.assert_has_calls(calls)
-        self.hkl._hklcalc.constraints.set_constraint.assert_called_with('conb', 2)
-        
-    def test_con_with_3_constraints_third_val(self):
-        self.hkl.con('cona', 'conb', 'conc', 3)
-        self.hkl._hklcalc.constraints.clear_constraints.assert_called()
-        calls = [call('cona'), call('conb'), call('conc')]
-        self.hkl._hklcalc.constraints.constrain.assert_has_calls(calls)
-        self.hkl._hklcalc.constraints.set_constraint.assert_called_with('conc', 3)
-        
-    def test_con_with_3_constraints_all_vals(self):
-        self.hkl.con('cona', 1, 'conb', 2, 'conc', 3)
-        self.hkl._hklcalc.constraints.clear_constraints.assert_called()
-        calls = [call('cona'), call('conb'), call('conc')]
-        self.hkl._hklcalc.constraints.constrain.assert_has_calls(calls)
-        calls = [call('cona', 1), call('conb', 2), call('conc', 3)]
-        self.hkl._hklcalc.constraints.set_constraint.assert_has_calls(calls)
-
-        
-    def test_con_messages_and_help_visually(self):
-        self.hkl.con()
-        print "**"
-        print self.hkl.con.__doc__
-        
-    def test_con_message_display_whenn_selecting_an_unimplmented_mode(self):
-        self.hkl._hklcalc.constraints.is_fully_constrained.return_value = True
-        self.hkl._hklcalc.constraints.is_current_mode_implemented.return_value = False
-        self.hkl.con('phi', 'chi', 'eta')
+def test_con_with_3_constraints_second_val():
+    hkl.con('cona', 'conb', 2, 'conc')
+    hkl.hklcalc.constraints.clear_constraints.assert_called()
+    calls = [call('cona'), call('conb'), call('conc')]
+    hkl.hklcalc.constraints.constrain.assert_has_calls(calls)
+    hkl.hklcalc.constraints.set_constraint.assert_called_with('conb', 2)
+    
+def test_con_with_3_constraints_third_val():
+    hkl.con('cona', 'conb', 'conc', 3)
+    hkl.hklcalc.constraints.clear_constraints.assert_called()
+    calls = [call('cona'), call('conb'), call('conc')]
+    hkl.hklcalc.constraints.constrain.assert_has_calls(calls)
+    hkl.hklcalc.constraints.set_constraint.assert_called_with('conc', 3)
+    
+def test_con_with_3_constraints_all_vals():
+    hkl.con('cona', 1, 'conb', 2, 'conc', 3)
+    hkl.hklcalc.constraints.clear_constraints.assert_called()
+    calls = [call('cona'), call('conb'), call('conc')]
+    hkl.hklcalc.constraints.constrain.assert_has_calls(calls)
+    calls = [call('cona', 1), call('conb', 2), call('conc', 3)]
+    hkl.hklcalc.constraints.set_constraint.assert_has_calls(calls)
+    
+def test_con_messages_and_help_visually():
+    hkl.con()
+    print "**"
+    print hkl.con.__doc__
+    
+def test_con_message_display_whenn_selecting_an_unimplmented_mode():
+    hkl.hklcalc.constraints.is_fully_constrained.return_value = True
+    hkl.hklcalc.constraints.is_current_mode_implemented.return_value = False
+    hkl.con('phi', 'chi', 'eta')
