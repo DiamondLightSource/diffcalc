@@ -21,7 +21,7 @@
 #except ImportError:
 #    from diffcalc.gdasupport.minigda.scannable import Scannable
 from diffcalc.gdasupport.minigda.scannable import Scannable
-from diffcalc.util import getMessageFromException
+from diffcalc.util import getMessageFromException, allnum
 import math
 import time
 
@@ -302,3 +302,20 @@ class Scan(object):
         for n in range(count):
             result.append(limit1 + n * increment)
         return result
+
+
+
+def sim(scn, hkl):
+    """sim hkl scn -- simulates moving scannable (not all)
+    """
+    if not isinstance(hkl, (tuple, list)):
+        raise TypeError()
+
+    if not allnum(hkl):
+        raise TypeError()
+
+    try:
+        print scn.simulateMoveTo(hkl)
+    except AttributeError:
+        raise TypeError(
+                "The first argument does not support simulated moves")
