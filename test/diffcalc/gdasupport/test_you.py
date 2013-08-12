@@ -17,45 +17,69 @@
 ###
 
 from math import pi
-import inspect
-from nose.tools import eq_, raises
-from nose.plugins.skip import Skip, SkipTest
+from nose.tools import eq_, raises  # @UnresolvedImport
+from nose.plugins.skip import Skip, SkipTest  # @UnresolvedImport
+from diffcalc.hardware import ScannableHardwareAdapter
+from diffcalc.gdasupport.minigda.scannable import SingleFieldDummyScannable,\
+    ScannableGroup
+from diffcalc.hkl.you.geometry import SixCircle
+from diffcalc.ub.persistence import UbCalculationNonPersister
+
+import diffcalc.util  # @UnusedImport
 
 try:
     from numpy import matrix
 except ImportError:
     from numjy import matrix
 
-from diffcalc.gdasupport.factory import create_objects
-import diffcalc.gdasupport.factory  # @UnusedImport for VERBOSE
-from diffcalc.gdasupport.minigda.command import Pos, Scan
-from test.tools import wrap_command_to_print_calls, mneq_, aneq_,\
-    assert_dict_almost_equal
+from diffcalc.gdasupport.minigda.command import Pos
+from test.tools import mneq_
+
+from diffcalc import settings
 
 
-EXPECTED_OBJECTS = set(['delref', 'en', 'uncon', 'showref', 'l',
-                    'hardware', 'checkub', 'listub', 'mu_par', 'saveubas',
-                    'eta_par', 'ct', 'setmin', 'ub', 'setcut', 'chi', 'setlat',
-                    'qaz', 'addref', 'swapref', 'newub', 'naz', 'sixc', 'gam',
-                    'sim', 'phi', 'psi', 'wl',
-                    'setmax', 'dc', 'loadub', 'beta', 'hkl', 'delta', 'alpha',
-                    'gam_par', 'trialub', 'delta_par', 'h', 'k', 'phi_par',
-                     'a_eq_b', 'mu', 'setu', 'eta', 'editref', 'con', 'setub', 'c2th',
-                    'calcub', 'chi_par', 'hklverbose', 'allhkl'])
+pos = Pos(globals())
 
-# Placeholders for names to be added to globals (for benefit of IDE)
-delref = en = uncon = showref = l = hardware = checkub = listub = None
-mu_par = saveubas = eta_par = ct = setmin = ub = setcut = chi = setlat = None
-qaz = addref = swapref = newub = naz = sixc = gam = sim = None
-phi = psi = sigtau = wl = setmax = dc = loadub = beta = hkl = delta = None
-alpha = gam_par = trialub = delta_par = h = k = phi_par = a_eq_b = mu = setu = eta = None
-editref = con = setub = c2th = calcub = chi_par = hklverbose = None
+en = SingleFieldDummyScannable('en')  # keV
+mu = SingleFieldDummyScannable('mu')
+delta = SingleFieldDummyScannable('delta')
+gam = SingleFieldDummyScannable('gam')
+eta = SingleFieldDummyScannable('eta')
+chi = SingleFieldDummyScannable('chi')
+phi = SingleFieldDummyScannable('phi')
+sixc_group = ScannableGroup('sixc', (mu, delta, gam, eta, chi, phi))
+
+ubcalc_no = 1
+
+you = None
+def setup_module():
+    global you
+    settings.configure(hardware=ScannableHardwareAdapter(sixc_group, en),
+                   geometry=SixCircle(),
+                   ubcalc_persister=UbCalculationNonPersister(),
+                   axes_scannable_group=sixc_group,
+                   energy_scannable = en)
 
 
-PRINT_WITH_USER_SYNTAX = True
-diffcalc.gdasupport.factory.VERBOSE = False
 
-pos = wrap_command_to_print_calls(Pos(globals()), PRINT_WITH_USER_SYNTAX)
+    from diffcalc.gdasupport import you
+    reload(you)
+
+
+"""
+All the components used here are well tested. This integration test is
+mainly to get output for the manual, to help when tweaking the user
+interface, and to make sure it all works together.
+"""
+# 
+# PRINT_WITH_USER_SYNTAX = True
+# for name, obj in self.objects.iteritems():
+#     if inspect.ismethod(obj):
+#         globals()[name] = wrap_command_to_print_calls(
+#                               obj, PRINT_WITH_USER_SYNTAX)
+#     else:
+#         globals()[name] = obj
+# pos = wrap_command_to_print_calls(Pos(globals()), PRINT_WITH_USER_SYNTAX)
 
 
 def call_scannable(scn):
@@ -63,118 +87,94 @@ def call_scannable(scn):
     print scn.__str__()
 
 
-class TestDiffcalcFactorySixc():
-    """
-    All the components used here are well tested. This integration test is
-    mainly to get output for the manual, to help when tweaking the user
-    interface, and to make sure it all works together.
-    """
 
-    def setup(self):
-        axis_names = ('mu', 'delta', 'gam', 'eta', 'chi', 'phi')
-        virtual_angles = ('theta', 'qaz', 'alpha', 'naz', 'tau', 'psi', 'beta')
-        self.objects = create_objects(
-            engine_name='you',
-            geometry='sixc',
-            dummy_axis_names=axis_names,
-            dummy_energy_name='en',
-            hklverbose_virtual_angles_to_report=virtual_angles,
-            simulated_crystal_counter_name='ct'
-            )
-        for name, obj in self.objects.iteritems():
-            if inspect.ismethod(obj):
-                globals()[name] = wrap_command_to_print_calls(
-                                      obj, PRINT_WITH_USER_SYNTAX)
-            else:
-                globals()[name] = obj
 
-    def test_created_objects(self):
-        created_objects = set(self.objects.keys())
-        print "Unexpected objects:", created_objects.difference(EXPECTED_OBJECTS)
-        print "Missing objects:", EXPECTED_OBJECTS.difference(created_objects)
-        eq_(created_objects, EXPECTED_OBJECTS)
 
-    def test_help_visually(self):
-        print "\n>>> help ub"
-        help(ub)
-        print "\n>>> help hkl"
-        help(hkl)
-        print "\n>>> help newub"
-        help(newub)
 
-    def test_axes(self):
-        call_scannable(sixc)
-        call_scannable(phi)
+def test_help_visually():
+    print "\n>>> help ub"
+    help(you.ub)
+    print "\n>>> help hkl"
+    help(you.hkl)
+    print "\n>>> help newub"
+    help(you.newub)
 
-    def test_with_no_ubcalc(self):
-        ub()
-        showref()
-        call_scannable(hkl)
+def test_axes():
+    call_scannable(you.sixc)  # @UndefinedVariable
+    call_scannable(phi)
 
-    def _orient(self):
-        pos(wl, 1)
-        call_scannable(en)  # like typing en (or en())
-        newub('test')
-        setlat('cubic', 1, 1, 1, 90, 90, 90)
+def test_with_no_ubcalc():
+    you.ub()
+    you.showref()
+    call_scannable(you.hkl)
 
-        c2th([1, 0, 0])
-        pos(sixc, [0, 60, 0, 30, 0, 0])
-        addref([1, 0, 0], 'ref1')
+def _orient():
+    global ubcalc_no
+    pos(you.wl, 1)
+    call_scannable(en)  # like typing en (or en())
+    you.newub('test' + str(ubcalc_no))
+    ubcalc_no += 1
+    you.setlat('cubic', 1, 1, 1, 90, 90, 90)
 
-        c2th([0, 1, 0])
-        pos(phi, 90)
-        addref([0, 1, 0], 'ref2')
+    you.c2th([1, 0, 0])
+    pos(you.sixc, [0, 60, 0, 30, 0, 0])  # @UndefinedVariable
+    you.addref([1, 0, 0], 'ref1')
 
-    def test_orientation_phase(self):
-        self._orient()
-        ub()
-        checkub()
-        showref()
+    you.c2th([0, 1, 0])
+    pos(phi, 90)
+    you.addref([0, 1, 0], 'ref2')
 
-        U = matrix('1 0 0; 0 1 0; 0 0 1')
-        UB = U * 2 * pi
-        mneq_(dc.ub._ubcalc.U, U)
-        mneq_(dc.ub._ubcalc.UB, UB)
+def test__orientation_phase():
+    _orient()
+    you.ub()
+    you.checkub()
+    you.showref()
 
-    def test_hkl_read(self):
-        self._orient()
-        call_scannable(hkl)
+    U = matrix('1 0 0; 0 1 0; 0 0 1')
+    UB = U * 2 * pi
+    mneq_(you.ubcalc.U, U)
+    mneq_(you.ubcalc.UB, UB)
 
-    def test_help_con(self):
-        help(con)
+def test_hkl_read():
+    _orient()
+    call_scannable(you.hkl)
 
-    def test_constraint_mgmt(self):
-        diffcalc.util.DEBUG = True
-        con()  # TODO: show constrained values underneath
+def test_help_con():
+    help(you.con)
 
-    def test_hkl_move_no_constraints(self):
-        raise SkipTest()
-        self._orient()
-        pos(hkl, [1, 0, 0])
+def test_constraint_mgmt():
+    diffcalc.util.DEBUG = True
+    you.con()  # TODO: show constrained values underneath
 
-    def test_hkl_move_no_values(self):
-        raise SkipTest()
-        self._orient()
-        con(mu)
-        con(gam)
-        con('a_eq_b')
-        con('a_eq_b')
-        pos(hkl, [1, 0, 0])
+def test_hkl_move_no_constraints():
+    raise SkipTest()
+    _orient()
+    pos(you.hkl, [1, 0, 0])
 
-    def test_hkl_move_okay(self):
-        self._orient()
-        con(mu)
-        con(gam)
-        con('a_eq_b')
-        pos(mu_par, 0)
-        pos(gam_par, 0)  # TODO: Fails with qaz=90
-        pos(hkl, [1, 1, 0])  # TODO: prints DEGENERATE. necessary?
-        call_scannable(sixc)
+def test_hkl_move_no_values():
+    raise SkipTest()
+    _orient()
+    you.con(mu)
+    you.con(gam)
+    you.con('a_eq_b')
+    you.con('a_eq_b')
+    pos(you.hkl, [1, 0, 0])
 
-    @raises(TypeError)
-    def test_usage_error_signature(self):
-        c2th('wrong arg', 'wrong arg')
+def test_hkl_move_okay():
+    _orient()
+    you.ub()
+    you.con(mu)
+    you.con(gam)
+    you.con('a_eq_b')
+    pos(you.mu_con, 0)
+    pos(you.gam_con, 0)  # TODO: Fails with qaz=90
+    pos(you.hkl, [1, 1, 0])  # TODO: prints DEGENERATE. necessary?
+    call_scannable(you.sixc)  # @UndefinedVariable
 
-    @raises(TypeError)
-    def test_usage_error_inside(self):
-        setlat('wrong arg', 'wrong arg')
+@raises(TypeError)
+def test_usage_error_signature():
+    you.c2th('wrong arg', 'wrong arg')
+
+@raises(TypeError)
+def test_usage_error_inside():
+    you.setlat('wrong arg', 'wrong arg')
