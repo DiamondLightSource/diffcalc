@@ -287,7 +287,6 @@ def allnum(l):
     return not [o for o in l if not isnum(o)]
 
 
-RAISE_EXCEPTIONS_FOR_ALL_ERRORS = False
 DEBUG = False
 
 
