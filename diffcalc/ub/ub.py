@@ -16,29 +16,33 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-from diffcalc.conf import settings
+from diffcalc import settings
 from diffcalc.ub.calc import UBCalculation
 
 from math import asin, pi
 from datetime import datetime
 
 from diffcalc.util import getInputWithDefault as promptForInput, \
-    promptForNumber, promptForList, allnum, isnum
+    promptForNumber, promptForList, allnum, isnum, format_command_help
 from diffcalc.util import command
 
 TORAD = pi / 180
 TODEG = 180 / pi
 
 
+# When using ipython magic, these functions must not be imported to the top
+# level namespace. Doing so will stop them from being called with magic.
 
-_ubcalc = UBCalculation(settings.HARDWARE.get_axes_names(),  # @UndefinedVariable
-                        settings.GEOMETRY,
-                        settings.UBCALC_PERSISTER,
-                        settings.UBCALC_STRATEGY)
+__all__ = ['addref', 'c2th', 'calcub', 'delref', 'editref', 'listub', 'loadub',
+           'newub', 'saveubas', 'setlat', 'setu', 'setub', 'showref', 'sigtau',
+           'swapref', 'trialub', 'checkub', 'ub', 'ubcalc']
 
-HARDWARE = settings.HARDWARE
 
-GEOMETRY = settings.GEOMETRY
+ubcalc = UBCalculation(settings.hardware,
+                       settings.geometry,
+                       settings.ubcalc_persister,
+                       settings.ubcalc_strategy)
+
 
 
 ### UB state ###
@@ -50,11 +54,11 @@ def newub(name=None):
     if name is None:
         # interactive
         name = promptForInput('calculation name')
-        _ubcalc.start_new(name)
+        ubcalc.start_new(name)
         setlat()
     elif isinstance(name, str):
         # just trying might cause confusion here
-        _ubcalc.start_new(name)
+        ubcalc.start_new(name)
     else:
         raise TypeError()
 
@@ -63,15 +67,15 @@ def loadub(name_or_num):
     """loadub {'name'|num} -- load an existing ub calculation
     """
     if isinstance(name_or_num, str):
-        _ubcalc.load(name_or_num)
-    _ubcalc.load(_ubcalc.listub()[int(name_or_num)])
+        ubcalc.load(name_or_num)
+    ubcalc.load(ubcalc.listub()[int(name_or_num)])
 
 @command
 def listub():
     """listub -- list the ub calculations available to load.
     """
     print "UB calculations in cross-visit database:"
-    for n, name in enumerate(_ubcalc.listub()):
+    for n, name in enumerate(ubcalc.listub()):
         print "%2i) %s" % (n, name)
 
 @command
@@ -80,7 +84,7 @@ def saveubas(name):
     """
     if isinstance(name, str):
         # just trying might cause confusion here
-        _ubcalc.saveas(name)
+        ubcalc.saveas(name)
     else:
         raise TypeError()
 
@@ -88,9 +92,9 @@ def saveubas(name):
 def ub():
     """ub -- show the complete state of the ub calculation
     """
-    #wavelength = float(HARDWARE.get_wavelength())
-    #energy = float(HARDWARE.get_energy())
-    print _ubcalc.__str__()
+    #wavelength = float(hardware.get_wavelength())
+    #energy = float(hardware.get_energy())
+    print ubcalc.__str__()
 
 ### UB lattice ###
 
@@ -113,13 +117,13 @@ def setlat(name=None, *args):
         alpha = promptForNumber('alpha', 90)
         beta = promptForNumber('beta', 90)
         gamma = promptForNumber('gamma', 90)
-        _ubcalc.set_lattice(name, a, b, c, alpha, beta, gamma)
+        ubcalc.set_lattice(name, a, b, c, alpha, beta, gamma)
 
     elif (isinstance(name, str) and
           len(args) in (1, 2, 3, 4, 6) and
           allnum(args)):
         # first arg is string and rest are numbers
-        _ubcalc.set_lattice(name, *args)
+        ubcalc.set_lattice(name, *args)
     else:
         raise TypeError()
 
@@ -129,10 +133,10 @@ def c2th(hkl, en=None):
     c2th [h k l]  -- calculate two-theta angle for reflection
     """
     if en is None:
-        wl = HARDWARE.get_wavelength()
+        wl = settings.hardware.get_wavelength()  # @UndefinedVariable
     else:
         wl = 12.39842 / en
-    d = _ubcalc.get_hkl_plane_distance(hkl)
+    d = ubcalc.get_hkl_plane_distance(hkl)
     return 2.0 * asin(wl / (d * 2)) * TODEG
 
 ### Surface stuff ###
@@ -141,26 +145,26 @@ def c2th(hkl, en=None):
 def sigtau(sigma=None, tau=None):
     """sigtau {sigma tau} -- sets or displays sigma and tau"""
     if sigma is None and tau is None:
-        chi = HARDWARE.get_position_by_name('chi')
-        phi = HARDWARE.get_position_by_name('phi')
-        _sigma, _tau = _ubcalc.sigma, _ubcalc.tau
+        chi = settings.hardware.get_position_by_name('chi')  # @UndefinedVariable
+        phi = settings.hardware.get_position_by_name('phi')  # @UndefinedVariable
+        _sigma, _tau = ubcalc.sigma, ubcalc.tau
         print "sigma, tau = %f, %f" % (_sigma, _tau)
         print "  chi, phi = %f, %f" % (chi, phi)
         sigma = promptForInput("sigma", -chi)
         tau = promptForInput("  tau", -phi)
-        _ubcalc.sigma = sigma
-        _ubcalc.tau = tau
+        ubcalc.sigma = sigma
+        ubcalc.tau = tau
     else:
-        _ubcalc.sigma = float(sigma)
-        _ubcalc.tau = float(tau)
+        ubcalc.sigma = float(sigma)
+        ubcalc.tau = float(tau)
 
 ### UB refelections ###
 
 @command
 def showref():
     """showref -- shows full reflection list"""
-    if _ubcalc._state.reflist:
-        print '\n'.join(_ubcalc._state.reflist.str_lines())
+    if ubcalc._state.reflist:
+        print '\n'.join(ubcalc._state.reflist.str_lines())
     else:
         print "<<< No UB calculation started >>>"
 
@@ -180,12 +184,12 @@ def addref(*args):
             _handleInputError("h,k and l must all be numbers")
         reply = promptForInput('current pos', 'y')
         if reply in ('y', 'Y', 'yes'):
-            positionList = HARDWARE.get_position()
-            energy = HARDWARE.get_energy()
+            positionList = settings.hardware.get_position()  # @UndefinedVariable
+            energy = settings.hardware.get_energy()  # @UndefinedVariable
         else:
-            currentPos = HARDWARE.get_position()
+            currentPos = settings.hardware.get_position()  # @UndefinedVariable
             positionList = []
-            names = HARDWARE.get_axes_names()
+            names = settings.hardware.get_axes_names()  # @UndefinedVariable
             for i, angleName in enumerate(names):
                 val = promptForNumber(angleName.rjust(7), currentPos[i])
                 if val is None:
@@ -193,18 +197,18 @@ def addref(*args):
                                           " Return to accept default!")
                     return
                 positionList.append(val)
-            energy = promptForNumber('energy', HARDWARE.get_energy())
+            energy = promptForNumber('energy', settings.hardware.get_energy())  # @UndefinedVariable
             if val is None:
                 _handleInputError("Please enter a number, or press "
                                       "Return to accept default!")
                 return
-            muliplier = HARDWARE.energyScannableMultiplierToGetKeV
+            muliplier = settings.hardware.energyScannableMultiplierToGetKeV  # @UndefinedVariable
             energy = energy * muliplier
         tag = promptForInput("tag")
         if tag == '':
             tag = None
-        pos = GEOMETRY.physical_angles_to_internal_position(positionList)
-        _ubcalc.add_reflection(h, k, l, pos, energy, tag,
+        pos = settings.geometry.physical_angles_to_internal_position(positionList)  # @UndefinedVariable
+        ubcalc.add_reflection(h, k, l, pos, energy, tag,
                                    datetime.now())
     elif len(args) in (1, 2, 3, 4):
         args = list(args)
@@ -212,22 +216,22 @@ def addref(*args):
         if not (isnum(h) and isnum(k) and isnum(l)):
             raise TypeError()
         if len(args) >= 2:
-            pos = GEOMETRY.physical_angles_to_internal_position(
+            pos = settings.geometry.physical_angles_to_internal_position(  # @UndefinedVariable
                 args.pop(0))
             energy = args.pop(0)
             if not isnum(energy):
                 raise TypeError()
         else:
-            pos = GEOMETRY.physical_angles_to_internal_position(
-                HARDWARE.get_position())
-            energy = HARDWARE.get_energy()
+            pos = settings.geometry.physical_angles_to_internal_position(  # @UndefinedVariable
+                settings.hardware.get_position())  # @UndefinedVariable
+            energy = settings.hardware.get_energy()  # @UndefinedVariable
         if len(args) == 1:
             tag = args.pop(0)
             if not isinstance(tag, str):
                 raise TypeError()
         else:
             tag = None
-        _ubcalc.add_reflection(h, k, l, pos, energy, tag,
+        ubcalc.add_reflection(h, k, l, pos, energy, tag,
                                    datetime.now())
     else:
         raise TypeError()
@@ -240,7 +244,7 @@ def editref(num):
 
     # Get old reflection values
     [oldh, oldk, oldl], oldExternalAngles, oldEnergy, oldTag, oldT = \
-        _ubcalc.get_reflection_in_external_angles(num)
+        ubcalc.get_reflection_in_external_angles(num)
     del oldT  # current time will be used.
 
     h = promptForNumber('h', oldh)
@@ -251,11 +255,11 @@ def editref(num):
     reply = promptForInput('update position with current hardware setting',
                            'n')
     if reply in ('y', 'Y', 'yes'):
-        positionList = HARDWARE.get_position()
-        energy = HARDWARE.get_energy()
+        positionList = settings.hardware.get_position()  # @UndefinedVariable
+        energy = settings.hardware.get_energy()  # @UndefinedVariable
     else:
         positionList = []
-        names = HARDWARE.get_axes_names()
+        names = settings.hardware.get_axes_names()  # @UndefinedVariable
         for i, angleName in enumerate(names):
             val = promptForNumber(angleName.rjust(7), oldExternalAngles[i])
             if val is None:
@@ -268,19 +272,19 @@ def editref(num):
             _handleInputError("Please enter a number, or press Return "
                                   "to accept default!")
             return
-        energy = energy * HARDWARE.energyScannableMultiplierToGetKeV
+        energy = energy * settings.hardware.energyScannableMultiplierToGetKeV  # @UndefinedVariable
     tag = promptForInput("tag", oldTag)
     if tag == '':
         tag = None
-    pos = GEOMETRY.physical_angles_to_internal_position(positionList)
-    _ubcalc.edit_reflection(num, h, k, l, pos, energy, tag,
+    pos = settings.geometry.physical_angles_to_internal_position(positionList)  # @UndefinedVariable
+    ubcalc.edit_reflection(num, h, k, l, pos, energy, tag,
                                 datetime.now())
 
 @command
 def delref(num):
     """delref num -- deletes a reflection (numbered from 1)
     """
-    _ubcalc.del_reflection(int(num))
+    ubcalc.del_reflection(int(num))
 
 @command
 def swapref(num1=None, num2=None):
@@ -289,9 +293,9 @@ def swapref(num1=None, num2=None):
     swapref num1 num2 -- swaps two reflections (numbered from 1)
     """
     if num1 is None and num2 is None:
-        _ubcalc.swap_reflections(1, 2)
+        ubcalc.swap_reflections(1, 2)
     elif isinstance(num1, int) and isinstance(num2, int):
-        _ubcalc.swap_reflections(num1, num2)
+        ubcalc.swap_reflections(num1, num2)
     else:
         raise TypeError()
 
@@ -306,7 +310,7 @@ def setu(U=None):
         if U is None:
             return  # an error will have been printed or thrown
     if _is3x3TupleOrList(U):
-        _ubcalc.set_U_manually(U)
+        ubcalc.set_U_manually(U)
     else:
         raise TypeError("U must be given as 3x3 list or tuple")
 
@@ -318,7 +322,7 @@ def setub(UB=None):
         if UB is None:
             return  # an error will have been printed or thrown
     if _is3x3TupleOrList(UB):
-        _ubcalc.set_UB_manually(UB)
+        ubcalc.set_UB_manually(UB)
     else:
         raise TypeError("UB must be given as 3x3 list or tuple")
 
@@ -342,13 +346,62 @@ def _promptFor3x3MatrixDefaultingToIdentity():
 def calcub():
     """calcub -- (re)calculate u matrix from ref1 and ref2.
     """
-    _ubcalc.calculate_UB()
+    ubcalc.calculate_UB()
 
 @command
 def trialub():
     """trialub -- (re)calculate u matrix from ref1 only (check carefully).
     """
-    _ubcalc.calculate_UB_from_primary_only()
+    ubcalc.calculate_UB_from_primary_only()
+
+
+    # This command requires the ubcalc
+@command
+def checkub():
+    """checkub -- show calculated and entered hkl values for reflections.
+    """
+
+    s = "\n    %7s  %4s  %4s  %4s    %6s   %6s   %6s     TAG\n" % \
+    ('ENERGY', 'H', 'K', 'L', 'H_COMP', 'K_COMP', 'L_COMP')
+
+    nref = ubcalc.get_number_reflections()
+    if not nref:
+        s += "<<empty>>"
+    for n in range(nref):
+        hklguess, pos, energy, tag, _ = ubcalc.get_reflection(n + 1)
+        wavelength = 12.39842 / energy
+        h, k, l = settings.angles_to_hkl_function(pos, wavelength, ubcalc.UB)
+        if tag is None:
+            tag = ""
+        s += ("% 2d % 6.4f % 4.2f % 4.2f % 4.2f   % 6.4f  % 6.4f  "
+              "% 6.4f  %6s\n" % (n + 1, energy, hklguess[0],
+              hklguess[1], hklguess[2], h, k, l, tag))
+    print s
+
+
+commands_for_help = ['State',
+                     newub,
+                     loadub,
+                     listub,
+                     saveubas,
+                     ub,
+                     'Lattice',
+                     setlat,
+                     c2th,
+                     'Surface',
+                     sigtau,
+                     'Reflections',
+                     showref,
+                     addref,
+                     editref,
+                     delref,
+                     swapref,
+                     'ub',
+                     checkub,
+                     setu,
+                     setub,
+                     calcub,
+                     trialub]
 
 def _is3x3TupleOrList(m):
     if type(m) not in (list, tuple):
