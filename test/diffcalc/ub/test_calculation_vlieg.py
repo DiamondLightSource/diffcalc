@@ -45,8 +45,10 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
 
     def setUp(self):
         self.geometry = SixCircleGammaOnArmGeometry()
+        mock_hardware = Mock()
+        mock_hardware.get_axes_names.return_value = ('a', 'd', 'g', 'o', 'c', 'p')
         self.ubcalc = UBCalculation(
-            ('a', 'd', 'g', 'o', 'c', 'p'), self.geometry, UbCalculationNonPersister(),
+            mock_hardware, self.geometry, UbCalculationNonPersister(),
             VliegUbCalcStrategy())
         self.time = datetime.now()
 
