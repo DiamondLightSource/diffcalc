@@ -55,6 +55,21 @@ def z_rotation(th):
     return matrix(((cos(th), -sin(th), 0), (sin(th), cos(th), 0), (0, 0, 1)))
 
 
+def xyz_rotation(u, angle):
+    u = [list(u), [0, 0, 0], [0, 0, 0]]
+    u = matrix(u) / norm(matrix(u))
+    e11=u[0,0]**2+(1-u[0,0]**2)*cos(angle)
+    e12=u[0,0]*u[0,1]*(1-cos(angle))-u[0,2]*sin(angle)
+    e13=u[0,0]*u[0,2]*(1-cos(angle))+u[0,1]*sin(angle)
+    e21=u[0,0]*u[0,1]*(1-cos(angle))+u[0,2]*sin(angle)
+    e22=u[0,1]**2+(1-u[0,1]**2)*cos(angle)
+    e23=u[0,1]*u[0,2]*(1-cos(angle))-u[0,0]*sin(angle)
+    e31=u[0,0]*u[0,2]*(1-cos(angle))-u[0,1]*sin(angle)
+    e32=u[0,1]*u[0,2]*(1-cos(angle))+u[0,0]*sin(angle)
+    e33=u[0,2]**2+(1-u[0,2]**2)*cos(angle)
+    return matrix([[e11,e12,e13],[e21,e22,e23],[e31,e32,e33]])
+
+
 class DiffcalcException(Exception):
     """Error caused by user misuse of diffraction calculator.
     """
