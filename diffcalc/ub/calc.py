@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
-
+from diffcalc.ub.persistence import UBCalculationJSONPersister, UBCalculationPersister
 from diffcalc.ub.calcstate import decode_ubcalcstate
 from diffcalc.ub.calcstate import UBCalcState
 from diffcalc.ub.crystal import CrystalUnderTest
@@ -105,7 +105,14 @@ class UBCalculation:
 
     def load(self, name):
         state = self._persister.load(name)
-        self._state = decode_ubcalcstate(state, self._geometry, self._diffractometer_axes_names)
+        if isinstance(self._persister, UBCalculationJSONPersister):
+            self._state = decode_ubcalcstate(state, self._geometry, self._diffractometer_axes_names)
+        elif isinstance(self._persister, UBCalculationPersister):
+            self._state = state
+        else:
+            raise Exception('Unexpected persister type: ' + str(self._persister))
+
+        
         if self._state.manual_U is not None:
             self.set_U_manually(self._state.manual_U)
         elif self._state.manual_UB is not None:
