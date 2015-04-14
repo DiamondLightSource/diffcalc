@@ -15,11 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
-from diffcalc.ub.persistence import UBCalculationJSONPersister, UBCalculationPersister
+
 from diffcalc.ub.calcstate import decode_ubcalcstate
 from diffcalc.ub.calcstate import UBCalcState
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.reflections import ReflectionList
+from diffcalc.ub.persistence import UBCalculationJSONPersister, UBCalculationPersister
 from diffcalc.util import DiffcalcException, cross3, dot3
 from math import acos, cos, sin, pi
 from diffcalc.ub.reference import YouReference
@@ -111,8 +112,6 @@ class UBCalculation:
             self._state = state
         else:
             raise Exception('Unexpected persister type: ' + str(self._persister))
-
-        
         if self._state.manual_U is not None:
             self.set_U_manually(self._state.manual_U)
         elif self._state.manual_UB is not None:
