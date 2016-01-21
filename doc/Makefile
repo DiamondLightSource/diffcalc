@@ -5,7 +5,7 @@
 ifeq ($(CONTEXT),diamond)
 	@echo "Environment variable CONTEXT=diamond, so setting build environment suitable for Diamond Light Source"
 	# get the location of a Python that has Sphinx installed
-	SPHINXBUILD?=$(shell module load python/2.7;which sphinx-build)
+	SPHINXBUILD?=$(shell module load python/2.7.2;which sphinx-build)
 	# set http proxy
 	export http_proxy?=http://wwwcache.rl.ac.uk:8080
 	export https_proxy?=https://wwwcache.rl.ac.uk:8080
