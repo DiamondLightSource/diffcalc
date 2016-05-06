@@ -28,7 +28,7 @@ try:
 except ImportError:
     from diffcalc.gdasupport.minigda.scannable import DummyPD
 
-from diffcalc.diffcalc_ import create_diffcalc
+
 from diffcalc.gdasupport.scannable.base import ScannableGroup
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
