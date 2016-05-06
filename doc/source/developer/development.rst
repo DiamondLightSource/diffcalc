@@ -7,7 +7,7 @@ a read-only clone or export.
 
 Code format should follow pep8 guidelines. PyDev has a good pep8 checker.
 
-To run the tests install _nose, change directory into the test folder and run::
+To run the tests install nose_, change directory into the test folder and run::
 
    $ nosetests
    .......... ...
