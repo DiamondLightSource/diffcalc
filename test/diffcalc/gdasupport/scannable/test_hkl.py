@@ -20,7 +20,6 @@ import mock
 import nose
 import unittest
 
-from diffcalc import diffcalc_
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
 from diffcalc.gdasupport.scannable.hkl import Hkl
@@ -60,89 +59,89 @@ class Popper:
 class TestHkl(unittest.TestCase):
 
     def setUp(self):
-        self.mockDiffcalc = mock.Mock(spec=diffcalc_.Diffcalc)
+        self.mock_dc_module = mock.Mock()
         self.mockSixc = mock.Mock(spec=DiffractometerScannableGroup)
-        self.hkl = Hkl('hkl', self.mockSixc, self.mockDiffcalc)
+        self.hkl = Hkl('hkl', self.mockSixc, self.mock_dc_module)
 
     def testInit(self):
-        self.mockDiffcalc.angles_to_hkl.return_value = ([1, 2, 3], PARAM_DICT)
+        self.mock_dc_module.angles_to_hkl.return_value = ([1, 2, 3], PARAM_DICT)
         self.assertEqual(self.hkl.getPosition(), [1, 2, 3])
 
     def testAsynchronousMoveTo(self):
-        self.mockDiffcalc.hkl_to_angles.return_value = ([6, 5, 4, 3, 2, 1],
+        self.mock_dc_module.hkl_to_angles.return_value = ([6, 5, 4, 3, 2, 1],
                                                        None)
         self.hkl.asynchronousMoveTo([1, 0, 1])
-        self.mockDiffcalc.hkl_to_angles.assert_called_with(1, 0, 1)
+        self.mock_dc_module.hkl_to_angles.assert_called_with(1, 0, 1)
         self.mockSixc.asynchronousMoveTo.assert_called_with([6, 5, 4, 3, 2, 1])
 
     def testGetPosition(self):
         self.mockSixc.getPosition.return_value = [6, 5, 4, 3, 2, 1]
-        self.mockDiffcalc.angles_to_hkl.return_value = ([1, 0, 1], PARAM_DICT)
+        self.mock_dc_module.angles_to_hkl.return_value = ([1, 0, 1], PARAM_DICT)
         self.assertEqual(self.hkl.getPosition(), [1, 0, 1])
-        self.mockDiffcalc.angles_to_hkl.assert_called_with([6, 5, 4, 3, 2, 1])
+        self.mock_dc_module.angles_to_hkl.assert_called_with([6, 5, 4, 3, 2, 1])
 
     def testAsynchronousMoveToWithNonesOutsideScan(self):
         self.mockSixc.getPosition.return_value = [6, 5, 4, 3, 2, 1]
-        self.mockDiffcalc.angles_to_hkl.return_value = ([1, 0, 1],
+        self.mock_dc_module.angles_to_hkl.return_value = ([1, 0, 1],
                                                        PARAM_DICT)
-        self.mockDiffcalc.hkl_to_angles.return_value = ([12, 5, 4, 3, 2, 1],
+        self.mock_dc_module.hkl_to_angles.return_value = ([12, 5, 4, 3, 2, 1],
                                                        PARAM_DICT)  # <- 2,0,1
 
         self.hkl.asynchronousMoveTo([2, 0, None])
 
-        self.mockDiffcalc.angles_to_hkl.assert_called_with([6, 5, 4, 3, 2, 1])
-        self.mockDiffcalc.hkl_to_angles.assert_called_with(2, 0, 1)
+        self.mock_dc_module.angles_to_hkl.assert_called_with([6, 5, 4, 3, 2, 1])
+        self.mock_dc_module.hkl_to_angles.assert_called_with(2, 0, 1)
         self.mockSixc.asynchronousMoveTo.assert_called_with(
             [12, 5, 4, 3, 2, 1])
 
     def testAsynchronousMoveToWithNonesInScan(self):
 
         self.mockSixc.getPosition.return_value = [6, 5, 4, 3, 2, 1]
-        self.mockDiffcalc.angles_to_hkl.return_value = ([1, 0, 1], PARAM_DICT)
+        self.mock_dc_module.angles_to_hkl.return_value = ([1, 0, 1], PARAM_DICT)
         self.hkl.atScanStart()
         # should not be used:
         self.mockSixc.getPosition.return_value = [6.1, 5.1, 4.1, 3.1, 2.1, 1.1]
-        self.mockDiffcalc.hkl_to_angles.return_value = ([12, 5, 4, 3, 2, 1],
+        self.mock_dc_module.hkl_to_angles.return_value = ([12, 5, 4, 3, 2, 1],
                                                        PARAM_DICT)
         self.hkl.asynchronousMoveTo([2, 0, None])
         # atScanStart:
-        self.mockDiffcalc.angles_to_hkl.assert_called_with([6, 5, 4, 3, 2, 1])
-        self.mockDiffcalc.hkl_to_angles.assert_called_with(2, 0, 1)
+        self.mock_dc_module.angles_to_hkl.assert_called_with([6, 5, 4, 3, 2, 1])
+        self.mock_dc_module.hkl_to_angles.assert_called_with(2, 0, 1)
         self.mockSixc.asynchronousMoveTo.assert_called_with(
             [12, 5, 4, 3, 2, 1])
 
     def testAsynchronousMoveToWithNonesInScanAfterCommandFailure(self):
         # should be forgotten:
         self.mockSixc.getPosition.return_value = [6, 5, 4, 3, 2, 1]
-        self.mockDiffcalc.angles_to_hkl.return_value = ([1, 0, 1], PARAM_DICT)
+        self.mock_dc_module.angles_to_hkl.return_value = ([1, 0, 1], PARAM_DICT)
         self.hkl.atScanStart()
         self.hkl.atCommandFailure()
 
         self.mockSixc.getPosition.return_value = [6.1, 5.1, 4.1, 3.1, 2.1, 1.1]
-        self.mockDiffcalc.hkl_to_angles.return_value = (
+        self.mock_dc_module.hkl_to_angles.return_value = (
                 [12.1, 5.1, 4.1, 3.1, 2.1, 1.1], PARAM_DICT)
         self.hkl.asynchronousMoveTo([2, 0, None])
 
-        self.mockDiffcalc.angles_to_hkl.assert_called_with(
+        self.mock_dc_module.angles_to_hkl.assert_called_with(
             [6.1, 5.1, 4.1, 3.1, 2.1, 1.1])
-        self.mockDiffcalc.hkl_to_angles.assert_called_with(2, 0, 1)
+        self.mock_dc_module.hkl_to_angles.assert_called_with(2, 0, 1)
         self.mockSixc.asynchronousMoveTo.assert_called_with(
             [12.1, 5.1, 4.1, 3.1, 2.1, 1.1])
 
     def testAsynchronousMoveToWithNonesInScanAfterAtScanEnd(self):
         self.mockSixc.getPosition.return_value = [6, 5, 4, 3, 2, 1]
-        self.mockDiffcalc.angles_to_hkl.return_value = ([1, 0, 1], PARAM_DICT)
+        self.mock_dc_module.angles_to_hkl.return_value = ([1, 0, 1], PARAM_DICT)
         self.hkl.atScanStart()
         self.hkl.atScanEnd()
 
         self.mockSixc.getPosition.return_value = [6.1, 5.1, 4.1, 3.1, 2.1, 1.1]
-        self.mockDiffcalc.hkl_to_angles.return_value = (
+        self.mock_dc_module.hkl_to_angles.return_value = (
             [12.1, 5.1, 4.1, 3.1, 2.1, 1.1], PARAM_DICT)
         self.hkl.asynchronousMoveTo([2, 0, None])
 
-        self.mockDiffcalc.angles_to_hkl.assert_called_with(
+        self.mock_dc_module.angles_to_hkl.assert_called_with(
             [6.1, 5.1, 4.1, 3.1, 2.1, 1.1])
-        self.mockDiffcalc.hkl_to_angles.assert_called_with(2, 0, 1)
+        self.mock_dc_module.hkl_to_angles.assert_called_with(2, 0, 1)
         self.mockSixc.asynchronousMoveTo.assert_called_with(
             [12.1, 5.1, 4.1, 3.1, 2.1, 1.1])
 
@@ -157,7 +156,7 @@ class TestHkl(unittest.TestCase):
 
     def testWhereMoveTo(self):
         # just check for exceptions
-        self.mockDiffcalc.hkl_to_angles.return_value = ([6, 5, 4, 3, 2, 1],
+        self.mock_dc_module.hkl_to_angles.return_value = ([6, 5, 4, 3, 2, 1],
                                                        PARAM_DICT)
         self.mockSixc.getName.return_value = 'sixc'
         self.mockSixc.getInputNames.return_value = ['alpha', 'delta', 'gamma',
@@ -171,20 +170,20 @@ class TestHkl(unittest.TestCase):
 class TestHklReturningVirtualangles(TestHkl):
     def setUp(self):
         TestHkl.setUp(self)
-        self.hkl = Hkl('hkl', self.mockSixc, self.mockDiffcalc,
+        self.hkl = Hkl('hkl', self.mockSixc, self.mock_dc_module,
                        ['theta', '2theta', 'Bin', 'Bout', 'azimuth'])
 
     def testInit(self):
-        self.mockDiffcalc.angles_to_hkl.return_value = ([1, 0, 1], PARAM_DICT)
+        self.mock_dc_module.angles_to_hkl.return_value = ([1, 0, 1], PARAM_DICT)
         self.assertEqual(self.hkl.getPosition(),
                          [1, 0, 1, 1, 12, 123, 1234, 12345])
 
     def testGetPosition(self):
         self.mockSixc.getPosition.return_value = [6, 5, 4, 3, 2, 1]
-        self.mockDiffcalc.angles_to_hkl.return_value = ([1, 0, 1], PARAM_DICT)
+        self.mock_dc_module.angles_to_hkl.return_value = ([1, 0, 1], PARAM_DICT)
         self.assertEqual(self.hkl.getPosition(),
                          [1, 0, 1, 1, 12, 123, 1234, 12345])
-        self.mockDiffcalc.angles_to_hkl.assert_called_with([6, 5, 4, 3, 2, 1])
+        self.mock_dc_module.angles_to_hkl.assert_called_with([6, 5, 4, 3, 2, 1])
 
 
 class TestHklWithFailingAngleCalculator(unittest.TestCase):
