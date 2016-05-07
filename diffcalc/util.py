@@ -55,6 +55,21 @@ def z_rotation(th):
     return matrix(((cos(th), -sin(th), 0), (sin(th), cos(th), 0), (0, 0, 1)))
 
 
+def xyz_rotation(u, angle):
+    u = [list(u), [0, 0, 0], [0, 0, 0]]
+    u = matrix(u) / norm(matrix(u))
+    e11=u[0,0]**2+(1-u[0,0]**2)*cos(angle)
+    e12=u[0,0]*u[0,1]*(1-cos(angle))-u[0,2]*sin(angle)
+    e13=u[0,0]*u[0,2]*(1-cos(angle))+u[0,1]*sin(angle)
+    e21=u[0,0]*u[0,1]*(1-cos(angle))+u[0,2]*sin(angle)
+    e22=u[0,1]**2+(1-u[0,1]**2)*cos(angle)
+    e23=u[0,1]*u[0,2]*(1-cos(angle))-u[0,0]*sin(angle)
+    e31=u[0,0]*u[0,2]*(1-cos(angle))-u[0,1]*sin(angle)
+    e32=u[0,1]*u[0,2]*(1-cos(angle))+u[0,0]*sin(angle)
+    e33=u[0,2]**2+(1-u[0,2]**2)*cos(angle)
+    return matrix([[e11,e12,e13],[e21,e22,e23],[e31,e32,e33]])
+
+
 class DiffcalcException(Exception):
     """Error caused by user misuse of diffraction calculator.
     """
@@ -287,54 +302,8 @@ def allnum(l):
     return not [o for o in l if not isnum(o)]
 
 
-RAISE_EXCEPTIONS_FOR_ALL_ERRORS = False
 DEBUG = False
 
-
-class ExternalCommand(object):
-    """Instances found in a command_list by format_command_help will
-    result in documentation for a command without there actually being one.
-    """
-    def __init__(self, docstring):
-        """Set the docstring that will be pulled off by format_command_help.
-        """
-        self.__doc__ = docstring
-        self.__name__ = ''
-
-
-def format_command_help(command_list):
-    lines = []
-    for obj in command_list:
-
-        if isinstance(obj, basestring):  # group heading
-            lines.extend(['', obj.upper(), ''])
-
-        else:  # individual command
-            doc_before_empty_line = obj.__doc__.split('\n\n')[0]
-            doc_lines = [s.strip() for s in doc_before_empty_line.split('\n')]
-            for doc_line in doc_lines:
-                if doc_line == '':
-                    continue
-                name, args, desc = _split_doc_line(doc_line)
-                desc_lines = textwrap.wrap(desc, 45)
-                line = ('   ' + name + ' ' + args).ljust(35)
-                if obj.__name__ in ('ub', 'hkl'):
-                    continue
-                if not desc_lines:
-                    raise AssertionError()
-                if len(line) <= 35:
-                    line += (desc_lines.pop(0))  # first line
-                lines.append(line)
-                for desc_line in desc_lines:
-                    lines.append(' ' * 35 + desc_line)
-#                lines.append('')
-    return '\n'.join(lines)
-
-
-def _split_doc_line(docLine):
-    name, _, right = docLine.partition(' ')
-    args, _, desc = right.partition('-- ')
-    return name, args, desc
 
 
 def command(f):

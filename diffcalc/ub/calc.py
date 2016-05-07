@@ -20,6 +20,7 @@ from diffcalc.ub.calcstate import decode_ubcalcstate
 from diffcalc.ub.calcstate import UBCalcState
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.reflections import ReflectionList
+from diffcalc.ub.persistence import UBCalculationJSONPersister, UBCalculationPersister
 from diffcalc.util import DiffcalcException, cross3, dot3
 from math import acos, cos, sin, pi
 from diffcalc.ub.reference import YouReference
@@ -67,25 +68,28 @@ class UBCalculation:
     of the code.
     """
 
-    def __init__(self, diffractometer_axes_names, diffractometerPluginObject,
+    def __init__(self, hardware, diffractometerPluginObject,
                  persister, strategy, include_sigtau=True):
 
         # The diffractometer geometry is required to map the internal angles
         # into those used by this diffractometer (for display only)
 
-        self._diffractometer_axes_names = diffractometer_axes_names
+        self._hardware = hardware
         self._geometry = diffractometerPluginObject
         self._persister = persister
         self._strategy = strategy
         self._include_sigtau = include_sigtau
         self.reference = YouReference(self)  # TODO: move into _state and persist
         self._clear()
+        
+    def _get_diffractometer_axes_names(self):
+        return self._hardware.get_axes_names()
 
     def _clear(self, name=None):
         # NOTE the Diffraction calculator is expecting this object to exist in
         # the long run. We can't remove this entire object, and recreate it.
         # It also contains a required link to the angle calculator.
-        reflist = ReflectionList(self._geometry, self._diffractometer_axes_names)
+        reflist = ReflectionList(self._geometry, self._get_diffractometer_axes_names())
         self._state = UBCalcState(name=name, reflist=reflist)
         self._U = None
         self._UB = None
@@ -105,7 +109,12 @@ class UBCalculation:
 
     def load(self, name):
         state = self._persister.load(name)
-        self._state = decode_ubcalcstate(state, self._geometry, self._diffractometer_axes_names)
+        if isinstance(self._persister, UBCalculationJSONPersister):
+            self._state = decode_ubcalcstate(state, self._geometry, self._get_diffractometer_axes_names)
+        elif isinstance(self._persister, UBCalculationPersister):
+            self._state = state
+        else:
+            raise Exception('Unexpected persister type: ' + str(self._persister))
         if self._state.manual_U is not None:
             self.set_U_manually(self._state.manual_U)
         elif self._state.manual_UB is not None:

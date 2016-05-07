@@ -77,6 +77,24 @@ class FourCircle(YouGeometry):
         _, delta, _, eta, chi, phi = internal_position.totuple()
         return delta, eta, chi, phi
 
+
+class FiveCircle(YouGeometry):
+    """For a diffractometer with angles:
+          delta, nu, eta, chi, phi
+    """
+    def __init__(self):
+        YouGeometry.__init__(self, 'fivec', {'mu': 0})
+
+    def physical_angles_to_internal_position(self, physical_angle_tuple):
+        # mu, delta, nu, eta, chi, phi
+        delta, nu, eta, chi, phi = physical_angle_tuple
+        return YouPosition(0, delta, nu, eta, chi, phi)
+
+    def internal_position_to_physical_angles(self, internal_position):
+        _, delta, nu, eta, chi, phi = internal_position.totuple()
+        return delta, nu, eta, chi, phi
+
+
 #==============================================================================
 
 

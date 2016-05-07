@@ -33,7 +33,7 @@ class _Reflection:
         self.tag = tag
         self.energy = float(energy)      # energy=12.39842/lambda
         self.wavelength = 12.3984 / self.energy
-        self.time = time
+        self.time = time  # Saved as e.g. repr(datetime.now())
 
     def __str__(self):
         return ("energy=%-6.3f h=%-4.2f k=%-4.2f l=%-4.2f  alpha=%-8.4f "

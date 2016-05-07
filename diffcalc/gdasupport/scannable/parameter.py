@@ -24,7 +24,6 @@ except ImportError:
 
 
 class DiffractionCalculatorParameter(ScannableMotionBase):
-    "wraps up the diffractometer motors"
 
     def __init__(self, name, parameterName, parameter_manager):
 

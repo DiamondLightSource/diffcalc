@@ -26,12 +26,12 @@ Start
 With Python start the sixcircle_api.py example startup script (notice
 the -i and -m) and type ``demo_all()``::
 
-   $ python -i -m example/startup/sixcircle_api
+   $ python -i -m example/sixcircle_api
    >>> demo_all()
 
 Or with IPython::
 
-   $ ipython -i example/startup/sixcircle_api.py
+   $ ipython -i example/sixcircle_api.py
    >>> demo_all()
 
 Alternatively start Python or IPython and cut and paste lines from the rest of
@@ -83,7 +83,7 @@ tutorial) first find some reflections::
    >>> # Create a new ub calculation and set lattice parameters
    >>> dc.ub.newub('test')
    >>> dc.ub.setlat('cubic', 1, 1, 1, 90, 90, 90)
-   
+
    >>> # Add 1st reflection
    >>> dc.ub.c2th([1, 0, 0])                      # energy from hardware
    60.
@@ -97,11 +97,11 @@ tutorial) first find some reflections::
 To check the state of the current UB calculation::
 
    >>> dc.ub.ub()
-   
+
    UBCALC
 
       name:          test
-   
+
    CRYSTAL
 
       name:         cubic
@@ -113,7 +113,7 @@ To check the state of the current UB calculation::
                   0.00000   6.28319  -0.00000 0.00000   0.00000 6.28319
 
    UB MATRIX
-   
+
       U matrix:   1.00000   0.00000   0.00000
                  -0.00000   1.00000   0.00000
                   0.00000   0.00000   1.00000
@@ -126,15 +126,15 @@ To check the state of the current UB calculation::
 
         ENERGY     H     K     L       MU   DELTA      NU     ETA     CHI     PHI  TAG
       1 12.398  1.00  0.00  0.00   0.0000 60.0000  0.0000 30.0000  0.0000  0.0000
-      2 12.398  0.00  1.00  0.00   0.0000 60.0000  0.0000 30.0000  0.0000 90.0000  
+      2 12.398  0.00  1.00  0.00   0.0000 60.0000  0.0000 30.0000  0.0000 90.0000
 
 
 And finally to check the reflections were specified acurately::
 
    >>> dc.checkub()
         ENERGY     H     K     L   H_COMP  K_COMP  L_COMP     TAG
-    1  12.3984  1.00  0.00  0.00   1.0000  0.0000  0.0000        
-    2  12.3984  0.00  1.00  0.00   0.0000  1.0000  0.0000        
+    1  12.3984  1.00  0.00  0.00   1.0000  0.0000  0.0000
+    2  12.3984  0.00  1.00  0.00   0.0000  1.0000  0.0000
 
 Motion
 ------
@@ -151,7 +151,7 @@ settings (the easy direction!)::
      'qaz': 90.0,
      'tau': 90.0,
      'theta': 29.999999999999996})
- 
+
 Before calculating the settings to reach an hkl position (the trickier
 direction) hardware limits must be set and combination of constraints
 chosen. The constraints here result in a four circle like mode with a
@@ -161,19 +161,19 @@ angle 'beta'::
     >>> dc.hkl.con('qaz', 90)
    !   2 more constraints required
        qaz: 90.0000
-   
+
     >>> dc.hkl.con('a_eq_b')
    !   1 more constraint required
        qaz: 90.0000
        a_eq_b
-   
+
     >>> dc.hkl.con('mu', 0)
        qaz: 90.0000
        a_eq_b
        mu: 0.0000
 
 To check the constraints::
-   
+
     >>> dc.hkl.con()
        DET        REF        SAMP
        ======     ======     ======
@@ -182,14 +182,14 @@ To check the constraints::
    --> qaz        beta       chi
        naz        psi        phi
                              mu_is_nu
-   
+
        qaz: 90.0000
        a_eq_b
        mu: 0.0000
-   
+
        Type 'help con' for instructions
 
-Limits can be set to help Diffcalc choose a solution::   
+Limits can be set to help Diffcalc choose a solution::
 
     >>> hardware.set_lower_limit('delta', 0)       # used when choosing solution
 
@@ -204,6 +204,3 @@ Angles and virtual angles are then easily determined for a given hkl reflection:
      'qaz': 90.0,
      'tau': 90.0,
      'theta': 30.0})
-
-
-

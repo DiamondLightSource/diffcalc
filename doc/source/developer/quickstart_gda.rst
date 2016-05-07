@@ -17,7 +17,7 @@ automatically. To start a dummy sixcircle installation::
 
    >>> diffcalc_path = gda.data.PathConstructor.createFromProperty("gda.root").split('/plugins')[0]
        + '/diffcalc'
-   >>> execfile(diffcalc_path + '/example/startup/sixcircle_dummy.py')
+   >>> execfile(diffcalc_path + '/example/sixcircle_dummy.py')
    
    /scratch/ws/8_4/diffcalc added to GDA Jython path.
    ================================================================================

@@ -90,13 +90,10 @@ class CrystalUnderTest(object):
 
     def get_hkl_plane_distance(self, hkl):
         '''Calculates and returns the distance between planes'''
-        h, k, l = hkl
-        c1 = self._a1 * self._a2 * cos(self._beta3)
-        c2 = self._a1 * self._a3 * cos(self._beta2)
-        c3 = self._a2 * self._a3 * cos(self._beta1)
-        return sqrt(1.0 / (h ** 2 * self._a1 ** 2 + k ** 2 * self._a2 ** 2 +
-                           l ** 2 * self._a3 ** 2 + 2 * h * k * c1 +
-                           2 * h * l * c2 + 2 * k * l * c3))
+        hkl = matrix([hkl])
+        bReduced = self._bMatrix / (2 * pi)
+        bMT = bReduced.I * bReduced.T.I
+        return 1.0 / sqrt((hkl * bMT.I * hkl.T)[0,0])
 
     def __str__(self):
         '''    Returns lattice name and all set and calculated parameters'''
