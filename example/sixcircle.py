@@ -18,48 +18,71 @@
 from __future__ import absolute_import
 
 from diffcalc.gdasupport.minigda.scannable import SingleFieldDummyScannable
+from diffcalc.gdasupport.scannable.wavelength import Wavelength
+from diffcalc.settings import energy_scannable
+try:
+    from gda.device.scannable.scannablegroup import ScannableGroup
+except ImportError:
+    from diffcalc.gdasupport.minigda.scannable import ScannableGroup
 
-#_demo = []
-#_demo.append("pos wl 1")
-#_demo.append("en")
-#_demo.append("newub 'test'")
-#_demo.append("setlat 'cubic' 1 1 1 90 90 90")
-#_demo.append("c2th [1 0 0]")
-#_demo.append("pos sixc [0 60 0 30 0 0]")
-#_demo.append("addref 1 0 0 'ref1'")
-#_demo.append("c2th [0 1 0]")
-#_demo.append("pos phi 90")
-#_demo.append("addref 0 1 0 'ref2'")
-#_demo.append("checkub")
 
+from diffcalc.hardware import DummyHardwareAdapter, ScannableHardwareAdapter
+from diffcalc.hkl.you.geometry import SixCircle
+from diffcalc.ub.persistence import UbCalculationNonPersister
+from diffcalc.hkl.you.constraints import NUNAME
+from diffcalc import settings
 
 print '=' * 80
 print "Creating dummy scannables:"
-print "   mu, delta, gam, eta, chi, phi and en"
+print "   sixc(mu, delta, gam, eta, chi, phi) and en"
+
 mu = SingleFieldDummyScannable('mu')
 delta = SingleFieldDummyScannable('delta')
 gam = SingleFieldDummyScannable('gam')
 eta = SingleFieldDummyScannable('eta')
 chi = SingleFieldDummyScannable('chi')
 phi = SingleFieldDummyScannable('phi')
+_sixc = ScannableGroup('_sixc', (mu, delta, gam, eta, chi, phi))
 
 en = SingleFieldDummyScannable('en')
 en.level = 3
 
-virtual_angles = ('theta', 'qaz', 'alpha', 'naz', 'tau', 'psi', 'beta')
-_objects = create_objects(
-    engine_name='you',
-    geometry='sixc',
-    axis_scannable_list=(mu, delta, gam, eta, chi, phi),
-    energy_scannable=en,
-    hklverbose_virtual_angles_to_report=virtual_angles,
-    simulated_crystal_counter_name='ct',
-#    demo_commands=_demo
-    )
+# virtual_angles = ('theta', 'qaz', 'alpha', 'naz', 'tau', 'psi', 'beta')
+# _objects = create_objects(
+#     engine_name='you',
+#     geometry='sixc',
+#     axis_scannable_list=(mu, delta, gam, eta, chi, phi),
+#     energy_scannable=en,
+#     hklverbose_virtual_angles_to_report=virtual_angles,
+#     simulated_crystal_counter_name='ct',
+# #    demo_commands=_demo
+#     )
+
 
 #_objects['diffcalcdemo'].commands = demoCommands
-add_objects_to_namespace(_objects, globals())
+# add_objects_to_namespace(_objects, globals())
 
+ESMTGKeV = 1
+hardware = ScannableHardwareAdapter(_sixc, en, ESMTGKeV)
+settings.configure(hardware=hardware,
+                   geometry=SixCircle(),
+                   ubcalc_persister=UbCalculationNonPersister(),
+                   energy_scannable=en,
+                   axes_scannable_group=_sixc,
+                   energy_scannable_multiplier_to_get_KeV=ESMTGKeV)
+
+from diffcalc.gdasupport.you import * 
+# from diffcalc.dcyou import *
+# 
+# wl  = Wavelength('wl', en, settings.energy_scannable_multiplier_to_get_KeV)
+# 
+# # TODO insert diffcalc object or equivilane
+# sixc = DiffractometerScannableGroup('sixc', None, _sixc) 
+# 
+# hardware = ScannableHardwareAdapter(sixc, en, ESMTGKeV)
+# 
+# 
+# 
 from diffcalc.gdasupport.minigda import command
 pos = command.Pos(globals())
 scan = command.Scan(command.ScanDataPrinter())
@@ -123,12 +146,12 @@ def demo_orient():
     echo("ub()")
     ub()  # @UndefinedVariable
 
-    echo("dc.checkub()")
+    echo("checkub()")
     checkub()  # @UndefinedVariable
 
 
 def demo_constrain():
-    echo("help(dc.hkl)")
+    echo("help(hkl)")
     print hkl.__doc__  # @UndefinedVariable
 
     echo("con('qaz', 90)")
