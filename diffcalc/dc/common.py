@@ -1,6 +1,6 @@
 from diffcalc.util import allnum, command, DiffcalcException
 
-@command
+
 def sim(scn, hkl):
     """sim hkl scn -- simulates moving scannable (not all)
     """

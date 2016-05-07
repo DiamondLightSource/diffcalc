@@ -3,6 +3,7 @@ from diffcalc.dc.common import energy_to_wavelength
 from diffcalc import settings
 from diffcalc.hkl.vlieg.transform import VliegTransformSelector,\
     TransformCommands, VliegPositionTransformer
+from diffcalc.dc.help import compile_extra_motion_commands_for_help
 
 settings.set_engine_name('vlieg')
 
@@ -17,7 +18,7 @@ reload(_hkl)
 from diffcalc.ub.ub import *  # @UnusedWildImport
 from diffcalc.hardware import *  # @UnusedWildImport
 from diffcalc.hkl.vlieg.hkl import *  # @UnusedWildImport
-
+from diffcalc.gdasupport.scannable.sim import sim
 
 _transform_selector = VliegTransformSelector()
 _transform_commands = TransformCommands(_transform_selector)
@@ -68,5 +69,6 @@ hkl_commands_for_help = (_hkl.commands_for_help +
                           transform,
                           transforma,
                           transformb,
-                          transformc])
+                          transformc] +
+                          compile_extra_motion_commands_for_help())
 

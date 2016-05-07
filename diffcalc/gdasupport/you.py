@@ -6,6 +6,7 @@ from diffcalc.gdasupport.scannable.parameter import DiffractionCalculatorParamet
 
 
 from diffcalc.dc import dcyou as _dc
+from diffcalc.dc.help import format_command_help
 reload(_dc)
 from diffcalc.dc.dcyou import *  # @UnusedWildImport
 from diffcalc import settings
@@ -26,6 +27,9 @@ hkl = Hkl('hkl', _scn_group, _dc)
 h = hkl.h
 k = hkl.k
 l = hkl.l
+
+Hkl.dynamic_docstring = format_command_help(hkl_commands_for_help)  # must be on the class
+ub.__doc__ = format_command_help(ub_commands_for_help)
 
 _virtual_angles = ('theta', 'qaz', 'alpha', 'naz', 'tau', 'psi', 'beta')
 hklverbose = Hkl('hklverbose', _scn_group, _dc, _virtual_angles)

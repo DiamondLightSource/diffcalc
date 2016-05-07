@@ -18,7 +18,7 @@
 
 from __future__ import absolute_import
 
-from diffcalc.util import DiffcalcException, format_command_help
+from diffcalc.util import DiffcalcException
 from diffcalc import settings
 
 SMALL = 1e-8
