@@ -17,8 +17,6 @@
 ###
 from __future__ import absolute_import
 
-from diffcalc.gdasupport.factory import \
-    create_objects, add_objects_to_namespace
 from diffcalc.gdasupport.minigda.scannable import SingleFieldDummyScannable
 
 #_demo = []

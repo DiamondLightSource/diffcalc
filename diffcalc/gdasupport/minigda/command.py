@@ -23,7 +23,6 @@
 from diffcalc.gdasupport.minigda.scannable import Scannable
 from diffcalc.util import getMessageFromException, allnum
 import math
-import time
 
 
 class Pos(object):
@@ -302,7 +301,6 @@ class Scan(object):
         for n in range(count):
             result.append(limit1 + n * increment)
         return result
-
 
 
 def sim(scn, hkl):

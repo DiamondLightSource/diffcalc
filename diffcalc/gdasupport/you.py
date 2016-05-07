@@ -19,8 +19,7 @@ _energy_scannable = settings.energy_scannable
 
 # Create diffractometer scannable
 _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _scn_group)
-exec('%s = _diff_scn' % _diff_scn_name, globals())
-
+globals()[_diff_scn_name] = _diff_scn
 
 # Create hkl scannables
 hkl = Hkl('hkl', _scn_group, _dc)
@@ -78,4 +77,4 @@ mu_is_gam = 'mu_is_gam'
 # Cleanup to allow "from gdasupport.you import *"
 del DiffractometerScannableGroup, Hkl, SimulatedCrystalCounter
 del Wavelength, DiffractionCalculatorParameter
-del _virtual_angles, 
+del _virtual_angles, format_command_help

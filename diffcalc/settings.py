@@ -59,4 +59,4 @@ _UBCALC_STRATEGIES = {'vlieg': diffcalc.hkl.vlieg.calc.VliegUbCalcStrategy(),
 
 _ANGLES_TO_HKL_FUNCTIONS = {'vlieg': diffcalc.hkl.vlieg.calc.vliegAnglesToHkl,
                            'willmott': diffcalc.hkl.willmott.calc.angles_to_hkl,  #  TODO check return format
-                           'you': diffcalc.hkl.you.calc .youAnglesToHkl}
+                           'you': diffcalc.hkl.you.calc.youAnglesToHkl}

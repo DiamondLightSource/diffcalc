@@ -23,7 +23,7 @@ from math import asin, pi
 from datetime import datetime
 
 from diffcalc.util import getInputWithDefault as promptForInput, \
-    promptForNumber, promptForList, allnum, isnum, format_command_help
+    promptForNumber, promptForList, allnum, isnum
 from diffcalc.util import command
 
 TORAD = pi / 180
@@ -356,7 +356,7 @@ def trialub():
 
 
     # This command requires the ubcalc
-@command
+
 def checkub():
     """checkub -- show calculated and entered hkl values for reflections.
     """
