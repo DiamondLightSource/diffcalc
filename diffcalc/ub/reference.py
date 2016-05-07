@@ -7,6 +7,16 @@ except ImportError:
     from numjy import matrix, hstack
     from numjy.linalg import norm
 
+
+from math import pi, sin, cos, tan, acos, atan2, asin, sqrt, atan
+
+from diffcalc.util import DiffcalcException, bound, angle_between_vectors
+from diffcalc.util import cross3, z_rotation, x_rotation, dot3
+
+
+
+
+
 SMALL = 1e-7
 TODEG = 180 / pi
 
@@ -63,6 +73,20 @@ class YouReference(object):
             raise AssertionError("Neither a manual n_phi nor n_hkl is configured")
         lines.append("           n_phi: " + self._pretty_vector(self.n_phi))
         lines.append("           n_hkl: " + self._pretty_vector(self.n_hkl))
+        lines.append("")
+
+        rotation_axis = cross3(matrix('0; 0; 1'), self.n_phi)
+        if abs(norm(rotation_axis)) < SMALL:
+            lines.append("no miscut")
+        else:
+            rotation_axis = rotation_axis * (1 / norm(rotation_axis))
+            cos_rotation_angle = dot3(matrix('0; 0; 1'), self.n_phi)
+            rotation_angle = acos(cos_rotation_angle)
+            uvw = rotation_axis.T.tolist()[0]
+            lines.append("miscut angle   : %.5f deg (phi axis to reference)" % (rotation_angle * TODEG))
+            u_repr = (', '.join(['% .5f' % el for el in uvw]))
+            lines.append("miscut direction: [%s] (in phi frame)" % u_repr)
+
         lines.append("")
         lines.append("To change: set n_hkl_configured or n_phi_configured property.")
         return '\n'.join(lines)
