@@ -98,14 +98,21 @@ pygments_style = 'sphinx'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #html_theme_options = {}
-html_theme_options = {
-'sidebarbgcolor'  : '#f2f2f2',
-'sidebartextcolor': '#444a95',
-'sidebarlinkcolor': '#0b0f40',
-}
+# html_theme_options = {
+# 'sidebarbgcolor'  : '#f2f2f2',
+# 'sidebartextcolor': '#444a95',
+# 'sidebarlinkcolor': '#0b0f40',
+# }
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
+
+
+import sphinx_rtd_theme
+
+html_theme = "sphinx_rtd_theme"
+
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

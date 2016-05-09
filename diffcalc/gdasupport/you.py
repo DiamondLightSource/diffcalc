@@ -11,6 +11,31 @@ reload(_dc)
 from diffcalc.dc.dcyou import *  # @UnusedWildImport
 from diffcalc import settings
 
+try:
+    import gda  # @UnusedImport
+    GDA = True
+except:
+    GDA = False
+    
+if not GDA:
+    from diffcalc.gdasupport.minigda import command
+    _pos = command.Pos(globals())
+    _scan = command.Scan(command.ScanDataPrinter())
+
+    def pos(*args):
+        """
+        pos                   show position of all Scannables
+        pos scn               show position of scn
+        pos scn targetmove    scn to target (a number)
+        """
+        return _pos(*args)
+
+    def scan(*args):
+        """
+        scan scn start stop step {scn {target}} {det t}
+        """
+        return _scan(*args)
+
 
 _scn_group = settings.axes_scannable_group
 _diff_scn_name = settings.geometry.name # @UndefinedVariable
@@ -77,4 +102,6 @@ mu_is_gam = 'mu_is_gam'
 # Cleanup to allow "from gdasupport.you import *"
 del DiffractometerScannableGroup, Hkl, SimulatedCrystalCounter
 del Wavelength, DiffractionCalculatorParameter
-del _virtual_angles, format_command_help
+
+# Cleanup other cruft
+del format_command_help
