@@ -13,9 +13,9 @@ from diffcalc import settings
 
 try:
     import gda  # @UnusedImport
-    ISGDA = True
+    GDA = True
 except:
-    ISGDA = False
+    GDA = False
     
 if not GDA:
     from diffcalc.gdasupport.minigda import command

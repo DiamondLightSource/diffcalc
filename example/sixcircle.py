@@ -152,9 +152,9 @@ def demo_orient():
         print c2th([0, 1, 0])  # @UndefinedVariable
 
     if IPYTHON:
-        echorun("pos chi 90")
+        echorun("pos phi 90")
     else:
-        echo("pos(chi, 90)")
+        echo("pos(phi, 90)")
         print pos(phi, 90)  # @UndefinedVariable
 
     if IPYTHON:
@@ -196,7 +196,7 @@ def demo_constrain():
         con('a_eq_b')  # @UndefinedVariable
 
     if IPYTHON:
-        echorun("con mu 90")
+        echorun("con mu 0")
     else:        
         echo("con('mu', 0)")
         con('mu', 0)  # @UndefinedVariable
@@ -214,7 +214,7 @@ def demo_constrain():
         setmin(delta, 0)  # @UndefinedVariable
 
     if IPYTHON:
-        echorun("setmin chi 90")
+        echorun("setmin chi 0")
     else:       
         echo("setmin(chi, 0)")
         setmin(chi, 0)  # @UndefinedVariable
@@ -234,7 +234,7 @@ def demo_scan():
     if IPYTHON:
         echorun("pos hkl [0 1 0]")
         echorun("scan h 0 1 .2 k l sixc ct 1")
-    else: 
+    else:
         echo("pos(hkl, [0, 1, 0])")
         pos(hkl, [0, 1, 0])  # @UndefinedVariable
         echo("can(h, 0, 1, .2, k, l, sixc, ct, 1)")
