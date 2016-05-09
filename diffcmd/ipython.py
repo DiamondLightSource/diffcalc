@@ -3,6 +3,100 @@ from functools import wraps
 from IPython.core.magic import register_line_magic
 
 
+"""
+For wrapping functions:
+
+    In [1]: import diffcmd.ipython
+    
+    In [2]: diffcmd.ipython.GLOBAL_NAMESPACE_DICT = globals()
+    
+    In [3]: from IPython.core.magic import register_line_magic
+    
+    In [4]: from diffcmd.ipython import parse_line
+    
+    In [5]: @register_line_magic
+       ...: @parse_line
+       ...: def check_parser(*args):
+       ...:         return args
+       ...: 
+    
+    In [6]: check_parser
+    Out[6]: <function __main__.check_parser>
+    
+    In [7]: del check_parser
+    
+    In [8]: check_parser
+    Out[8]: ()
+    
+    In [9]: check_parser 1
+    Out[9]: (1,)
+    
+    In [10]: check_parser 1 2
+    Out[10]: (1, 2)
+    
+    In [11]: check_parser 1 2 [3]
+    Out[11]: (1, 2, [3])
+    
+    In [12]: b='bbb'
+    
+    In [13]: check_parser 1 2 [3] b
+    Out[13]: (1, 2, [3], 'bbb')
+
+
+And to create something dynamically from a function:
+
+    In [28]: def f(a, b, c):
+       ....:        ....:     return a, b, c
+       ....: 
+    
+    In [29]: register_line_magic(parse_line(f))
+    Out[29]: <function __main__.f>
+    
+    In [30]: del f
+    
+    In [31]: f 'a' -2 [1 3 -4]
+    Out[31]: ('a', -2, [1, 3, -4])
+
+And from a list of functions:
+
+    In [32]: def one(a):
+       ....:     return a
+       ....: 
+    
+    In [33]: def two(a, b):
+       ....:     return a, b
+       ....: 
+    
+    In [34]: functions = one, two
+    
+    In [35]: del one, two
+    
+    In [36]: for f in functions:
+       ....:     register_line_magic(parse_line(f))
+       ....:     
+    
+    In [37]: one 1
+    Out[37]: 1
+
+    In [39]: two 1 2
+    Out[39]: (1, 2)
+
+And to check if we are running in iPython:
+
+    In [47]: 'get_ipython' in globals()
+    Out[47]: True
+
+def in_ipython():
+     try:
+         get_ipython()
+         return True
+     except NameError:
+         return False
+
+
+"""
+
+
 GLOBAL_NAMESPACE_DICT = {}
 
 MATH_OPERATORS = set(['-', '+', '/', '*'])
