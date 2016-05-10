@@ -2,11 +2,10 @@ from diffcalc import settings
 from diffcalc.dc.common import energy_to_wavelength
 from diffcalc.dc.help import compile_extra_motion_commands_for_help
 
-settings.set_engine_name('you')
-
 
 # reload to aid testing only
 from diffcalc.ub import ub as _ub
+import diffcalc.hkl.you.calc
 reload(_ub)
 from diffcalc import hardware as _hardware
 #reload(_hardware)
@@ -16,7 +15,7 @@ reload(_hkl)
 from diffcalc.ub.ub import *  # @UnusedWildImport
 from diffcalc.hardware import *  # @UnusedWildImport
 from diffcalc.hkl.you.hkl import *  # @UnusedWildImport
-from diffcalc.gdasupport.scannable.sim import sim
+from diffcalc.gdasupport.scannable.sim import sim  # @UnusedImport
 
 def hkl_to_angles(h, k, l, energy=None):
     """Convert a given hkl vector to a set of diffractometer angles"""
@@ -37,7 +36,8 @@ def angles_to_hkl(angleTuple, energy=None):
     i_pos = settings.geometry.physical_angles_to_internal_position(angleTuple)  # @UndefinedVariable
     return hklcalc.anglesToHkl(i_pos, energy_to_wavelength(energy))
 
-        
+settings.ubcalc_strategy = diffcalc.hkl.you.calc.YouUbCalcStrategy()
+settings.angles_to_hkl_function = angles_to_hkl
 
 ub_commands_for_help = _ub.commands_for_help
 

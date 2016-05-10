@@ -3,8 +3,7 @@
 from diffcalc import settings
 from diffcalc.dc.common import energy_to_wavelength
 from diffcalc.dc.help import compile_extra_motion_commands_for_help
-
-settings.set_engine_name('willmot')
+import diffcalc.hkl.willmott.calc
 
 
 # reload to aid testing only
@@ -39,6 +38,8 @@ def angles_to_hkl(angleTuple, energy=None):
     i_pos = settings.geometry.physical_angles_to_internal_position(angleTuple)  # @UndefinedVariable
     return hklcalc.anglesToHkl(i_pos, energy_to_wavelength(energy))
 
+settings.ubcalc_strategy = diffcalc.hkl.willmott.calc.WillmottHorizontalUbCalcStrategy()
+settings.angles_to_hkl_function = angles_to_hkl    
         
 
 ub_commands_for_help = _ub.commands_for_help
