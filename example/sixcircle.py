@@ -18,7 +18,12 @@
 from __future__ import absolute_import
 
 import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+try:
+    #  required for "python -i -m example/sixcircle" to work (although
+    #  it didn't used to be.
+    sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+except NameError:  # For use in execfile from ipyhton notebook
+    pass
 
 
 try:
@@ -48,12 +53,13 @@ en.level = 3
 
 ### Configure and import diffcalc objects ###
 ESMTGKeV = 1
-settings.configure(hardware=ScannableHardwareAdapter(_sixc, en, ESMTGKeV),
-                   geometry=SixCircle(),
-                   ubcalc_persister=UbCalculationNonPersister(),
-                   energy_scannable=en,
-                   axes_scannable_group=_sixc,
-                   energy_scannable_multiplier_to_get_KeV=ESMTGKeV)
+settings.hardware = ScannableHardwareAdapter(_sixc, en, ESMTGKeV)
+settings.geometry = SixCircle()
+settings.ubcalc_persister = UbCalculationNonPersister()
+settings.energy_scannable = en
+settings.axes_scannable_group= _sixc
+settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
+
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
 
 
