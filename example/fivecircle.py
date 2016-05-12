@@ -34,30 +34,49 @@ except ImportError:
     from diffcalc.gdasupport.minigda.scannable import SingleFieldDummyScannable as Dummy
 
 from diffcalc.hardware import ScannableHardwareAdapter
-from diffcalc.hkl.you.geometry import SixCircle
+from diffcalc.hkl.you.geometry import FiveCircle
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc import settings
 
-### Create dummy scannables ###
-print "Dummy scannables: sixc(mu, delta, gam, eta, chi, phi) and en"
-mu = Dummy('mu')
-delta = Dummy('delta')
-gam = Dummy('gam')
-eta = Dummy('eta')
-chi = Dummy('chi')
-phi = Dummy('phi')
-_sixc = ScannableGroup('_sixc', (mu, delta, gam, eta, chi, phi))
+
+##### Move out to i13 somewhere
 en = Dummy('en')
 en.level = 3
 
 
+if '_fivec' in globals() and 'en' in globals():
+    # Assume we are running in a live GDA deployment with a _fivec ScannableGroup
+    # with axes names:
+    #
+    # >>> _fivec.inputNames
+    # array(java.lang.String, [u'delta', u'gam', u'eta', u'chi', u'phi'])
+    # Also ensure there are Scannables delta, gam, eta, chi, phi
+    #
+    # There must also be Scannable en for moving and reading the energy
+    
+    print "Diffcalc using predefined _fivec and en Scannables"
+
+else:
+    ### Create dummy scannables ###
+    print "Diffcalc creating dummy Scannables as both _fivec and mu where not found"
+    print "Dummy scannables: fivec(delta, gam, eta, chi, phi) and en"
+    delta = Dummy('delta')
+    gam = Dummy('gam')
+    eta = Dummy('eta')
+    chi = Dummy('chi')
+    phi = Dummy('phi')
+    _fivec = ScannableGroup('_fivec', (delta, gam, eta, chi, phi))
+    en = Dummy('en')
+    en.level = 3
+
+
 ### Configure and import diffcalc objects ###
 ESMTGKeV = 1
-settings.configure(hardware=ScannableHardwareAdapter(_sixc, en, ESMTGKeV),
-                   geometry=SixCircle(),
+settings.configure(hardware=ScannableHardwareAdapter(_fivec, en, ESMTGKeV),
+                   geometry=FiveCircle(),
                    ubcalc_persister=UbCalculationNonPersister(),
                    energy_scannable=en,
-                   axes_scannable_group=_sixc,
+                   axes_scannable_group=_fivec,
                    energy_scannable_multiplier_to_get_KeV=ESMTGKeV)
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
 
@@ -138,10 +157,10 @@ def demo_orient():
         print c2th([1, 0, 0])  # @UndefinedVariable
 
     if IPYTHON:
-        echorun("pos sixc [0 60 0 30 0 0]")
+        echorun("pos fivec [60 0 30 0 0]")
     else:
-        echo("pos(sixc, [0, 60, 0, 30, 0, 0])")
-        pos(sixc, [0, 60, 0, 30, 0, 0])  # @UndefinedVariable
+        echo("pos(fivec, [60, 0, 30, 0, 0])")
+        pos(fivec, [60, 0, 30, 0, 0])  # @UndefinedVariable
 
     if IPYTHON:
         echorun("addref [1 0 0]")
@@ -201,12 +220,6 @@ def demo_constrain():
         con('a_eq_b')  # @UndefinedVariable
 
     if IPYTHON:
-        echorun("con mu 0")
-    else:        
-        echo("con('mu', 0)")
-        con('mu', 0)  # @UndefinedVariable
-
-    if IPYTHON:
         echorun("con")
     else:       
         echo("con()")
@@ -238,12 +251,12 @@ def demo_scan():
 
     if IPYTHON:
         echorun("pos hkl [0 1 0]")
-        echorun("scan h 0 1 .2 k l sixc ct 1")
+        echorun("scan h 0 1 .2 k l fivec ct 1")
     else:
         echo("pos(hkl, [0, 1, 0])")
         pos(hkl, [0, 1, 0])  # @UndefinedVariable
-        echo("can(h, 0, 1, .2, k, l, sixc, ct, 1)")
-        scan(h, 0, 1, .2, k, l, sixc, ct, 1)  # @UndefinedVariable
+        echo("can(h, 0, 1, .2, k, l, fivec, ct, 1)")
+        scan(h, 0, 1, .2, k, l, fivec, ct, 1)  # @UndefinedVariable
 
     if IPYTHON:
         echorun("con psi")
