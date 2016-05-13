@@ -1,5 +1,5 @@
 ###
-# Copyright 2008-2011 Diamond Light Source Ltd.
+# Copyright 2008-2016 Diamond Light Source Ltd.
 # This file is part of Diffcalc.
 #
 # Diffcalc is free software: you can redistribute it and/or modify
@@ -21,8 +21,8 @@ import os, sys
 try:
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 except NameError:
-    # GDA run command doe not honour the __file__ convention, but diffcalc
-    # is put on the path by othr means.
+    # GDA run command does not honour the __file__ convention, but diffcalc
+    # is put on the path by other means.
     pass
 
 try:
@@ -39,27 +39,17 @@ from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc import settings
 
 
-##### Move out to i13 somewhere
-en = Dummy('en')
-en.level = 3
-
-
 if '_fivec' in globals() and 'en' in globals():
     # Assume we are running in a live GDA deployment with a _fivec ScannableGroup
-    # with axes names:
-    #
-    # >>> _fivec.inputNames
-    # array(java.lang.String, [u'delta', u'gam', u'eta', u'chi', u'phi'])
-    # Also ensure there are Scannables delta, gam, eta, chi, phi
-    #
+    # with axes named: delta, gam, eta, chi, phi.
+    # Ensure that these five Scannables exist.
     # There must also be Scannable en for moving and reading the energy
-    
     print "Diffcalc using predefined _fivec and en Scannables"
 
 else:
     ### Create dummy scannables ###
-    print "Diffcalc creating dummy Scannables as both _fivec and mu where not found"
-    print "Dummy scannables: fivec(delta, gam, eta, chi, phi) and en"
+    print "Diffcalc creating dummy Scannables as _fivec and en were not found"
+    print "Dummy scannables: _fivec(delta, gam, eta, chi, phi) and en"
     delta = Dummy('delta')
     gam = Dummy('gam')
     eta = Dummy('eta')
@@ -93,7 +83,7 @@ if IPYTHON:
 
 
 
-### create demo scenarios for manual ###q
+### create demo scenarios for manual ###
 
 
 def demo_all():
