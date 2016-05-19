@@ -28,8 +28,11 @@ for f in commands:
 print "Magiced commands: " + ' '.join(magiced_names) 
 
 # because the functions have gone from namespace we need to override
-pythons_help = __builtins__.help
-del __builtins__.help
+try:
+    pythons_help = __builtins__.help
+    del __builtins__.help
+except AttributeError:
+    pass  # if executed before the help function  will already have been deleted
 
 _DEFAULT_HELP = """
 For help with diffcalc's orientation phase try:
