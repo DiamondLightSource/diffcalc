@@ -36,7 +36,7 @@ from diffcalc.gdasupport.minigda.command import Pos
 from test.tools import mneq_
 
 from diffcalc import settings
-
+import diffcalc.hkl.you.calc
 
 pos = Pos(globals())
 
@@ -54,13 +54,13 @@ ubcalc_no = 1
 you = None
 def setup_module():
     global you
-    settings.configure(hardware=ScannableHardwareAdapter(sixc_group, en),
-                   geometry=SixCircle(),
-                   ubcalc_persister=UbCalculationNonPersister(),
-                   axes_scannable_group=sixc_group,
-                   energy_scannable = en)
-
-
+    settings.hardware = ScannableHardwareAdapter(sixc_group, en)
+    settings.geometry = SixCircle()
+    settings.ubcalc_persister = UbCalculationNonPersister()
+    settings.axes_scannable_group = sixc_group
+    settings.energy_scannable = en
+    settings.ubcalc_strategy = diffcalc.hkl.you.calc.YouUbCalcStrategy()
+    settings.angles_to_hkl_function = diffcalc.hkl.you.calc.youAnglesToHkl
 
     from diffcalc.gdasupport import you
     reload(you)

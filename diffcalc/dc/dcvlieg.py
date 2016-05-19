@@ -60,7 +60,7 @@ def angles_to_hkl(angleTuple, energy=None):
 
 
 settings.ubcalc_strategy = diffcalc.hkl.vlieg.calc.VliegUbCalcStrategy()
-settings.angles_to_hkl_function = angles_to_hkl       
+settings.angles_to_hkl_function = diffcalc.hkl.vlieg.calc.vliegAnglesToHkl       
 
 ub_commands_for_help = _ub.commands_for_help
 

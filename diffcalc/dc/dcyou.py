@@ -36,7 +36,7 @@ def angles_to_hkl(angleTuple, energy=None):
     return hklcalc.anglesToHkl(i_pos, energy_to_wavelength(energy))
 
 settings.ubcalc_strategy = diffcalc.hkl.you.calc.YouUbCalcStrategy()
-settings.angles_to_hkl_function = angles_to_hkl
+settings.angles_to_hkl_function = diffcalc.hkl.you.calc.youAnglesToHkl
 
 ub_commands_for_help = _ub.commands_for_help
 

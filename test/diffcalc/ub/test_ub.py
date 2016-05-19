@@ -33,6 +33,8 @@ from diffcalc.util import DiffcalcException, MockRawInput
 from diffcalc.ub.calc import UBCalculation
 from diffcalc.hkl.vlieg.calc import VliegUbCalcStrategy
 from test.diffcalc import scenarios
+import diffcalc.hkl.vlieg.calc
+
 
 diffcalc.util.DEBUG = True
 
@@ -61,8 +63,13 @@ class TestUbCommands(unittest.TestCase):
         self.hardware = DummyHardwareAdapter(names)
         _geometry = SixCircleGammaOnArmGeometry()
         _ubcalc_persister = UbCalculationNonPersister()
-        settings.configure(self.hardware, _geometry, _ubcalc_persister)
-        settings.set_engine_name('vlieg')
+        settings.hardware = self.hardware
+        settings.geometry = _geometry
+        settings.ubcalc_persister = _ubcalc_persister
+        #settings.set_engine_name('vlieg')
+        settings.ubcalc_strategy = diffcalc.hkl.vlieg.calc.VliegUbCalcStrategy()
+        settings.angles_to_hkl_function = diffcalc.hkl.vlieg.calc.vliegAnglesToHkl
+     
         from diffcalc.ub import ub
         reload(ub)
         self.ub = ub

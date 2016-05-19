@@ -73,9 +73,9 @@ class BaseTestDiffractionCalculatorWithData():
         self.geometry = SixCircleGammaOnArmGeometry()
         self.hardware = DummyHardwareAdapter(
             ('alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'))
-        settings.configure(hardware=self.hardware,
-                           geometry=self.geometry,
-                           ubcalc_persister=UbCalculationNonPersister())
+        settings.hardware = self.hardware
+        settings.geometry = self.geometry
+        settings.ubcalc_persister = UbCalculationNonPersister()
         from diffcalc.dc import dcvlieg as dc
         reload(dc)
         self.dc = dc
@@ -271,9 +271,9 @@ class TestSixcBase(unittest.TestCase):
         
         self.hardware = DummyHardwareAdapter(
             ('alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'))
-        settings.configure(hardware=ScannableHardwareAdapter(self.sixc, self.en),
-                           geometry=geometryClass(),
-                           ubcalc_persister=UbCalculationNonPersister())
+        settings.hardware = ScannableHardwareAdapter(self.sixc, self.en)
+        settings.geometry = geometryClass()
+        settings.ubcalc_persister = UbCalculationNonPersister()
         from diffcalc.dc import dcvlieg as dc
         reload(dc)
         self.dc = dc
@@ -292,9 +292,9 @@ class TestFourcBase(unittest.TestCase):
         self.fourc = DiffractometerScannableGroup(
             'fourc', None, scannableGroup)
         
-        settings.configure(hardware=ScannableHardwareAdapter(self.fourc, self.en),
-                           geometry=Fourc(),
-                           ubcalc_persister=UbCalculationNonPersister())
+        settings.hardware = ScannableHardwareAdapter(self.fourc, self.en)
+        settings.geometry = Fourc()
+        settings.ubcalc_persister = UbCalculationNonPersister()
 
         from diffcalc.dc import dcvlieg as dc
         reload(dc)
@@ -539,9 +539,9 @@ class FiveCircleTest(unittest.TestCase):
         group = ScannableGroup('fivecgrp', dummy)
         self.fivec = DiffractometerScannableGroup('fivec', None, group)
         
-        settings.configure(hardware=ScannableHardwareAdapter(self.fivec, self.en),
-                           geometry=Fivec(),
-                           ubcalc_persister=UbCalculationNonPersister())
+        settings.hardware = ScannableHardwareAdapter(self.fivec, self.en)
+        settings.geometry = Fivec()
+        settings.ubcalc_persister = UbCalculationNonPersister()
         from diffcalc.dc import dcvlieg as dc
         reload(dc)
         self.dc = dc

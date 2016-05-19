@@ -27,9 +27,9 @@ dc=None
 def setup_module():
     global dc
     axes = 'mu', 'delta', NUNAME, 'eta', 'chi', 'phi'
-    settings.configure(hardware=DummyHardwareAdapter(axes),
-                       geometry=SixCircle(),
-                       ubcalc_persister=UbCalculationNonPersister())
+    settings.hardware = DummyHardwareAdapter(axes)
+    settings.geometry = SixCircle()
+    settings.ubcalc_persister = UbCalculationNonPersister()
     
     from diffcalc.dc import dcyou as dc
     reload(dc)
