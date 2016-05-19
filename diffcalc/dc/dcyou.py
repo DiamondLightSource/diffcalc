@@ -15,7 +15,6 @@ reload(_hkl)
 from diffcalc.ub.ub import *  # @UnusedWildImport
 from diffcalc.hardware import *  # @UnusedWildImport
 from diffcalc.hkl.you.hkl import *  # @UnusedWildImport
-from diffcalc.gdasupport.scannable.sim import sim  # @UnusedImport
 
 def hkl_to_angles(h, k, l, energy=None):
     """Convert a given hkl vector to a set of diffractometer angles"""
