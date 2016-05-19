@@ -56,6 +56,7 @@ class UBCalculationJSONPersister(object):
     def __init__(self, directory):
         check_directory_appropriate(directory)
         self.directory = directory
+        self.description = directory
         
     def filepath(self, name):
         return os.path.join(self.directory, name + '.json')
@@ -99,6 +100,7 @@ class UBCalculationPersister(object):
             print ("UBCalculationPersister could not connect to the gda "
                    "database: " + repr(e))
             self.shelf = None
+        self.description = 'GDA sql database'
 
     def save(self, state, key):
         if self.shelf is not None:
@@ -132,3 +134,4 @@ class UbCalculationNonPersister(UBCalculationPersister):
     """
     def __init__(self):
         self.shelf = dict()
+        self.description = 'memory only'

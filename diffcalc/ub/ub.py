@@ -68,13 +68,26 @@ def loadub(name_or_num):
     """
     if isinstance(name_or_num, str):
         ubcalc.load(name_or_num)
-    ubcalc.load(ubcalc.listub()[int(name_or_num)])
+    else:
+        ubcalc.load(ubcalc.listub()[int(name_or_num)])
+
+@command
+def rmub(name_or_num):
+    """rmub {'name'|num} -- remove existing ub calculation
+    """
+    if isinstance(name_or_num, str):
+        ubcalc.remove(name_or_num)
+    else:
+        ubcalc.remove(ubcalc.listub()[int(name_or_num)])
 
 @command
 def listub():
     """listub -- list the ub calculations available to load.
     """
-    print "UB calculations in cross-visit database:"
+    if hasattr(ubcalc._persister, 'description'):
+        print "UB calculations in: " + ubcalc._persister.description
+    else:
+        print "UB calculations:"
     for n, name in enumerate(ubcalc.listub()):
         print "%2i) %s" % (n, name)
 

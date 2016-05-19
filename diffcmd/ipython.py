@@ -252,7 +252,8 @@ def magic_commands(global_namespace_dict):
     left in the global namespace and assumes there is pos and scan command.
     """
     gnd = global_namespace_dict
-
+    global GLOBAL_NAMESPACE_DICT
+    GLOBAL_NAMESPACE_DICT = gnd
     print "Ipython detected --- magicing commands"
     
     ### Magic commands in namespace ###
@@ -268,7 +269,7 @@ def magic_commands(global_namespace_dict):
             continue
         # magic the function and remove from namespace (otherwise it would
         # shadow the magiced command)
-        register_line_magic(parse_line(f))
+        register_line_magic(parse_line(f, gnd))
         del gnd[f.__name__]
         command_map[f.__name__] = f
         magiced_names.append(f.__name__)

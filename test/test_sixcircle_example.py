@@ -15,7 +15,7 @@ sys.path.insert(0, STARTUP_PATH)
 
 from sixcircle import *
 
-ct.pause = False
+ct.pause = False  # @UndefinedVariable
 class test_sixcircle_example():
 
     def test_execfile(self):
