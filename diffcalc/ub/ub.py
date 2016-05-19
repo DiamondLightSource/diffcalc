@@ -383,7 +383,7 @@ def checkub():
     for n in range(nref):
         hklguess, pos, energy, tag, _ = ubcalc.get_reflection(n + 1)
         wavelength = 12.39842 / energy
-        hkl = settings.angles_to_hkl_function(pos, wavelength, ubcalc.UB)
+        hkl = settings.angles_to_hkl_function(pos.inRadians(), wavelength, ubcalc.UB)
         h, k, l = hkl
         if tag is None:
             tag = ""
