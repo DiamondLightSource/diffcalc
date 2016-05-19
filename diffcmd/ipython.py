@@ -1,7 +1,7 @@
 import re
 from functools import wraps
 from IPython.core.magic import register_line_magic
-
+from IPython import get_ipython  # @UnusedImport (used by register_line_magic)
 
 """
 For wrapping functions:
@@ -101,6 +101,10 @@ GLOBAL_NAMESPACE_DICT = {}
 
 MATH_OPERATORS = set(['-', '+', '/', '*'])
 
+# Keep a copy of python's original help as we may remove it later
+if 'help' in __builtins__:   
+    ORIGINAL_PYTHON_HELP = __builtins__['help']
+
 
 COMMA_USAGE_HELP = \
 '''
@@ -116,7 +120,7 @@ COMMA_USAGE_HELP = \
 '''
 
 
-MATH_OPERATOR_USEAGE_HELP = \
+MATH_OPERATOR_USAGE_HELP = \
 '''
 |    When calling a function without brackets, whitespace is used in place of
 |    commas. Therefore terms which require evaluation must contain no space.
@@ -176,7 +180,7 @@ def parse(s, d):
     tokens = _tokenify(s)
     for tok in tokens:
         if tok in MATH_OPERATORS:
-            print MATH_OPERATOR_USEAGE_HELP
+            print MATH_OPERATOR_USAGE_HELP
             raise SyntaxError('could not evaluate: "%s"' % tok)
     
     
@@ -193,12 +197,109 @@ def parse(s, d):
     return args
 
 
-def parse_line(f):
+def parse_line(f, global_namespace_dict=None):
     '''A decorator that parses a single string argument into a list of arguments
     and calls the wrapped function with these.
     '''
+    if not global_namespace_dict:
+        global_namespace_dict = GLOBAL_NAMESPACE_DICT
     @wraps(f)
     def wrapper(line):
-        args = parse(line, GLOBAL_NAMESPACE_DICT)
+        args = parse(line, global_namespace_dict)
         return f(*args)
     return wrapper
+
+
+
+_DEFAULT_HELP = \
+"""
+For help with diffcalc's orientation phase try:
+    
+    >>> help ub
+    
+For help with moving in reciprocal lattice space try:
+
+    >>> help hkl
+    
+For more detailed help try for example:
+
+    >>> help newub
+    
+For help with driving axes or scanning:
+
+    >>> help pos
+    >>> help scan
+    
+For help with regular python try for example:
+
+    >>> help list
+    
+For more detailed help with diffcalc go to:
+
+    https://diffcalc.readthedocs.io
+    
+"""
+
+def magic_commands(global_namespace_dict):
+    """Magic commands left in global_namespace_dict by previous import from
+    diffcalc.
+    
+    Also creates a help command. NOTE that calling this will
+    remove the original commands from the global namespace as otherwise these
+    would shadow the ipython magiced versions.
+    
+    Depends on hkl_commands_for_help & ub_commands_for_help list having been
+    left in the global namespace and assumes there is pos and scan command.
+    """
+    gnd = global_namespace_dict
+
+    print "Ipython detected --- magicing commands"
+    
+    ### Magic commands in namespace ###
+    commands = gnd['hkl_commands_for_help']
+    commands += gnd['ub_commands_for_help']
+    commands.append(gnd['pos'])
+    commands.append(gnd['scan'])       
+    magiced_names = []
+    command_map = {}
+    for f in commands:
+        # Skip section headers like 'Motion'
+        if not hasattr(f, '__call__'):
+            continue
+        # magic the function and remove from namespace (otherwise it would
+        # shadow the magiced command)
+        register_line_magic(parse_line(f))
+        del gnd[f.__name__]
+        command_map[f.__name__] = f
+        magiced_names.append(f.__name__)
+    print "Magiced commands: " + ' '.join(magiced_names) 
+
+    ### Create help function ###
+    #Expects python's original help to be named pythons_help and to be
+    #available in the top-level global namespace (where non-diffcalc
+    #objects may have help called from).        
+    def help(s):  # @ReservedAssignment   
+        """Diffcalc help for iPython
+        """
+        if s == '':
+            print _DEFAULT_HELP
+        elif s == 'hkl':
+            # Use help injected into hkl object
+            print gnd['hkl'].__doc__
+        elif s == 'ub':
+            # Use help injected into ub command
+            print command_map['ub'].__doc__
+        elif s in command_map:
+            print "%s (diffcalc command):" %s
+            print command_map[s].__doc__
+        else:
+            exec('pythons_help(%s)' %s, gnd)
+
+      
+    ### Setup help command ###
+    gnd['pythons_help'] = ORIGINAL_PYTHON_HELP  
+    register_line_magic(help)
+    # Remove builtin help
+    # (otherwise it would shadow magiced command
+    if 'help' in __builtins__:   
+        del __builtins__['help']

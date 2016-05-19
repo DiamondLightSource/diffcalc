@@ -18,8 +18,8 @@
 from __future__ import absolute_import
 
 import os, sys
-try:
 
+try:
     #  required for "python -i -m example/sixcircle" to work (although
     #  it didn't used to be.
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -27,7 +27,6 @@ except NameError:  # For use in execfile from ipyhton notebook
     # GDA run command doe not honour the __file__ convention, but diffcalc
     # is put on the path by othr means.
     pass
-
 
 try:
     from gda.device.scannable.scannablegroup import ScannableGroup
@@ -41,6 +40,7 @@ from diffcalc.hardware import ScannableHardwareAdapter
 from diffcalc.hkl.you.geometry import SixCircle
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc import settings
+
 
 ### Create dummy scannables ###
 print "Dummy scannables: sixc(mu, delta, gam, eta, chi, phi) and en"
@@ -73,15 +73,13 @@ try:
     IPYTHON = True
 except NameError:
     IPYTHON = False
-
-if IPYTHON:     
-    execfile("example/ipythonmagic.py", globals())
-
+    
+if IPYTHON:
+    from diffcmd.ipython import magic_commands
+    magic_commands(globals())
 
 
 ### create demo scenarios for manual ###q
-
-
 def demo_all():
 
     print "ORIENT\n"

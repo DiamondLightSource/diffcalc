@@ -62,12 +62,12 @@ else:
 
 ### Configure and import diffcalc objects ###
 ESMTGKeV = 1
-settings.configure(hardware=ScannableHardwareAdapter(_fivec, en, ESMTGKeV),
-                   geometry=FiveCircle(),
-                   ubcalc_persister=UbCalculationNonPersister(),
-                   energy_scannable=en,
-                   axes_scannable_group=_fivec,
-                   energy_scannable_multiplier_to_get_KeV=ESMTGKeV)
+settings.hardware = ScannableHardwareAdapter(_fivec, en, ESMTGKeV)
+settings.geometry = FiveCircle()
+settings.ubcalc_persister = UbCalculationNonPersister()
+settings.energy_scannable = en
+settings.axes_scannable_group = _fivec
+settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
 
 
@@ -78,8 +78,9 @@ try:
 except NameError:
     IPYTHON = False
 
-if IPYTHON:     
-    execfile("example/ipythonmagic.py", globals())
+if IPYTHON:
+    from diffcmd.ipython import magic_commands
+    magic_commands(globals())
 
 
 
