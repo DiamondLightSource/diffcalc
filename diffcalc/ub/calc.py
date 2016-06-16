@@ -139,6 +139,8 @@ class UBCalculation:
 
     def remove(self, name):
         self._persister.remove(name)
+        if self._state == name:
+            self._clear(name)
 
     def getState(self):
         return self._state.getState()

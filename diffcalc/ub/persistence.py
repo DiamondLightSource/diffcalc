@@ -111,7 +111,8 @@ class UBCalculationPersister(object):
     def load(self, name):
         if self.shelf is not None:
             return self.shelf[name]
-        raise IOError("Could not load UB calculation: no database available")
+        else:
+            raise IOError("Could not load UB calculation: no database available")
 
     def list(self):  # @ReservedAssignment
         if self.shelf is not None:
@@ -124,7 +125,8 @@ class UBCalculationPersister(object):
     def remove(self, name):
         if self.shelf is not None:
             del self.shelf[name]
-        raise IOError("Could not remove UB calculation: no database available")
+        else:
+            raise IOError("Could not remove UB calculation: no database available")
 
 
 class UbCalculationNonPersister(UBCalculationPersister):

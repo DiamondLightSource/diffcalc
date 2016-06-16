@@ -35,7 +35,7 @@ TODEG = 180 / pi
 
 __all__ = ['addref', 'c2th', 'calcub', 'delref', 'editref', 'listub', 'loadub',
            'newub', 'saveubas', 'setlat', 'setu', 'setub', 'showref', 'sigtau',
-           'swapref', 'trialub', 'checkub', 'ub', 'ubcalc']
+           'swapref', 'trialub', 'checkub', 'ub', 'ubcalc', 'rmub', 'clearref']
 
 
 ubcalc = UBCalculation(settings.hardware,
@@ -179,7 +179,7 @@ def showref():
     if ubcalc._state.reflist:
         print '\n'.join(ubcalc._state.reflist.str_lines())
     else:
-        print "<<< No UB calculation started >>>"
+        print "<<< No reflections stored >>>"
 
 @command
 def addref(*args):
@@ -298,6 +298,13 @@ def delref(num):
     """delref num -- deletes a reflection (numbered from 1)
     """
     ubcalc.del_reflection(int(num))
+    
+@command
+def clearref():
+    """clearref -- deletes all the reflections
+    """
+    while ubcalc.get_number_reflections():
+        ubcalc.del_reflection(1)   
 
 @command
 def swapref(num1=None, num2=None):
@@ -397,6 +404,7 @@ commands_for_help = ['State',
                      newub,
                      loadub,
                      listub,
+                     rmub,
                      saveubas,
                      ub,
                      'Lattice',
@@ -409,6 +417,7 @@ commands_for_help = ['State',
                      addref,
                      editref,
                      delref,
+                     clearref,
                      swapref,
                      'ub',
                      checkub,
