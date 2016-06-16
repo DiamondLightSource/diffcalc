@@ -18,11 +18,13 @@
 from __future__ import absolute_import
 
 import os, sys
+import diffcmd.ipythonmagic
+
 try:
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 except NameError:
-    # GDA run command doe not honour the __file__ convention, but diffcalc
-    # is put on the path by othr means.
+    # GDA run command does not honour the __file__ convention, but diffcalc
+    # is put on the path by other means.
     pass
 
 try:
@@ -69,9 +71,8 @@ try:
 except NameError:
     IPYTHON = False
 
-if IPYTHON:     
-    execfile("example/ipythonmagic.py", globals())
-
+if IPYTHON:
+    diffcmd.ipythonmagic.define_commands(globals())
 
 
 ### create demo scenarios for manual ###q
