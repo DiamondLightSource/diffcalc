@@ -37,6 +37,8 @@ if not GDA:
         return _scan(*args)
 
 
+from diffcalc.gdasupport.scannable.sim import sim  # @UnusedImport
+
 _scn_group = settings.axes_scannable_group
 _diff_scn_name = settings.geometry.name # @UndefinedVariable
 _energy_scannable = settings.energy_scannable

@@ -126,6 +126,7 @@ class UBCalculation:
                 self.calculate_UB()
         else:
             pass
+    
     def save(self):
         self.saveas(self._state.name)
 
@@ -138,6 +139,8 @@ class UBCalculation:
 
     def remove(self, name):
         self._persister.remove(name)
+        if self._state == name:
+            self._clear(name)
 
     def getState(self):
         return self._state.getState()
@@ -267,7 +270,7 @@ class UBCalculation:
         """
         Returns sigma (in degrees): the (minus) ammount of phi axis rotation ,
         that together with some phi axis rotation (minus tau) brings the
-        optical surface normal parallelto the omega axis.
+        optical surface normal parallel to the omega axis.
         """
         return self._state.sigma
 

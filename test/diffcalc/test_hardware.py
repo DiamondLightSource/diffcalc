@@ -163,7 +163,7 @@ class TestHardwareCommands():
 
     def setup(self):
         self.hardware = SimpleHardwareAdapter(['a', 'b', 'c'])
-        settings.configure(hardware=self.hardware)
+        settings.hardware = self.hardware
         from diffcalc import hardware
         reload(hardware)
         self.commands = hardware

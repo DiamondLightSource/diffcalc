@@ -13,10 +13,11 @@ STARTUP_PATH = os.path.join(diffcalc_path, 'example')
 print "prepended to path:", STARTUP_PATH
 sys.path.insert(0, STARTUP_PATH)
 
-from sixcircle import *
+from fivecircle import *
 
 ct.pause = False  # @UndefinedVariable
-class test_sixcircle_example():
+
+class test_fivecircle_example():
 
     def test_execfile(self):
         pass

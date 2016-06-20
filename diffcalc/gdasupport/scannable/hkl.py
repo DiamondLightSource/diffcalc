@@ -80,7 +80,7 @@ class Hkl(ScannableMotionWithScannableFieldsBase):
         self.diffhw.asynchronousMoveTo(pos)
 
     def rawGetPosition(self):
-        pos = self.diffhw.getPosition()
+        pos = self.diffhw.getPosition()  # a tuple
         (hkl , params) = self._diffcalc.angles_to_hkl(pos)
         result = list(hkl)
         if self.vAngleNames:

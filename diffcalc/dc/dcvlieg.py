@@ -4,8 +4,8 @@ from diffcalc import settings
 from diffcalc.hkl.vlieg.transform import VliegTransformSelector,\
     TransformCommands, VliegPositionTransformer
 from diffcalc.dc.help import compile_extra_motion_commands_for_help
+import diffcalc.hkl.vlieg.calc
 
-settings.set_engine_name('vlieg')
 
 # reload to aid testing only
 import diffcalc.ub.ub as _ub
@@ -58,8 +58,9 @@ def angles_to_hkl(angleTuple, energy=None):
     i_pos = settings.geometry.physical_angles_to_internal_position(angleTuple)  # @UndefinedVariable
     return hklcalc.anglesToHkl(i_pos, energy_to_wavelength(energy))
 
-        
-del _transform_selector, _transform_commands
+
+settings.ubcalc_strategy = diffcalc.hkl.vlieg.calc.VliegUbCalcStrategy()
+settings.angles_to_hkl_function = diffcalc.hkl.vlieg.calc.vliegAnglesToHkl       
 
 ub_commands_for_help = _ub.commands_for_help
 

@@ -56,6 +56,7 @@ class UBCalculationJSONPersister(object):
     def __init__(self, directory):
         check_directory_appropriate(directory)
         self.directory = directory
+        self.description = directory
         
     def filepath(self, name):
         return os.path.join(self.directory, name + '.json')
@@ -99,6 +100,7 @@ class UBCalculationPersister(object):
             print ("UBCalculationPersister could not connect to the gda "
                    "database: " + repr(e))
             self.shelf = None
+        self.description = 'GDA sql database'
 
     def save(self, state, key):
         if self.shelf is not None:
@@ -109,7 +111,8 @@ class UBCalculationPersister(object):
     def load(self, name):
         if self.shelf is not None:
             return self.shelf[name]
-        raise IOError("Could not load UB calculation: no database available")
+        else:
+            raise IOError("Could not load UB calculation: no database available")
 
     def list(self):  # @ReservedAssignment
         if self.shelf is not None:
@@ -122,7 +125,8 @@ class UBCalculationPersister(object):
     def remove(self, name):
         if self.shelf is not None:
             del self.shelf[name]
-        raise IOError("Could not remove UB calculation: no database available")
+        else:
+            raise IOError("Could not remove UB calculation: no database available")
 
 
 class UbCalculationNonPersister(UBCalculationPersister):
@@ -132,3 +136,4 @@ class UbCalculationNonPersister(UBCalculationPersister):
     """
     def __init__(self):
         self.shelf = dict()
+        self.description = 'memory only'

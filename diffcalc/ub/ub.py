@@ -35,7 +35,7 @@ TODEG = 180 / pi
 
 __all__ = ['addref', 'c2th', 'calcub', 'delref', 'editref', 'listub', 'loadub',
            'newub', 'saveubas', 'setlat', 'setu', 'setub', 'showref', 'sigtau',
-           'swapref', 'trialub', 'checkub', 'ub', 'ubcalc']
+           'swapref', 'trialub', 'checkub', 'ub', 'ubcalc', 'rmub', 'clearref']
 
 
 ubcalc = UBCalculation(settings.hardware,
@@ -68,13 +68,26 @@ def loadub(name_or_num):
     """
     if isinstance(name_or_num, str):
         ubcalc.load(name_or_num)
-    ubcalc.load(ubcalc.listub()[int(name_or_num)])
+    else:
+        ubcalc.load(ubcalc.listub()[int(name_or_num)])
+
+@command
+def rmub(name_or_num):
+    """rmub {'name'|num} -- remove existing ub calculation
+    """
+    if isinstance(name_or_num, str):
+        ubcalc.remove(name_or_num)
+    else:
+        ubcalc.remove(ubcalc.listub()[int(name_or_num)])
 
 @command
 def listub():
     """listub -- list the ub calculations available to load.
     """
-    print "UB calculations in cross-visit database:"
+    if hasattr(ubcalc._persister, 'description'):
+        print "UB calculations in: " + ubcalc._persister.description
+    else:
+        print "UB calculations:"
     for n, name in enumerate(ubcalc.listub()):
         print "%2i) %s" % (n, name)
 
@@ -166,7 +179,7 @@ def showref():
     if ubcalc._state.reflist:
         print '\n'.join(ubcalc._state.reflist.str_lines())
     else:
-        print "<<< No UB calculation started >>>"
+        print "<<< No reflections stored >>>"
 
 @command
 def addref(*args):
@@ -285,6 +298,13 @@ def delref(num):
     """delref num -- deletes a reflection (numbered from 1)
     """
     ubcalc.del_reflection(int(num))
+    
+@command
+def clearref():
+    """clearref -- deletes all the reflections
+    """
+    while ubcalc.get_number_reflections():
+        ubcalc.del_reflection(1)   
 
 @command
 def swapref(num1=None, num2=None):
@@ -370,7 +390,8 @@ def checkub():
     for n in range(nref):
         hklguess, pos, energy, tag, _ = ubcalc.get_reflection(n + 1)
         wavelength = 12.39842 / energy
-        h, k, l = settings.angles_to_hkl_function(pos, wavelength, ubcalc.UB)
+        hkl = settings.angles_to_hkl_function(pos.inRadians(), wavelength, ubcalc.UB)
+        h, k, l = hkl
         if tag is None:
             tag = ""
         s += ("% 2d % 6.4f % 4.2f % 4.2f % 4.2f   % 6.4f  % 6.4f  "
@@ -383,6 +404,7 @@ commands_for_help = ['State',
                      newub,
                      loadub,
                      listub,
+                     rmub,
                      saveubas,
                      ub,
                      'Lattice',
@@ -395,6 +417,7 @@ commands_for_help = ['State',
                      addref,
                      editref,
                      delref,
+                     clearref,
                      swapref,
                      'ub',
                      checkub,

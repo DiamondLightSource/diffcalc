@@ -50,8 +50,10 @@ class TestHklCommands(unittest.TestCase):
         self.hklcalc = VliegHklCalculator(self.mock_ubcalc, self.geometry,
                                           self.hardware, True)
         from diffcalc import settings
-        settings.configure(hardware=self.hardware, geometry=self.geometry,
-                           ubcalc_persister=UbCalculationNonPersister())
+        settings.hardware = self.hardware
+        settings.geometry = self.geometry
+        settings.ubcalc_persister = UbCalculationNonPersister()
+        
         from diffcalc.hkl.vlieg import hkl
         reload(hkl)
         hkl.hklcalc = self.hklcalc

@@ -21,8 +21,10 @@ import os, sys
 import diffcmd.ipythonmagic
 
 try:
+    #  required for "python -i -m example/sixcircle" to work (although
+    #  it didn't used to be).
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-except NameError:
+except NameError:  # For use in execfile from ipython notebook
     # GDA run command does not honour the __file__ convention, but diffcalc
     # is put on the path by other means.
     pass
@@ -40,6 +42,7 @@ from diffcalc.hkl.you.geometry import SixCircle
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc import settings
 
+
 ### Create dummy scannables ###
 print "Dummy scannables: sixc(mu, delta, gam, eta, chi, phi) and en"
 mu = Dummy('mu')
@@ -55,12 +58,13 @@ en.level = 3
 
 ### Configure and import diffcalc objects ###
 ESMTGKeV = 1
-settings.configure(hardware=ScannableHardwareAdapter(_sixc, en, ESMTGKeV),
-                   geometry=SixCircle(),
-                   ubcalc_persister=UbCalculationNonPersister(),
-                   energy_scannable=en,
-                   axes_scannable_group=_sixc,
-                   energy_scannable_multiplier_to_get_KeV=ESMTGKeV)
+settings.hardware = ScannableHardwareAdapter(_sixc, en, ESMTGKeV)
+settings.geometry = SixCircle()
+settings.ubcalc_persister = UbCalculationNonPersister()
+settings.energy_scannable = en
+settings.axes_scannable_group= _sixc
+settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
+
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
 
 
@@ -70,14 +74,12 @@ try:
     IPYTHON = True
 except NameError:
     IPYTHON = False
-
+    
 if IPYTHON:
-    diffcmd.ipythonmagic.define_commands(globals())
+    from diffcmd.ipython import magic_commands
+    magic_commands(globals())
 
-
-### create demo scenarios for manual ###q
-
-
+### create demo scenarios for manual ###
 def demo_all():
 
     print "ORIENT\n"

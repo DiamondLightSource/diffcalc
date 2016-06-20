@@ -27,8 +27,10 @@ diffcalc.util.DEBUG = True
 hkl = None
 def setup_module():
     global hkl
-    settings.configure(hardware=Mock(), geometry=Mock())
-    settings.set_engine_name('you')
+    settings.hardware=Mock()
+    settings.geometry=Mock()
+    settings.angles_to_hkl_function=Mock()
+    settings.ubcalc_strategy=Mock()
     settings.geometry.fixed_constraints = {}
     
     from diffcalc.hkl.you import hkl

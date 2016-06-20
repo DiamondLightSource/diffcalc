@@ -5,7 +5,7 @@ Created on 7 May 2016
 '''
 from diffcalc.util import allnum
 
-def sim(self, scn, hkl):
+def sim(scn, hkl):
     """sim hkl scn -- simulates moving scannable (not all)
     """
     if not isinstance(hkl, (tuple, list)):
