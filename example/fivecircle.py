@@ -81,7 +81,9 @@ except NameError:
 if IPYTHON:
     from diffcmd.ipython import magic_commands
     magic_commands(globals())
-
+else:
+    from diffcmd.diffcmd_utils import alias_commands
+    alias_commands(globals())
 
 
 ### create demo scenarios for manual ###
