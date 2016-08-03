@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.ui.externaltools.ProgramLaunchConfigurationType">
 <stringAttribute key="org.eclipse.debug.core.ATTR_REFRESH_SCOPE" value="${project}"/>
-<listAttribute key="org.eclipse.debug.ui.favoriteGroups">
-<listEntry value="org.eclipse.ui.externaltools.launchGroup"/>
-</listAttribute>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_LAUNCH_CONFIGURATION_BUILD_SCOPE" value="${none}"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="/usr/bin/make"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="${string_prompt:the target(s), which can be one or more of &quot;clean html pdfa4 pdfletter pdf all&quot; (all means &quot;html pdf&quot;).:clean all} HALTONWARNING=${string_prompt:treat warnings as errors (and halt the build):y} CONTEXT=${string_prompt:a keyword (typically the name of your organization) which identifies any setup required (can be omitted).:diamond}"/>
