@@ -12,6 +12,7 @@
    :maxdepth: 2
    :numbered:
 
+   youmanual
    manual
    ACKS
 
