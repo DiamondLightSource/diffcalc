@@ -100,7 +100,7 @@ class _BaseTest():
         self.zrot, self.yrot = zrot, yrot
         self._configure_ub()
         hkl, virtual = self.calc.anglesToHkl(pos, wavelength)
-        assert_array_almost_equal(hkl, hkl_expected, self.places, note="***Test incorrect*** : the desired settings do not map to the target hkl")
+        assert_array_almost_equal(hkl, hkl_expected, self.places, note="***Test (not diffcalc!) incorrect*** : the desired settings do not map to the target hkl")
         assert_second_dict_almost_in_first(virtual, virtual_expected)
 
     @raises(DiffcalcException)
@@ -718,6 +718,62 @@ class TestConstrain3Sample_ChiPhiEta(_TestCubic):
         self.constraints._constrained = {'chi': 0, 'phi': 0 * TORAD, 'eta': 0}
         self._check((1, 0, .1),
                     P(mu= 30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0))
+
+
+
+class TestHorizontalDeltaNadeta0_JiraI16_32_failure(_BaseTest):
+    """
+    The data here is taken from a trial experiment which failed. Diamond's internal Jira: 
+    http://jira.diamond.ac.uk/browse/I16-32"""
+
+    def setup(self):
+        _BaseTest.setup(self)
+        self.mock_hardware.set_lower_limit(NUNAME, 0)
+        
+        self.wavelength = 12.39842 / 8
+        self.UB = matrix([[ -1.46410390e+00,  -1.07335571e+00,   2.44799214e-03],
+                          [  3.94098508e-01,  -1.07091934e+00,  -6.41132943e-04],
+                          [  7.93297438e-03,   4.01315826e-03,   4.83650166e-01]])
+        self.places = 3
+
+    def _configure_ub(self):
+        self.mock_ubcalc.UB = self.UB
+
+    def _check(self, hkl, pos, virtual_expected={}, fails=False, skip_test_pair_verification=False):
+        if not skip_test_pair_verification:
+            self._check_angles_to_hkl(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        if fails:
+            self._check_hkl_to_angles_fails(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        else:
+            self._check_hkl_to_angles(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+
+    def test_hkl_bisecting_works_okay_on_i16(self):
+        self.constraints._constrained = {'delta': 0, 'a_eq_b': None, 'eta': 0}
+        self._check([-1.1812112493619709, -0.71251524866987204, 5.1997083010199221],
+                    P(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360), fails=False)
+
+    def test_hkl_psi90_works_okay_on_i16(self):
+        # This is failing here but on the live one. Suggesting some extreme sensitivity?
+        self.constraints._constrained = {'delta': 0, 'psi': 90 * TORAD, 'eta': 0}
+        self._check([-1.1812112493619709, -0.71251524866987204, 5.1997083010199221],
+                    P(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360), fails=False)
+        
+    def test_hkl_alpha_17_9776_used_to_fail(self):
+        # This is failing here but on the live one. Suggesting some extreme sensitivity?
+        self.constraints._constrained = {'delta': 0, 'alpha': 17.9776 * TORAD, 'eta': 0}
+        self._check([-1.1812112493619709, -0.71251524866987204, 5.1997083010199221],
+                    P(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360), fails=False)
+
+    def test_hkl_alpha_17_9776_failing_after_bigger_small(self):
+        # This is failing here but on the live one. Suggesting some extreme sensitivity?
+        self.constraints._constrained = {'delta': 0, 'alpha': 17.8776 * TORAD, 'eta': 0}
+        self._check([-1.1812112493619709, -0.71251524866987204, 5.1997083010199221],
+                    P(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360), fails=False)
+  
+#skip_test_pair_verification
 
 def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
     return YouPosition(mu, delta, gamma, eta, chi, phi)
