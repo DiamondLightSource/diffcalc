@@ -1,69 +1,23 @@
-###
-# Copyright 2008-2016 Diamond Light Source Ltd.
-# This file is part of Diffcalc.
-#
-# Diffcalc is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Diffcalc is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
-###
-from __future__ import absolute_import
-
-import os, sys
-try:
-    sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-except NameError:
-    # GDA run command does not honour the __file__ convention, but diffcalc
-    # is put on the path by other means.
-    pass
-
-try:
-    from gda.device.scannable.scannablegroup import ScannableGroup
-    from gdascripts.scannable.dummy import SingleInputDummy as Dummy
-except ImportError:
-    # Not running in gda environment so fall back to minigda emulation
-    from diffcalc.gdasupport.minigda.scannable import ScannableGroup
-    from diffcalc.gdasupport.minigda.scannable import SingleFieldDummyScannable as Dummy
-
-from diffcalc.hardware import ScannableHardwareAdapter
-from diffcalc.hkl.you.geometry import FiveCircle
-from diffcalc.ub.persistence import UbCalculationNonPersister
-from diffcalc import settings
+execfile('diffcalc/gdasupport/common_startup_imports.py')
 
 
-if '_fivec' in globals() and 'en' in globals():
-    # Assume we are running in a live GDA deployment with a _fivec ScannableGroup
-    # with axes named: delta, gam, eta, chi, phi.
-    # Ensure that these five Scannables exist.
-    # There must also be Scannable en for moving and reading the energy
-    print "Diffcalc using predefined _fivec and en Scannables"
-
-else:
-    ### Create dummy scannables ###
-    print "Diffcalc creating dummy Scannables as _fivec and en were not found"
-    print "Dummy scannables: _fivec(delta, gam, eta, chi, phi) and en"
-    delta = Dummy('delta')
-    gam = Dummy('gam')
-    eta = Dummy('eta')
-    chi = Dummy('chi')
-    phi = Dummy('phi')
-    _fivec = ScannableGroup('_fivec', (delta, gam, eta, chi, phi))
-    en = Dummy('en')
-    en.level = 3
+### Create dummy scannables ###
+print "Diffcalc creating dummy Scannables as _fivec and en were not found"
+print "Dummy scannables: _fivec(delta, gam, eta, chi, phi) and en"
+delta = Dummy('delta')
+gam = Dummy('gam')
+eta = Dummy('eta')
+chi = Dummy('chi')
+phi = Dummy('phi')
+_fivec = ScannableGroup('_fivec', (delta, gam, eta, chi, phi))
+en = Dummy('en')
+en.level = 3
 
 
 ### Configure and import diffcalc objects ###
 ESMTGKeV = 1
 settings.hardware = ScannableHardwareAdapter(_fivec, en, ESMTGKeV)
-settings.geometry = FiveCircle()
+settings.geometry = diffcalc.hkl.you.geometry.FiveCircle()
 settings.ubcalc_persister = UbCalculationNonPersister()
 settings.energy_scannable = en
 settings.axes_scannable_group = _fivec
@@ -71,19 +25,7 @@ settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
 
 
-### If iPython then convert all commands to magic ###
-try:
-    __IPYTHON__  # @UndefinedVariable
-    IPYTHON = True
-except NameError:
-    IPYTHON = False
-
-if IPYTHON:
-    from diffcmd.ipython import magic_commands
-    magic_commands(globals())
-else:
-    from diffcmd.diffcmd_utils import alias_commands
-    alias_commands(globals())
+execfile('diffcalc/gdasupport/common_startup_magic_or_alias.py')
 
 
 ### create demo scenarios for manual ###

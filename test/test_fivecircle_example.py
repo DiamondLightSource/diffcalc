@@ -9,7 +9,7 @@ import sys
 print sys.path
 
 diffcalc_path = os.path.split(os.path.split(__file__)[0])[0]
-STARTUP_PATH = os.path.join(diffcalc_path, 'example')
+STARTUP_PATH = os.path.join(diffcalc_path, 'startup')
 print "prepended to path:", STARTUP_PATH
 sys.path.insert(0, STARTUP_PATH)
 
