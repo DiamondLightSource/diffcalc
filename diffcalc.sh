@@ -12,7 +12,7 @@ if [[ $file_name != *".py" ]]; then
 	file_name="$file_name.py"
 fi
 
-# Assume file is in examples and check it exists
+# Assume file is in startup and check it exists
 module_file="$diffcalc_dir/startup/$file_name"
 if [ ! -f "$module_file" ]; then
     echo "$file_name not found"
@@ -20,5 +20,5 @@ if [ ! -f "$module_file" ]; then
 fi
 
 command="ipython -i $module_file"
-echo "Starting diffcalc with command $command"
+echo "Starting diffcalc with command: $command"
 $command
