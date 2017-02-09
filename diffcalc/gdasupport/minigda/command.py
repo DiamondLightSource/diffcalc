@@ -127,7 +127,7 @@ class ScanDataPrinter(ScanDataHandler):
         # also sets self.widths
         header_strings = []
         for scn in self.scannables:
-            field_names = scn.getInputNames() + scn.getExtraNames()
+            field_names = list(scn.getInputNames()) + list(scn.getExtraNames())
             if len(field_names) == 1:
                 header_strings.append(scn.getName())
             else:
