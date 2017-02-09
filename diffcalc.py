@@ -9,8 +9,9 @@ DIFFCALC_ROOT = os.path.split(os.path.realpath(__file__))[0]
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Start Diffcalc')
-    parser.add_argument('module', metavar='MODULE', type=str, nargs='?',
+    parser = argparse.ArgumentParser(description='Diffcalc: A diffraction condition calculator of x-ray and neutron crystalography')
+    parser.add_argument('--modules', dest='show_modules', action='store_true', help='list available modules')
+    parser.add_argument('module', type=str, nargs='?',
                         help='the module to startup with')
     args = parser.parse_args()
     
@@ -18,6 +19,9 @@ def main():
     module_files = os.listdir(os.path.join(DIFFCALC_ROOT, 'startup'))
     module_names = set([s.split('.')[0] for s in module_files])
     
+    if args.show_modules:
+        print_available_modules(module_names)
+        exit(1)      
     
     if not args.module:   
         print "A module name should be provided. Choose one of:"
