@@ -68,6 +68,12 @@ def setmax(name=None, val=None):
     """setmax {name {val}} -- sets upper limits used by auto sector code (None to clear)""" #@IgnorePep8
     _setMinOrMax(name, val, settings.hardware.set_upper_limit)  # @UndefinedVariable
 
+@command
+def setrange(name=None, lower=None, upper=None):
+    """setrange {axis {min} {max}} -- set lower and upper limits used by auto sector code (None to clear)""" #@IgnorePep8
+    _setMinOrMax(name, lower, settings.hardware.set_lower_limit)  # @UndefinedVariable
+    _setMinOrMax(name, upper, settings.hardware.set_upper_limit)  # @UndefinedVariable
+
 def _setMinOrMax(name, val, setMethod):
     if name is None:
         print settings.hardware.repr_sector_limits_and_cuts()  # @UndefinedVariable
@@ -207,25 +213,29 @@ class HardwareAdapter(object):
 
     def repr_sector_limits_and_cuts(self, name=None):
         if name is None:
-            s = 'Cuts and Sector-limits:\n'
+            s = ''
             for name in self.get_axes_names():
                 s += self.repr_sector_limits_and_cuts(name) + '\n'
-            s += "  Note: When auto sector/transforms are used, "
-            s += "cuts are applied before checking limits."
+            s += "Note: When auto sector/transforms are used, "
+            s += "      cuts are applied before checking limits."
             return s
         # limits:
         low = self.get_lower_limit(name)
         high = self.get_upper_limit(name)
         s = '  '
         if low is not None:
-            s += "%f <= " % low
-        s += name
+            s += "% 6.1f <= " % low
+        else:
+            s += ' ' * 10
+        s += '%5s' % name
         if high is not None:
-            s += " <= %f" % high
+            s += " <= % 6.1f" % high
+        else:
+            s += ' ' * 10
         # cuts:
         try:
             if self.get_cuts()[name] is not None:
-                s += " - cut at %f" % self.get_cuts()[name]
+                s += " (cut: % 6.1f)" % self.get_cuts()[name]
         except KeyError:
             pass
 
