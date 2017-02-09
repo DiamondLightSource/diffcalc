@@ -45,7 +45,7 @@ def create_environent_dict():
     my_env = os.environ.copy()
     if "PYTHONPATH" not in my_env:
         my_env["PYTHONPATH"] = ''
-    my_env["PYTHONPATH"] = DIFFCALC_ROOT + my_env["PYTHONPATH"]
+    my_env["PYTHONPATH"] = DIFFCALC_ROOT + ':' + my_env["PYTHONPATH"]
     return my_env
 
 
