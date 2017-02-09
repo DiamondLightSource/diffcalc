@@ -771,7 +771,7 @@ class TestHorizontalDeltaNadeta0_JiraI16_32_failure(_BaseTest):
         # This is failing here but on the live one. Suggesting some extreme sensitivity?
         self.constraints._constrained = {'delta': 0, 'alpha': 17.8776 * TORAD, 'eta': 0}
         self._check([-1.1812112493619709, -0.71251524866987204, 5.1997083010199221],
-                    P(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360), fails=False)
+                    P(mu=25.85, delta=0, nu=52, eta=0, chi=45.2453, phi=-173.518), fails=False)
   
 #skip_test_pair_verification
 

@@ -526,6 +526,13 @@ class YouHklCalculator(HklCalculatorBase):
                              det_constraint_name, det_constraint, theta)
             naz_qaz_angle = _calc_angle_between_naz_and_qaz(theta, alpha, tau)
             naz = qaz - naz_qaz_angle
+            # If naz ends up being negative it means the reference vector
+            # is pointing down. Given that this is normally the surface
+            # normal, we should flip it the other way about.
+            # TODO: consider adding a visible naz limit at having it default < 0
+            if naz < 0:
+                naz = qaz + naz_qaz_angle
+        
             
         elif naz_constraint: # The 'detector' angle naz is given:
             det_constraint_name, det_constraint = naz_constraint.items()[0]
