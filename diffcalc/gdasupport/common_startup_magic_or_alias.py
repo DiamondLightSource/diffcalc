@@ -1,5 +1,7 @@
 # NOTE: This file must be run, not imported, for the ipython magic to work!
 
+import diffcmd.ipythonmagic
+
 try:
     __IPYTHON__  # @UndefinedVariable
     IPYTHON = True

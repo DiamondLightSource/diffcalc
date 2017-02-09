@@ -1,4 +1,4 @@
-execfile('diffcalc/gdasupport/common_startup_imports.py')
+from diffcalc.gdasupport.common_startup_imports import *
 
 
 ### Create dummy scannables ###
@@ -25,7 +25,7 @@ settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
 
 
-execfile('diffcalc/gdasupport/common_startup_magic_or_alias.py')
+execfile(COMMON_STARTUP_MAGIC_OR_ALIAS_FILE)
 
 
 ### create demo scenarios for manual ###

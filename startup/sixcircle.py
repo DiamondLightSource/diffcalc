@@ -1,7 +1,5 @@
-execfile('diffcalc/gdasupport/common_startup_imports.py')
-print 111111111
-import sys
-print sys.path
+from diffcalc.gdasupport.common_startup_imports import *
+
 ### Create dummy scannables ###
 print "Dummy scannables: sixc(mu, delta, gam, eta, chi, phi) and en"
 mu = Dummy('mu')
@@ -27,7 +25,7 @@ settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
 
 
-execfile('diffcalc/gdasupport/common_startup_magic_or_alias.py')
+execfile(COMMON_STARTUP_MAGIC_OR_ALIAS_FILE)
 
 
 ### create demo scenarios for manual ###

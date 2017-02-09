@@ -17,21 +17,14 @@
 ###
 
 
-# NOTE: This file must be run, not imported, for the ipython magic to work!
-
 from __future__ import absolute_import
 
 import os, sys
 
 
-try:
-    #  required for "python -i -m example/sixcircle" to work (although
-    #  it didn't used to be: depends on where its started. Not good).
-    sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-except NameError:  # For use in execfile from ipython notebook
-    # GDA run command does not honour the __file__ convention, but diffcalc
-    # is put on the path by other means.
-    pass
+# This file must be run with execfile after diffcalc has started
+COMMON_STARTUP_MAGIC_OR_ALIAS_FILE = os.path.join(os.path.split(__file__)[0], 'common_startup_magic_or_alias.py')
+
 
 try:
     from gda.device.scannable.scannablegroup import ScannableGroup
@@ -47,5 +40,3 @@ from diffcalc.hardware import ScannableHardwareAdapter
 import diffcalc.hkl.you.geometry
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from diffcalc import settings
-
-import diffcmd.ipythonmagic
