@@ -13,7 +13,7 @@ if [[ $file_name != *".py" ]]; then
 fi
 
 # Assume file is in examples and check it exists
-module_file="$diffcalc_dir/example/$file_name"
+module_file="$diffcalc_dir/startup/$file_name"
 if [ ! -f "$module_file" ]; then
     echo "$file_name not found"
     exit 1
