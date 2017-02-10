@@ -24,7 +24,7 @@ settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
 
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
 
-
+lastub()  # Load the last ub calculation used
 execfile(COMMON_STARTUP_MAGIC_OR_ALIAS_FILE)
 
 

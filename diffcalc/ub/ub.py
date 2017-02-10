@@ -41,7 +41,7 @@ TODEG = 180 / pi
 
 __all__ = ['addref', 'c2th', 'calcub', 'delref', 'editref', 'listub', 'loadub',
            'newub', 'saveubas', 'setlat', 'setu', 'setub', 'showref', 'swapref',
-           'trialub', 'checkub', 'ub', 'ubcalc', 'rmub', 'clearref']
+           'trialub', 'checkub', 'ub', 'ubcalc', 'rmub', 'clearref', 'lastub']
 
 if settings.include_sigtau:
     __all__.append('sigtau')
@@ -85,6 +85,15 @@ def loadub(name_or_num):
         ubcalc.load(name_or_num)
     else:
         ubcalc.load(ubcalc.listub()[int(name_or_num)])
+
+@command
+def lastub():
+    """lastub -- load the last used ub calculation
+    """
+    try:
+        loadub(0)
+    except IndexError:
+        print "WARNING: There is no record of the last ub calculation used"
 
 @command
 def rmub(name_or_num):
@@ -445,6 +454,7 @@ def checkub():
 commands_for_help = ['State',
                      newub,
                      loadub,
+                     lastub,
                      listub,
                      rmub,
                      saveubas,
