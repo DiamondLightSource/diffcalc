@@ -52,7 +52,7 @@ else:
     ubcalc_persister = UBCalculationJSONPersister(diffcalc_var)
     
 if not GDA:
-    diffcalc.util.DEBUG = os.getenv('DIFFCALC_DEBUG', False)
+    diffcalc.util.DEBUG = os.getenv('DIFFCALC_DEBUG', False) == 'True'
     if diffcalc.util.DEBUG:
         print "WARNING: Diffcalc debug mode on. Help for command syntax errors disabled."
 

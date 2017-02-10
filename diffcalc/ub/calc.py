@@ -169,7 +169,8 @@ class UBCalculation:
 
         if self.include_reference:
             lines.append("")
-            lines.extend(self.reference.repr_lines(WIDTH))
+            ub_calculated = self._UB is not None
+            lines.extend(self.reference.repr_lines(WIDTH, ub_calculated))
         
         lines.append("")
         lines.append("CRYSTAL")
