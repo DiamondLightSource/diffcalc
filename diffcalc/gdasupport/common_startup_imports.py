@@ -46,10 +46,14 @@ if GDA:
     ubcalc_persister = UbCalculationNonPersister()
     print "WARNING: persistence not configured properly for GDA use yet"
 else:
-    diffcalc_var =os.getenv('DIFFCALC_VAR')
-    if not os.path.exists(diffcalc_var):
-        os.makedirs(diffcalc_var)
-    ubcalc_persister = UBCalculationJSONPersister(diffcalc_var)
+    diffcalc_var = os.getenv('DIFFCALC_VAR')
+    if diffcalc_var:
+        if not os.path.exists(diffcalc_var):
+            os.makedirs(diffcalc_var)
+        ubcalc_persister = UBCalculationJSONPersister(diffcalc_var)
+    else:
+        ubcalc_persister = UbCalculationNonPersister()
+        print "WARNING: persistence not configured"
     
 if not GDA:
     diffcalc.util.DEBUG = os.getenv('DIFFCALC_DEBUG', False) == 'True'
