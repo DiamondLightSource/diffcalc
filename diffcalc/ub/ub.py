@@ -208,19 +208,19 @@ def sigtau(sigma=None, tau=None):
 def setnphi(x=None, y=None, z=None):
     """setnphi {x y z} -- sets or displays n_phi reference"""
     if None in (x, y, z):
-        print ubcalc.reference
+        ubcalc.print_reference()
     else:
-        ubcalc.reference.n_phi_configured = matrix([[x], [y], [z]])
-        print ubcalc.reference
+        ubcalc.set_n_phi_configured(matrix([[x], [y], [z]]))
+        ubcalc.print_reference()
 
 @command
 def setnhkl(h=None, k=None, l=None):
     """setnphi {h k l} -- sets or displays n_phi reference"""
     if None in (h, k, l):
-        print ubcalc.reference
+        ubcalc.print_reference()
     else:
-        ubcalc.reference.n_hkl_configured = matrix([[h], [k], [l]])
-        print ubcalc.reference
+        ubcalc.set_n_hkl_configured(matrix([[h], [k], [l]]))
+        ubcalc.print_reference()
     
 ### UB refelections ###
 

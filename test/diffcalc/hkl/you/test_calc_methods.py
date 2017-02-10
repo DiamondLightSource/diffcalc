@@ -114,7 +114,7 @@ class Test_anglesToVirtualAngles():
     #alpha
     def test_defaultReferenceValue(self):
         # The following tests depemd on this
-        assert_matrix_almost_equal(self.calc._ubcalc.reference.n_phi, matrix([[0], [0], [1]]))
+        assert_matrix_almost_equal(self.calc._ubcalc.n_phi, matrix([[0], [0], [1]]))
 
     def test_alpha0(self):
         self.check_angle('alpha', 0, mu=0, eta=0, chi=0, phi=0)

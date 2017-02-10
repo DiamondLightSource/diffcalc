@@ -24,8 +24,8 @@ TODEG = 180 / pi
 
 class YouReference(object):
     
-    def __init__(self, _get_UB):
-        self._get_UB = _get_UB  # callable
+    def __init__(self, get_UB):
+        self.get_UB = get_UB  # callable
         self._n_phi_configured = None
         self._n_hkl_configured = None
         self._set_n_phi_configured(matrix('0; 0; 1'))
@@ -50,23 +50,20 @@ class YouReference(object):
     
     @property
     def n_phi(self):
-        n_phi = (self._get_UB() * self._n_hkl_configured if self._n_phi_configured is None 
+        n_phi = (self.get_UB() * self._n_hkl_configured if self._n_phi_configured is None 
                  else self._n_phi_configured)
         return n_phi / norm(n_phi)
         
     @property
     def n_hkl(self):
-        n_hkl = (self._get_UB().I * self._n_phi_configured if self._n_hkl_configured is None
+        n_hkl = (self.get_UB().I * self._n_phi_configured if self._n_hkl_configured is None
                   else self._n_hkl_configured) 
         return n_hkl / norm(n_hkl)
     
     def _pretty_vector(self, m):
         return ' '.join([('% 9.5f' % e).rjust(9) for e in m.T.tolist()[0]])
-        
-    def __str__(self):
-        return '\n'.join(self.repr_lines())
     
-    def repr_lines(self, WIDTH=13, ub_calculated=True):
+    def repr_lines(self, ub_calculated, WIDTH=9):
         SET_LABEL = ' <- set'
         lines = []
         if self._n_phi_configured is not None:
@@ -100,5 +97,3 @@ class YouReference(object):
 
         return lines
     
-    def __repr__(self):
-        return self.__str__()

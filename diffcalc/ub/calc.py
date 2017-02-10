@@ -81,7 +81,6 @@ class UBCalculation:
         self._strategy = strategy
         self.include_sigtau = include_sigtau
         self.include_reference = include_reference
-        self.reference = YouReference(self._get_UB)  # TODO: move into _state and persist
         self._clear()
         
     def _get_diffractometer_axes_names(self):
@@ -92,7 +91,8 @@ class UBCalculation:
         # the long run. We can't remove this entire object, and recreate it.
         # It also contains a required link to the angle calculator.
         reflist = ReflectionList(self._geometry, self._get_diffractometer_axes_names())
-        self._state = UBCalcState(name=name, reflist=reflist)
+        reference = YouReference(self._get_UB)
+        self._state = UBCalcState(name=name, reflist=reflist, reference=reference)
         self._U = None
         self._UB = None
         self._state.configure_calc_type()
@@ -113,6 +113,7 @@ class UBCalculation:
         state = self._persister.load(name)
         if isinstance(self._persister, UBCalculationJSONPersister):
             self._state = decode_ubcalcstate(state, self._geometry, self._get_diffractometer_axes_names())
+            self._state.reference.get_UB = self._get_UB
         elif isinstance(self._persister, UBCalculationPersister):
             self._state = state
         else:
@@ -170,7 +171,7 @@ class UBCalculation:
         if self.include_reference:
             lines.append("")
             ub_calculated = self._UB is not None
-            lines.extend(self.reference.repr_lines(WIDTH, ub_calculated))
+            lines.extend(self._state.reference.repr_lines(ub_calculated, WIDTH))
         
         lines.append("")
         lines.append("CRYSTAL")
@@ -327,6 +328,25 @@ class UBCalculation:
 
     sigma = property(_getsigma, _setsigma)
 
+
+### Reference vector ###
+
+    def _get_n_phi(self):
+        return self._state.reference.n_phi
+    
+    n_phi = property(_get_n_phi)
+    
+    def set_n_phi_configured(self, n_phi):
+        self._state.reference.n_phi_configured = n_phi
+        self.save()
+        
+    def set_n_hkl_configured(self, n_hkl):
+        self._state.reference.n_hkl_configured = n_hkl
+        self.save()
+        
+    def print_reference(self):
+        print '\n'.join(self._state.reference.repr_lines(self.is_ub_calculated()))
+
 ### Reflections ###
 
     def add_reflection(self, h, k, l, position, energy, tag, time):
@@ -457,9 +477,12 @@ class UBCalculation:
     @property
     def UB(self):
         return self._get_UB()
+    
+    def is_ub_calculated(self):
+        return self._UB is not None
 
     def _get_UB(self):
-        if self._UB is None:
+        if not self.is_ub_calculated():
             raise DiffcalcException(
                 "No UB matrix has been calculated during this ub calculation")
         else:

@@ -235,7 +235,7 @@ class YouHklCalculator(HklCalculatorBase):
         return self.constraints.__str__()
 
     def _get_n_phi(self):
-        return self._ubcalc.reference.n_phi
+        return self._ubcalc.n_phi
     
     def _get_ubmatrix(self):
         return self._getUBMatrix()  # for consistency
