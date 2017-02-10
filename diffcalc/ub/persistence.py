@@ -63,6 +63,8 @@ class UBCalculationJSONPersister(object):
         return os.path.join(self.directory, name + '.json')
         
     def save(self, state, name):
+        # FORMAT = '%Y-%m-%d %H:%M:%S'
+        # time_string = datetime.datetime.strftime(datetime.datetime.now(), FORMAT)
         with open(self.filepath(name), 'w') as f:
             json.dump(state, f, indent=4, cls=UBCalcStateEncoder)
 
