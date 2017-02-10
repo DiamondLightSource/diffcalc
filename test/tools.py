@@ -99,6 +99,7 @@ def assert_dict_almost_equal(first, second, places=7, msg=None, note=None):
                     "For key %s, %r != %r%s" %
                     (repr(key), f, s, format_note(note)))
 
+dneq_ = assert_dict_almost_equal
 
 def assert_second_dict_almost_in_first(value, expected, places=7, msg=None):
     value = value.copy()

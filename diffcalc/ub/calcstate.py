@@ -3,6 +3,7 @@ from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.reflections import ReflectionList, _Reflection
 from math import pi
 import datetime  # @UnusedImport For crazy time eval code!
+from diffcalc.ub.reference import YouReference
 
 try:
     from collection import OrderedDict
@@ -26,7 +27,7 @@ TODEG = 180 / pi
 class UBCalcState():
     
     def __init__(self, name=None, crystal=None, reflist=None, tau=0, sigma=0,
-                 manual_U=None, manual_UB=None, or0=None, or1=None):
+                 manual_U=None, manual_UB=None, or0=None, or1=None, reference=None):
 
         assert reflist is not None
         self.name = name
@@ -38,6 +39,7 @@ class UBCalcState():
         self.manual_UB = manual_UB
         self.or0 = or0
         self.or1 = or1
+        self.reference = reference
         
     @property
     def is_okay_to_autocalculate_ub(self):
@@ -71,10 +73,12 @@ class UBCalcStateEncoder(json.JSONEncoder):
             d['reflist'] = obj.reflist
             d['tau'] = obj.tau
             d['sigma'] = obj.sigma
+            d['reference'] = obj.reference
             d['u'] = obj.manual_U
             d['ub'] = obj.manual_UB
             d['or0'] = obj.or0
             d['or1'] = obj.or1
+            
             return d
         
         if isinstance(obj, CrystalUnderTest):
@@ -101,11 +105,24 @@ class UBCalcStateEncoder(json.JSONEncoder):
             d['time'] = None if dt is None else dt.isoformat()
             return d
         
+        if isinstance(obj, YouReference):
+            d = OrderedDict()
+            if obj.n_hkl_configured is not None:
+                d['n_hkl_configured'] = repr(obj.n_hkl_configured.T.tolist()[0])
+            else:
+                d['n_hkl_configured'] = None
+            if obj.n_phi_configured is not None:
+                d['n_phi_configured'] = repr(obj.n_phi_configured.T.tolist()[0])
+            else:
+                d['n_phi_configured'] = None
+            return d
+        
         
         return json.JSONEncoder.default(self, obj)
 
 
 def decode_ubcalcstate(state, geometry, diffractometer_axes_names):
+
     return UBCalcState(
         name=state['name'],
         crystal=state['crystal'] and CrystalUnderTest(*eval(state['crystal'])),
@@ -115,8 +132,9 @@ def decode_ubcalcstate(state, geometry, diffractometer_axes_names):
         manual_U=state['u'] and decode_matrix(state['u']),
         manual_UB=state['ub'] and decode_matrix(state['ub']),
         or0=state['or0'],
-        or1=state['or1']
-        )
+        or1=state['or1'],
+        reference=decode_reference(state.get('reference', None))
+    )
 
 
 def decode_matrix(rows):
@@ -141,6 +159,19 @@ def decode_reflection(ref_dict, geometry):
         position = VliegPosition(*pos_tuple)
     return _Reflection(h, k, l, position, ref_dict['energy'], str(ref_dict['tag']), repr(time))
 
+
+def decode_reference(ref_dict):
+    
+    reference = YouReference(None)  # TODO: We can't set get_ub method yet (tangles!)
+    if ref_dict:   
+        nhkl = ref_dict.get('n_hkl_configured', None)
+        nphi = ref_dict.get('n_phi_configured', None)
+    
+        if nhkl:
+            reference.n_hkl_configured = matrix(eval(nhkl)).T
+        if nphi:
+            reference.n_phi_configured = matrix(eval(nphi)).T
+    return reference
 
 # From: http://stackoverflow.com/questions/127803/how-to-parse-iso-formatted-date-in-python
 def gt(dt_str):

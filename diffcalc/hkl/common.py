@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
+from diffcalc.util import allnum
 
 def getNameFromScannableOrString(o):
         try:  # it may be a scannable
@@ -37,3 +38,18 @@ class DummyParameterManager(object):
 
     def update_tracked(self):
         pass
+
+
+def sim(self, scn, hkl):
+    """sim hkl scn -- simulates moving scannable (not all)
+    """
+    if not isinstance(hkl, (tuple, list)):
+        raise TypeError
+
+    if not allnum(hkl):
+        raise TypeError()
+
+    try:
+        print scn.simulateMoveTo(hkl)
+    except AttributeError:
+        raise TypeError("The first argument does not support simulated moves")

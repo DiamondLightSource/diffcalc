@@ -24,8 +24,8 @@ TODEG = 180 / pi
 
 class YouReference(object):
     
-    def __init__(self, ubcalc):
-        self._ubcalc = ubcalc
+    def __init__(self, get_UB):
+        self.get_UB = get_UB  # callable
         self._n_phi_configured = None
         self._n_hkl_configured = None
         self._set_n_phi_configured(matrix('0; 0; 1'))
@@ -50,46 +50,50 @@ class YouReference(object):
     
     @property
     def n_phi(self):
-        n_phi = (self._ubcalc.UB * self._n_hkl_configured if self._n_phi_configured is None 
+        n_phi = (self.get_UB() * self._n_hkl_configured if self._n_phi_configured is None 
                  else self._n_phi_configured)
         return n_phi / norm(n_phi)
         
     @property
     def n_hkl(self):
-        n_hkl = (self._ubcalc.UB.I * self._n_phi_configured if self._n_hkl_configured is None
+        n_hkl = (self.get_UB().I * self._n_phi_configured if self._n_hkl_configured is None
                   else self._n_hkl_configured) 
         return n_hkl / norm(n_hkl)
     
     def _pretty_vector(self, m):
-        return ', '.join(['%.5f' % e for e in m.T.tolist()[0]])
-        
-    def __str__(self):
+        return ' '.join([('% 9.5f' % e).rjust(9) for e in m.T.tolist()[0]])
+    
+    def repr_lines(self, ub_calculated, WIDTH=9):
+        SET_LABEL = ' <- set'
         lines = []
         if self._n_phi_configured is not None:
-            lines.append("configured n_phi: " + self._pretty_vector(self._n_phi_configured))
+            nphi_label = SET_LABEL
+            nhkl_label = ''
         elif self._n_hkl_configured is not None:
-            lines.append("configured n_hkl: " + self._pretty_vector(self._n_hkl_configured))
+            nphi_label = ''
+            nhkl_label = SET_LABEL
         else:
             raise AssertionError("Neither a manual n_phi nor n_hkl is configured")
-        lines.append("           n_phi: " + self._pretty_vector(self.n_phi))
-        lines.append("           n_hkl: " + self._pretty_vector(self.n_hkl))
-        lines.append("")
+        
+        if ub_calculated:
+            lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(self.n_phi) + nphi_label)
+            lines.append("   n_hkl:".ljust(WIDTH) + self._pretty_vector(self.n_hkl) + nhkl_label)
+            rotation_axis = cross3(matrix('0; 0; 1'), self.n_phi)
+            if abs(norm(rotation_axis)) < SMALL:
+                lines.append("   miscut:".ljust(WIDTH) + "  None")
+            else:
+                rotation_axis = rotation_axis * (1 / norm(rotation_axis))
+                cos_rotation_angle = dot3(matrix('0; 0; 1'), self.n_phi)
+                rotation_angle = acos(cos_rotation_angle)
+                lines.append("   miscut:")
+                lines.append("      angle:".ljust(WIDTH) + "% 9.5f" % (rotation_angle * TODEG))
+                lines.append("      axis:".ljust(WIDTH) + self._pretty_vector(rotation_axis))
+ 
+        else:  # no ub calculated
+            if self._n_phi_configured is not None:
+                lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(self._n_phi_configured) + SET_LABEL)
+            elif self._n_hkl_configured is not None:
+                lines.append("   n_hkl:".ljust(WIDTH) + self._pretty_vector(self._n_hkl_configured) + SET_LABEL)
 
-        rotation_axis = cross3(matrix('0; 0; 1'), self.n_phi)
-        if abs(norm(rotation_axis)) < SMALL:
-            lines.append("no miscut")
-        else:
-            rotation_axis = rotation_axis * (1 / norm(rotation_axis))
-            cos_rotation_angle = dot3(matrix('0; 0; 1'), self.n_phi)
-            rotation_angle = acos(cos_rotation_angle)
-            uvw = rotation_axis.T.tolist()[0]
-            lines.append("miscut angle   : %.5f deg (phi axis to reference)" % (rotation_angle * TODEG))
-            u_repr = (', '.join(['% .5f' % el for el in uvw]))
-            lines.append("miscut direction: [%s] (in phi frame)" % u_repr)
-
-        lines.append("")
-        lines.append("To change: set n_hkl_configured or n_phi_configured property.")
-        return '\n'.join(lines)
+        return lines
     
-    def __repr__(self):
-        return self.__str__()

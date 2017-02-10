@@ -31,10 +31,10 @@ except ImportError:
 class TestYouReference():
 
     def setUp(self):
-        self.ubcalc = Mock()
-        self.reference = YouReference(self.ubcalc)
-        self.ubcalc.UB = matrix('1 0 0; 0 1 0; 0 0 1')
-        
+        self.get_UB = Mock()
+        self.reference = YouReference(self.get_UB)
+        self.get_UB.return_value = matrix('1 0 0; 0 1 0; 0 0 1')
+
     def test_default_n_phi(self):
         assert_2darray_almost_equal(self.reference.n_phi.tolist(), matrix('0; 0; 1').tolist())
         
@@ -46,12 +46,12 @@ class TestYouReference():
         print self.reference
         
     def test_n_phi_from_hkl_with_unity_matrix_001(self):
-        self.ubcalc.UB = matrix('1 0 0; 0 1 0; 0 0 1')
+        self.get_UB.return_value = matrix('1 0 0; 0 1 0; 0 0 1')
         self.reference.n_hkl_configured = matrix('0; 0; 1')
         assert_2darray_almost_equal(self.reference.n_phi.tolist(), matrix('0; 0; 1').tolist())
 
     def test_n_phi_from_hkl_with_unity_matrix_010(self):
-        self.ubcalc.UB = matrix('1 0 0; 0 1 0; 0 0 1')
+        self.get_UB.return_value = matrix('1 0 0; 0 1 0; 0 0 1')
         self.reference.n_hkl_configured = matrix('0; 1; 0')
         assert_2darray_almost_equal(self.reference.n_phi.tolist(), matrix('0; 1; 0').tolist())
         

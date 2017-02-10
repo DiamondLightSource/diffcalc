@@ -83,12 +83,12 @@ class TestUBCalculationJSONPersister(unittest.TestCase):
         
     def test_multiple_list(self):
         d = {'a' : 1, 'b': 2}
-        self.persister.save(d, 'first')
+        self.persister.save(d, 'first_written')
         time.sleep(.5)
-        self.persister.save(d, 'second')
+        self.persister.save(d, 'second_written')
         time.sleep(.5)
-        self.persister.save(d, 'alphabetically_first')
-        eq_(self.persister.list(), ['alphabetically_first', 'second', 'first'])
+        self.persister.save(d, 'third_written')
+        eq_(self.persister.list(), ['third_written', 'second_written', 'first_written'])
         
     def test_remove_list(self):
         d = {'a' : 1, 'b': 2}

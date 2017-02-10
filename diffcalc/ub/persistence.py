@@ -20,6 +20,7 @@ from __future__ import with_statement
 
 import os, glob
 from diffcalc.ub.calcstate import UBCalcStateEncoder
+import datetime
 
 try:
     import json
@@ -56,25 +57,37 @@ class UBCalculationJSONPersister(object):
     def __init__(self, directory):
         check_directory_appropriate(directory)
         self.directory = directory
+        self.description = directory
         
     def filepath(self, name):
         return os.path.join(self.directory, name + '.json')
         
     def save(self, state, name):
+        # FORMAT = '%Y-%m-%d %H:%M:%S'
+        # time_string = datetime.datetime.strftime(datetime.datetime.now(), FORMAT)
         with open(self.filepath(name), 'w') as f:
             json.dump(state, f, indent=4, cls=UBCalcStateEncoder)
-        with open(self.filepath(name), 'r') as f:
-            print ''.join(f.readlines())
 
     def load(self, name):
         with open(self.filepath(name), 'r') as f:
             return json.load(f)
 
     def list(self):  # @ReservedAssignment
+        files = self._get_save_files()
+        return [os.path.basename(f + '.json').split('.json')[0] for f in files]
+
+    def list_metadata(self):       
+        metadata = []
+        for f in self._get_save_files():            
+            dt = datetime.datetime.fromtimestamp(os.path.getmtime(f))
+            metadata.append(dt.strftime('%d %b %Y (%H:%M)'))
+        return metadata
+    
+    def _get_save_files(self):
         files = filter(os.path.isfile, glob.glob(os.path.join(self.directory, '*.json')))
         files.sort(key=lambda x: os.path.getmtime(x))
         files.reverse()
-        return [os.path.basename(f + '.json').split('.json')[0] for f in files]
+        return files
 
     def remove(self, name):
         os.remove(self.filepath(name))
@@ -99,6 +112,7 @@ class UBCalculationPersister(object):
             print ("UBCalculationPersister could not connect to the gda "
                    "database: " + repr(e))
             self.shelf = None
+        self.description = 'GDA sql database'
 
     def save(self, state, key):
         if self.shelf is not None:
@@ -109,7 +123,8 @@ class UBCalculationPersister(object):
     def load(self, name):
         if self.shelf is not None:
             return self.shelf[name]
-        raise IOError("Could not load UB calculation: no database available")
+        else:
+            raise IOError("Could not load UB calculation: no database available")
 
     def list(self):  # @ReservedAssignment
         if self.shelf is not None:
@@ -122,7 +137,8 @@ class UBCalculationPersister(object):
     def remove(self, name):
         if self.shelf is not None:
             del self.shelf[name]
-        raise IOError("Could not remove UB calculation: no database available")
+        else:
+            raise IOError("Could not remove UB calculation: no database available")
 
 
 class UbCalculationNonPersister(UBCalculationPersister):
@@ -132,3 +148,4 @@ class UbCalculationNonPersister(UBCalculationPersister):
     """
     def __init__(self):
         self.shelf = dict()
+        self.description = 'memory only'

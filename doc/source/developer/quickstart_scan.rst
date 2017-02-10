@@ -31,13 +31,13 @@ Start
 With Python start the sixcircle_api.py example startup script (notice
 the -i and -m) and type ``demo_all()``::
 
-   $ python -i -m example/startup/sixcircle
+   $ python -i -m example/sixcircle
    >>> demo_all()
    >>> demo_scan()
 
 Or with IPython::
 
-   $ ipython -i example/startup/sixcircle.py
+   $ ipython -i example/sixcircle.py
    >>> demo_all()
    >>> demo_scan()
 

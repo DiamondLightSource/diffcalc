@@ -17,6 +17,7 @@
 ###
 
 import unittest
+from diffcalc import settings
 
 try:
     from gdascripts.pd.dummy_pds import DummyPD  # @UnusedImport
@@ -28,7 +29,6 @@ from diffcalc.gdasupport.scannable.base import ScannableGroup
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
 from diffcalc.gdasupport.scannable.mock import MockMotor
-from diffcalc.hardware import HardwareCommands
 from diffcalc.hardware import DummyHardwareAdapter
 from diffcalc.hardware import HardwareAdapter
 from diffcalc.hardware import ScannableHardwareAdapter
@@ -163,7 +163,10 @@ class TestHardwareCommands():
 
     def setup(self):
         self.hardware = SimpleHardwareAdapter(['a', 'b', 'c'])
-        self.commands = HardwareCommands(self.hardware)
+        settings.hardware = self.hardware
+        from diffcalc import hardware
+        reload(hardware)
+        self.commands = hardware
 
     def testSetcut(self):
         print "*******"
@@ -173,7 +176,7 @@ class TestHardwareCommands():
         print "*******"
         self.commands.setcut('a', -181)
         print "*******"
-        eq_(self.commands._hardware.get_cuts()['a'], -181)
+        eq_(self.hardware.get_cuts()['a'], -181)
         assert_raises(
             ValueError, self.commands.setcut, 'a', 'not a number')
         assert_raises(

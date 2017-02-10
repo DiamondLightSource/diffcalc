@@ -235,7 +235,7 @@ class YouHklCalculator(HklCalculatorBase):
         return self.constraints.__str__()
 
     def _get_n_phi(self):
-        return self._ubcalc.reference.n_phi
+        return self._ubcalc.n_phi
     
     def _get_ubmatrix(self):
         return self._getUBMatrix()  # for consistency
@@ -388,6 +388,10 @@ class YouHklCalculator(HklCalculatorBase):
             # An angle for the reference vector (n) is given      (Section 5.2)         
             psi, alpha, _ = self._calc_remaining_reference_angles(
                 ref_constraint_name, ref_constraint_value, theta, tau)
+            # IMPORTNANT: other psi solutions are possibly valid.
+            # TODO: ensure this is handled consistently in all paths below
+            #       currently only handled in 
+            #       self._calc_sample_given_two_sample_and_reference(...)
 
         ### Detector constraint column ###
 
@@ -526,6 +530,13 @@ class YouHklCalculator(HklCalculatorBase):
                              det_constraint_name, det_constraint, theta)
             naz_qaz_angle = _calc_angle_between_naz_and_qaz(theta, alpha, tau)
             naz = qaz - naz_qaz_angle
+            # If naz ends up being negative it means the reference vector
+            # is pointing down. Given that this is normally the surface
+            # normal, we should flip it the other way about.
+            # TODO: consider adding a visible naz limit at having it default < 0
+            if naz < 0:
+                naz = qaz + naz_qaz_angle
+        
             
         elif naz_constraint: # The 'detector' angle naz is given:
             det_constraint_name, det_constraint = naz_constraint.items()[0]
@@ -634,11 +645,23 @@ class YouHklCalculator(HklCalculatorBase):
             'eta=%.3f, chi=%.3f, phi=%.3f' % 
             values_in_deg) # Try to find a solution for each possible transformed xi
         solution_found = False
-        for xi in _generate_transformed_values(xi_initial, False):
+
+        possible_psi = [cut_at_minus_pi(_psi) for _psi in _generate_transformed_values(psi)]# , ref_constraint_name == 'psi') 
+        possible_xi = [_xi for _xi in _generate_transformed_values(xi_initial, False)]
+                
+        psi_xi_pairs = []
+        for _psi in possible_psi:
+            for _xi in possible_xi:
+                psi_xi_pairs.append((_psi, _xi))
+        
+        for psi, xi in psi_xi_pairs:   
             qaz = xi + pi / 2
             if qaz > 2 * pi:
                 qaz -= 2 * pi
-            logger.info("---Trying qaz=%.3f (from xi=%.3f)", qaz * TODEG, xi * TODEG)
+            logger.info("")
+            msg = "---Trying psi=%.3f, qaz=%.3f (from xi=%.3f)" % (psi * TODEG, qaz * TODEG, xi * TODEG)
+            logger.info(msg)
+            
             delta, nu, qaz = self._calc_remaining_detector_angles(
                 'qaz', qaz, theta)
             delta_nu_pairs = self._generate_detector_solutions(

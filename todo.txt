@@ -1,4 +1,49 @@
+Complete restructure work:
+--------------------------
+
+Merge current mast in
+
+Make sure we can start the willmot engine - also dcwillmot differs from dcyou in only two places
+
+Fix and sure have tests (or delete startup files):
+
+	append_diffcalc_to_gda_jython_path.py
+	b16fivecircle.py
+	b16fourcircle_you_engine.py
+	i10fourcircle.py
+	sixcircle_api.py
+	sixcircle_vrmldummy.py
+	sixcircle.py
+
+Check for 3 failing math (at least on OSX):
+	- 
+
+Remove _diffcalc module:
+	- comment as you go!
+	- checkub -> add test to test_you.py
+	- fix the 'help ub' and 'help hkl' commands
+	- get hkl scannable working without _diffcalc
+
+
+Tidy:
+	- move sim logic off: DiffractometerScannableGroup 
+	- move example folder up into diffcalc.gdasupport package
+	- rewite documentaion to call actual code for tests
+	
+Improve:
+	- you.py should not skip creating any scannables for fixed constraints (or related ones) 
+
+Compare number of tests again branch point
+Decision not to dump vlieg mode
+why no integration test for willmott
+
+
+
+
+
+
 List needs review. Unordered. RobW.
+----------------------------------
 
 - look at all commands together (showref, listub, cons)
 

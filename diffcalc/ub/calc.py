@@ -39,6 +39,7 @@ from diffcalc.util import DiffcalcException, cross3, dot3
 SMALL = 1e-7
 TODEG = 180 / pi
 
+WIDTH = 13
 
 #The UB matrix is used to find or set the orientation of a set of
 #planes described by an hkl vector. The U matrix can be used to find
@@ -68,26 +69,30 @@ class UBCalculation:
     of the code.
     """
 
-    def __init__(self, diffractometer_axes_names, diffractometerPluginObject,
-                 persister, strategy, include_sigtau=True):
+    def __init__(self, hardware, diffractometerPluginObject,
+                 persister, strategy, include_sigtau=True, include_reference=True):
 
         # The diffractometer geometry is required to map the internal angles
         # into those used by this diffractometer (for display only)
 
-        self._diffractometer_axes_names = diffractometer_axes_names
+        self._hardware = hardware
         self._geometry = diffractometerPluginObject
         self._persister = persister
         self._strategy = strategy
-        self._include_sigtau = include_sigtau
-        self.reference = YouReference(self)  # TODO: move into _state and persist
+        self.include_sigtau = include_sigtau
+        self.include_reference = include_reference
         self._clear()
+        
+    def _get_diffractometer_axes_names(self):
+        return self._hardware.get_axes_names()
 
     def _clear(self, name=None):
         # NOTE the Diffraction calculator is expecting this object to exist in
         # the long run. We can't remove this entire object, and recreate it.
         # It also contains a required link to the angle calculator.
-        reflist = ReflectionList(self._geometry, self._diffractometer_axes_names)
-        self._state = UBCalcState(name=name, reflist=reflist)
+        reflist = ReflectionList(self._geometry, self._get_diffractometer_axes_names())
+        reference = YouReference(self._get_UB)
+        self._state = UBCalcState(name=name, reflist=reflist, reference=reference)
         self._U = None
         self._UB = None
         self._state.configure_calc_type()
@@ -107,7 +112,8 @@ class UBCalculation:
     def load(self, name):
         state = self._persister.load(name)
         if isinstance(self._persister, UBCalculationJSONPersister):
-            self._state = decode_ubcalcstate(state, self._geometry, self._diffractometer_axes_names)
+            self._state = decode_ubcalcstate(state, self._geometry, self._get_diffractometer_axes_names())
+            self._state.reference.get_UB = self._get_UB
         elif isinstance(self._persister, UBCalculationPersister):
             self._state = state
         else:
@@ -123,6 +129,7 @@ class UBCalculation:
                 self.calculate_UB()
         else:
             pass
+    
     def save(self):
         self.saveas(self._state.name)
 
@@ -132,15 +139,19 @@ class UBCalculation:
 
     def listub(self):
         return self._persister.list()
+    
+    def listub_metadata(self):
+        return self._persister.list_metadata()
 
     def remove(self, name):
         self._persister.remove(name)
+        if self._state == name:
+            self._clear(name)
 
     def getState(self):
         return self._state.getState()
 
     def __str__(self):
-        WIDTH = 13
 
         if self._state.name is None:
             return "<<< No UB calculation started >>>"
@@ -149,15 +160,23 @@ class UBCalculation:
         lines.append("")
         lines.append(
             "   name:".ljust(WIDTH) + self._state.name.rjust(9))
-        if self._include_sigtau:
+        
+        if self.include_sigtau:
+            lines.append("")
             lines.append(
                 "   sigma:".ljust(WIDTH) + ("% 9.5f" % self._state.sigma).rjust(9))
             lines.append(
                 "   tau:".ljust(WIDTH) + ("% 9.5f" % self._state.tau).rjust(9))
 
+        if self.include_reference:
+            lines.append("")
+            ub_calculated = self._UB is not None
+            lines.extend(self._state.reference.repr_lines(ub_calculated, WIDTH))
+        
         lines.append("")
         lines.append("CRYSTAL")
         lines.append("")
+        
         if self._state.crystal is None:
             lines.append("   <<< none specified >>>")
         else:
@@ -166,28 +185,63 @@ class UBCalculation:
         lines.append("")
         lines.append("UB MATRIX")
         lines.append("")
+        
         if self._UB is None:
             lines.append("   <<< none calculated >>>")
         else:
-            fmt = "% 9.5f % 9.5f % 9.5f"
-            U = self.U
-            UB = self.UB
-            lines.append("   U matrix:".ljust(WIDTH) +
-                         fmt % (U[0, 0], U[0, 1], U[0, 2]))
-            lines.append(' ' * WIDTH + fmt % (U[1, 0], U[1, 1], U[1, 2]))
-            lines.append(' ' * WIDTH + fmt % (U[2, 0], U[2, 1], U[2, 2]))
+            lines.extend(self.str_lines_u())
             lines.append("")
-
-            lines.append("   UB matrix:".ljust(WIDTH) +
-                         fmt % (UB[0, 0], UB[0, 1], UB[0, 2]))
-            lines.append(' ' * WIDTH + fmt % (UB[1, 0], UB[1, 1], UB[1, 2]))
-            lines.append(' ' * WIDTH + fmt % (UB[2, 0], UB[2, 1], UB[2, 2]))
+            lines.extend(self.str_lines_u_angle_and_axis())
+            lines.append("")
+            lines.extend(self.str_lines_ub())
 
         lines.append("")
         lines.append("REFLECTIONS")
         lines.append("")
+        
         lines.extend(self._state.reflist.str_lines())
+        
         return '\n'.join(lines)
+
+    def str_lines_u(self):
+        lines = []
+        fmt = "% 9.5f % 9.5f % 9.5f"
+        U = self.U
+        lines.append("   U matrix:".ljust(WIDTH) +
+                     fmt % (U[0, 0], U[0, 1], U[0, 2]))
+        lines.append(' ' * WIDTH + fmt % (U[1, 0], U[1, 1], U[1, 2]))
+        lines.append(' ' * WIDTH + fmt % (U[2, 0], U[2, 1], U[2, 2]))
+        return lines
+
+    def str_lines_u_angle_and_axis(self):
+        lines = []
+        fmt = "% 9.5f % 9.5f % 9.5f"
+        y = matrix('0; 0; 1')
+        rotation_axis = cross3(y, self.U * y)
+        if abs(norm(rotation_axis)) < SMALL:
+            lines.append("   U angle:".ljust(WIDTH) + "  0")
+        else:
+            rotation_axis = rotation_axis * (1 / norm(rotation_axis))
+            cos_rotation_angle = dot3(y, self.U * y)
+            rotation_angle = acos(cos_rotation_angle)
+
+            lines.append("      angle:".ljust(WIDTH) + "% 9.5f" % (rotation_angle * TODEG))
+            lines.append("       axis:".ljust(WIDTH) + fmt % tuple((rotation_axis.T).tolist()[0]))
+ 
+        return lines
+
+    def str_lines_ub(self):
+        lines = []
+        fmt = "% 9.5f % 9.5f % 9.5f"
+        UB = self.UB
+        lines.append("   UB matrix:".ljust(WIDTH) +
+                     fmt % (UB[0, 0], UB[0, 1], UB[0, 2]))
+        lines.append(' ' * WIDTH + fmt % (UB[1, 0], UB[1, 1], UB[1, 2]))
+        lines.append(' ' * WIDTH + fmt % (UB[2, 0], UB[2, 1], UB[2, 2]))
+        return lines
+
+
+
 
     @property
     def name(self):
@@ -264,7 +318,7 @@ class UBCalculation:
         """
         Returns sigma (in degrees): the (minus) ammount of phi axis rotation ,
         that together with some phi axis rotation (minus tau) brings the
-        optical surface normal parallelto the omega axis.
+        optical surface normal parallel to the omega axis.
         """
         return self._state.sigma
 
@@ -273,6 +327,25 @@ class UBCalculation:
         self.save()
 
     sigma = property(_getsigma, _setsigma)
+
+
+### Reference vector ###
+
+    def _get_n_phi(self):
+        return self._state.reference.n_phi
+    
+    n_phi = property(_get_n_phi)
+    
+    def set_n_phi_configured(self, n_phi):
+        self._state.reference.n_phi_configured = n_phi
+        self.save()
+        
+    def set_n_hkl_configured(self, n_hkl):
+        self._state.reference.n_hkl_configured = n_hkl
+        self.save()
+        
+    def print_reference(self):
+        print '\n'.join(self._state.reference.repr_lines(self.is_ub_calculated()))
 
 ### Reflections ###
 
@@ -403,7 +476,13 @@ class UBCalculation:
 
     @property
     def UB(self):
-        if self._UB is None:
+        return self._get_UB()
+    
+    def is_ub_calculated(self):
+        return self._UB is not None
+
+    def _get_UB(self):
+        if not self.is_ub_calculated():
             raise DiffcalcException(
                 "No UB matrix has been calculated during this ub calculation")
         else:

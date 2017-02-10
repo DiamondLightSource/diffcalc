@@ -44,10 +44,10 @@ class DiffractometerScannableGroup(ScannableMotionBase):
     cleared to null at will without effecting the core calculation code.
     """
 
-    def __init__(self, name, diffcalcObject, scannableGroup,
+    def __init__(self, name, diffcalc_module, scannableGroup,
                  slave_driver=None):
         # if motorList is None, will create a dummy __group
-        self.diffcalc = diffcalcObject
+        self.diffcalc_module = diffcalc_module
         self.__group = scannableGroup
         self.slave_driver = slave_driver
         self.setName(name)
@@ -95,7 +95,7 @@ class DiffractometerScannableGroup(ScannableMotionBase):
         if len(pos) != len(self.getInputNames()):
             raise ValueError('Wrong number of inputs')
         try:
-            (hkl, params) = self.diffcalc.angles_to_hkl(pos)
+            (hkl, params) = self.diffcalc_module.angles_to_hkl(pos)
         except Exception, e:
             return "Error: %s" % getMessageFromException(e)
         width = max(len(k) for k in params)
