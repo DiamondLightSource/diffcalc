@@ -19,7 +19,7 @@
 
 from __future__ import absolute_import
 
-import os, sys
+import os
 
 
 # This file must be run with execfile after diffcalc has started
@@ -38,5 +38,16 @@ except ImportError:
 
 from diffcalc.hardware import ScannableHardwareAdapter
 import diffcalc.hkl.you.geometry
-from diffcalc.ub.persistence import UbCalculationNonPersister
+from diffcalc.ub.persistence import UbCalculationNonPersister, UBCalculationJSONPersister
 from diffcalc import settings
+import diffcalc.util
+
+if GDA:
+    ubcalc_persister = UbCalculationNonPersister()
+    print "WARNING: persistence not configured proerly for GDA use yet"
+else:
+    diffcalc_var = os.path.join(os.path.expanduser("~"), '.diffcalc')
+    if not os.path.exists(diffcalc_var):
+        os.makedirs(diffcalc_var)
+    ubcalc_persister = UBCalculationJSONPersister(diffcalc_var)
+    

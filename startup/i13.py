@@ -26,7 +26,7 @@ else:
 ESMTGKeV = 1
 settings.hardware = ScannableHardwareAdapter(_fivec, en, ESMTGKeV)
 settings.geometry = diffcalc.hkl.you.geometry.FiveCircle()
-settings.ubcalc_persister = UbCalculationNonPersister()
+settings.ubcalc_persister = ubcalc_persister
 settings.energy_scannable = en
 settings.axes_scannable_group = _fivec
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
