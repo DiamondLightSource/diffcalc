@@ -69,7 +69,7 @@ class UBCalculation:
     """
 
     def __init__(self, hardware, diffractometerPluginObject,
-                 persister, strategy, include_sigtau=True):
+                 persister, strategy, include_sigtau=True, include_reference=True):
 
         # The diffractometer geometry is required to map the internal angles
         # into those used by this diffractometer (for display only)
@@ -78,7 +78,8 @@ class UBCalculation:
         self._geometry = diffractometerPluginObject
         self._persister = persister
         self._strategy = strategy
-        self._include_sigtau = include_sigtau
+        self.include_sigtau = include_sigtau
+        self.include_reference = include_reference
         self.reference = YouReference(self)  # TODO: move into _state and persist
         self._clear()
         
@@ -158,12 +159,18 @@ class UBCalculation:
         lines.append("")
         lines.append(
             "   name:".ljust(WIDTH) + self._state.name.rjust(9))
-        if self._include_sigtau:
+        
+        if self.include_sigtau:
+            lines.append("")
             lines.append(
                 "   sigma:".ljust(WIDTH) + ("% 9.5f" % self._state.sigma).rjust(9))
             lines.append(
                 "   tau:".ljust(WIDTH) + ("% 9.5f" % self._state.tau).rjust(9))
 
+        if self.include_reference:
+            lines.append("")
+            lines.extend(self.reference.repr_lines(WIDTH))
+        
         lines.append("")
         lines.append("CRYSTAL")
         lines.append("")

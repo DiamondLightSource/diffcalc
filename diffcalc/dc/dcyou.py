@@ -37,6 +37,7 @@ def angles_to_hkl(angleTuple, energy=None):
 
 settings.ubcalc_strategy = diffcalc.hkl.you.calc.YouUbCalcStrategy()
 settings.angles_to_hkl_function = diffcalc.hkl.you.calc.youAnglesToHkl
+settings.include_reference = True
 
 ub_commands_for_help = _ub.commands_for_help
 

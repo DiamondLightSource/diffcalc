@@ -20,3 +20,5 @@ energy_scannable_multiplier_to_get_KeV=1
 # These will be set by dcyou, dcvlieg or dcwillmot
 ubcalc_strategy = None
 angles_to_hkl_function = None  # Used by checkub to avoid coupling it to an hkl module
+include_sigtau=False
+include_reference=False

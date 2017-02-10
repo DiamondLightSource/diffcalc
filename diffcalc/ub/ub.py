@@ -22,6 +22,12 @@ from diffcalc.ub.calc import UBCalculation
 from math import asin, pi
 from datetime import datetime
 
+try:
+    from numpy import matrix
+except ImportError:
+    from numjy import matrix
+
+
 from diffcalc.util import getInputWithDefault as promptForInput, \
     promptForNumber, promptForList, allnum, isnum
 from diffcalc.util import command
@@ -34,14 +40,23 @@ TODEG = 180 / pi
 # level namespace. Doing so will stop them from being called with magic.
 
 __all__ = ['addref', 'c2th', 'calcub', 'delref', 'editref', 'listub', 'loadub',
-           'newub', 'saveubas', 'setlat', 'setu', 'setub', 'showref', 'sigtau',
-           'swapref', 'trialub', 'checkub', 'ub', 'ubcalc', 'rmub', 'clearref']
+           'newub', 'saveubas', 'setlat', 'setu', 'setub', 'showref', 'swapref',
+           'trialub', 'checkub', 'ub', 'ubcalc', 'rmub', 'clearref']
+
+if settings.include_sigtau:
+    __all__.append('sigtau')
+
+if settings.include_reference:
+    __all__.append('setnphi')
+    __all__.append('setnhkl')
 
 
 ubcalc = UBCalculation(settings.hardware,
                        settings.geometry,
                        settings.ubcalc_persister,
-                       settings.ubcalc_strategy)
+                       settings.ubcalc_strategy,
+                       settings.include_sigtau,
+                       settings.include_reference)
 
 
 
@@ -160,7 +175,7 @@ def c2th(hkl, en=None):
     d = ubcalc.get_hkl_plane_distance(hkl)
     return 2.0 * asin(wl / (d * 2)) * TODEG
 
-### Surface stuff ###
+### Surface and reference vector stuff ###
 
 @command
 def sigtau(sigma=None, tau=None):
@@ -179,6 +194,25 @@ def sigtau(sigma=None, tau=None):
         ubcalc.sigma = float(sigma)
         ubcalc.tau = float(tau)
 
+
+@command
+def setnphi(x=None, y=None, z=None):
+    """setnphi {x y z} -- sets or displays n_phi reference"""
+    if None in (x, y, z):
+        print ubcalc.reference
+    else:
+        ubcalc.reference.n_phi_configured = matrix([[x], [y], [z]])
+        print ubcalc.reference
+
+@command
+def setnhkl(h=None, k=None, l=None):
+    """setnphi {h k l} -- sets or displays n_phi reference"""
+    if None in (h, k, l):
+        print ubcalc.reference
+    else:
+        ubcalc.reference.n_hkl_configured = matrix([[h], [k], [l]])
+        print ubcalc.reference
+    
 ### UB refelections ###
 
 @command
@@ -417,9 +451,20 @@ commands_for_help = ['State',
                      ub,
                      'Lattice',
                      setlat,
-                     c2th,
+                     c2th]
+
+if ubcalc.include_reference:
+    commands_for_help.extend([
+                     'Reference (surface)',
+                     setnphi,
+                     setnhkl])
+
+if ubcalc.include_sigtau:
+    commands_for_help.extend([
                      'Surface',
-                     sigtau,
+                     sigtau])
+
+commands_for_help.extend([
                      'Reflections',
                      showref,
                      addref,
@@ -432,7 +477,9 @@ commands_for_help = ['State',
                      setu,
                      setub,
                      calcub,
-                     trialub]
+                     trialub])
+
+
 
 def _is3x3TupleOrList(m):
     if type(m) not in (list, tuple):

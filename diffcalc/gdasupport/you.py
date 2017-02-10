@@ -12,7 +12,7 @@ from diffcalc.dc.dcyou import *  # @UnusedWildImport
 from diffcalc import settings
 
 try:
-    import gda  # @UnusedImport
+    import gda  # @UnusedImport @UnresolvedImport
     GDA = True
 except:
     GDA = False
