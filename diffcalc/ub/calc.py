@@ -136,6 +136,9 @@ class UBCalculation:
 
     def listub(self):
         return self._persister.list()
+    
+    def listub_metadata(self):
+        return self._persister.list_metadata()
 
     def remove(self, name):
         self._persister.remove(name)

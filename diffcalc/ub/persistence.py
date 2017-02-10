@@ -20,6 +20,7 @@ from __future__ import with_statement
 
 import os, glob
 from diffcalc.ub.calcstate import UBCalcStateEncoder
+import datetime
 
 try:
     import json
@@ -70,10 +71,21 @@ class UBCalculationJSONPersister(object):
             return json.load(f)
 
     def list(self):  # @ReservedAssignment
+        files = self._get_save_files()
+        return [os.path.basename(f + '.json').split('.json')[0] for f in files]
+
+    def list_metadata(self):       
+        metadata = []
+        for f in self._get_save_files():            
+            dt = datetime.datetime.fromtimestamp(os.path.getmtime(f))
+            metadata.append(dt.strftime('%d %b %Y (%H:%M)'))
+        return metadata
+    
+    def _get_save_files(self):
         files = filter(os.path.isfile, glob.glob(os.path.join(self.directory, '*.json')))
         files.sort(key=lambda x: os.path.getmtime(x))
         files.reverse()
-        return [os.path.basename(f + '.json').split('.json')[0] for f in files]
+        return files
 
     def remove(self, name):
         os.remove(self.filepath(name))

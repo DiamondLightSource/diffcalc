@@ -88,8 +88,16 @@ def listub():
         print "UB calculations in: " + ubcalc._persister.description
     else:
         print "UB calculations:"
-    for n, name in enumerate(ubcalc.listub()):
-        print "%2i) %s" % (n, name)
+    print
+    ubnames = ubcalc.listub()
+    # TODO: whole mechanism of making two calls is messy
+    try:
+        ub_metadata = ubcalc.listub_metadata()
+    except AttributeError:
+        ub_metadata = [''] * len(ubnames)
+    
+    for n, name, data in zip(range(len(ubnames)), ubnames, ub_metadata):
+        print "%2i) %-15s %s" % (n, name, data)
 
 @command
 def saveubas(name):
