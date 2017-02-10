@@ -43,8 +43,9 @@ def main():
         cmd = "python -i %s" % module_path
     else:
         cmd = "ipython -i %s" % module_path
+    env = create_environent_dict(args.debug, args.module)
     print "Running command: '%s'" % cmd
-    subprocess.call(cmd, env=create_environent_dict(args.debug), shell=True)
+    subprocess.call(cmd, env=env, shell=True)
     
  
 def print_available_modules(module_names):           
@@ -54,13 +55,21 @@ def print_available_modules(module_names):
     print '\n'.join(lines)
 
 
-def create_environent_dict(debug): 
-    my_env = os.environ.copy()
-    if "PYTHONPATH" not in my_env:
-        my_env["PYTHONPATH"] = ''
-    my_env["PYTHONPATH"] = DIFFCALC_ROOT + ':' + my_env["PYTHONPATH"]
-    my_env["DIFFCALC_DEBUG"] = str(debug)
-    return my_env
+def create_environent_dict(debug, module_name): 
+    env = os.environ.copy()
+    
+    if 'PYTHONPATH' not in env:
+        env['PYTHONPATH'] = ''
+    env['PYTHONPATH'] = DIFFCALC_ROOT + ':' + env['PYTHONPATH']
+    
+    env['DIFFCALC_DEBUG'] = str(debug)
+    
+    env['DIFFCALC_VAR'] = os.path.join(os.path.expanduser('~'), '.diffcalc', module_name)
+    
+    for var in ('PYTHONPATH', 'DIFFCALC_DEBUG', 'DIFFCALC_VAR'):
+        print '%s: %s' % (var, env[var])
+    
+    return env
 
 
 if __name__ == '__main__':

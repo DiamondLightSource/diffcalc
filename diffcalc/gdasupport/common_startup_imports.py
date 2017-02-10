@@ -44,15 +44,15 @@ import diffcalc.util
 
 if GDA:
     ubcalc_persister = UbCalculationNonPersister()
-    print "WARNING: persistence not configured proerly for GDA use yet"
+    print "WARNING: persistence not configured properly for GDA use yet"
 else:
-    diffcalc_var = os.path.join(os.path.expanduser("~"), '.diffcalc')
+    diffcalc_var =os.getenv('DIFFCALC_VAR')
     if not os.path.exists(diffcalc_var):
         os.makedirs(diffcalc_var)
     ubcalc_persister = UBCalculationJSONPersister(diffcalc_var)
     
 if not GDA:
-    diffcalc.util.DEBUG = os.getenv("DIFFCALC_DEBUG", False)
+    diffcalc.util.DEBUG = os.getenv('DIFFCALC_DEBUG', False)
     if diffcalc.util.DEBUG:
         print "WARNING: Diffcalc debug mode on. Help for command syntax errors disabled."
 
