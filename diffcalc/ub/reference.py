@@ -24,8 +24,8 @@ TODEG = 180 / pi
 
 class YouReference(object):
     
-    def __init__(self, ubcalc):
-        self._ubcalc = ubcalc
+    def __init__(self, _get_UB):
+        self._get_UB = _get_UB  # callable
         self._n_phi_configured = None
         self._n_hkl_configured = None
         self._set_n_phi_configured(matrix('0; 0; 1'))
@@ -50,13 +50,13 @@ class YouReference(object):
     
     @property
     def n_phi(self):
-        n_phi = (self._ubcalc.UB * self._n_hkl_configured if self._n_phi_configured is None 
+        n_phi = (self._get_UB() * self._n_hkl_configured if self._n_phi_configured is None 
                  else self._n_phi_configured)
         return n_phi / norm(n_phi)
         
     @property
     def n_hkl(self):
-        n_hkl = (self._ubcalc.UB.I * self._n_phi_configured if self._n_hkl_configured is None
+        n_hkl = (self._get_UB().I * self._n_phi_configured if self._n_hkl_configured is None
                   else self._n_hkl_configured) 
         return n_hkl / norm(n_hkl)
     

@@ -81,7 +81,7 @@ class UBCalculation:
         self._strategy = strategy
         self.include_sigtau = include_sigtau
         self.include_reference = include_reference
-        self.reference = YouReference(self)  # TODO: move into _state and persist
+        self.reference = YouReference(self._get_UB)  # TODO: move into _state and persist
         self._clear()
         
     def _get_diffractometer_axes_names(self):
@@ -456,6 +456,9 @@ class UBCalculation:
 
     @property
     def UB(self):
+        return self._get_UB()
+
+    def _get_UB(self):
         if self._UB is None:
             raise DiffcalcException(
                 "No UB matrix has been calculated during this ub calculation")
