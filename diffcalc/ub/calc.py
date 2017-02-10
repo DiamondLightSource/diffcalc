@@ -110,7 +110,7 @@ class UBCalculation:
     def load(self, name):
         state = self._persister.load(name)
         if isinstance(self._persister, UBCalculationJSONPersister):
-            self._state = decode_ubcalcstate(state, self._geometry, self._get_diffractometer_axes_names)
+            self._state = decode_ubcalcstate(state, self._geometry, self._get_diffractometer_axes_names())
         elif isinstance(self._persister, UBCalculationPersister):
             self._state = state
         else:

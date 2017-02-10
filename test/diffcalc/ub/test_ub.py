@@ -18,6 +18,8 @@
 
 import unittest
 from nose.tools import eq_  # @UnresolvedImport
+import tempfile
+import os.path
 
 try:
     from numpy import matrix
@@ -28,7 +30,8 @@ import diffcalc.util  # @UnusedImport
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.hardware import DummyHardwareAdapter
 from test.tools import assert_iterable_almost_equal, mneq_
-from diffcalc.ub.persistence import UbCalculationNonPersister
+from diffcalc.ub.persistence import UbCalculationNonPersister,\
+    UBCalculationJSONPersister
 from diffcalc.util import DiffcalcException, MockRawInput
 from diffcalc.ub.calc import UBCalculation
 from diffcalc.hkl.vlieg.calc import VliegUbCalcStrategy
@@ -51,18 +54,13 @@ from diffcalc.ub.persistence import UbCalculationNonPersister
 
 
 
-
-
-
-
-
-class TestUbCommands(unittest.TestCase):
+class TestUBCommandsBase(unittest.TestCase):
 
     def setUp(self):
         names = 'alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'
         self.hardware = DummyHardwareAdapter(names)
         _geometry = SixCircleGammaOnArmGeometry()
-        _ubcalc_persister = UbCalculationNonPersister()
+        _ubcalc_persister = self._createPersister()
         settings.hardware = self.hardware
         settings.geometry = _geometry
         settings.ubcalc_persister = _ubcalc_persister
@@ -76,6 +74,12 @@ class TestUbCommands(unittest.TestCase):
         #self.ub.ubcalc = ub.ubcalc
         prepareRawInput([])
         diffcalc.util.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
+
+
+class TestUbCommands(TestUBCommandsBase):
+    
+    def _createPersister(self):
+        return UbCalculationNonPersister()
 
     def testNewUb(self):
         self.ub.newub('test1')
@@ -389,3 +393,19 @@ class TestUbCommands(unittest.TestCase):
     def testSetWithString(self):
         self.assertRaises(TypeError, self.ub.setlat, 'alpha', 'a')
         self.assertRaises(TypeError, self.ub.setlat, 'alpha', 1, 'a')
+
+        
+class TestUbCommandsJsonPersistence(TestUBCommandsBase):
+    
+    def _createPersister(self):
+        self.tmpdir = tempfile.mkdtemp()
+        print self.tmpdir
+        self.persister = UBCalculationJSONPersister(self.tmpdir)
+        f = open(os.path.join(self.tmpdir, 'unexpected_file'), 'w')
+        f.close()
+        return self.persister
+
+    def testNewUb(self):
+        self.ub.newub('test1')
+        self.ub.loadub('test1')
+        self.ub.ub()
