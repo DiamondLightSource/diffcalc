@@ -10,7 +10,12 @@ DIFFCALC_ROOT = os.path.split(os.path.realpath(__file__))[0]
 
 def main():
     parser = argparse.ArgumentParser(description='Diffcalc: A diffraction condition calculator of x-ray and neutron crystalography')
-    parser.add_argument('--modules', dest='show_modules', action='store_true', help='list available modules')
+    parser.add_argument('--modules', dest='show_modules', action='store_true',
+                        help='list available modules')
+    parser.add_argument('--python', dest='use_python', action='store_true',
+                        help='run within python rather than ipython')
+    parser.add_argument('--debug', dest='debug', action='store_true',
+                        help='run in debug mode')
     parser.add_argument('module', type=str, nargs='?',
                         help='the module to startup with')
     args = parser.parse_args()
@@ -32,10 +37,14 @@ def main():
         print "The provided argument '%s' is not one of:" % args.module
         print_available_modules(module_names)
         exit(1)
+    
     module_path = os.path.join(DIFFCALC_ROOT, 'startup', args.module) + '.py'
-    cmd = "ipython -i %s" % module_path
+    if args.use_python:
+        cmd = "python -i %s" % module_path
+    else:
+        cmd = "ipython -i %s" % module_path
     print "Running command: '%s'" % cmd
-    subprocess.call(cmd, env=create_environent_dict(), shell=True)
+    subprocess.call(cmd, env=create_environent_dict(args.debug), shell=True)
     
  
 def print_available_modules(module_names):           
@@ -45,11 +54,12 @@ def print_available_modules(module_names):
     print '\n'.join(lines)
 
 
-def create_environent_dict(): 
+def create_environent_dict(debug): 
     my_env = os.environ.copy()
     if "PYTHONPATH" not in my_env:
         my_env["PYTHONPATH"] = ''
     my_env["PYTHONPATH"] = DIFFCALC_ROOT + ':' + my_env["PYTHONPATH"]
+    my_env["DIFFCALC_DEBUG"] = str(debug)
     return my_env
 
 
