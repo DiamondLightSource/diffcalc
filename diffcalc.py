@@ -21,8 +21,11 @@ def main():
     args = parser.parse_args()
     
     # Create list of available modules
-    module_files = os.listdir(os.path.join(DIFFCALC_ROOT, 'startup'))
-    module_names = set([s.split('.')[0] for s in module_files])
+    module_names = []
+    for module_path in os.listdir(os.path.join(DIFFCALC_ROOT, 'startup')):
+        if not module_path.startswith('_') and module_path.endswith('.py'):
+            module_names.append(module_path.split('.')[0])
+    module_names.sort()
     
     if args.show_modules:
         print_available_modules(module_names)
@@ -38,12 +41,14 @@ def main():
         print_available_modules(module_names)
         exit(1)
     
-    module_path = os.path.join(DIFFCALC_ROOT, 'startup', args.module) + '.py'
-    if args.use_python:
-        cmd = "python -i %s" % module_path
-    else:
-        cmd = "ipython -i %s" % module_path
-    env = create_environent_dict(args.debug, args.module)
+    env = os.environ.copy()
+    
+    if 'PYTHONPATH' not in env:
+        env['PYTHONPATH'] = ''
+    env['PYTHONPATH'] = DIFFCALC_ROOT + ':' + env['PYTHONPATH']
+    
+    exe = 'python' if args.use_python else 'ipython'
+    cmd = "%s -i -m diffcmd.start %s %s" % (exe, args.module, args.debug)
     print "Running command: '%s'" % cmd
     subprocess.call(cmd, env=env, shell=True)
     
@@ -56,11 +61,7 @@ def print_available_modules(module_names):
 
 
 def create_environent_dict(debug, module_name): 
-    env = os.environ.copy()
     
-    if 'PYTHONPATH' not in env:
-        env['PYTHONPATH'] = ''
-    env['PYTHONPATH'] = DIFFCALC_ROOT + ':' + env['PYTHONPATH']
     
     env['DIFFCALC_DEBUG'] = str(debug)
     

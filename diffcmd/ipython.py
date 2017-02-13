@@ -254,7 +254,6 @@ def magic_commands(global_namespace_dict):
     gnd = global_namespace_dict
     global GLOBAL_NAMESPACE_DICT
     GLOBAL_NAMESPACE_DICT = gnd
-    print "Ipython detected --- magicing commands"
     
     ### Magic commands in namespace ###
     commands = gnd['hkl_commands_for_help']
