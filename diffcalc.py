@@ -3,7 +3,7 @@
 import argparse
 import subprocess
 import os
-
+import getpass
 
 DIFFCALC_ROOT = os.path.split(os.path.realpath(__file__))[0]
 
@@ -47,7 +47,7 @@ def main():
         env['PYTHONPATH'] = ''
     env['PYTHONPATH'] = DIFFCALC_ROOT + ':' + env['PYTHONPATH']
     
-    exe = 'python' if args.use_python else 'ipython'
+    exe = 'python' if args.use_python else 'ipython --HistoryManager.hist_file=/tmp/ipython_hist_%s.sqlite' % getpass.getuser()
     cmd = "%s -i -m diffcmd.start %s %s" % (exe, args.module, args.debug)
     print "Running command: '%s'" % cmd
     subprocess.call(cmd, env=env, shell=True)
