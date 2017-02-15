@@ -4,6 +4,14 @@
 
 from gda.jython.commands.GeneralCommands import alias
 
+try:
+    import gda
+    GDA = True  
+except ImportError:
+    GDA = False
+
+
+
 def alias_commands(global_namespace_dict):
     """Alias commands left in global_namespace_dict by previous import from
     diffcalc.
@@ -19,8 +27,9 @@ def alias_commands(global_namespace_dict):
     ### Alias commands in namespace ###
     commands = gnd['hkl_commands_for_help']
     commands += gnd['ub_commands_for_help']
-    commands.append(gnd['pos'])
-    commands.append(gnd['scan'])       
+    if not GDA:  # TODO: encapsulation issue: this should be done outside this function!
+        commands.append(gnd['pos'])
+        commands.append(gnd['scan'])       
     aliased_names = []
 
     for f in commands:
