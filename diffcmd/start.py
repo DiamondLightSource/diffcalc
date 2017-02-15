@@ -53,7 +53,6 @@ print '-' * 79
 
 # magic commands if IPython
 if IPYTHON:
-    import diffcmd.ipythonmagic
     print "Running in IPython --- magicing commands (iPython will remove"
     print "                       commands from top level namespace)"
     from diffcmd.ipython import magic_commands

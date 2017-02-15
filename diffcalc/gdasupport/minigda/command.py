@@ -47,17 +47,13 @@ class Pos(object):
         # report position of this scannable
         if len(posargs) == 1:
             scannable = posargs[0]
-            if not isinstance(scannable, Scannable):
-                raise TypeError(
-                    "The first argument to the pos command must be scannable")
+            self._assert_scannable(scannable)
             return self._generatePositionReport(scannable)
 
         # Move the scannable and report
         elif len(posargs) == 2:
             scannable = posargs[0]
-            if not isinstance(scannable, Scannable):
-                raise TypeError(
-                    "The first argument to the pos command must be scannable.")
+            self._assert_scannable(scannable)
             # Move it
             scannable.asynchronousMoveTo(posargs[1])
             # TODO: minigda assumes all moves complete instantly, so no need
@@ -67,6 +63,12 @@ class Pos(object):
         else:
             raise ValueError(
                 "Invlaid arguements: 'pos [ scannable [ value ] ]'")
+
+    def _assert_scannable(self, obj):
+        if not isinstance(obj, Scannable):
+                raise TypeError(
+                    "The first argument to the pos command must be scannable. "
+                    "Not: " + str(type(obj)))
 
     def _generatePositionReport(self, scannable):
         fieldNames = (tuple(scannable.getInputNames()) +

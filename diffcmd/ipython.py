@@ -268,7 +268,7 @@ def magic_commands(global_namespace_dict):
             continue
         # magic the function and remove from namespace (otherwise it would
         # shadow the magiced command)
-        register_line_magic(parse_line(f, gnd))
+        register_line_magic(parse_line(f, gnd.copy()))
         del gnd[f.__name__]
         command_map[f.__name__] = f
         magiced_names.append(f.__name__)
