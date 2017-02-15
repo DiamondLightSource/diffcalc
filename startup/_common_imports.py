@@ -41,10 +41,14 @@ except ImportError:
 
 
 if GDA:
-    settings.ubcalc_persister = UbCalculationNonPersister()
-# else: the diffalc.py program sets this if used outside GDA    
+    from gda.configuration.properties import LocalProperties
+    var_folder = LocalProperties.get("gda.var")
+    diffcalc_persistance_path = os.path.join(var_folder, 'diffcalc')
+    if not os.path.exists(diffcalc_persistance_path):
+        print "Making diffcalc var folder:'%s'" % diffcalc_persistance_path
+        os.makedirs(diffcalc_persistance_path)
+    settings.ubcalc_persister = UBCalculationJSONPersister(diffcalc_persistance_path)
+# else: should have been set if outside GDA
 
-if isinstance(settings.ubcalc_persister, UbCalculationNonPersister):
-    print "WARNING: persistence not configured"
 
 
