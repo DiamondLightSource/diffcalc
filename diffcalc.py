@@ -60,19 +60,6 @@ def print_available_modules(module_names):
     print '\n'.join(lines)
 
 
-def create_environent_dict(debug, module_name): 
-    
-    
-    env['DIFFCALC_DEBUG'] = str(debug)
-    
-    env['DIFFCALC_VAR'] = os.path.join(os.path.expanduser('~'), '.diffcalc', module_name)
-    
-    for var in ('PYTHONPATH', 'DIFFCALC_DEBUG', 'DIFFCALC_VAR'):
-        print '%s: %s' % (var, env[var])
-    
-    return env
-
-
 if __name__ == '__main__':
     main()
 # 
