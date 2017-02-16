@@ -61,6 +61,12 @@ if IPYTHON:
         get_ipython().magic(magic_cmd)   
 
 def demo_orient():
+    
+    try:
+        rmub('test')
+    except OSError:
+        pass
+    
     if IPYTHON:
         echorun("help ub")
     else:
