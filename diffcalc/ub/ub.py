@@ -91,6 +91,8 @@ def lastub():
     """lastub -- load the last used ub calculation
     """
     try:
+        lastub_name = ubcalc.listub()[0]
+        print "Loading ub calculation: '%s'" % lastub_name
         loadub(0)
     except IndexError:
         print "WARNING: There is no record of the last ub calculation used"
