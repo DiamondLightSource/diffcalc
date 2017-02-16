@@ -18,6 +18,7 @@
 
 from math import pi, cos, sin, acos, sqrt
 
+
 try:
     from numpy import matrix
 except ImportError:
@@ -25,6 +26,15 @@ except ImportError:
 
 TORAD = pi / 180
 TODEG = 180 / pi
+SMALL = 1e-7
+
+def z(num):
+    """Round to zero if small. This is useful to get rid of erroneous
+    minus signs resulting from float representation close to zero.
+    """
+    if abs(num) < SMALL:
+        num = 0
+    return num
 
 
 class CrystalUnderTest(object):
@@ -116,9 +126,9 @@ class CrystalUnderTest(object):
 
         fmt = "% 9.5f % 9.5f % 9.5f"
         lines.append("   B matrix:".ljust(WIDTH) +
-                     fmt % (b[0, 0], b[0, 1], b[0, 2]))
-        lines.append(' ' * WIDTH + fmt % (b[1, 0], b[1, 1], b[1, 2]))
-        lines.append(' ' * WIDTH + fmt % (b[2, 0], b[2, 1], b[2, 2]))
+                     fmt % (z(b[0, 0]), z(b[0, 1]), z(b[0, 2])))
+        lines.append(' ' * WIDTH + fmt % (z(b[1, 0]), z(b[1, 1]), z(b[1, 2])))
+        lines.append(' ' * WIDTH + fmt % (z(b[2, 0]), z(b[2, 1]), z(b[2, 2])))
         return lines
 
     def getLattice(self):
