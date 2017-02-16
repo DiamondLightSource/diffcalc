@@ -215,7 +215,7 @@ def setnphi(x=None, y=None, z=None):
 
 @command
 def setnhkl(h=None, k=None, l=None):
-    """setnphi {h k l} -- sets or displays n_phi reference"""
+    """setnhkl {h k l} -- sets or displays n_phi reference"""
     if None in (h, k, l):
         ubcalc.print_reference()
     else:
