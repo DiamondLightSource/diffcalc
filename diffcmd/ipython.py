@@ -2,6 +2,7 @@ import re
 from functools import wraps
 from IPython.core.magic import register_line_magic
 from IPython import get_ipython  # @UnusedImport (used by register_line_magic)
+from diffcalc.gdasupport.scannable.hkl import Hkl
 
 """
 For wrapping functions:
@@ -285,7 +286,7 @@ def magic_commands(global_namespace_dict):
             print _DEFAULT_HELP
         elif s == 'hkl':
             # Use help injected into hkl object
-            print gnd['hkl'].__doc__
+            print Hkl.dynamic_docstring
         elif s == 'ub':
             # Use help injected into ub command
             print command_map['ub'].__doc__
