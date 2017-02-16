@@ -11,7 +11,7 @@ This manual assumes that you are running Diffcalc within the external
 framework of the GDA or Minigda and that Diffcalc has been configured
 for the six circle diffractometer pictured here:
 
-.. figure:: images/sixcircle_gamma_on_arm.*
+.. figure:: images/vlieg/sixcircle_gamma_on_arm.*
    :scale: 50
    :align: center
 
@@ -27,7 +27,7 @@ gamma that would otherwise exist in some modes.
 The laboratory, crystal and reciprocal-lattice coordinate frames are
 defined with respect to the beam and to gravity to be (for a cubic crystal):
 
-.. figure:: images/fix.png
+.. figure:: images/vlieg/fix.png
    :align: center
 
    Laboratory and illustratrive crystal coordinate frames for a cubic crystal
@@ -35,7 +35,7 @@ defined with respect to the beam and to gravity to be (for a cubic crystal):
 The crystal lattice basis vectors are defined within the Cartesian
 crystal coordinate frame to be:
 
-.. figure:: images/unit_cell.*
+.. figure:: images/vlieg/unit_cell.*
    :align: center
    :scale: 100
 

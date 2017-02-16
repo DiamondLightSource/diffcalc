@@ -3,10 +3,10 @@
 import argparse
 import subprocess
 import os
-
+import getpass
 
 DIFFCALC_ROOT = os.path.split(os.path.realpath(__file__))[0]
-
+MODULE_FOR_MANUALS = '_make_sixcircle_manual'
 
 def main():
     parser = argparse.ArgumentParser(description='Diffcalc: A diffraction condition calculator of x-ray and neutron crystalography')
@@ -16,34 +16,47 @@ def main():
                         help='run within python rather than ipython')
     parser.add_argument('--debug', dest='debug', action='store_true',
                         help='run in debug mode')
+    parser.add_argument('--make-manuals', dest='make_manuals', action='store_true',
+                        help='make .rst manual files by running template through sixcircle')
     parser.add_argument('module', type=str, nargs='?',
                         help='the module to startup with')
     args = parser.parse_args()
     
     # Create list of available modules
-    module_files = os.listdir(os.path.join(DIFFCALC_ROOT, 'startup'))
-    module_names = set([s.split('.')[0] for s in module_files])
+    module_names = []
+    for module_path in os.listdir(os.path.join(DIFFCALC_ROOT, 'startup')):
+        if not module_path.startswith('_') and module_path.endswith('.py'):
+            module_names.append(module_path.split('.')[0])
+    module_names.sort()
     
     if args.show_modules:
         print_available_modules(module_names)
         exit(1)      
     
-    if not args.module:   
+    if not args.make_manuals and not args.module:   
         print "A module name should be provided. Choose one of:"
         print_available_modules(module_names)
         exit(1)
         
-    if args.module not in module_names:
+    if args.make_manuals:
+        if args.module:
+            print "When building the manuals no module should be given"
+            exit(1)
+        args.module = MODULE_FOR_MANUALS
+        
+    if not args.make_manuals and args.module not in module_names:
         print "The provided argument '%s' is not one of:" % args.module
         print_available_modules(module_names)
         exit(1)
     
-    module_path = os.path.join(DIFFCALC_ROOT, 'startup', args.module) + '.py'
-    if args.use_python:
-        cmd = "python -i %s" % module_path
-    else:
-        cmd = "ipython -i %s" % module_path
-    env = create_environent_dict(args.debug, args.module)
+    env = os.environ.copy()
+    
+    if 'PYTHONPATH' not in env:
+        env['PYTHONPATH'] = ''
+    env['PYTHONPATH'] = DIFFCALC_ROOT + ':' + env['PYTHONPATH']
+    
+    exe = 'python' if args.use_python else 'ipython --HistoryManager.hist_file=/tmp/ipython_hist_%s.sqlite' % getpass.getuser()
+    cmd = "%s -i -m diffcmd.start %s %s" % (exe, args.module, args.debug)
     print "Running command: '%s'" % cmd
     subprocess.call(cmd, env=env, shell=True)
     
@@ -53,23 +66,6 @@ def print_available_modules(module_names):
     for m in sorted(module_names):
         lines.append('   ' + m)
     print '\n'.join(lines)
-
-
-def create_environent_dict(debug, module_name): 
-    env = os.environ.copy()
-    
-    if 'PYTHONPATH' not in env:
-        env['PYTHONPATH'] = ''
-    env['PYTHONPATH'] = DIFFCALC_ROOT + ':' + env['PYTHONPATH']
-    
-    env['DIFFCALC_DEBUG'] = str(debug)
-    
-    env['DIFFCALC_VAR'] = os.path.join(os.path.expanduser('~'), '.diffcalc', module_name)
-    
-    for var in ('PYTHONPATH', 'DIFFCALC_DEBUG', 'DIFFCALC_VAR'):
-        print '%s: %s' % (var, env[var])
-    
-    return env
 
 
 if __name__ == '__main__':

@@ -91,6 +91,8 @@ def lastub():
     """lastub -- load the last used ub calculation
     """
     try:
+        lastub_name = ubcalc.listub()[0]
+        print "Loading ub calculation: '%s'" % lastub_name
         loadub(0)
     except IndexError:
         print "WARNING: There is no record of the last ub calculation used"
@@ -215,7 +217,7 @@ def setnphi(x=None, y=None, z=None):
 
 @command
 def setnhkl(h=None, k=None, l=None):
-    """setnphi {h k l} -- sets or displays n_phi reference"""
+    """setnhkl {h k l} -- sets or displays n_phi reference"""
     if None in (h, k, l):
         ubcalc.print_reference()
     else:

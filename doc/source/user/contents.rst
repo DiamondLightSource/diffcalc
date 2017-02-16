@@ -13,7 +13,7 @@
    :numbered:
 
    youmanual
-   manual
+   vliegmanual
    ACKS
 
 Indices and tables

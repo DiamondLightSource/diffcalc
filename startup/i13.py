@@ -1,4 +1,4 @@
-from diffcalc.gdasupport.common_startup_imports import *
+from startup._common_imports import *
 
 
 if '_fivec' in globals() and 'en' in globals():
@@ -26,11 +26,14 @@ else:
 ESMTGKeV = 1
 settings.hardware = ScannableHardwareAdapter(_fivec, en, ESMTGKeV)
 settings.geometry = diffcalc.hkl.you.geometry.FiveCircle()
-settings.ubcalc_persister = ubcalc_persister
 settings.energy_scannable = en
 settings.axes_scannable_group = _fivec
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
+
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
 
+if GDA:
+    print "Running in GDA --- aliasing commands"
+    alias_commands(globals())
+    
 lastub()  # Load the last ub calculation used
-execfile(COMMON_STARTUP_MAGIC_OR_ALIAS_FILE)

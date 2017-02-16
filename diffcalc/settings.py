@@ -5,12 +5,12 @@ Created on Aug 5, 2013
 '''
 import os 
 
-from diffcalc.ub.persistence import UBCalculationJSONPersister
+from diffcalc.ub.persistence import UbCalculationNonPersister
 
 # These should be by the user *before* importing other modules
 geometry = None
 hardware = None
-ubcalc_persister = UBCalculationJSONPersister(os.getcwd())
+ubcalc_persister = UbCalculationNonPersister()
 
 axes_scannable_group = None
 energy_scannable = None

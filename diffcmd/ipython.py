@@ -2,6 +2,7 @@ import re
 from functools import wraps
 from IPython.core.magic import register_line_magic
 from IPython import get_ipython  # @UnusedImport (used by register_line_magic)
+from diffcalc.gdasupport.scannable.hkl import Hkl
 
 """
 For wrapping functions:
@@ -254,7 +255,6 @@ def magic_commands(global_namespace_dict):
     gnd = global_namespace_dict
     global GLOBAL_NAMESPACE_DICT
     GLOBAL_NAMESPACE_DICT = gnd
-    print "Ipython detected --- magicing commands"
     
     ### Magic commands in namespace ###
     commands = gnd['hkl_commands_for_help']
@@ -269,7 +269,7 @@ def magic_commands(global_namespace_dict):
             continue
         # magic the function and remove from namespace (otherwise it would
         # shadow the magiced command)
-        register_line_magic(parse_line(f, gnd))
+        register_line_magic(parse_line(f, gnd.copy()))
         del gnd[f.__name__]
         command_map[f.__name__] = f
         magiced_names.append(f.__name__)
@@ -286,7 +286,7 @@ def magic_commands(global_namespace_dict):
             print _DEFAULT_HELP
         elif s == 'hkl':
             # Use help injected into hkl object
-            print gnd['hkl'].__doc__
+            print Hkl.dynamic_docstring
         elif s == 'ub':
             # Use help injected into ub command
             print command_map['ub'].__doc__

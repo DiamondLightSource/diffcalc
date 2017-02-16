@@ -41,6 +41,14 @@ TODEG = 180 / pi
 
 WIDTH = 13
 
+def z(num):
+    """Round to zero if small. This is useful to get rid of erroneous
+    minus signs resulting from float representation close to zero.
+    """
+    if abs(num) < SMALL:
+        num = 0
+    return num
+
 #The UB matrix is used to find or set the orientation of a set of
 #planes described by an hkl vector. The U matrix can be used to find
 #or set the orientation of the crystal lattices' y axis. If there is
@@ -208,9 +216,9 @@ class UBCalculation:
         fmt = "% 9.5f % 9.5f % 9.5f"
         U = self.U
         lines.append("   U matrix:".ljust(WIDTH) +
-                     fmt % (U[0, 0], U[0, 1], U[0, 2]))
-        lines.append(' ' * WIDTH + fmt % (U[1, 0], U[1, 1], U[1, 2]))
-        lines.append(' ' * WIDTH + fmt % (U[2, 0], U[2, 1], U[2, 2]))
+                     fmt % (z(U[0, 0]), z(U[0, 1]), z(U[0, 2])))
+        lines.append(' ' * WIDTH + fmt % (z(U[1, 0]), z(U[1, 1]), z(U[1, 2])))
+        lines.append(' ' * WIDTH + fmt % (z(U[2, 0]), z(U[2, 1]), z(U[2, 2])))
         return lines
 
     def str_lines_u_angle_and_axis(self):
@@ -235,13 +243,10 @@ class UBCalculation:
         fmt = "% 9.5f % 9.5f % 9.5f"
         UB = self.UB
         lines.append("   UB matrix:".ljust(WIDTH) +
-                     fmt % (UB[0, 0], UB[0, 1], UB[0, 2]))
-        lines.append(' ' * WIDTH + fmt % (UB[1, 0], UB[1, 1], UB[1, 2]))
-        lines.append(' ' * WIDTH + fmt % (UB[2, 0], UB[2, 1], UB[2, 2]))
+                     fmt % (z(UB[0, 0]), z(UB[0, 1]), z(UB[0, 2])))
+        lines.append(' ' * WIDTH + fmt % (z(UB[1, 0]), z(UB[1, 1]), z(UB[1, 2])))
+        lines.append(' ' * WIDTH + fmt % (z(UB[2, 0]), z(UB[2, 1]), z(UB[2, 2])))
         return lines
-
-
-
 
     @property
     def name(self):

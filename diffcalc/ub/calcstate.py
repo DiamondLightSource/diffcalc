@@ -166,11 +166,10 @@ def decode_reference(ref_dict):
     if ref_dict:   
         nhkl = ref_dict.get('n_hkl_configured', None)
         nphi = ref_dict.get('n_phi_configured', None)
-    
         if nhkl:
-            reference.n_hkl_configured = matrix(eval(nhkl)).T
+            reference.n_hkl_configured = matrix([eval(nhkl)]).T
         if nphi:
-            reference.n_phi_configured = matrix(eval(nphi)).T
+            reference.n_phi_configured = matrix([eval(nphi)]).T
     return reference
 
 # From: http://stackoverflow.com/questions/127803/how-to-parse-iso-formatted-date-in-python
