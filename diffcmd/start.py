@@ -58,3 +58,14 @@ if IPYTHON:
     from diffcmd.ipython import magic_commands
     magic_commands(globals())
     print '-' * 79
+    
+if 'MANUALS_TO_MAKE' in locals():
+    from diffcmd.make_manual import make_manual
+    for source_path in MANUALS_TO_MAKE:  # @UndefinedVariable
+        target_path = source_path.split('_template.py')[0] + '_generated.py'
+        print '@' * 79
+        print "Making manual"
+        print "    Source:", source_path
+        print "    Target:", target_path
+        
+    make_manual(source_path, None)

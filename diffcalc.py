@@ -6,7 +6,7 @@ import os
 import getpass
 
 DIFFCALC_ROOT = os.path.split(os.path.realpath(__file__))[0]
-
+MODULE_FOR_MANUALS = '_make_sixcircle_manual'
 
 def main():
     parser = argparse.ArgumentParser(description='Diffcalc: A diffraction condition calculator of x-ray and neutron crystalography')
@@ -16,6 +16,8 @@ def main():
                         help='run within python rather than ipython')
     parser.add_argument('--debug', dest='debug', action='store_true',
                         help='run in debug mode')
+    parser.add_argument('--make-manuals', dest='make_manuals', action='store_true',
+                        help='make .rst manual files by running template through sixcircle')
     parser.add_argument('module', type=str, nargs='?',
                         help='the module to startup with')
     args = parser.parse_args()
@@ -31,12 +33,18 @@ def main():
         print_available_modules(module_names)
         exit(1)      
     
-    if not args.module:   
+    if not args.make_manuals and not args.module:   
         print "A module name should be provided. Choose one of:"
         print_available_modules(module_names)
         exit(1)
         
-    if args.module not in module_names:
+    if args.make_manuals:
+        if args.module:
+            print "When building the manuals no module should be given"
+            exit(1)
+        args.module = MODULE_FOR_MANUALS
+        
+    if not args.make_manuals and args.module not in module_names:
         print "The provided argument '%s' is not one of:" % args.module
         print_available_modules(module_names)
         exit(1)

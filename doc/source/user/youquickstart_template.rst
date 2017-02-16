@@ -1,0 +1,291 @@
+Diffcalc - A Diffraction Condition Calculator for Diffractometer Control
+========================================================================
+
+Diffcalc is a python/jython based diffraction condition calculator used for
+controlling diffractometers within reciprocal lattice space. It performs the
+same task as the fourc, sixc, twoc, kappa, psic and surf macros from SPEC.
+
+Diffcalc’s standard calculation engine is an implementation of [You1999]_ . The
+first versions of Diffcalc were based on [Vlieg1993]_ and [Vlieg1998]_ and a
+‘Vlieg’ engine is still available. The ‘You’ engine is more generic and the plan
+is to remove the old ‘Vlieg’ engine once beamlines have been migrated. There is
+also an engine based on [Willmott2011]_.
+
+The foundations for this type of calculation were laid by by Busing & Levi in
+their classic paper [Busing1967]_. Diffcalc’s orientation algorithm is taken from
+this paper. Busing & Levi also provided the original definition of the
+coordinate frames and of the U and B matrices used to describe a crystal’s
+orientation and to convert between Cartesian and reciprical lattice space.
+
+Geometry plugins are used to adapt the six circle model used internally by
+Diffcalc to apply to other diffractometers. These contain a dictionary of the
+‘missing’ angles which Diffcalc uses to constrain these angles internally, and a
+methods to map from external angles to Diffcalc angles and visa versa.
+
+Installing and starting
+-----------------------
+
+Diffcalc depends on numpy and, when used outside Diamond's opengda framework (as
+here), works best with ipython.
+
+Check it out::
+
+   $ git clone https://github.com/DiamondLightSource/diffcalc.git
+   Cloning into 'diffcalc'...
+
+Start diffcalc in ipython using a sixcircle dummy diffractometer::
+
+   $ cd diffcalc
+   $ ./diffcalc.py --help
+   ...
+   $ ./diffcalc.py sixcircle
+   Running command: 'ipython --HistoryManager.hist_file=/tmp/ipython_hist_walton.sqlite -i -m diffcmd.start sixcircle False
+   -------------------------------------------------------------------------------
+   Executing startup script: '/Users/walton/git/diffcalc/startup/sixcircle.py'
+   Dummy scannables: sixc(mu, delta, gam, eta, chi, phi) and en
+   Falling back to the (very minimal!) minigda...
+   -------------------------------------------------------------------------------
+   In [1]:
+
+NOTE: Within Diamond use::
+
+   $ module load diffcalc
+   $ diffcalc --help
+   ...
+   $ diffcalc sixcircle
+
+Type ``demo_all()`` to see it working and then move try the following quick
+start guide::
+
+   >>> demo_all()
+   ...
+
+Getting help
+------------
+
+To view help with orientation and then moving in hkl space::
+
+   >>> help ub
+   ...
+   >>> help hkl
+   ...
+
+Configuring a UB calculation
+----------------------------
+
+To load the last used UB-calculation::
+
+   >>> lastub
+   Loading ub calculation: 'mono-Si'
+
+To load a previous UB-calculation::
+
+   >>> listub
+   UB calculations in: /Users/walton/.diffcalc/i16
+
+   0) mono-Si            15 Feb 2017 (22:32)
+   1) i16-32             13 Feb 2017 (18:32)
+
+   >>> loadub 0
+
+To create a new UB-calculation::
+
+   ==> newub 'example'
+   ==> setlat '1Acube' 1 1 1 90 90 90
+
+Find U matrix from two reflections::
+
+   ==> pos wl 1
+   ==> c2th [0 0 1]
+   59.99999999999999
+
+   ==> pos sixc [0 60 0 30 90 0]
+   ==> addref [0 0 1]
+
+   ==> pos sixc [0 90 0 45 45 90]
+   ==> addref [0 1 1]
+
+   ==> checkub
+
+Set U matrix manually (pretending sample is squarely mounted)::
+
+   ==> setu [[1 0 0] [0 1 0] [0 0 1]]
+
+To estimate based on first reflection only::
+
+   ==> trialub
+
+To see the resulting UB-calculation::
+
+   ==> ub
+
+Setting the reference vector
+----------------------------
+
+When performing surface experiments the reference vector should be set normal
+to the surface. It can also be used to define other directions within the crystal
+with which we want to orient the incident or diffracted beam.
+
+By default the reference vector is set parallel to the phi axis. That is,
+along the z-axis of the phi coordinate frame.
+
+The `ub` command shows the current reference vector, along with any inferred
+miscut, at the top its report (or it can be shown by calling ``setnphi`` or
+``setnhkl'`` with no args)::
+
+   >>> ub
+   ...
+   n_phi:      0.00000   0.00000   1.00000 <- set
+   n_hkl:     -0.00000   0.00000   1.00000
+   miscut:     None
+   ...
+
+The ``<- set`` label here indicates that the reference vector is set in the phi
+coordinate frame. In this case, therefor, its direction in the crystal's
+reciprocal lattice space is inferred from the UB matrix.
+
+To set the reference vector in the phi coordinate frame use::
+
+   >>> setnphi 0 0 1
+   ...
+
+This is useful if the surface normal has be found with a laser or by x-ray
+occlusion. This vector must currently be manually calculated from the sample
+angle settings required to level the surface (sigma and tau commands on the
+way).
+
+To set the reference vector in the crystal's reciprocal lattice space use (this
+is a quick way to determine the surface orientation if the surface is known to
+be cleaved cleanly along a known axis)::
+
+   >>> setnphi 0 0 1 ...
+
+Constraining solutions for moving in hkl space
+----------------------------------------------
+
+To get help and see current constraints::
+
+   >>> help con
+   ...
+
+   ==> con
+
+Three constraints can be given: zero or one from the DET and REF columns and the
+remainder from the SAMP column. Not all combinations are currently available.
+Use ``help con`` to see a summary if you run into troubles.
+
+In the following the *scattering plane* is defined as the plane including the
+scattering vector, or momentum transfer vector, and the incident beam.
+
+**DETECTOR COLUMN:**
+
+- **delta** - physical delta setting (vertical detector motion) *del=0 is equivalent to qaz=0*
+- **gam** - physical gamma setting (horizontal detector motion) *gam=0 is equivalent to qaz=90*
+- **qaz** - azimuthal rotation of scattering vector (about the beam, from horizontal)
+- **naz** - azimuthal rotation of reference vector (about the beam, from horizontal)
+
+**REFERENCE COLUMN:**
+
+- **alpha** - incident angle to surface (if reference is normal to surface)
+- **beta** -  exit angle from surface (if reference is normal to surface)
+- **psi** - azimuthal rotation about scattering vector of reference vector (from scattering plane)
+- **a_eq_b** - bisecting mode with alpha=beta. *Equivalent to psi=90*
+
+**SAMPLE COLUMN:**
+
+- **mu, eta, chi & phi** - physical settings
+- **mu_is_gam** - force mu to follow gamma (results in a 5-circle geometry)
+
+Diffcalc will report two other (un-constrainable) virtual angles:
+
+- **theta** - half of 2theta, the angle through the diffracted beam bends
+- **tau** - longitude of reference vector from scattering vector (in scattering plane)
+
+Example constraint modes
+------------------------
+
+There is sometimes more than one way to get the same effect.
+
+**Vertical four-circle mode**::
+
+   >>> con gam 0 mu 0 a_eq_b   # or equivalently:
+   >>> con qaz 90 mu 0 a_eq_b
+
+   >>> con alpha 1             # replaces a_eq_b
+
+**Horizontal four-circle mode**::
+
+   >>> con del 0 eta 0 alpha 1   # or equivalently:
+   >>> con qaz 0 mu 0 alpha 1
+
+**Surface vertical mode**::
+
+   >>> con naz 90 mu 0 alpha 1
+
+**Surface horizontal mode**::
+
+   >>> con naz 0 eta 0 alpha 1
+
+**Z-axis mode (surface horizontal)**::
+
+   >>> con chi (-sigma) phi (-tau) alpha 1
+
+where sigma and tau are the offsets required in chi and phi to bring the surface
+normal parallel to eta. Alpha will determine mu directly leaving eta to orient
+the planes. Or::
+
+   >>> con naz 0 phi 0 alpha 1  # or any another sample angle
+
+**Z-axis mode (surface vertical)**::
+
+   >>> con naz 0 phi 0 alpha 1  # or any another sample angle
+
+Moving in hkl space
+-------------------
+
+Configure a mode, e.g. four-circle vertical::
+
+   ==> con gam 0 mu 0 a_eq_b
+
+Simulate moving to a reflection::
+
+   ==> sim hkl [0 1 1]
+
+Move to reflection::
+
+   ==> pos hkl [0 1 1]
+
+   ==> pos sixc
+
+Scan an hkl axis (and read back settings)::
+
+   ==> scan l 0 1 .2 sixc
+
+Scan a constraint (and read back virtual angles and eta)::
+
+   ==> con psi
+   ==> scan psi 70 110 10 hklverbose [0 1 1] eta
+
+References
+----------
+
+.. [You1999] H. You. *Angle calculations for a '4S+2D' six-circle diffractometer.*
+   J. Appl. Cryst. (1999). **32**, 614-623. `(pdf link)
+   <http://journals.iucr.org/j/issues/1999/04/00/hn0093/hn0093.pdf>`__.
+
+.. [Busing1967] W. R. Busing and H. A. Levy. *Angle calculations for 3- and 4-circle X-ray
+   and neutron diffractometers.* Acta Cryst. (1967). **22**, 457-464. `(pdf link)
+   <http://journals.iucr.org/q/issues/1967/04/00/a05492/a05492.pdf>`__.
+
+.. [Vlieg1993] Martin Lohmeier and Elias Vlieg. *Angle calculations for a six-circle
+   surface x-ray diffractometer.* J. Appl. Cryst. (1993). **26**, 706-716. `(pdf link)
+   <http://journals.iucr.org/j/issues/1993/05/00/la0044/la0044.pdf>`__.
+
+.. [Vlieg1998] Elias Vlieg. *A (2+3)-type surface diffractometer: mergence of the z-axis and
+   (2+2)-type geometries.* J. Appl. Cryst. (1998). **31**, 198-203. `(pdf link)
+   <http://journals.iucr.org/j/issues/1998/02/00/pe0028/pe0028.pdf>`__.
+
+.. [Willmott2011] C. M. Schlepütz, S. O. Mariager, S. A. Pauli, R. Feidenhans'l and
+   P. R. Willmott. *Angle calculations for a (2+3)-type diffractometer: focus
+   on area detectors.* J. Appl. Cryst. (2011). **44**, 73-83. `(pdf link)
+   <http://journals.iucr.org/j/issues/2011/01/00/db5088/db5088.pdf>`__.
