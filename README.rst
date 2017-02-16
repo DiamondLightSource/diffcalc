@@ -5,11 +5,11 @@ Diffcalc is a python/jython based diffraction condition calculator used for
 controlling diffractometers within reciprocal lattice space. It performs the
 same task as the fourc, sixc, twoc, kappa, psic and surf macros from SPEC.
 
-Diffcalc’qs standard calculation engine is an implementation of [You1999]_ . The
+Diffcalc’s standard calculation engine is an implementation of [You1999]_ . The
 first versions of Diffcalc were based on [Vlieg1993]_ and [Vlieg1998]_ and a
 ‘Vlieg’ engine is still available. The ‘You’ engine is more generic and the plan
-is to remove the old ‘Vlieg’ engine once beamlines have been migrated. New users
-should use the ‘You’ engine. There is also an engine based on [Willmott2011]_.
+is to remove the old ‘Vlieg’ engine once beamlines have been migrated. There is
+also an engine based on [Willmott2011]_.
 
 The foundations for this type of calculation were laid by by Busing & Levi in
 their classic paper [Busing1967]_. Diffcalc’s orientation algorithm is taken from
@@ -84,7 +84,7 @@ To load a previous UB-calculation::
    UB calculations in: /Users/walton/.diffcalc/i16
 
    0) mono-Si            15 Feb 2017 (22:32)
-   1) i16-32          13 Feb 2017 (18:32)
+   1) i16-32             13 Feb 2017 (18:32)
 
    >>> loadub 0
 
@@ -169,6 +169,47 @@ To see the resulting UB-calculation::
       1 12.398  0.00  0.00  1.00    0.0000  60.0000   0.0000  30.0000  90.0000   0.0000  
       2 12.398  0.00  1.00  1.00    0.0000  90.0000   0.0000  45.0000  45.0000  90.0000  
 
+Setting the reference vector
+----------------------------
+
+When performing surface experiments the reference vector should be set normal
+to the surface. It can also be used to define other directions within the crystal
+with which we want to orient the incident or diffracted beam.
+
+By default the reference vector is set parallel to the phi axis. That is,
+along the z-axis of the phi coordinate frame.
+
+The `ub` command shows the current reference vector, along with any inferred
+miscut, at the top its report (or it can be shown by calling ``setnphi`` or
+``setnhkl'`` with no args)::
+
+   >>> ub
+   ...
+   n_phi:      0.00000   0.00000   1.00000 <- set
+   n_hkl:     -0.00000   0.00000   1.00000
+   miscut:     None
+   ...
+
+The ``<- set`` label here indicates that the reference vector is set in the phi
+coordinate frame. In this case, therefor, its direction in the crystal's
+reciprocal lattice space is inferred from the UB matrix.
+
+To set the reference vector in the phi coordinate frame use::
+
+   >>> setnphi 0 0 1
+   ...
+
+This is useful if the surface normal has be found with a laser or by x-ray
+occlusion. This vector must currently be manually calculated from the sample
+angle settings required to level the surface (sigma and tau commands on the
+way).
+
+To set the reference vector in the crystal's reciprocal lattice space use (this
+is a quick way to determine the surface orientation if the surface is known to
+be cleaved cleanly along a known axis)::
+
+   >>> setnphi 0 0 1 ...
+
 Constraining solutions for moving in hkl space
 ----------------------------------------------
 
@@ -194,24 +235,24 @@ Three constraints can be given: zero or one from the DET and REF columns and the
 remainder from the SAMP column. Not all combinations are currently available.
 Use ``help con`` to see a summary if you run into troubles.
 
-In the following, the *scattering plane* is defined as the plane including the
-scattering vector , or momentum transfer vector, and the incident beam.
+In the following the *scattering plane* is defined as the plane including the
+scattering vector, or momentum transfer vector, and the incident beam.
 
-**DET:** (detector)
+**DETECTOR COLUMN:**
 
-- **delta** - physical delta setting (vertical detector rotation). *del=0 is equivalent to qaz=0*
-- **gam** - physical gamma setting (horizontal detector rotation). *gam=0 is equivalent to qaz=90*
+- **delta** - physical delta setting (vertical detector motion) *del=0 is equivalent to qaz=0*
+- **gam** - physical gamma setting (horizontal detector motion) *gam=0 is equivalent to qaz=90*
 - **qaz** - azimuthal rotation of scattering vector (about the beam, from horizontal)
-- **qaz** - azimuthal rotation of reference vector (about the beam, from horizontal)
+- **naz** - azimuthal rotation of reference vector (about the beam, from horizontal)
 
-**REF:**
+**REFERENCE COLUMN:**
 
 - **alpha** - incident angle to surface (if reference is normal to surface)
 - **beta** -  exit angle from surface (if reference is normal to surface)
 - **psi** - azimuthal rotation about scattering vector of reference vector (from scattering plane)
 - **a_eq_b** - bisecting mode with alpha=beta. *Equivalent to psi=90*
 
-**SAMP:**
+**SAMPLE COLUMN:**
 
 - **mu, eta, chi & phi** - physical settings
 - **mu_is_gam** - force mu to follow gamma (results in a 5-circle geometry)
@@ -224,25 +265,41 @@ Diffcalc will report two other (un-constrainable) virtual angles:
 Example constraint modes
 ------------------------
 
-Vertical four circle mode::
+There is sometimes more than one way to get the same effect.
+
+**Vertical four-circle mode**::
 
    >>> con gam 0 mu 0 a_eq_b   # or equivalently:
    >>> con qaz 90 mu 0 a_eq_b
 
    >>> con alpha 1             # replaces a_eq_b
 
-Horizontal four circle mode::
+**Horizontal four-circle mode**::
 
    >>> con del 0 eta 0 alpha 1   # or equivalently:
    >>> con qaz 0 mu 0 alpha 1
 
-Surface vertical mode::
+**Surface vertical mode**::
 
    >>> con naz 90 mu 0 alpha 1
 
-Surface horizontal mode::
+**Surface horizontal mode**::
 
    >>> con naz 0 eta 0 alpha 1
+
+**Z-axis mode (surface horizontal)**::
+
+   >>> con chi (-sigma) phi (-tau) alpha 1
+
+where sigma and tau are the offsets required in chi and phi to bring the surface
+normal parallel to eta. Alpha will determine mu directly leaving eta to orient
+the planes. Or::
+
+   >>> con naz 0 phi 0 alpha 1  # or any another sample angle
+
+**Z-axis mode (surface vertical)**::
+
+   >>> con naz 0 phi 0 alpha 1  # or any another sample angle
 
 Moving in hkl space
 -------------------
