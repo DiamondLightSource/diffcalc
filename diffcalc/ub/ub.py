@@ -29,7 +29,7 @@ except ImportError:
 
 
 from diffcalc.util import getInputWithDefault as promptForInput, \
-    promptForNumber, promptForList, allnum, isnum
+    promptForNumber, promptForList, allnum, isnum, color
 from diffcalc.util import command
 
 TORAD = pi / 180
@@ -79,7 +79,7 @@ def newub(name=None):
 
 @command
 def loadub(name_or_num):
-    """loadub {'name'|num} -- load an existing ub calculation
+    """loadub 'name'|num -- load an existing ub calculation
     """
     if isinstance(name_or_num, str):
         ubcalc.load(name_or_num)
@@ -99,7 +99,7 @@ def lastub():
 
 @command
 def rmub(name_or_num):
-    """rmub {'name'|num} -- remove existing ub calculation
+    """rmub 'name'|num -- remove existing ub calculation
     """
     if isinstance(name_or_num, str):
         ubcalc.remove(name_or_num)
@@ -217,7 +217,7 @@ def setnphi(x=None, y=None, z=None):
 
 @command
 def setnhkl(h=None, k=None, l=None):
-    """setnhkl {h k l} -- sets or displays n_phi reference"""
+    """setnhkl {h k l} -- sets or displays n_hkl reference"""
     if None in (h, k, l):
         ubcalc.print_reference()
     else:
@@ -239,7 +239,7 @@ def addref(*args):
     """
     addref -- add reflection interactively
     addref [h k l] {'tag'} -- add reflection with current position and energy
-    addref [h k l] (p1,p2...pN) energy {'tag'} -- add arbitrary reflection
+    addref [h k l] (p1, .., pN) energy {'tag'} -- add arbitrary reflection
     """
 
     if len(args) == 0:
@@ -376,7 +376,7 @@ def swapref(num1=None, num2=None):
 
 @command
 def setu(U=None):
-    """setu {((,,),(,,),(,,))} -- manually set u matrix
+    """setu {[[..][..][..]]} -- manually set u matrix
     """
     if U is None:
         U = _promptFor3x3MatrixDefaultingToIdentity()
@@ -389,7 +389,7 @@ def setu(U=None):
 
 @command
 def setub(UB=None):
-    """setub {((,,),(,,),(,,))} -- manually set ub matrix"""
+    """setub {[[..][..][..]]} -- manually set ub matrix"""
     if UB is None:
         UB = _promptFor3x3MatrixDefaultingToIdentity()
         if UB is None:
@@ -436,7 +436,7 @@ def checkub():
 
     s = "\n    %7s  %4s  %4s  %4s    %6s   %6s   %6s     TAG\n" % \
     ('ENERGY', 'H', 'K', 'L', 'H_COMP', 'K_COMP', 'L_COMP')
-
+    s = color.BOLD + s + color.END
     nref = ubcalc.get_number_reflections()
     if not nref:
         s += "<<empty>>"
@@ -484,7 +484,7 @@ commands_for_help.extend([
                      delref,
                      clearref,
                      swapref,
-                     'ub',
+                     'ub matrix',
                      checkub,
                      setu,
                      setub,

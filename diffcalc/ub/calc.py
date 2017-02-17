@@ -21,7 +21,7 @@ from diffcalc.ub.calcstate import UBCalcState
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.reflections import ReflectionList
 from diffcalc.ub.persistence import UBCalculationJSONPersister, UBCalculationPersister
-from diffcalc.util import DiffcalcException, cross3, dot3
+from diffcalc.util import DiffcalcException, cross3, dot3, color
 from math import acos, cos, sin, pi
 from diffcalc.ub.reference import YouReference
 
@@ -161,10 +161,13 @@ class UBCalculation:
 
     def __str__(self):
 
+        def bold(s):
+            return color.BOLD + s + color.END
+
         if self._state.name is None:
             return "<<< No UB calculation started >>>"
         lines = []
-        lines.append("UBCALC")
+        lines.append(bold("UBCALC"))
         lines.append("")
         lines.append(
             "   name:".ljust(WIDTH) + self._state.name.rjust(9))
@@ -182,7 +185,7 @@ class UBCalculation:
             lines.extend(self._state.reference.repr_lines(ub_calculated, WIDTH))
         
         lines.append("")
-        lines.append("CRYSTAL")
+        lines.append(bold("CRYSTAL"))
         lines.append("")
         
         if self._state.crystal is None:
@@ -191,7 +194,7 @@ class UBCalculation:
             lines.extend(self._state.crystal.str_lines())
 
         lines.append("")
-        lines.append("UB MATRIX")
+        lines.append(bold("UB MATRIX"))
         lines.append("")
         
         if self._UB is None:
@@ -204,7 +207,7 @@ class UBCalculation:
             lines.extend(self.str_lines_ub())
 
         lines.append("")
-        lines.append("REFLECTIONS")
+        lines.append(bold("REFLECTIONS"))
         lines.append("")
         
         lines.extend(self._state.reflist.str_lines())
