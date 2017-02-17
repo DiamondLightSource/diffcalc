@@ -261,7 +261,6 @@ def magic_commands(global_namespace_dict):
     commands += gnd['ub_commands_for_help']
     commands.append(gnd['pos'])
     commands.append(gnd['scan'])       
-    magiced_names = []
     command_map = {}
     for f in commands:
         # Skip section headers like 'Motion'
@@ -272,8 +271,6 @@ def magic_commands(global_namespace_dict):
         register_line_magic(parse_line(f, gnd.copy()))
         del gnd[f.__name__]
         command_map[f.__name__] = f
-        magiced_names.append(f.__name__)
-    print "Magiced commands: " + ' '.join(magiced_names) 
 
     ### Create help function ###
     #Expects python's original help to be named pythons_help and to be

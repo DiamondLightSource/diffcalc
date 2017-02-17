@@ -56,7 +56,6 @@ def setcut(scannable_or_string=None, val=None):
             oldcut = settings.hardware.get_cuts()[name]  # @UndefinedVariable
             settings.hardware.set_cut(name, float(val))  # @UndefinedVariable
             newcut = settings.hardware.get_cuts()[name]  # @UndefinedVariable
-            print '%s: %f --> %f' % (name, oldcut, newcut)
 
 @command
 def setmin(name=None, val=None):

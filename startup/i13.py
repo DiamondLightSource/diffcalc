@@ -11,7 +11,6 @@ if '_fivec' in globals() and 'en' in globals():
 else:
     ### Create dummy scannables ###
     print "Diffcalc creating dummy Scannables as _fivec and en were not found"
-    print "Dummy scannables: _fivec(delta, gam, eta, chi, phi) and en"
     delta = Dummy('delta')
     gam = Dummy('gam')
     eta = Dummy('eta')

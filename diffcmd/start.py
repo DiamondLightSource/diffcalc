@@ -22,9 +22,6 @@ try:
 except NameError:
     IPYTHON = False
 
-print "sys.argv:", sys.argv
-module_name = sys.argv[1] #3 if IPYTHON else 1]
-debug = bool(sys.argv[2]) #4 if IPYTHON else 2])
 
 print "module:", module_name
 print "debug:", debug
@@ -53,8 +50,6 @@ print '-' * 79
 
 # magic commands if IPython
 if IPYTHON:
-    print "Running in IPython --- magicing commands (iPython will remove"
-    print "                       commands from top level namespace)"
     from diffcmd.ipython import magic_commands
     magic_commands(globals())
     print '-' * 79

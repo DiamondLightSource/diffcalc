@@ -24,8 +24,6 @@ if GDA:
         raise Exception('Expecting a device called euler')
 
 else: # Assume running in dummy mode outside GDA
-### Create dummy scannables ###
-    print "Dummy scannables: sixc(mu, delta, gam, eta, chi, phi) and en"
     mu = Dummy('mu')
     delta = Dummy('delta')
     gam = Dummy('gam')
@@ -55,13 +53,10 @@ if GDA:
     
 lastub()  # Load the last ub calculation used
 
-
-
 # iPython removes the actual command from namespace
 diffcalc.hardware.setrange(chi, -2, 100)
 diffcalc.hardware.setrange(eta, -2, 92)
 diffcalc.hardware.setrange(delta, -2, 145)
 diffcalc.hardware.setrange(gam, -2, 145)
 setcut(phi, -180)
-diffcalc.hardware.hardware()
 

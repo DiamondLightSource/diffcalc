@@ -3,7 +3,6 @@ from startup._common_imports import *
 
 ### Create dummy scannables ###
 print "Diffcalc creating dummy Scannables as _fivec and en were not found"
-print "Dummy scannables: _fivec(delta, gam, eta, chi, phi) and en"
 delta = Dummy('delta')
 gam = Dummy('gam')
 eta = Dummy('eta')

@@ -1,7 +1,6 @@
 from startup._common_imports import *
 
 ### Create dummy scannables ###
-print "Dummy scannables: sixc(mu, delta, gam, eta, chi, phi) and en"
 mu = Dummy('mu')
 delta = Dummy('delta')
 gam = Dummy('gam')

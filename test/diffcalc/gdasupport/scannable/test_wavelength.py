@@ -22,8 +22,6 @@ from diffcalc.gdasupport.scannable.wavelength import Wavelength
 try:
     from gdascripts.pd.dummy_pds import DummyPD
 except ImportError:
-    print "WARNING: ExampleSixCircleStartup.py is not running within the GDA:"
-    print "falling back to the (very minimal!) minigda..."
     from diffcalc.gdasupport.minigda.scannable import DummyPD
 
 
