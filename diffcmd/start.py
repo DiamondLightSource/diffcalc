@@ -12,6 +12,7 @@ import diffcalc.settings
 import os
 import sys
 from diffcalc.ub.persistence import UBCalculationJSONPersister
+from diffcalc.util import color
 
 DIFFCALC_ROOT = os.path.realpath(diffcalc.__file__).split('diffcalc/__init__.py')[0]
 
@@ -23,9 +24,11 @@ except NameError:
     IPYTHON = False
 
 
-print "module:", module_name
-print "debug:", debug
+module_name = sys.argv[1] #3 if IPYTHON else 1]
+debug = sys.argv[2] == 'True' #4 if IPYTHON else 2])
 
+print
+print color.BOLD + '-' * 34 + ' DIFFCALC ' + '-' * 35 + color.END
 
 # configure persisentence
 DIFFCALC_VAR = os.path.join(os.path.expanduser('~'), '.diffcalc', module_name)
@@ -41,18 +44,23 @@ if debug:
 
 # import script
 script = os.path.join(DIFFCALC_ROOT, 'startup', module_name) + '.py'
-print '-' * 79
-print "Executing startup script: '%s'" % script    
+
+print "Startup script: '%s'" % script    
 namespace = {}
 execfile(script, namespace)
 globals().update(namespace)
-print '-' * 79
+print color.BOLD + '-' * 36 + ' Help ' + '-' * 37 + color.END
+print HELP_STRING  # @UndefinedVariable
+if 'LOCAL_MANUAL' in locals():
+    print "Local:  " + LOCAL_MANUAL  # @UndefinedVariable
+print color.BOLD + '-' * 79 + color.END
+
 
 # magic commands if IPython
 if IPYTHON:
     from diffcmd.ipython import magic_commands
     magic_commands(globals())
-    print '-' * 79
+
     
 if 'MANUALS_TO_MAKE' in locals():
     from diffcmd.make_manual import make_manual

@@ -1,6 +1,9 @@
 from startup._common_imports import *
 from diffcalc.hkl.you.geometry import YouPosition
 import diffcalc.hkl.you.geometry
+
+LOCAL_MANUAL = 'http://confluence.diamond.ac.uk/display/I16/Diffcalc%20(i16)'
+
 class SixCircleI16(diffcalc.hkl.you.geometry.YouGeometry):
     def __init__(self):
         diffcalc.hkl.you.geometry.YouGeometry.__init__(self, 'sixc', {})

@@ -40,6 +40,13 @@ except ImportError:
     GDA = False
 
 
+HELP_STRING = \
+"""Quick:  https://github.com/DiamondLightSource/diffcalc/blob/master/README.rst
+Manual: https://diffcalc.readthedocs.io
+Type:   > help ub
+        > help hkl"""
+
+
 if GDA:
     from gda.configuration.properties import LocalProperties
     var_folder = LocalProperties.get("gda.var")
