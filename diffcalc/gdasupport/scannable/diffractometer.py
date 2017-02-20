@@ -45,12 +45,13 @@ class DiffractometerScannableGroup(ScannableMotionBase):
     """
 
     def __init__(self, name, diffcalc_module, scannableGroup,
-                 slave_driver=None):
+                 slave_driver=None, hint_generator=None):
         # if motorList is None, will create a dummy __group
         self.diffcalc_module = diffcalc_module
         self.__group = scannableGroup
         self.slave_driver = slave_driver
         self.setName(name)
+        self.hint_generator = hint_generator
 
     def getInputNames(self):
         return self.__group.getInputNames()
@@ -111,11 +112,15 @@ class DiffractometerScannableGroup(ScannableMotionBase):
     def __repr__(self):
         position = self.getPosition()
         names = list(self.getInputNames()) + list(self.getExtraNames())
-
+        if self.hint_generator is None:
+            hint_list = [''] * len(self.getInputNames())
+        else:
+            hint_list = self.hint_generator()
+        
         lines = [self.name + ':']
         width = max(len(k) for k in names)
-        fmt = '  %' + str(width) + 's : % 9.4f'
-        for name, pos in zip(names, position):
-            lines.append(fmt % (name, pos))
+        fmt = '  %' + str(width) + 's : % 9.4f   %s'
+        for name, pos, hint in zip(names, position, hint_list):
+            lines.append(fmt % (name, pos, hint))
         lines[len(self.getInputNames())] += '\n'
         return '\n'.join(lines)
