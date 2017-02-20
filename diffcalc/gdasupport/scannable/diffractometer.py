@@ -20,7 +20,7 @@ try:
     from gda.device.scannable import ScannableMotionBase
 except ImportError:
     from diffcalc.gdasupport.minigda.scannable import \
-        Scannable as ScannableMotionBase
+        ScannableBase as ScannableMotionBase
 
 from diffcalc.util import getMessageFromException
 

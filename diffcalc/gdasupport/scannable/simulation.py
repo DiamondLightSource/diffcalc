@@ -23,7 +23,7 @@ try:
     from gda.device.scannable import PseudoDevice
 except ImportError:
     from diffcalc.gdasupport.minigda.scannable import \
-        Scannable as PseudoDevice
+        ScannableBase as PseudoDevice
 
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.hkl.you.calc import youAnglesToHkl

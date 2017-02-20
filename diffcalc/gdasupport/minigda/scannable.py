@@ -20,6 +20,9 @@ import time
 
 
 class Scannable(object):
+    pass
+
+class ScannableBase(Scannable):
     """Implemtation of a subset of OpenGDA's Scannable interface
     """
 
@@ -72,8 +75,7 @@ class Scannable(object):
         return result
 ###
 
-     
-   def formatPositionFields(self, pos):
+    def formatPositionFields(self, pos):
         """Returns position as array of formatted strings"""
         # Make sure pos is a tuple or list
         if type(pos) not in (tuple, list):
@@ -139,13 +141,13 @@ class Scannable(object):
         self.asynchronousMoveTo(newpos)
 
 
-class SingleFieldDummyScannable(Scannable):
+class SingleFieldDummyScannable(ScannableBase):
 
     def __init__(self, name, initial_position=0.):
         self.name = name
         self.inputNames = [name]
-        sel        self.outputFormat = ['% 6.4f']
-f.level = 3
+        self.outputFormat = ['% 6.4f']
+        self.level = 3
         self._current_position = float(initial_position)
 
     def isBusy(self):
@@ -166,7 +168,7 @@ class DummyPD(SingleFieldDummyScannable):
     pass
 
 
-class MultiInputExtraFieldsDummyScannable(Scannable):
+class MultiInputExtraFieldsDummyScannable(ScannableBase):
     '''Multi input Dummy PD Class supporting input and extra fields'''
     def __init__(self, name, inputNames, extraNames):
         self.setName(name)
@@ -193,7 +195,7 @@ class MultiInputExtraFieldsDummyScannable(Scannable):
         return self.currentposition + map(float, extraValues)
 
 
-class ZeroInputExtraFieldsDummyScannable(Scannable):
+class ZeroInputExtraFieldsDummyScannable(ScannableBase):
     '''Zero input/extra field dummy pd
     '''
     def __init__(self, name):
@@ -211,7 +213,7 @@ class ZeroInputExtraFieldsDummyScannable(Scannable):
         pass
 
 
-class ScannableGroup(Scannable):
+class ScannableGroup(ScannableBase):
     """wraps up motors. Simulates motors if non given."""
 
     def __init__(self, name, motorList):
@@ -254,7 +256,7 @@ class ScannableGroup(Scannable):
         pass
 
 
-class ScannableMotionWithScannableFieldsBase(Scannable):
+class ScannableMotionWithScannableFieldsBase(ScannableBase):
     '''
     This extended version of ScannableMotionBase contains a
     completeInstantiation() method which adds a dictionary of
@@ -334,7 +336,7 @@ class ScannableMotionWithScannableFieldsBase(Scannable):
     def asynchronousMoveTo(self, newpos):
         if self.autoCompletePartialMoveToTargets:
             newpos = self.completePosition(newpos)
-        Scannable.asynchronousMoveTo(self, newpos)
+        ScannableBase.asynchronousMoveTo(self, newpos)
 
     def completePosition(self, position):
         '''
@@ -367,7 +369,7 @@ class ScannableMotionWithScannableFieldsBase(Scannable):
         '''Returns the a compnent scannable'''
         return self.childrenDict[name]
 
-    class MotionScannablePart(Scannable):
+    class MotionScannablePart(ScannableBase):
         '''
         A scannable to be placed in the parent's childrenDict that allows
         access to the parent's individual fields.'''
@@ -413,3 +415,51 @@ class ScannableMotionWithScannableFieldsBase(Scannable):
                 name = self.getExtraNames()[0]
             parentName = self.parentScannable.getName()
             return parentName + "." + name + " : " + str(self.getPosition())
+
+
+class ScannableAdapter(Scannable):
+    '''Wrap up a Scannable and give it a new name and optionally an offset
+    (added to the delegate when reading up and subtracting when setting down
+    '''
+    
+    def __init__(self, delegate_scn, name, offset=0):
+        assert len(delegate_scn.getInputNames()) == 1
+        assert len(delegate_scn.getExtraNames()) == 0
+        self.delegate_scn = delegate_scn
+        self.name = name
+        self.offset = offset
+               
+    def __getattr__(self, name):
+        return getattr(self.delegate_scn, name)
+    
+    def getName(self):
+        return self.name
+    
+    def getInputNames(self):
+        return [self.name]
+    
+    def getPosition(self):
+        return self.delegate_scn.getPosition() + self.offset
+    
+    def asynchronousMoveTo(self, newpos):
+        self.delegate_scn.asynchronousMoveTo(newpos - self.offset)
+        
+    def __repr__(self):
+        pos = self.getPosition()
+        formatted_values = self.delegate_scn.formatPositionFields(pos)  
+        return self.name + ': ' + formatted_values[0] + ' ' + self.get_hint()
+    
+    def get_hint(self):
+        if self.offset:
+            offset_hint = ' + ' if self.offset >= 0 else ' - '
+            offset_hint += str(self.offset)
+        else:
+            offset_hint = ''
+        return '(%s%s)' % (self.name, offset_hint)
+    
+    def __call__(self, newpos=None):
+        if newpos is None:
+            return self.getPosition()
+        self.asynchronousMoveTo(newpos)
+    
+        
