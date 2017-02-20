@@ -147,7 +147,7 @@ hash_finder = re.compile(r'''((?:[^#"']|"[^"]*"|'[^']*')+)''')
 open_square_finder = re.compile(r'''((?:[^["']|"[^"]*"|'[^']*')+)''')
 close_square_finder = re.compile(r'''((?:[^]"']|"[^"]*"|'[^']*')+)''')
 
-def _tokenify(s):
+def tokenify(s):
     
     # Don't accept commas outside strings.
     # Users are frustrated by not knowing when commas _are_ required.
@@ -178,7 +178,7 @@ def _tokenify(s):
 
 def parse(s, d):
     s = str(s)
-    tokens = _tokenify(s)
+    tokens = tokenify(s)
     for tok in tokens:
         if tok in MATH_OPERATORS:
             print MATH_OPERATOR_USAGE_HELP
@@ -196,7 +196,6 @@ def parse(s, d):
     except SyntaxError:
         raise SyntaxError('could not evaluate: "%s"' % s)
     return args
-
 
 def parse_line(f, global_namespace_dict=None):
     '''A decorator that parses a single string argument into a list of arguments

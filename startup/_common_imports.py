@@ -27,7 +27,12 @@ from diffcalc.ub.persistence import UbCalculationNonPersister, UBCalculationJSON
 from diffcalc import settings
 import diffcalc.util
 
-   
+try:
+    __IPYTHON__  # @UndefinedVariable
+    IPYTHON = True
+except NameError:
+    IPYTHON = False
+
 try:
     from gda.device.scannable.scannablegroup import ScannableGroup
     from gdascripts.scannable.dummy import SingleInputDummy as Dummy

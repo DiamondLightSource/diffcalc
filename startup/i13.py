@@ -1,5 +1,5 @@
 from startup._common_imports import *
-
+import startup._demo
 
 if '_fivec' in globals() and 'en' in globals():
     # Assume we are running in a live GDA deployment with a _fivec ScannableGroup
@@ -36,3 +36,6 @@ if GDA:
     alias_commands(globals())
     
 lastub()  # Load the last ub calculation used
+
+if not GDA:
+    demo = startup._demo.Demo(globals(), 'fivec')

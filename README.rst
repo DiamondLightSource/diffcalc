@@ -54,10 +54,10 @@ NOTE: Within Diamond use::
    ...
    $ diffcalc sixcircle
 
-Type ``demo_all()`` to see it working and then move try the following quick
+Type ``demo.all()`` to see it working and then move try the following quick
 start guide::
 
-   >>> demo_all()
+   >>> demo.all()
    ...
 
 Getting help

@@ -23,6 +23,5 @@ class test_fivecircle_example():
         pass
         # the import above will test this
 
-    def test_demo_all_and_scan(self):
-        demo_all()  # @UndefinedVariable
-        demo_scan()  # @UndefinedVariable
+    def test_demo_all(self):
+        demo.all()  # @UndefinedVariable

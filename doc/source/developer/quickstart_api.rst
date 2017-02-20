@@ -24,15 +24,15 @@ Start
 -----
 
 With Python start the sixcircle_api.py example startup script (notice
-the -i and -m) and type ``demo_all()``::
+the -i and -m) and type ``demo.all()``::
 
    $ python -i -m example/sixcircle_api
-   >>> demo_all()
+   >>> demo.all()
 
 Or with IPython::
 
    $ ipython -i example/sixcircle_api.py
-   >>> demo_all()
+   >>> demo.all()
 
 Alternatively start Python or IPython and cut and paste lines from the rest of
 this tutorial::
