@@ -260,8 +260,8 @@ class YouConstraintManager(object):
         return label
 
     def constrain(self, name):
-        if self._is_constraint_fixed(name):
-            raise DiffcalcException('%s is not a valid constraint name')
+        if self.is_constraint_fixed(name):
+            raise DiffcalcException('%s is not a valid constraint name' % name)
         if name in self.all:
             return "%s is already constrained." % name.capitalize()
         elif name in det_constraints:
@@ -273,7 +273,7 @@ class YouConstraintManager(object):
         else:
             raise DiffcalcException("%s is not a valid constraint name. Type 'con' for a table of constraint name" % name)
 
-    def _is_constraint_fixed(self, name):
+    def is_constraint_fixed(self, name):
         return ((name in det_constraints and self._hide_detector_constraint) or
                 (name in samp_constraints and name in self._fixed_samp_constraints))
 
@@ -325,7 +325,7 @@ class YouConstraintManager(object):
             raise self._could_not_constrain_exception(name)
 
     def unconstrain(self, name):
-        if self._is_constraint_fixed(name):
+        if self.is_constraint_fixed(name):
             raise DiffcalcException('%s is not a valid constraint name')
         if name in self._constrained:
             del self._constrained[name]
@@ -350,7 +350,7 @@ class YouConstraintManager(object):
         self._constrained = {}
 
     def set_constraint(self, name, value):  # @ReservedAssignment
-        if self._is_constraint_fixed(name):
+        if self.is_constraint_fixed(name):
             raise DiffcalcException('%s is not a valid constraint name')
         self._check_constraint_settable(name)
 #        if name in self._tracking:

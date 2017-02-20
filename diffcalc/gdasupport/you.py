@@ -81,11 +81,14 @@ def _create_constraint_scannable(con_name, scn_name=None):
     return DiffractionCalculatorParameter(
         scn_name, con_name, _dc.constraint_manager)
      
-# Detector constraints                                
-delta_con = _create_constraint_scannable('delta', 'delta_con')
-gam_con = _create_constraint_scannable('gam', 'gam_con')
-qaz = _create_constraint_scannable('qaz')
-naz = _create_constraint_scannable('naz')
+# Detector constraints
+def isconstrainable(name):
+    return not constraint_manager.is_constraint_fixed(name)
+
+if isconstrainable('delta'): delta_con = _create_constraint_scannable('delta', 'delta_con')
+if isconstrainable('gam'): gam_con = _create_constraint_scannable('gam', 'gam_con')
+if isconstrainable('qaz'): qaz = _create_constraint_scannable('qaz')
+if isconstrainable('naz'): naz = _create_constraint_scannable('naz')
 
 # Reference constraints
 alpha = _create_constraint_scannable('alpha')
@@ -94,11 +97,11 @@ psi = _create_constraint_scannable('psi')
 a_eq_b = 'a_eq_b'
 
 # Sample constraints
-mu_con = _create_constraint_scannable('mu', 'mu_con')
-eta_con = _create_constraint_scannable('eta', 'eta_con')
-chi_con = _create_constraint_scannable('chi', 'chi_con')
-phi_con = _create_constraint_scannable('phi', 'phi_con')
-mu_is_gam = 'mu_is_gam'
+if isconstrainable('mu'): mu_con = _create_constraint_scannable('mu', 'mu_con')
+if isconstrainable('eta'): eta_con = _create_constraint_scannable('eta', 'eta_con')
+if isconstrainable('chi'): chi_con = _create_constraint_scannable('chi', 'chi_con')
+if isconstrainable('phi'): phi_con = _create_constraint_scannable('phi', 'phi_con')
+if isconstrainable('mu') and isconstrainable('gam'): mu_is_gam = 'mu_is_gam'
 
 
 # Cleanup to allow "from gdasupport.you import *"
