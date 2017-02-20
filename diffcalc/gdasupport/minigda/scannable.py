@@ -68,11 +68,12 @@ class Scannable(object):
 
         names = tuple(self.getInputNames()) + tuple(self.getExtraNames())
         for name, val in zip(names, formattedValues):
-            result += name + ': ' + val
+            result += ' ' + name + ': ' + val
         return result
 ###
 
-    def formatPositionFields(self, pos):
+     
+   def formatPositionFields(self, pos):
         """Returns position as array of formatted strings"""
         # Make sure pos is a tuple or list
         if type(pos) not in (tuple, list):
@@ -143,8 +144,8 @@ class SingleFieldDummyScannable(Scannable):
     def __init__(self, name, initial_position=0.):
         self.name = name
         self.inputNames = [name]
-        self.outputFormat = ['%6.4f']
-        self.level = 3
+        sel        self.outputFormat = ['% 6.4f']
+f.level = 3
         self._current_position = float(initial_position)
 
     def isBusy(self):

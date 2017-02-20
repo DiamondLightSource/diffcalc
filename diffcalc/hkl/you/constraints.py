@@ -23,7 +23,7 @@ try:
 except ImportError:
     from numjy import matrix
 
-from diffcalc.util import DiffcalcException
+from diffcalc.util import DiffcalcException, bold
 
 TODEG = 180 / pi
 TORAD = pi / 180
@@ -175,12 +175,12 @@ class YouConstraintManager(object):
         
         header_cells = []
         if not self._hide_detector_constraint:
-            header_cells.append('    ' + 'DET'.ljust(max_name_width))
-        header_cells.append('    ' + 'REF'.ljust(max_name_width))
-        header_cells.append('    ' + 'SAMP')
+            header_cells.append(bold('    ' + 'DET'.ljust(max_name_width)))
+        header_cells.append(bold('    ' + 'REF'.ljust(max_name_width)))
+        header_cells.append(bold('    ' + 'SAMP'))
         cells.append(header_cells)
         
-        underline_cells = ['    ' + '=' * max_name_width] * len(constraint_types)
+        underline_cells = ['    ' + '-' * max_name_width] * len(constraint_types)
         cells.append(underline_cells)
         
         for n_row in range(num_rows):
@@ -200,9 +200,9 @@ class YouConstraintManager(object):
             return "    %s" % name
         else:
             if val is None:
-                return "!   %s: ---" % name
+                return "!   %-5s: ---" % name
             else:
-                return "    %s: %.4f" % (name, val)
+                return "    %-5s: %.4f" % (name, val)
             
     def report_constraints_lines(self):
         lines = []

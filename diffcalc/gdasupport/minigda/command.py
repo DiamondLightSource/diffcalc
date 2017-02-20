@@ -21,7 +21,7 @@
 #except ImportError:
 #    from diffcalc.gdasupport.minigda.scannable import Scannable
 from diffcalc.gdasupport.minigda.scannable import Scannable
-from diffcalc.util import getMessageFromException, allnum
+from diffcalc.util import getMessageFromException, allnum, bold
 import math
 
 
@@ -158,7 +158,7 @@ class ScanDataPrinter(ScanDataHandler):
         #table_width = sum(self.widths) + len(self.widths * 2) - 2
         lines = []
         #lines.append('=' * table_width)
-        lines.append('  '.join(header_cells))
+        lines.append(bold('  '.join(header_cells)))
         lines.append('  '.join(underline_cells))
         lines.append('  '.join(first_row_cells))
         print '\n'.join(lines)

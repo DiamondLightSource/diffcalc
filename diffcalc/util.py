@@ -48,6 +48,11 @@ class color:
     UNDERLINE = '\033[4m'
     END = '\033[0m'
 
+
+def bold(s):
+    return color.BOLD + s + color.END
+
+
 def x_rotation(th):
     return matrix(((1, 0, 0), (0, cos(th), -sin(th)), (0, sin(th), cos(th))))
 
