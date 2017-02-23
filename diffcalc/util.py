@@ -22,7 +22,9 @@ import textwrap
 
 try:
     from gda.jython.commands.InputCommands import requestInput as raw_input
+    GDA = True
 except ImportError:
+    GDA = False
     pass  # raw_input unavailable in gda
 try:
     from numpy import matrix
@@ -42,11 +44,16 @@ SMALL = 1e-10
 TORAD = pi / 180
 TODEG = 180 / pi
 
-
-class color:
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    END = '\033[0m'
+if GDA:
+   class color:
+       BOLD = ''
+       UNDERLINE = ''
+       END = '' 
+else:
+    class color:
+        BOLD = '\033[1m'
+        UNDERLINE = '\033[4m'
+        END = '\033[0m'
 
 
 def bold(s):
