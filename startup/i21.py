@@ -68,15 +68,17 @@ else:
     phi = ScannableAdapter(saaz, 'phi')
     
     def usediode():
-        delta.set_delegate_scn(diode_tth)
+        delta.delegate_scn = diode_tth
     
     def usevessel():
-        delta.set_delegate_scn(vessel_tth)
+        delta.delegate_scn = vessel_tth
         
     if IPYTHON:
         from IPython import get_ipython
         register_line_magic(parse_line(usediode, globals()))
+        del usediode
         register_line_magic(parse_line(usevessel, globals()))
+        del usevessel
         
 print "Created i21 bespoke commands: usediode & usevessel"
  
@@ -110,5 +112,19 @@ if GDA:
 # Load the last ub calculation used
 lastub() 
 
+class I21Demo(startup._demo.Demo):
+    
+    def i21(self):
+        startup._demo.print_heading('i21 scannables demo')
+
+        self.echorun_magiccmd_list([
+            'sa',
+            'pos sapol 1',
+            'pos satilt 2',
+            'pos saaz 3',
+            'pos vessel_tth 4',
+            'usevessel',
+            'fourc'])
+
 if not GDA:
-    demo = startup._demo.Demo(globals(), 'fourc')
+    demo = I21Demo(globals(), 'fourc')

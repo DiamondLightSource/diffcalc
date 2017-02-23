@@ -5,3 +5,4 @@ doc/build/
 .pydevproject
 .project
 
+.DS_Store

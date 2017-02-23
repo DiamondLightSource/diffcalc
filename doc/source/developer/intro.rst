@@ -11,7 +11,7 @@ Diffcalc's standard calculation engine is an implementation of
 [Vlieg1993]_ and [Vlieg1998]_ and a 'Vlieg' engine is still
 available. The 'You' engine is more generic and the plan is to remove
 the old 'Vlieg' engine once beamlines have been migrated. New users
-should use the 'You' engine. [*]_
+should use the 'You' engine.
 
 The foundations for this type of calculation were laid by by Busing &
 Levi in their classic paper [Busing1967]_. Diffcalc's orientation
