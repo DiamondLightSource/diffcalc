@@ -29,7 +29,7 @@ Diffractometer compatibility
 Diffcalc’s standard calculation engine is an implementation of [You1999]_ and
 [Busing1967]_. Diffcalc works with any diffractometer which is a subset of:
 
- .. image:: https://raw.githubusercontent.com/DiamondLightSource/diffcalc/master/doc/source/user/images/you/4s_2d_diffractometer.png
+ .. image:: https://raw.githubusercontent.com/DiamondLightSource/diffcalc/master/doc/source/youmanual/images/4s_2d_diffractometer.png
      :alt: 4s + 2d six-circle diffractometer, from H.You (1999)
      :width: 50%
      :align: center
