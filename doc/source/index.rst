@@ -8,11 +8,14 @@
 
 .. rubric:: Diffcalc: A Diffraction Condition Calculator for Diffractometer Control
 
+See also the `quickstart guide at github <https://github.com/DiamondLightSource/diffcalc/blob/master/README.rst>`_.
+
 .. toctree::
    :maxdepth: 2
    :numbered:
 
-   user/contents
+   youmanual/contents
+   vliegmanual/contents
    developer/contents
 
 Indices and tables

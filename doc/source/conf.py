@@ -42,7 +42,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Diffcalc'
-copyright = u'2011-%s, Diamond Light Source' % time.strftime('%Y')
+copyright = u'2017-%s, Diamond Light Source' % time.strftime('%Y')
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -191,9 +191,7 @@ latex_paper_size = 'a4'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ('user/contents', 'diffcalc_user_guide.tex', u'Diffcalc User Guide',
-    u'Diamond Light Source', 'manual'),
-    ('developer/contents', 'diffcalc_developer_guide.tex', u'Diffcalc Developer Guide',
+    ('youmanual/contents', 'diffcalc_user_guide.tex', u'Diffcalc User Guide',
     u'Diamond Light Source', 'manual'),
 ]
 
