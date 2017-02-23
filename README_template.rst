@@ -127,73 +127,29 @@ To load a previous UB-calculation::
 
 To create a new UB-calculation::
 
-   >>> newub 'example'
-   >>> setlat '1Acube' 1 1 1 90 90 90
+   ==> newub 'example'
+   ==> setlat '1Acube' 1 1 1 90 90 90
 
 Find U matrix from two reflections::
 
-   >>> pos wl 1
-   wl:        1.0000
-   >>> c2th [0 0 1]
+   ==> pos wl 1
+   ==> c2th [0 0 1]
    59.99999999999999
 
-   >>> pos sixc [0 60 0 30 90 0]
-   sixc:     mu:  0.0000 delta:  60.0000 gam:  0.0000 eta:  30.0000 chi:  90.0000 phi:  0.0000 
-   >>> addref [0 0 1]
+   ==> pos sixc [0 60 0 30 90 0]
+   ==> addref [0 0 1]
 
-   >>> pos sixc [0 90 0 45 45 90]
-   sixc:     mu:  0.0000 delta:  90.0000 gam:  0.0000 eta:  45.0000 chi:  45.0000 phi:  90.0000 
-   >>> addref [0 1 1]
-   Calculating UB matrix.
+   ==> pos sixc [0 90 0 45 45 90]
+   ==> addref [0 1 1]
 
 
 Check that it looks good::
 
-   >>> checkub
-   
-        ENERGY     H     K     L    H_COMP   K_COMP   L_COMP     TAG
-    1  12.3984  0.00  0.00  1.00    0.0000   0.0000   1.0000        
-    2  12.3984  0.00  1.00  1.00    0.0000   1.0000   1.0000        
+   ==> checkub
 
 To see the resulting UB-calculation::
 
-   >>> ub
-   UBCALC
-   
-      name:       example
-   
-      n_phi:      0.00000   0.00000   1.00000 <- set
-      n_hkl:     -0.00000   0.00000   1.00000
-      miscut:     None
-   
-   CRYSTAL
-   
-      name:        1Acube
-   
-      a, b, c:    1.00000   1.00000   1.00000
-                 90.00000  90.00000  90.00000
-   
-      B matrix:   6.28319   0.00000   0.00000
-                  0.00000   6.28319   0.00000
-                  0.00000   0.00000   6.28319
-   
-   UB MATRIX
-   
-      U matrix:   1.00000   0.00000   0.00000
-                  0.00000   1.00000   0.00000
-                  0.00000   0.00000   1.00000
-   
-      U angle:    0
-   
-      UB matrix:  6.28319   0.00000   0.00000
-                  0.00000   6.28319   0.00000
-                  0.00000   0.00000   6.28319
-   
-   REFLECTIONS
-   
-        ENERGY     H     K     L        MU    DELTA      GAM      ETA      CHI      PHI  TAG
-      1 12.398  0.00  0.00  1.00    0.0000  60.0000   0.0000  30.0000  90.0000   0.0000  
-      2 12.398  0.00  1.00  1.00    0.0000  90.0000   0.0000  45.0000  45.0000  90.0000  
+   ==> ub
 
 Setting the reference vector
 ----------------------------
@@ -224,20 +180,7 @@ To get help and see current constraints::
    >>> help con
    ...
 
-   >>> con
-       DET        REF        SAMP
-       ------     ------     ------
-       delta  --> a_eq_b --> mu
-   --> gam        alpha      eta
-       qaz        beta       chi
-       naz        psi        phi
-                             mu_is_gam
-   
-       gam  : 0.0000
-       a_eq_b
-       mu   : 0.0000
-   
-       Type 'help con' for instructions
+   ==> con
 
 Three constraints can be given: zero or one from the DET and REF columns and the
 remainder from the SAMP column. Not all combinations are currently available.
@@ -245,40 +188,20 @@ Use ``help con`` to see a summary if you run into troubles.
 
 To configure four-circle vertical scattering::
 
-   >>> con gam 0 mu 0 a_eq_b
-       gam  : 0.0000
-       a_eq_b
-       mu   : 0.0000
+   ==> con gam 0 mu 0 a_eq_b
 
 Moving in hkl space
 -------------------
 
 Simulate moving to a reflection::
 
-   >>> sim hkl [0 1 1]
-   sixc would move to:
-        mu :    0.0000
-     delta :   90.0000
-       gam :    0.0000
-       eta :   45.0000
-       chi :   45.0000
-       phi :   90.0000
-   
-     alpha :   30.0000
-      beta :   30.0000
-       naz :   35.2644
-       psi :   90.0000
-       qaz :   90.0000
-       tau :   45.0000
-     theta :   45.0000
+   ==> sim hkl [0 1 1]
 
 Move to reflection::
 
-   >>> pos hkl [0 1 1]
-   hkl:      h: 0.00000 k: 1.00000 l: 1.00000 
+   ==> pos hkl [0 1 1]
 
-   >>> pos sixc
-   sixc:     mu:  0.0000 delta:  90.0000 gam:  0.0000 eta:  45.0000 chi:  45.0000 phi:  90.0000 
+   ==> pos sixc
 
 
 Scanning in hkl space
@@ -286,30 +209,12 @@ Scanning in hkl space
 
 Scan an hkl axis (and read back settings)::
 
-   >>> scan l 0 1 .2 sixc
-         l       mu     delta      gam       eta      chi       phi
-   -------  -------  --------  -------  --------  -------  --------
-   0.00000   0.0000   60.0000   0.0000   30.0000   0.0000   90.0000
-   0.20000   0.0000   61.3146   0.0000   30.6573   11.3099   90.0000
-   0.40000   0.0000   65.1654   0.0000   32.5827   21.8014   90.0000
-   0.60000   0.0000   71.3371   0.0000   35.6685   30.9638   90.0000
-   0.80000   0.0000   79.6302   0.0000   39.8151   38.6598   90.0000
-   1.00000   0.0000   90.0000   0.0000   45.0000   45.0000   90.0000
+   ==> scan l 0 1 .2 sixc
 
 Scan a constraint (and read back virtual angles and eta)::
 
-   >>> con psi
-       gam  : 0.0000
-   !   psi  : ---
-       mu   : 0.0000
-   >>> scan psi 70 110 10 hklverbose [0 1 1] eta
-        psi       eta        h        k        l     theta       qaz     alpha       naz       tau       psi      beta
-   --------  --------  -------  -------  -------  --------  --------  --------  --------  --------  --------  --------
-   70.00000   26.1183  0.00000  1.00000  1.00000  45.00000  90.00000  19.20748  45.28089  45.00000  70.00000  42.14507
-   80.00000   35.1489  -0.00000  1.00000  1.00000  45.00000  90.00000  24.40450  40.12074  45.00000  80.00000  35.93196
-   90.00000   45.0000  0.00000  1.00000  1.00000  45.00000  90.00000  30.00000  35.26439  45.00000  90.00000  30.00000
-   100.00000   54.8511  -0.00000  1.00000  1.00000  45.00000  90.00000  35.93196  30.68206  45.00000  100.00000  24.40450
-   110.00000   63.8817  -0.00000  1.00000  1.00000  45.00000  90.00000  42.14507  26.34100  45.00000  110.00000  19.20748
+   ==> con psi
+   ==> scan psi 70 110 10 hklverbose [0 1 1] eta
 
 References
 ----------
