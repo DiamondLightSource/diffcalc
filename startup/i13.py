@@ -36,6 +36,20 @@ if GDA:
     
 lastub()  # Load the last ub calculation used
 
+
+setmax(delta, 28)
+setmin(delta, -1)
+setmin(gam, 0)
+setmax(gam, 15)
+setmin(eta, -10)
+setmax(eta, 10)
+setmin(chi, 75)
+setmax(chi, 105)
+setmin(phi, -88)
+setmax(phi, 88)
+
+hardware()
+
 if not GDA:
     from startup._common_imports import *
     import startup._demo
