@@ -22,7 +22,9 @@ import textwrap
 
 try:
     from gda.jython.commands.InputCommands import requestInput as raw_input
+    GDA = True
 except ImportError:
+    GDA = False
     pass  # raw_input unavailable in gda
 try:
     from numpy import matrix
@@ -43,14 +45,15 @@ TORAD = pi / 180
 TODEG = 180 / pi
 
 
-class color:
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    END = '\033[0m'
-
+COLOURISE_TERMINAL_OUTPUT = False
+    
 
 def bold(s):
-    return color.BOLD + s + color.END
+    if not COLOURISE_TERMINAL_OUTPUT:
+        return s    
+    BOLD = '\033[1m'
+    END = '\033[0m'
+    return BOLD + s + END
 
 
 def x_rotation(th):

@@ -21,7 +21,7 @@ from diffcalc.ub.calcstate import UBCalcState
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.reflections import ReflectionList
 from diffcalc.ub.persistence import UBCalculationJSONPersister, UBCalculationPersister
-from diffcalc.util import DiffcalcException, cross3, dot3, color
+from diffcalc.util import DiffcalcException, cross3, dot3, bold
 from math import acos, cos, sin, pi
 from diffcalc.ub.reference import YouReference
 
@@ -160,9 +160,6 @@ class UBCalculation:
         return self._state.getState()
 
     def __str__(self):
-
-        def bold(s):
-            return color.BOLD + s + color.END
 
         if self._state.name is None:
             return "<<< No UB calculation started >>>"

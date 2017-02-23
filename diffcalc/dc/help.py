@@ -6,7 +6,7 @@ Created on 6 May 2016
 from diffcalc import settings
 from diffcalc.gdasupport.scannable.sim import sim
 import textwrap
-from diffcalc.util import color
+from diffcalc.util import bold
 
 
 class ExternalCommand(object):
@@ -28,7 +28,7 @@ def format_command_help(command_list):
     for obj in command_list:
 
         if isinstance(obj, basestring):  # group heading
-            lines.extend(['', color.BOLD + obj.upper() + color.END, ''])
+            lines.extend(['', bold(obj.upper()), ''])
 
         else:  # individual command
             doc_before_empty_line = obj.__doc__.split('\n\n')[0]

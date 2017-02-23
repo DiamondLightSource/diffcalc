@@ -29,7 +29,7 @@ except ImportError:
 
 
 from diffcalc.util import getInputWithDefault as promptForInput, \
-    promptForNumber, promptForList, allnum, isnum, color
+    promptForNumber, promptForList, allnum, isnum, bold
 from diffcalc.util import command
 
 TORAD = pi / 180
@@ -436,7 +436,7 @@ def checkub():
 
     s = "\n    %7s  %4s  %4s  %4s    %6s   %6s   %6s     TAG\n" % \
     ('ENERGY', 'H', 'K', 'L', 'H_COMP', 'K_COMP', 'L_COMP')
-    s = color.BOLD + s + color.END
+    s = bold(s)
     nref = ubcalc.get_number_reflections()
     if not nref:
         s += "<<empty>>"

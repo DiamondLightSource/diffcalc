@@ -18,7 +18,7 @@
 
 from copy import deepcopy
 import datetime  # @UnusedImport for the eval below
-from diffcalc.util import DiffcalcException, color
+from diffcalc.util import DiffcalcException, bold
 from diffcalc.hkl.vlieg.geometry import VliegPosition
 
 
@@ -112,7 +112,7 @@ class ReflectionList:
 
         format = ("     %6s %5s %5s %5s  " + "%8s " * len(axes) + " TAG")
         values = ('ENERGY', 'H', 'K', 'L') + axes
-        lines.append(color.BOLD + (format % values) + color.END)
+        lines.append(bold(format % values))
 
         for n in range(len(self._reflist)):
             ref_tuple = self.get_reflection_in_external_angles(n + 1)
