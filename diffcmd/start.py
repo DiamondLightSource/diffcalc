@@ -67,10 +67,18 @@ if 'MANUALS_TO_MAKE' in locals():
     summary_lines = ['Made manuals:']
     from diffcmd.make_manual import make_manual
     for source_path in MANUALS_TO_MAKE:  # @UndefinedVariable
-        target_path = source_path.split('_template.py')[0] + '_generated.py'
+        import diffcalc.ub.ub
+        try:
+            diffcalc.ub.ub.rmub('example')
+        except KeyError:
+            pass
+        target_path = source_path.replace('_template', '')
         print '@' * 79
         print "Making manual"
         print "    Source:", source_path
         print "    Target:", target_path
         
-    make_manual(source_path, None)
+        make_manual(source_path, target_path)
+        summary_lines.append(' - ' + source_path + ' -- > ' + target_path)
+    print '\n'.join(summary_lines)
+    

@@ -41,15 +41,22 @@ def make_manual(input_file_path, output_file_path=None):
     else:
         input_string = TEST_INPUT
     
+    # Parse input string
     output_lines = []
     for lineno, line in enumerate(input_string.split('\n')):
         if '==> STOP' in line:
-            print "'==> STOP' found on line", lineno
+            print "'==> STOP' found on line", lineno + 1
             return
-        output_lines = parse_line(line, lineno)
+        output_lines_from_line = parse_line(line, lineno + 1, input_file_path)
        
-        print '\n'.join(output_lines)
+        print '\n'.join(output_lines_from_line)
+        output_lines.extend(output_lines_from_line)
     
+    # Write output file
+    if output_file_path:
+        with open(output_file_path, 'w') as f:
+            f.write('\n'.join(output_lines))
+        print "Wrote file:", output_file_path
 #     try:
 #         if output_file_path:
 #             orig_stdout = sys.stdout
@@ -64,14 +71,14 @@ def make_manual(input_file_path, output_file_path=None):
 #             f.close()
 
  
-def parse_line(linein, lineno):
+def parse_line(linein, lineno, filepath):
     output_lines = []
     if '==>' in linein:
         pre, cmd = linein.split('==>')
-        _check_spaces_only(pre, lineno)
+        _check_spaces_only(pre, lineno, filepath)
         cmd = cmd.strip()  # strip whitespace
         output_lines.append(pre + ">>> " + cmd)
-        result_lines = _capture_magic_command_output(cmd, lineno)
+        result_lines = _capture_magic_command_output(cmd, lineno, filepath)
 
         
         # append to output    
@@ -82,31 +89,31 @@ def parse_line(linein, lineno):
     return output_lines
 
     
-def _check_spaces_only(s, lineno):
+def _check_spaces_only(s, lineno, filepath):
     for c in s:
         if c != ' ':
-            raise Exception('Error on line %i: text preceeding --> must be '
-                            'spaces only' % lineno)
+            raise Exception('Error on line %i of %s :\n text proceeding --> must be '
+                            'spaces only' % (lineno, filepath))
             
-def _capture_magic_command_output(magic_cmd, lineno):
+def _capture_magic_command_output(magic_cmd, lineno, filepath):
     orig_stdout = sys.stdout
     result = StringIO()
     sys.stdout = result
     
-    def log_error(lineno, magic_cmd):
-        msg = "Error on line %i evaluating '%s'" % (lineno, magic_cmd)
+    def log_error():
+        msg = "Error on line %i of %s evaluating '%s'" % (lineno, filepath, magic_cmd)
         sys.stderr.write('\n' + '=' * 79 + '\n' + msg + '\n' +'v' * 79 + '\n')
         return msg
     try:
         line_magics = get_ipython().magics_manager.magics['line']
         magic = magic_cmd.split(' ')[0]
         if magic not in line_magics:
-            msg = log_error(lineno, magic_cmd)
+            msg = log_error()
             raise Exception(msg + " ('%s' is not a magic command)" % magic)
             
         get_ipython().magic(magic_cmd)
     except:
-        log_error(lineno, magic_cmd)
+        log_error()
         raise
     finally:
         sys.stdout = orig_stdout

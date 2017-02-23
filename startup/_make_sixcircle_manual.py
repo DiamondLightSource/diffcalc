@@ -32,9 +32,9 @@ from diffcalc.gdasupport.you import *  # @UnusedWildImport
 DIFFCALC_ROOT = os.sep.join(
     os.path.realpath(diffcalc.__file__).split(os.sep)[:-2])
 
-print DIFFCALC_ROOT
 MANUALS_TO_MAKE = [
-    os.path.join(DIFFCALC_ROOT, 'doc', 'source', 'user',
-                 'youquickstart_template.rst')#,
-#     os.path.join(DIFFCALC_ROOT, 'doc', 'source', 'user', 'youmanual_template.rst')
-    ]
+    os.path.join(DIFFCALC_ROOT, 'doc', 'source', 'youmanual',
+                  'youmanual_template.rst'),
+    os.path.join(DIFFCALC_ROOT, 'README_template.rst')]
+
+print 'MANUALS_TO_MAKE: ', MANUALS_TO_MAKE
