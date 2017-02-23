@@ -59,11 +59,10 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
     def __repr__(self):
         pos = self.getPosition()
         formatted_values = self.formatPositionFields(pos)
-        print [self.getName()] + list(formatted_values)
         s = '''%s:
 sapol : %s (eta)
 satilt : %s (chi-90)
-saa : %s (phi)''' 
+saaz : %s (phi)''' 
         return s % ((self.getName(),) + tuple(formatted_values))       
 
 

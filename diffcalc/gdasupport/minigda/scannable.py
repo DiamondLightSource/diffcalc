@@ -455,7 +455,7 @@ class ScannableAdapter(Scannable):
             offset_hint += str(self.offset)
         else:
             offset_hint = ''
-        return '(%s%s)' % (self.name, offset_hint)
+        return '(%s%s)' % (self.delegate_scn.name, offset_hint)
     
     def __call__(self, newpos=None):
         if newpos is None:
