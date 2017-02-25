@@ -46,7 +46,6 @@ TODEG = 180 / pi
 
 
 COLOURISE_TERMINAL_OUTPUT = not GDA
-    
 
 def bold(s):
     if not COLOURISE_TERMINAL_OUTPUT:
