@@ -1,13 +1,28 @@
+################################
+Diffcalc User Guide (You Engine)
+################################
+
+.. rubric:: Diffcalc: A diffraction condition calculator for diffractometer control
+
+:Author: Rob Walton
+:Contact: rob.walton (at) diamond (dot) ac (dot) uk 
+:Website: https://github.com/DiamondLightSource/diffcalc
+
+.. toctree::
+   :maxdepth: 2
+   :numbered:
+
+See also the `quickstart guide at github <https://github.com/DiamondLightSource/diffcalc/blob/master/README.rst>`_
+
 Introduction
 ============
-
 
 This manual assumes that you are running Diffcalc within OpenGDA or have started
 it using IPython. It assumes that Diffcalc has been configured for the six
 circle diffractometer pictured here:
 
-.. figure:: images/4s_2d_diffractometer.png
-   :scale: 50
+.. figure:: youmanual_images/4s_2d_diffractometer.png
+   :scale: 100
    :align: center
 
    4s + 2d six-circle diffractometer, from H.You (1999)
@@ -22,7 +37,6 @@ crystal mounted squarely in a way that the U matrix (defined below) is unitary
 will have h||a||x, k||b||y & l||c||z, crystal and reciprocal-lattice coordinate
 frames are defined with respect to the beam and to gravity to be (for a cubic
 crystal):
-
 
 Overview
 ========
@@ -52,19 +66,8 @@ Theory
 ------
 
 Thanks to Elias Vlieg for sharing his dos based ``DIF`` software that Diffcalc
-has borrowed heavily from. The version of Diffcalc described here is based on a
-paper by H. You. (See also the THANKS.txt file).
-
-See the papers (included in ``docs/ref``):
-
-* H. You. "Angle calculations for a '4S+2D' six-circle diffractometer"
-  J. Appl. Cryst. (1999). 32, 614-623. `(pdf link)
-  <http://journals.iucr.org/j/issues/1999/04/00/hn0093/hn0093.pdf>`__.
-
-* W. R. Busing and H. A. Levy. *Angle calculations for 3- and 4-circle X-ray
-  and neutron diffractometers.* Acta Cryst. (1967). **22**, 457-464. `(pdf link)
-  <http://journals.iucr.org/q/issues/1967/04/00/a05492/a05492.pdf>`__.
-
+has borrowed heavily from. The version of Diffcalc described here is based on papers by
+pHH. You. [You1999]_ and Busing & Levy [Busing1967]_. (See also the THANKS.txt file.)
 
 Getting Help
 ============
@@ -75,105 +78,25 @@ defaults which can be chosen by pressing enter.
 
 
 **Orientation**. The ``helpub`` command lists all commands related with crystal
-orientation and the reference vector (often used with surfaces)::
+orientation and the reference vector (often used with surfaces). See the 
+`Orientation Commands`_ section at the end of this manual::
 
    >>> help ub
-   
-   STATE
-   
-      newub {'name'}              : start a new ub calculation name
-      loadub 'name'|num           : load an existing ub calculation
-      lastub                      : load the last used ub calculation
-      listub                      : list the ub calculations available to load
-      rmub 'name'|num             : remove existing ub calculation
-      saveubas 'name'             : save the ub calculation with a new name
-   
-   LATTICE
-   
-      setlat                      : interactively enter lattice parameters
-                                    (Angstroms and Deg)
-      setlat name a               : assumes cubic
-      setlat name a b             : assumes tetragonal
-      setlat name a b c           : assumes ortho
-      setlat name a b c gamma     : assumes mon/hex with gam not equal to 90
-      setlat name a b c alpha     : arbitrary
-          beta gamma                
-      c2th [h k l]                : calculate two-theta angle for reflection
-   
-   REFERENCE (SURFACE)
-   
-      setnphi {x y z}             : sets or displays n_phi reference
-      setnhkl {h k l}             : sets or displays n_hkl reference
-   
-   REFLECTIONS
-   
-      showref                     : shows full reflection list
-      addref                      : add reflection interactively
-      addref [h k l] {'tag'}      : add reflection with current position and
-                                    energy
-      addref [h k l] (p1, .., pN) : add arbitrary reflection
-          energy {'tag'}            
-      editref num                 : interactively edit a reflection
-      delref num                  : deletes a reflection (numbered from 1)
-      clearref                    : deletes all the reflections
-      swapref                     : swaps first two reflections used for
-                                    calulating U matrix
-      swapref num1 num2           : swaps two reflections (numbered from 1)
-   
-   UB MATRIX
-   
-      checkub                     : show calculated and entered hkl values for
-                                    reflections
-      setu {[[..][..][..]]}       : manually set u matrix
-      setub {[[..][..][..]]}      : manually set ub matrix
-      calcub                      : (re)calculate u matrix from ref1 and ref2
-      trialub                     : (re)calculate u matrix from ref1 only (check
-                                    carefully)
+   ...
+
 
 **HKL movement**. The ``help hkl`` list all commands related to moving in reciprocal-lattice
-space::
+space. See the `Motion Commands`_ section at the end of this manual::
 
    >>> help hkl
-   
-   CONSTRAINTS
-   
-      con                         : list available constraints and values
-      con <name> {val}            : constrains and optionally sets one constraint
-      con <name> {val} <name>     : clears and then fully constrains
-          {val} <name> {val}        
-      uncon <name>                : remove constraint
-   
-   HKL
-   
-      allhkl [h k l]              : print all hkl solutions ignoring limits
-   
-   HARDWARE
-   
-      hardware                    : show diffcalc limits and cuts
-      setcut {name {val}}         : sets cut angle
-      setmin {axis {val}}         : set lower limits used by auto sector code
-                                    (None to clear)
-      setmax {name {val}}         : sets upper limits used by auto sector code
-                                    (None to clear)
-   
-   MOTION
-   
-      sim hkl scn                 : simulates moving scannable (not all)
-      sixc                        : show Eularian position
-      pos sixc [mu, delta, gam,   : move to Eularian position(None holds an axis
-          eta, chi, phi]            still)
-      sim sixc [mu, delta, gam,   : simulate move to Eulerian positionsixc
-          eta, chi, phi]            
-      hkl                         : show hkl position
-      pos hkl [h k l]             : move to hkl position
-      pos {h | k | l} val         : move h, k or l to val
-      sim hkl [h k l]             : simulate move to hkl position
+   ...
+
 
 Call help on any command. e.g.::
 
    >>> help loadub
    loadub (diffcalc command):
-   loadub 'name'|num -- load an existing ub calculation
+   loadub 'name' | num -- load an existing ub calculation
 
 Diffcalc's Scannables
 =====================
@@ -213,8 +136,8 @@ the real GDA these have limits)::
     l:        Error: No UB matrix
 
 **Parameter scannables**, used in some modes, these provide a
-scannable alternative to the ``con`` commands described in
-:ref:`moving-in-hkl-space`. Some constrain virtual angles::
+scannable alternative to the `Motion`_ section. Some constrain of
+these constrain virtual angles::
 
    alpha:    ---
    beta:     ---
@@ -259,8 +182,6 @@ UB-calculation has been started::
 A new UB-calculation calculation may be started and lattice specified
 explicitly::
 
-    ~~> newub 'example'
-    ~~> rmub 'example'
     >>> newub 'example'
     >>> setlat '1Acube' 1 1 1 90 90 90
 
@@ -349,7 +270,7 @@ Find U matrix from two reflections::
    >>> addref [0 1 1]
    Calculating UB matrix.
 
-Check that it looks good
+Check that it looks good::
 
    >>> checkub
    
@@ -373,9 +294,9 @@ Manually specify U matrix
 
 Set U matrix manually (pretending sample is squarely mounted)::
 
-       >>> setu [[1 0 0] [0 1 0] [0 0 1]]
-       Recalculating UB matrix.
-       NOTE: A new UB matrix will not be automatically calculated when the orientation reflections are modified.
+   >>> setu [[1 0 0] [0 1 0] [0 0 1]]
+   Recalculating UB matrix.
+   NOTE: A new UB matrix will not be automatically calculated when the orientation reflections are modified.
 
 Edit reflection list
 --------------------
@@ -458,11 +379,8 @@ be cleaved cleanly along a known axis)::
 
    >>> setnhkl 0 0 1 ...
 
-
-
-
-Moving in hkl space
-===================
+Motion
+======
 
 Once a UB matrix has been calculated, the diffractometer may be driven
 in hkl coordinates. A given diffractometer setting maps easily into a
@@ -604,7 +522,8 @@ Use the ``hardware`` command to see the current limits and cuts::
                  eta           (cut: -180.0)
                  chi           (cut: -180.0)
                  phi           (cut:    0.0)
-   Note: When auto sector/transforms are used,       cuts are applied before checking limits.
+   Note: When auto sector/transforms are used,
+          cuts are applied before checking limits.
 
 To set the limits::
 
@@ -716,16 +635,152 @@ Two and three dimensional scans::
     >>> scan en 9 11 .5 h .9 1.1 .2 hklverbose sixc ct 1
     >>> scan h 1 3 1 k 1 3 1 l 1 3 1 hkl ct 1
 
+Commands
+========
+
+Orientation Commands
+--------------------
+
++-----------------------------+---------------------------------------------------+
+| **STATE**                                                                       |
++-----------------------------+---------------------------------------------------+
+| **-- newub** {'name'}       | start a new ub calculation name                   |
++-----------------------------+---------------------------------------------------+
+| **-- loadub** 'name' | num  | load an existing ub calculation                   |
++-----------------------------+---------------------------------------------------+
+| **-- lastub**               | load the last used ub calculation                 |
++-----------------------------+---------------------------------------------------+
+| **-- listub**               | list the ub calculations available to load        |
++-----------------------------+---------------------------------------------------+
+| **-- rmub** 'name'|num      | remove existing ub calculation                    |
++-----------------------------+---------------------------------------------------+
+| **-- saveubas** 'name'      | save the ub calculation with a new name           |
++-----------------------------+---------------------------------------------------+
+| **LATTICE**                                                                     |
++-----------------------------+---------------------------------------------------+
+| **-- setlat**               | interactively enter lattice parameters (Angstroms |
+|                             | and Deg)                                          |
++-----------------------------+---------------------------------------------------+
+| **-- setlat** name a        | assumes cubic                                     |
++-----------------------------+---------------------------------------------------+
+| **-- setlat** name a b      | assumes tetragonal                                |
++-----------------------------+---------------------------------------------------+
+| **-- setlat** name a b c    | assumes ortho                                     |
++-----------------------------+---------------------------------------------------+
+| **-- setlat** name a b c    | assumes mon/hex with gam not equal to 90          |
+| gamma                       |                                                   |
++-----------------------------+---------------------------------------------------+
+| **-- setlat** name a b c    | arbitrary                                         |
+| alpha beta gamma            |                                                   |
++-----------------------------+---------------------------------------------------+
+| **-- c2th** [h k l]         | calculate two-theta angle for reflection          |
++-----------------------------+---------------------------------------------------+
+| **REFERENCE (SURFACE)**                                                         |
++-----------------------------+---------------------------------------------------+
+| **-- setnphi** {x y z}      | sets or displays n_phi reference                  |
++-----------------------------+---------------------------------------------------+
+| **-- setnhkl** {h k l}      | sets or displays n_hkl reference                  |
++-----------------------------+---------------------------------------------------+
+| **REFLECTIONS**                                                                 |
++-----------------------------+---------------------------------------------------+
+| **-- showref**              | shows full reflection list                        |
++-----------------------------+---------------------------------------------------+
+| **-- addref**               | add reflection interactively                      |
++-----------------------------+---------------------------------------------------+
+| **-- addref** [h k l]       | add reflection with current position and energy   |
+| {'tag'}                     |                                                   |
++-----------------------------+---------------------------------------------------+
+| **-- addref** [h k l] (p1,  | add arbitrary reflection                          |
+| .., pN) energy {'tag'}      |                                                   |
++-----------------------------+---------------------------------------------------+
+| **-- editref** num          | interactively edit a reflection                   |
++-----------------------------+---------------------------------------------------+
+| **-- delref** num           | deletes a reflection (numbered from 1)            |
++-----------------------------+---------------------------------------------------+
+| **-- clearref**             | deletes all the reflections                       |
++-----------------------------+---------------------------------------------------+
+| **-- swapref**              | swaps first two reflections used for calulating U |
+|                             | matrix                                            |
++-----------------------------+---------------------------------------------------+
+| **-- swapref** num1 num2    | swaps two reflections (numbered from 1)           |
++-----------------------------+---------------------------------------------------+
+| **UB MATRIX**                                                                   |
++-----------------------------+---------------------------------------------------+
+| **-- checkub**              | show calculated and entered hkl values for        |
+|                             | reflections                                       |
++-----------------------------+---------------------------------------------------+
+| **-- setu**                 | manually set u matrix                             |
+| {[[..][..][..]]}            |                                                   |
++-----------------------------+---------------------------------------------------+
+| **-- setub**                | manually set ub matrix                            |
+| {[[..][..][..]]}            |                                                   |
++-----------------------------+---------------------------------------------------+
+| **-- calcub**               | (re)calculate u matrix from ref1 and ref2         |
++-----------------------------+---------------------------------------------------+
+| **-- trialub**              | (re)calculate u matrix from ref1 only (check      |
+|                             | carefully)                                        |
++-----------------------------+---------------------------------------------------+
+
+Motion commands
+---------------
+
++-----------------------------+---------------------------------------------------+
+| **CONSTRAINTS**                                                                 |
++-----------------------------+---------------------------------------------------+
+| **-- con**                  | list available constraints and values             |
++-----------------------------+---------------------------------------------------+
+| **-- con** <name> {val}     | constrains and optionally sets one constraint     |
++-----------------------------+---------------------------------------------------+
+| **-- con** <name> {val}     | clears and then fully constrains                  |
+| <name> {val} <name> {val}   |                                                   |
++-----------------------------+---------------------------------------------------+
+| **-- uncon** <name>         | remove constraint                                 |
++-----------------------------+---------------------------------------------------+
+| **HKL**                                                                         |
++-----------------------------+---------------------------------------------------+
+| **-- allhkl** [h k l]       | print all hkl solutions ignoring limits           |
++-----------------------------+---------------------------------------------------+
+| **HARDWARE**                                                                    |
++-----------------------------+---------------------------------------------------+
+| **-- hardware**             | show diffcalc limits and cuts                     |
++-----------------------------+---------------------------------------------------+
+| **-- setcut** {name {val}}  | sets cut angle                                    |
++-----------------------------+---------------------------------------------------+
+| **-- setmin** {axis {val}}  | set lower limits used by auto sector code (None   |
+|                             | to clear)                                         |
++-----------------------------+---------------------------------------------------+
+| **-- setmax** {name {val}}  | sets upper limits used by auto sector code (None  |
+|                             | to clear)                                         |
++-----------------------------+---------------------------------------------------+
+| **MOTION**                                                                      |
++-----------------------------+---------------------------------------------------+
+| **-- sim** hkl scn          | simulates moving scannable (not all)              |
++-----------------------------+---------------------------------------------------+
+| **-- sixc**                 | show Eularian position                            |
++-----------------------------+---------------------------------------------------+
+| **-- pos** sixc [mu, delta, | move to Eularian position(None holds an axis      |
+| gam, eta, chi, phi]         | still)                                            |
++-----------------------------+---------------------------------------------------+
+| **-- sim** sixc [mu, delta, | simulate move to Eulerian positionsixc            |
+| gam, eta, chi, phi]         |                                                   |
++-----------------------------+---------------------------------------------------+
+| **-- hkl**                  | show hkl position                                 |
++-----------------------------+---------------------------------------------------+
+| **-- pos** hkl [h k l]      | move to hkl position                              |
++-----------------------------+---------------------------------------------------+
+| **-- pos** {h | k | l} val  | move h, k or l to val                             |
++-----------------------------+---------------------------------------------------+
+| **-- sim** hkl [h k l]      | simulate move to hkl position                     |
++-----------------------------+---------------------------------------------------+
 
 Good luck --- RobW
 
 References
-----------
+==========
 
 .. [You1999] H. You. *Angle calculations for a '4S+2D' six-circle diffractometer.*
    J. Appl. Cryst. (1999). **32**, 614-623. `(pdf link)
    <http://journals.iucr.org/j/issues/1999/04/00/hn0093/hn0093.pdf>`__.
-
 .. [Busing1967] W. R. Busing and H. A. Levy. *Angle calculations for 3- and 4-circle X-ray
    and neutron diffractometers.* Acta Cryst. (1967). **22**, 457-464. `(pdf link)
    <http://journals.iucr.org/q/issues/1967/04/00/a05492/a05492.pdf>`__.
