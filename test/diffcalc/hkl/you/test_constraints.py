@@ -26,6 +26,7 @@ from nose.tools import raises
 from nose.tools import assert_raises  # @UnresolvedImport
 
 from diffcalc.hkl.you.constraints import NUNAME
+import diffcalc.util
 
 def joined(d1, d2):
     d1.update(d2)
@@ -54,10 +55,10 @@ class TestConstraintManager:
         self.cm.constrain('eta')
         self.cm.set_constraint('qaz', 1.234)
         self.cm.set_constraint('eta', 99.)
-        print self.cm.build_display_table_lines()
+        print '\n'.join(self.cm.build_display_table_lines())
         eq_(self.cm.build_display_table_lines(),
             ['    DET        REF        SAMP',
-             '    ======     ======     ======',
+             '    ------     ------     ------',
              '    delta      a_eq_b     mu',
              '    %s o-> alpha  --> eta' % NUNAME.ljust(6),
              '--> qaz        beta       chi',
@@ -283,13 +284,14 @@ class TestConstraintManager:
         self.cm.set_constraint(NUNAME, 9.12343)
         eq_(self.cm.report_constraints_lines(),
             ['!   2 more constraints required',
-             '    %s: 9.1234' % NUNAME])
+             '    %s  : 9.1234' % NUNAME])
 
     def test_report_constraints_one_with_novalue(self):
         self.cm.constrain(NUNAME)
+        print '!   2 more constraints required\n!   %s: ---' % NUNAME
         eq_(self.cm.report_constraints_lines(),
             ['!   2 more constraints required',
-             '!   %s: ---' % NUNAME])
+             '!   %s  : ---' % NUNAME])
 
     def test_report_constraints_one_with_valueless(self):
         self.cm.constrain('a_eq_b')
@@ -303,7 +305,7 @@ class TestConstraintManager:
         self.cm.constrain('a_eq_b')
         eq_(self.cm.report_constraints_lines(),
             ['!   1 more constraint required',
-             '    naz: 9.1234',
+             '    naz  : 9.1234',
              '    a_eq_b'])
 
     def test_report_constraints_one_with_three(self):
@@ -314,9 +316,9 @@ class TestConstraintManager:
         self.cm.set_constraint('mu', 9.12343)
 
         eq_(self.cm.report_constraints_lines(),
-            ['    naz: 9.1234',
+            ['    naz  : 9.1234',
              '    a_eq_b',
-             '    mu: 9.1234'])
+             '    mu   : 9.1234'])
 
     def _constrain(self, *args):
         for con in args:
@@ -513,7 +515,7 @@ class TestConstraintManagerWithFourCircles:
         print self.cm.build_display_table_lines()
         eq_(self.cm.build_display_table_lines(),
             ['    REF        SAMP',
-             '    ======     ======',
+             '    ------     ------',
              '    a_eq_b     mu',
              '    alpha      eta',
              '    beta       chi',
@@ -524,7 +526,7 @@ class TestConstraintManagerWithFourCircles:
         print self.cm.build_display_table_lines()
         eq_(self.cm.build_display_table_lines(),
             ['    DET        REF        SAMP',
-             '    ======     ======     ======',
+             '    ------     ------     ------',
              '    delta      a_eq_b     eta',
              '    %s     alpha      chi' % NUNAME.ljust(6),
              '    qaz        beta       phi',
@@ -535,7 +537,7 @@ class TestConstraintManagerWithFourCircles:
         print self.cm.build_display_table_lines()
         eq_(self.cm.build_display_table_lines(),
             ['    REF        SAMP',
-             '    ======     ======',
+             '    ------     ------',
              '    a_eq_b     eta',
              '    alpha      chi',
              '    beta       phi',

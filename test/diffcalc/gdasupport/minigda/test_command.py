@@ -50,12 +50,12 @@ class TestPos(unittest.TestCase):
     def testPosReturningReportWithRead(self):
         scnA = self.dummyMainNamespace['scnA']
         self.assertEquals(self.pos.posReturningReport(scnA),
-                          'scnA:     0.0000')
+                          'scnA:      0.0000')
 
     def testPosReturningReportWithMove(self):
         scnA = self.dummyMainNamespace['scnA']
         self.assertEquals(self.pos.posReturningReport(scnA, 1.123),
-                          'scnA:     1.1230')
+                          'scnA:      1.1230')
 
     def test__call__(self):
         scnA = self.dummyMainNamespace['scnA']

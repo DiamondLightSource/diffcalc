@@ -64,7 +64,8 @@ hklverbose = Hkl('hklverbose', _scn_group, _dc, _virtual_angles)
 # Create wavelength scannable
 wl = Wavelength(
     'wl', _energy_scannable, settings.energy_scannable_multiplier_to_get_KeV)
-wl.asynchronousMoveTo(1)  # Angstrom
+if not GDA:
+    wl.asynchronousMoveTo(1)  # Angstrom
 _energy_scannable.level = 3
 wl.level = 3
 

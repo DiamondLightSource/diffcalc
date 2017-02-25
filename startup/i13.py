@@ -1,5 +1,4 @@
 from startup._common_imports import *
-import startup._demo
 
 if '_fivec' in globals() and 'en' in globals():
     # Assume we are running in a live GDA deployment with a _fivec ScannableGroup
@@ -37,5 +36,34 @@ if GDA:
     
 lastub()  # Load the last ub calculation used
 
+
+setmax(delta, 28)
+setmin(delta, -1)
+setmin(gam, 0)
+setmax(gam, 15)
+setmin(eta, -10)
+setmax(eta, 10)
+setmin(chi, 75)
+setmax(chi, 105)
+setmin(phi, -88)
+setmax(phi, 88)
+
+hardware()
+
 if not GDA:
+    from startup._common_imports import *
+    import startup._demo
     demo = startup._demo.Demo(globals(), 'fivec')
+    
+setmax(delta, 24)
+setmin(delta, -1)
+setmin(gam, 0)
+setmax(gam, 15)
+setmin(eta, -10)
+setmax(eta, 10)
+setmin(chi, 75)
+setmax(chi, 105)
+setmin(phi, -88)
+setmax(phi, 88)
+
+hardware()

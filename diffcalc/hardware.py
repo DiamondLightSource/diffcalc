@@ -43,8 +43,7 @@ def hardware():
 
 @command
 def setcut(scannable_or_string=None, val=None):
-    """setcut {axis_scannable {val}} -- sets cut angle
-    setcut {name {val}} -- sets cut angle
+    """setcut {name {val}} -- sets cut angle
     """
     if scannable_or_string is None and val is None:
         print settings.hardware.repr_sector_limits_and_cuts()  # @UndefinedVariable
@@ -215,7 +214,7 @@ class HardwareAdapter(object):
             s = ''
             for name in self.get_axes_names():
                 s += self.repr_sector_limits_and_cuts(name) + '\n'
-            s += "Note: When auto sector/transforms are used, "
+            s += "Note: When auto sector/transforms are used,\n "
             s += "      cuts are applied before checking limits."
             return s
         # limits:
