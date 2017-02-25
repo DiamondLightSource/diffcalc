@@ -191,7 +191,7 @@ latex_paper_size = 'a4'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ('youmanual/contents', 'diffcalc_user_guide.tex', u'Diffcalc User Guide',
+    ('youmanual', 'diffcalc_user_guide.tex', u'Diffcalc User Guide',
     u'Diamond Light Source', 'manual'),
 ]
 
