@@ -1,13 +1,28 @@
+################################
+Diffcalc User Guide (You Engine)
+################################
+
+.. rubric:: Diffcalc: A diffraction condition calculator for diffractometer control
+
+:Author: Rob Walton
+:Contact: rob.walton (at) diamond (dot) ac (dot) uk 
+:Website: https://github.com/DiamondLightSource/diffcalc
+
+.. toctree::
+   :maxdepth: 2
+   :numbered:
+
+See also the `quickstart guide at github <https://github.com/DiamondLightSource/diffcalc/blob/master/README.rst>`_
+
 Introduction
 ============
-
 
 This manual assumes that you are running Diffcalc within OpenGDA or have started
 it using IPython. It assumes that Diffcalc has been configured for the six
 circle diffractometer pictured here:
 
-.. figure:: images/4s_2d_diffractometer.png
-   :scale: 50
+.. figure:: youmanual_images/4s_2d_diffractometer.png
+   :scale: 100
    :align: center
 
    4s + 2d six-circle diffractometer, from H.You (1999)
@@ -22,7 +37,6 @@ crystal mounted squarely in a way that the U matrix (defined below) is unitary
 will have h||a||x, k||b||y & l||c||z, crystal and reciprocal-lattice coordinate
 frames are defined with respect to the beam and to gravity to be (for a cubic
 crystal):
-
 
 Overview
 ========
@@ -52,19 +66,8 @@ Theory
 ------
 
 Thanks to Elias Vlieg for sharing his dos based ``DIF`` software that Diffcalc
-has borrowed heavily from. The version of Diffcalc described here is based on a
-paper by H. You. (See also the THANKS.txt file).
-
-See the papers (included in ``docs/ref``):
-
-* H. You. "Angle calculations for a '4S+2D' six-circle diffractometer"
-  J. Appl. Cryst. (1999). 32, 614-623. `(pdf link)
-  <http://journals.iucr.org/j/issues/1999/04/00/hn0093/hn0093.pdf>`__.
-
-* W. R. Busing and H. A. Levy. *Angle calculations for 3- and 4-circle X-ray
-  and neutron diffractometers.* Acta Cryst. (1967). **22**, 457-464. `(pdf link)
-  <http://journals.iucr.org/q/issues/1967/04/00/a05492/a05492.pdf>`__.
-
+has borrowed heavily from. The version of Diffcalc described here is based on papers by
+pHH. You. [You1999]_ and Busing & Levy [Busing1967]_. (See also the THANKS.txt file.)
 
 Getting Help
 ============
@@ -75,14 +78,19 @@ defaults which can be chosen by pressing enter.
 
 
 **Orientation**. The ``helpub`` command lists all commands related with crystal
-orientation and the reference vector (often used with surfaces)::
+orientation and the reference vector (often used with surfaces). See the 
+`Orientation Commands`_ section at the end of this manual::
 
-   ==> help ub
+   >>> help ub
+   ...
+
 
 **HKL movement**. The ``help hkl`` list all commands related to moving in reciprocal-lattice
-space::
+space. See the `Motion Commands`_ section at the end of this manual::
 
-   ==> help hkl
+   >>> help hkl
+   ...
+
 
 Call help on any command. e.g.::
 
@@ -126,8 +134,8 @@ the real GDA these have limits)::
     l:        Error: No UB matrix
 
 **Parameter scannables**, used in some modes, these provide a
-scannable alternative to the ``con`` commands described in
-:ref:`moving-in-hkl-space`. Some constrain virtual angles::
+scannable alternative to the `Motion`_ section. Some constrain of
+these constrain virtual angles::
 
    alpha:    ---
    beta:     ---
@@ -171,8 +179,6 @@ UB-calculation has been started::
 A new UB-calculation calculation may be started and lattice specified
 explicitly::
 
-    ~~> newub 'example'
-    ~~> rmub 'example'
     ==> newub 'example'
     ==> setlat '1Acube' 1 1 1 90 90 90
 
@@ -233,7 +239,7 @@ Find U matrix from two reflections::
    ==> pos sixc [0 90 0 45 45 90]
    ==> addref [0 1 1]
 
-Check that it looks good
+Check that it looks good::
 
    ==> checkub
 
@@ -249,7 +255,7 @@ Manually specify U matrix
 
 Set U matrix manually (pretending sample is squarely mounted)::
 
-       ==> setu [[1 0 0] [0 1 0] [0 0 1]]
+   ==> setu [[1 0 0] [0 1 0] [0 0 1]]
 
 Edit reflection list
 --------------------
@@ -324,11 +330,8 @@ be cleaved cleanly along a known axis)::
 
    >>> setnhkl 0 0 1 ...
 
-
-
-
-Moving in hkl space
-===================
+Motion
+======
 
 Once a UB matrix has been calculated, the diffractometer may be driven
 in hkl coordinates. A given diffractometer setting maps easily into a
@@ -536,16 +539,27 @@ Two and three dimensional scans::
     >>> scan en 9 11 .5 h .9 1.1 .2 hklverbose sixc ct 1
     >>> scan h 1 3 1 k 1 3 1 l 1 3 1 hkl ct 1
 
+Commands
+========
+
+Orientation Commands
+--------------------
+
+==> UB_HELP_TABLE
+
+Motion commands
+---------------
+
+==> HKL_HELP_TABLE
 
 Good luck --- RobW
 
 References
-----------
+==========
 
 .. [You1999] H. You. *Angle calculations for a '4S+2D' six-circle diffractometer.*
    J. Appl. Cryst. (1999). **32**, 614-623. `(pdf link)
    <http://journals.iucr.org/j/issues/1999/04/00/hn0093/hn0093.pdf>`__.
-
 .. [Busing1967] W. R. Busing and H. A. Levy. *Angle calculations for 3- and 4-circle X-ray
    and neutron diffractometers.* Acta Cryst. (1967). **22**, 457-464. `(pdf link)
    <http://journals.iucr.org/q/issues/1967/04/00/a05492/a05492.pdf>`__.

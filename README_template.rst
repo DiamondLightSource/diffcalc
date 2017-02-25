@@ -216,6 +216,18 @@ Scan a constraint (and read back virtual angles and eta)::
    ==> con psi
    ==> scan psi 70 110 10 hklverbose [0 1 1] eta
 
+
+Orientation Commands
+--------------------
+
+==> UB_HELP_TABLE
+
+Motion Commands
+---------------
+
+==> HKL_HELP_TABLE
+
+
 References
 ----------
 

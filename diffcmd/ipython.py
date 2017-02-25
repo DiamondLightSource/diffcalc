@@ -256,7 +256,7 @@ def magic_commands(global_namespace_dict):
     GLOBAL_NAMESPACE_DICT = gnd
     
     ### Magic commands in namespace ###
-    commands = gnd['hkl_commands_for_help']
+    commands = list(gnd['hkl_commands_for_help'])
     commands += gnd['ub_commands_for_help']
     commands.append(gnd['pos'])
     commands.append(gnd['scan'])       

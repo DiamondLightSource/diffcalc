@@ -45,16 +45,15 @@ TORAD = pi / 180
 TODEG = 180 / pi
 
 
-
-COLOURISE_TERMINAL_OUTPUT = False
-    
+COLOURISE_TERMINAL_OUTPUT = not GDA
 
 def bold(s):
     if not COLOURISE_TERMINAL_OUTPUT:
-        return s    
-    BOLD = '\033[1m'
-    END = '\033[0m'
-    return BOLD + s + END
+        return s
+    else:    
+        BOLD = '\033[1m'
+        END = '\033[0m'
+        return BOLD + s + END
 
 
 def x_rotation(th):

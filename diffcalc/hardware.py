@@ -214,7 +214,7 @@ class HardwareAdapter(object):
             s = ''
             for name in self.get_axes_names():
                 s += self.repr_sector_limits_and_cuts(name) + '\n'
-            s += "Note: When auto sector/transforms are used, "
+            s += "Note: When auto sector/transforms are used,\n "
             s += "      cuts are applied before checking limits."
             return s
         # limits:

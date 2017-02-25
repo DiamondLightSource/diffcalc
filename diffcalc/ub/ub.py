@@ -79,7 +79,7 @@ def newub(name=None):
 
 @command
 def loadub(name_or_num):
-    """loadub 'name'|num -- load an existing ub calculation
+    """loadub 'name' | num -- load an existing ub calculation
     """
     if isinstance(name_or_num, str):
         ubcalc.load(name_or_num)

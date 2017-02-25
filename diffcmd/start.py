@@ -16,7 +16,6 @@ from diffcalc.util import bold
 import diffcalc.util
 DIFFCALC_ROOT = os.path.realpath(diffcalc.__file__).split('diffcalc/__init__.py')[0]
 
-diffcalc.util.COLOURISE_TERMINAL_OUTPUT = True
 try:
     __IPYTHON__  # @UndefinedVariable
     IPYTHON = True
@@ -63,7 +62,6 @@ if IPYTHON:
 
     
 if 'MANUALS_TO_MAKE' in locals():
-    diffcalc.util.COLOURISE_TERMINAL_OUTPUT = False
     summary_lines = ['Made manuals:']
     from diffcmd.make_manual import make_manual
     for source_path in MANUALS_TO_MAKE:  # @UndefinedVariable
@@ -78,7 +76,9 @@ if 'MANUALS_TO_MAKE' in locals():
         print "    Source:", source_path
         print "    Target:", target_path
         
-        make_manual(source_path, target_path)
+        make_manual(source_path, target_path,
+                    ub_commands_for_help,
+                    hkl_commands_for_help)  # @UndefinedVariable
         summary_lines.append(' - ' + source_path + ' -- > ' + target_path)
     print '\n'.join(summary_lines)
     
