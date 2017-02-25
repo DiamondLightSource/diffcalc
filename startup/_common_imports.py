@@ -47,7 +47,7 @@ except ImportError:
 
 HELP_STRING = \
 """Quick:  https://github.com/DiamondLightSource/diffcalc/blob/master/README.rst
-Manual: https://diffcalc.readthedocs.io
+Manual: http://diffcalc.readthedocs.io/en/latest/youmanual.html
 Type:   > help ub
         > help hkl"""
 
