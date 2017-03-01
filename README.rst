@@ -10,6 +10,9 @@ manual<https://media.readthedocs.org/pdf/diffcalc/latest/diffcalc.pdf>` and an
 online version including a development guide at
 `https://diffcalc.readthedocs.io`.
 
+.. image:: https://travis-ci.org/DiamondLightSource/diffcalc.svg?branch=master
+    :target: https://travis-ci.org/DiamondLightSource/diffcalc
+
 .. contents::
 
 .. section-numbering::
