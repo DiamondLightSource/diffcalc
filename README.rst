@@ -5,13 +5,17 @@ Diffcalc is a python/jython based diffraction condition calculator used for
 controlling diffractometers within reciprocal lattice space. It performs the
 same task as the fourc, sixc, twoc, kappa, psic and surf macros from SPEC.
 
-There is a `PDF user
-manual<https://media.readthedocs.org/pdf/diffcalc/latest/diffcalc.pdf>` and an
-online version including a development guide at
-`https://diffcalc.readthedocs.io`.
+There is a `user guide <https://diffcalc.readthedocs.io/en/latest/youmanual.html>`_ and `developer guide <https://diffcalc.readthedocs.io/en/latest/developer/contents.html>`_, both at `diffcalc.readthedocs.io <https://diffcalc.readthedocs.io>`_
 
-.. image:: https://travis-ci.org/DiamondLightSource/diffcalc.svg?branch=master
+|Travis| |Read the docs|
+
+.. |Travis| image:: https://travis-ci.org/DiamondLightSource/diffcalc.svg?branch=master
     :target: https://travis-ci.org/DiamondLightSource/diffcalc
+    :alt: Build Status
+
+.. |Read the docs| image:: https://readthedocs.org/projects/diffcalc/badge/?version=latest
+    :target: http://diffcalc.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 
 .. contents::
 
@@ -32,7 +36,7 @@ Diffractometer compatibility
 Diffcalc’s standard calculation engine is an implementation of [You1999]_ and
 [Busing1967]_. Diffcalc works with any diffractometer which is a subset of:
 
- .. image:: https://raw.githubusercontent.com/DiamondLightSource/diffcalc/master/doc/source/youmanual/images/4s_2d_diffractometer.png
+ .. image:: https://raw.githubusercontent.com/DiamondLightSource/diffcalc/master/doc/source/youmanual_images/4s_2d_diffractometer.png
      :alt: 4s + 2d six-circle diffractometer, from H.You (1999)
      :width: 50%
      :align: center
