@@ -1,6 +1,22 @@
-language: python
-python:
-    - 2.7
+# based on https://www.topbug.net/blog/2012/05/27/use-travis-ci-with-jython/
 
-script: nosetests
+language: python
+
+python:
+  - "2.7"
+
+env:
+  - JYTHON=false
+  - JYTHON=true
+
+
+
+before_install:
+  - if [ "$JYTHON" == "true" ]; then . install-jython-environment.sh; fi
+  
+before_script:
+  - if [ "$JYTHON" == "true" ]; then export NOSETESTS=$HOME/jython/bin/nosetests; else export NOSETESTS=nosetests; fi
+  - echo NOSETESTS:- $NOSETESTS
+
+script: $NOSETESTS
 
