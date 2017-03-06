@@ -18,9 +18,6 @@
 
 from nose.tools import eq_, ok_, assert_almost_equal  # @UnresolvedImport
 from nose.plugins.skip import SkipTest
-import nose
-import unittest
-from numjy import JAMA_AVAILABLE
 
 try:
     import numpy
@@ -29,10 +26,9 @@ except ImportError:
     __NUMPY_AVAILABLE__ = False
 try:
     import numjy
-    import Jama
-    __JAMA_AVAILABLE__ = True
+    __NUMJY_AVAILABLE__ = True
 except ImportError:
-    __JAMA_AVAILABLE__ = False
+    __NUMJY_AVAILABLE__ = False
 
 from test.tools import assert_2darray_almost_equal, meq_
 
@@ -160,7 +156,7 @@ class _TestLinalg():
     def norm(self, args):
         raise NotImplementedError()
 
-    def _test_norm_frobenius(self):
+    def test_norm_frobenius(self):
         m1 = self.matrix('1 1 1; 1 1 1; 1 1 1')
         assert_almost_equal(self.norm(m1), 3, places=13)
         m2 = self.matrix('1 2 3; 4 5 6; 7 8 9')
@@ -175,95 +171,71 @@ class _TestNumpy():
     def hstack(self, args):
         raise NotImplementedError()
 
-    def _test_hstack(self):
+    def test_hstack(self):
         v1 = self.matrix('1;2;3')
         v2 = self.matrix('4;5;6')
         v3 = self.matrix('7;8;9')
         meq_(self.hstack([v1, v2, v3]), self.matrix('1,4,7;2,5,8;3,6,9'))
 
 
-@unittest.skipIf(not __NUMPY_AVAILABLE__, 'numpy not available')
-class TestNumpyMatrix(_TestNumpyMatrix):
+if __NUMPY_AVAILABLE__:
 
-    def m(self, args):
-        return numpy.matrix(args)
+    class TestNumpyMatrix(_TestNumpyMatrix):
 
+        def m(self, args):
+            return numpy.matrix(args)
 
-class TestLinalgNumpy(_TestLinalg):
+    class TestLinalgNumpy(_TestLinalg):
 
-    def matrix(self, args):
-        return numpy.matrix(args)
+        def matrix(self, args):
+            return numpy.matrix(args)
 
-    def norm(self, args):
-        return numpy.linalg.norm(args)
-    
-    def test_norm_frobenius(self):
-        return self._test_norm_frobenius()
+        def norm(self, args):
+            return numpy.linalg.norm(args)
 
+    class TestNumpy(_TestNumpy):
 
-class TestNumpy(_TestNumpy):
+        def matrix(self, args):
+            return numpy.matrix(args)
 
-    def matrix(self, args):
-        return numpy.matrix(args)
-
-    def hstack(self, args):
-        return numpy.hstack(args)
-    
-    def test_hstack(self):
-        return self._test_hstack()
+        def hstack(self, args):
+            return numpy.hstack(args)
 
 
+if __NUMJY_AVAILABLE__:
 
-@unittest.skipIf(not __JAMA_AVAILABLE__, 'Jama not available')
-class TestNumjyMatrix(_TestNumpyMatrix):
+    class TestNumjyMatrix(_TestNumpyMatrix):
 
-    def setup(self):
-        raise nose.SkipTest('Jama not available')
+        def m(self, args):
+            return numjy.matrix(args)
 
-    def m(self, args):
-        return numjy.matrix(args)
+        def test__str__(self):
+            eq_(str(self.m('1.234 2.0; 3.1 4.0')),
+                '[[1.234  2.0]\n [3.1  4.0]]')
 
-    def test__str__(self):
-        eq_(str(self.m('1.234 2.0; 3.1 4.0')),
-            '[[1.234  2.0]\n [3.1  4.0]]')
+        def test__repr__(self):
+            print repr(self.m('1. 2.; 3. 4.'))
+            eq_(repr(self.m('1. 2.; 3. 4.')),
+                'matrix([[1.0  2.0]\n        [3.0  4.0]])')
 
-    def test__repr__(self):
-        print repr(self.m('1. 2.; 3. 4.'))
-        eq_(repr(self.m('1. 2.; 3. 4.')),
-            'matrix([[1.0  2.0]\n        [3.0  4.0]])')
+        def test__div__(self):
+            raise SkipTest()
 
-    def test__div__(self):
-        raise SkipTest()
+    class TestLinalgNumjy(_TestLinalg):
 
+        def matrix(self, args):
+            return numjy.matrix(args)
 
-@unittest.skipIf(not __JAMA_AVAILABLE__, 'Jama not available')
-class TestLinalgNumjy(_TestLinalg):
+        def norm(self, args):
+            return numjy.linalg.norm(args)
 
-    def matrix(self, args):
-        return numjy.matrix(args)
+        def hstack(self, args):
+            return numjy.hstack(args)
 
-    def norm(self, args):
-        return numjy.linalg.norm(args)
+    class TestNumjy(_TestNumpy):
 
-    def hstack(self, args):
-        return numjy.hstack(args)
-    
-    def test_norm_frobenius(self):
-        if not JAMA_AVAILABLE:
-            raise nose.SkipTest('Jama not available')
-        return self._test_norm_frobenius()
+        def matrix(self, args):
+            return numjy.matrix(args)
 
-
-@unittest.skipIf(not __JAMA_AVAILABLE__, 'Jama not available')
-class TestNumjy(_TestNumpy):
-
-    def matrix(self, args):
-        return numjy.matrix(args)
-
-    def hstack(self, args):
-        return numjy.hstack(args)
-    
-    def test_hstack(self):
-        if not __JAMA_AVAILABLE__:
-            raise SkipTest('Jama not available')
-        return self._test_hstack()
+        def hstack(self, args):
+            return numjy.hstack(args)
