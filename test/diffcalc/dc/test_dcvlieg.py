@@ -431,7 +431,7 @@ class ZAxisGammaOnBaseTest(TestSixcBase):
         aneq_(self.hklverbose(), (hkl[0], hkl[1], hkl[2], betaout), 3)
 
     def testHKL_001(self):
-        self.checkHKL([0, 0, 1], [30, 0, 60, 90, 0, 0], betaout=30, nu=0)
+        self.checkHKL([0, 0.0000001, 1], [30, 0, 60, 90, 0, 0], betaout=30, nu=0)
 
     def testHKL_010(self):
         self.checkHKL([0, 1, 0], [0, 60, 0, 120, 0, 0], betaout=0, nu=0)
