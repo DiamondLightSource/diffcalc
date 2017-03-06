@@ -184,7 +184,15 @@ def c2th(hkl, en=None):
     else:
         wl = 12.39842 / en
     d = ubcalc.get_hkl_plane_distance(hkl)
-    return 2.0 * asin(wl / (d * 2)) * TODEG
+    if wl > (2 * d):
+        raise ValueError(
+            'Reflection un-reachable as wavelength (%f) is more than twice\n'
+            'the plane distance (%f)' % (wl, d))
+    try:
+        return 2.0 * asin(wl / (d * 2)) * TODEG
+    except ValueError as e:
+        raise ValueError('asin(wl / (d * 2) with wl=%f and d=%f: ' %(wl, d) + e.args[0])
+    
 
 ### Surface and reference vector stuff ###
 
