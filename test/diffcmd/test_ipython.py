@@ -1,10 +1,10 @@
 from nose.tools import assert_sequence_equal  # @UnresolvedImport
 from nose.tools import eq_
-from diffcmd.ipython import parse
 from nose import SkipTest
 
 try:
     import IPython.core.magic  # @UnusedImport
+    from diffcmd.ipython import parse
     IPYTHON = True
 except ImportError:
     IPYTHON = False
