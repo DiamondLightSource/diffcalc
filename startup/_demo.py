@@ -90,7 +90,7 @@ class Demo(object):
     def remove_test_ubcalc(self):
         try:
             eval("rmub('test')", self.namespace)
-        except OSError:
+        except (OSError, KeyError):
             pass
  
     def echorun_magiccmd(self, magic_cmd):
