@@ -1,7 +1,13 @@
 from nose.tools import assert_sequence_equal  # @UnresolvedImport
 from nose.tools import eq_
 from diffcmd.ipython import parse
+from nose import SkipTest
 
+try:
+    import IPython.core.magic  # @UnusedImport
+    IPYTHON = True
+except ImportError:
+    IPYTHON = False
 
 class CallableNamedObject(object):
     
@@ -43,6 +49,12 @@ def assert_raises_syntax_error_with_message(msg, func, *args, **kwargs):
         eq_(e.message, msg)
 
 
+
+def setup():
+    if not IPYTHON:
+        raise SkipTest('ipython not available')
+    
+    
 def test_parse_spaces():
     check('')
     check(' ')
