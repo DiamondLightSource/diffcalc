@@ -16,7 +16,16 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-import Jama
+
+# Nosetests imports this while exploring even if no code will run it
+# it must be robust to running frim python with no Jama
+try:
+    import Jama
+    JAMA_AVAILABLE = True
+except ImportError:
+    JAMA_AVAILABLE = False
+
+    
 
 from numjy import linalg
 from numjy.jama_matrix_wrapper import matrix
@@ -25,6 +34,8 @@ from numjy.jama_matrix_wrapper import matrix
 def hstack(list_of_column_matrices):
     ncol = len(list_of_column_matrices)
     nrow = list_of_column_matrices[0].shape[0]
+    if not JAMA_AVAILABLE:
+        raise Exception('Jama not available')
     m = Jama.Matrix(nrow, ncol)
     for c, column_matrix in enumerate(list_of_column_matrices):
         m.setMatrix(0, nrow - 1, c, c, column_matrix.m)

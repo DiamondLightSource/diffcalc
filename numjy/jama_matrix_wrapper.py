@@ -16,12 +16,23 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-import Jama
+
+# Nosetests imports this while exploring even if no code will run it
+# it must be robust to running frim python with no Jama
+try:
+    import Jama
+    JAMA_AVAILABLE = True
+except ImportError:
+    JAMA_AVAILABLE = False
 
 
 class matrix(object):
 
     def __init__(self, a):
+        
+        if not JAMA_AVAILABLE:
+            raise Exception('Jama not available')
+    
         if isinstance(a, Jama.Matrix):
             self.m = a
         elif isinstance(a, basestring):
