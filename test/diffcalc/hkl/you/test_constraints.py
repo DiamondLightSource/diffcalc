@@ -36,6 +36,7 @@ def joined(d1, d2):
 class TestConstraintManager:
 
     def setUp(self):
+        diffcalc.util.COLOURISE_TERMINAL_OUTPUT = False
         self.hardware_monitor = Mock()
         self.hardware_monitor.get_position.return_value = (1.,) * 6
         self.hardware_monitor.get_axes_names.return_value = [
