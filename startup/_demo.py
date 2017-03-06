@@ -64,11 +64,12 @@ class Demo(object):
         
     def constrain(self):
         print_heading('Constraint demo')
+        con_mu_cmd = 'con mu 0' if self.geometry == 'sixc' else ''
         self.echorun_magiccmd_list([
             'help hkl',
             'con qaz 90',
             'con a_eq_b',
-            'con mu 0',
+            con_mu_cmd,
             'con',
             'setmin delta 0',
             'setmin chi 0'])
@@ -112,6 +113,8 @@ class Demo(object):
             
             # Echo the Python version of the magic command   
             tokens = diffcmd.ipython.tokenify(magic_cmd)
+            if not tokens:
+                return
             python_cmd = tokens.pop(0) + '(' + ', '.join(tokens) + ')'
             python_cmd = python_cmd.replace('[, ', '[')
             python_cmd = python_cmd.replace(',]', ']')
