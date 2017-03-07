@@ -26,6 +26,7 @@ except ImportError:
     __NUMPY_AVAILABLE__ = False
 try:
     import numjy
+    import Jama
     __NUMJY_AVAILABLE__ = True
 except ImportError:
     __NUMJY_AVAILABLE__ = False

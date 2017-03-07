@@ -16,13 +16,18 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-import Jama
-
-from numjy import linalg
-from numjy.jama_matrix_wrapper import matrix
+try:
+    import Jama
+    from numjy import linalg
+    from numjy.jama_matrix_wrapper import matrix
+    JAMA = True
+except ImportError:
+    JAMA = False
 
 
 def hstack(list_of_column_matrices):
+    if not Jama:
+        raise Exception('Jama not available, use numpy directly')
     ncol = len(list_of_column_matrices)
     nrow = list_of_column_matrices[0].shape[0]
     m = Jama.Matrix(nrow, ncol)
