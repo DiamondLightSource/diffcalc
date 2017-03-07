@@ -426,7 +426,7 @@ class TestUbCommandsJsonPersistence(TestUBCommandsBase):
     def test_n_phi_persistance(self):
         self.ub.newub('test1')
         self.ub.setnphi(0, 1, 0)
-        arrayeq_(self.ub.ubcalc.n_phi, [0, 1, 0])
+        arrayeq_(self.ub.ubcalc.n_phi.T.tolist()[0], [0, 1, 0])
         self.ub.loadub('test1')
-        arrayeq_(self.ub.ubcalc.n_phi, [0, 1, 0])        
+        arrayeq_(self.ub.ubcalc.n_phi.T.tolist()[0], [0, 1, 0])        
         
