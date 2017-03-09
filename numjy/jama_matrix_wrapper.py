@@ -32,7 +32,15 @@ class matrix(object):
             self.m = Jama.Matrix(l)
         elif isinstance(a, matrix):
             self.m = Jama.Matrix(a.m)
+        elif isinstance(a, (list, tuple)):
+            if isinstance(a[0], (list, tuple)):
+                # a is a list of lists (not rigorous test!)
+                self.m = Jama.Matrix(a)
+            else:
+                # a is a row vector
+                self.m = Jama.Matrix([a])
         else:
+            # give it a go
             self.m = Jama.Matrix(a)
 
     def __eq__(self, other):
