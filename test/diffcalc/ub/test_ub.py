@@ -395,17 +395,17 @@ class TestUbCommands(TestUBCommandsBase):
         self.assertRaises(TypeError, self.ub.setlat, 'alpha', 1, 'a')   
         
     def test_setnphihkl_at_various_phases(self):
-        self.ub.setnphi(1, 0, 1)
-        self.ub.setnhkl(1, 0, 1)
+        self.ub.setnphi([1, 0, 1])
+        self.ub.setnhkl([1, 0, 1])
         self.ub.newub('test')
-        self.ub.setnphi(1, 0, 1)
-        self.ub.setnhkl(1, 0, 1) 
+        self.ub.setnphi([1, 0, 1])
+        self.ub.setnhkl([1, 0, 1]) 
         self.ub.setlat('cube', 1, 1, 1, 90, 90, 90)
-        self.ub.setnphi(1, 0, 1)
-        self.ub.setnhkl(1, 0, 1)
+        self.ub.setnphi([1, 0, 1])
+        self.ub.setnhkl([1, 0, 1])
         self.ub.setu([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-        self.ub.setnphi(1, 0, 1)
-        self.ub.setnhkl(1, 0, 1)
+        self.ub.setnphi([1, 0, 1])
+        self.ub.setnhkl([1, 0, 1])
 
         
 class TestUbCommandsJsonPersistence(TestUBCommandsBase):
@@ -425,7 +425,7 @@ class TestUbCommandsJsonPersistence(TestUBCommandsBase):
         
     def test_n_phi_persistance(self):
         self.ub.newub('test1')
-        self.ub.setnphi(0, 1, 0)
+        self.ub.setnphi([0, 1, 0])
         arrayeq_(self.ub.ubcalc.n_phi.T.tolist()[0], [0, 1, 0])
         self.ub.loadub('test1')
         arrayeq_(self.ub.ubcalc.n_phi.T.tolist()[0], [0, 1, 0])        

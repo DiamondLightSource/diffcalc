@@ -215,22 +215,32 @@ def sigtau(sigma=None, tau=None):
 
 
 @command
-def setnphi(x=None, y=None, z=None):
-    """setnphi {x y z} -- sets or displays n_phi reference"""
-    if None in (x, y, z):
+def setnphi(xyz = None):
+    """setnphi {[x y z]} -- sets or displays n_phi reference"""
+    if xyz is None:
         ubcalc.print_reference()
     else:
-        ubcalc.set_n_phi_configured(matrix([[x], [y], [z]]))
+        ubcalc.set_n_phi_configured(_to_column_vector_triple(xyz))
         ubcalc.print_reference()
 
 @command
-def setnhkl(h=None, k=None, l=None):
-    """setnhkl {h k l} -- sets or displays n_hkl reference"""
-    if None in (h, k, l):
+def setnhkl(hkl):
+    """setnhkl {[h k l]} -- sets or displays n_hkl reference"""
+    if hkl is None:
         ubcalc.print_reference()
     else:
-        ubcalc.set_n_hkl_configured(matrix([[h], [k], [l]]))
+        ubcalc.set_n_hkl_configured(_to_column_vector_triple(hkl))
         ubcalc.print_reference()
+ 
+ 
+def _to_column_vector_triple(o):
+    m = matrix(o)
+    if m.shape == (1, 3):
+        return m.T
+    elif m.shape == (3, 1):
+        return m
+    else:
+        raise ValueError("Unexpected shape matrix: " + m)
     
 ### UB refelections ###
 
@@ -390,7 +400,7 @@ def setu(U=None):
         U = _promptFor3x3MatrixDefaultingToIdentity()
         if U is None:
             return  # an error will have been printed or thrown
-    if _is3x3TupleOrList(U):
+    if _is3x3TupleOrList(U) or _is3x3Matrix(U):
         ubcalc.set_U_manually(U)
     else:
         raise TypeError("U must be given as 3x3 list or tuple")
@@ -512,6 +522,11 @@ def _is3x3TupleOrList(m):
         if len(mrow) != 3:
             return False
     return True
+
+
+def _is3x3Matrix(m):
+    return isinstance(m, matrix) and tuple(m.shape) == (3, 3)
+        
 
 def _handleInputError(msg):
     raise TypeError(msg)
