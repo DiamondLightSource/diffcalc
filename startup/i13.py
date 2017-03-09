@@ -1,4 +1,6 @@
+from diffcalc.util import x_rotation, y_rotation, z_rotation, TORAD
 from startup._common_imports import *
+
 
 if '_fivec' in globals() and 'en' in globals():
     # Assume we are running in a live GDA deployment with a _fivec ScannableGroup
@@ -6,7 +8,6 @@ if '_fivec' in globals() and 'en' in globals():
     # Ensure that these five Scannables exist.
     # There must also be Scannable en for moving and reading the energy
     print "Diffcalc using predefined _fivec and en Scannables"
-
 else:
     ### Create dummy scannables ###
     print "Diffcalc creating dummy Scannables as _fivec and en were not found"
@@ -28,42 +29,50 @@ settings.energy_scannable = en
 settings.axes_scannable_group = _fivec
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
 
+
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
+
 
 if GDA:
     print "Running in GDA --- aliasing commands"
     alias_commands(globals())
-    
-lastub()  # Load the last ub calculation used
+ 
+  
+# Load the last ub calculation used  
+lastub()
 
 
 setmax(delta, 28)
 setmin(delta, -1)
 setmin(gam, 0)
-setmax(gam, 15)
+setmax(gam, 16)
 setmin(eta, -10)
 setmax(eta, 10)
-setmin(chi, 75)
-setmax(chi, 105)
+setmin(chi, 90 - 12)
+setmax(chi, 90 + 12)
 setmin(phi, -88)
 setmax(phi, 88)
-
+setcut(phi, -90)
 hardware()
+
+
+
+def X(th_deg):
+    return x_rotation(th_deg * TORAD)
+
+
+def Y(th_deg):
+    return y_rotation(th_deg * TORAD)
+                      
+
+def Z(th_deg):
+    return z_rotation(th_deg * TORAD)
+
+
+WEDGE = X(15)
+
 
 if not GDA:
     from startup._common_imports import *
     import startup._demo
     demo = startup._demo.Demo(globals(), 'fivec')
-    
-setmax(delta, 24)
-setmin(delta, -1)
-setmin(gam, 0)
-setmax(gam, 15)
-setmin(eta, -10)
-setmax(eta, 10)
-setmin(chi, 75)
-setmax(chi, 105)
-setmin(phi, -88)
-setmax(phi, 88)
-
-hardware()
