@@ -297,9 +297,7 @@ class UBCalculation:
                 "with newubcalc")
         self._state.crystal = CrystalUnderTest(name, a, b, c, alpha, beta, gamma)
         # Clear U and UB if these exist
-        if self._U != None:  # (UB will also exist)
-            self._U = None
-            self._UB = None
+        if self._U is not None:  # (UB will also exist)
             print "Warning: the old UB calculation has been cleared."
             print "         Use 'calcub' to recalculate with old reflections."
 
