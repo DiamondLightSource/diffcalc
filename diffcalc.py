@@ -55,8 +55,10 @@ def main():
         env['PYTHONPATH'] = ''
     env['PYTHONPATH'] = DIFFCALC_ROOT + ':' + env['PYTHONPATH']
     
+    diffcmd_start_path = os.path.join(DIFFCALC_ROOT, 'diffcmd', 'start.py')
+    
     exe = 'python' if args.use_python else 'ipython --no-banner --HistoryManager.hist_file=/tmp/ipython_hist_%s.sqlite' % getpass.getuser()
-    cmd = "%s -i -m diffcmd.start %s %s" % (exe, args.module, args.debug)
+    cmd = "%s -i %s %s %s" % (exe, diffcmd_start_path, args.module, args.debug)
     print
     print 'Running: "%s"' % cmd
     subprocess.call(cmd, env=env, shell=True)
