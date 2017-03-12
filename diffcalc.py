@@ -16,8 +16,10 @@ def main():
                         help='run within python rather than ipython')
     parser.add_argument('--debug', dest='debug', action='store_true',
                         help='run in debug mode')
-    parser.add_argument('--make-manuals', dest='make_manuals', action='store_true',
+    parser.add_argument('--make-manuals-source', dest='make_manuals', action='store_true',
                         help='make .rst manual files by running template through sixcircle')
+    parser.add_argument('--non-interactive', dest='non_interactive', action='store_true',
+                        help='do not enter interactive mode after startup')
     parser.add_argument('module', type=str, nargs='?',
                         help='the module to startup with')
     args = parser.parse_args()
@@ -31,12 +33,12 @@ def main():
     
     if args.show_modules:
         print_available_modules(module_names)
-        exit(1)      
+        exit(0)      
     
     if not args.make_manuals and not args.module:   
         print "A module name should be provided. Choose one of:"
         print_available_modules(module_names)
-        exit(1)
+        exit(0)
         
     if args.make_manuals:
         if args.module:
@@ -57,12 +59,18 @@ def main():
     
     diffcmd_start_path = os.path.join(DIFFCALC_ROOT, 'diffcmd', 'start.py')
     
-    exe = 'python' if args.use_python else 'ipython --no-banner --HistoryManager.hist_file=/tmp/ipython_hist_%s.sqlite' % getpass.getuser()
-    cmd = "%s -i %s %s %s" % (exe, diffcmd_start_path, args.module, args.debug)
-    print
-    print 'Running: "%s"' % cmd
-    subprocess.call(cmd, env=env, shell=True)
+    if args.use_python:
+        cmd = 'python'
+    else:  # ipython
+        cmd = 'ipython --no-banner --HistoryManager.hist_file=/tmp/ipython_hist_%s.sqlite' % getpass.getuser()
     
+    iflag = '' if args.non_interactive else '-i'    
+    cmd = cmd + ' ' + ' '.join([iflag, diffcmd_start_path, args.module, str(args.debug)])
+   
+    print 'Running: ' + cmd
+    rc = subprocess.call(cmd, env=env, shell=True)
+    exit(rc)
+
  
 def print_available_modules(module_names):           
     lines = []
