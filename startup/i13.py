@@ -1,4 +1,5 @@
 from diffcalc.util import x_rotation, y_rotation, z_rotation, TORAD
+import startup._demo
 from startup._common_imports import *
 
 
@@ -73,6 +74,4 @@ WEDGE = X(15)
 
 
 if not GDA:
-    from startup._common_imports import *
-    import startup._demo
     demo = startup._demo.Demo(globals(), 'fivec')

@@ -1,6 +1,7 @@
 from startup._common_imports import *
 from diffcalc.hkl.you.geometry import YouPosition
 import diffcalc.hkl.you.geometry
+import startup._demo
 
 LOCAL_MANUAL = 'http://confluence.diamond.ac.uk/display/I16/Diffcalc%20(i16)'
 
@@ -63,3 +64,5 @@ diffcalc.hardware.setrange(delta, -2, 145)
 diffcalc.hardware.setrange(gam, -2, 145)
 setcut(phi, -180)
 
+if not GDA:
+    demo = startup._demo.Demo(globals(), 'i16')

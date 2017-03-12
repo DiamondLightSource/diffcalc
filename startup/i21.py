@@ -114,6 +114,9 @@ lastub()
 
 class I21Demo(startup._demo.Demo):
     
+    def __init__(self, namespace):
+        startup._demo.Demo.__init__(self, namespace, 'fourc')
+    
     def i21(self):
         startup._demo.print_heading('i21 scannables demo')
 
@@ -127,4 +130,4 @@ class I21Demo(startup._demo.Demo):
             'fourc'])
 
 if not GDA:
-    demo = I21Demo(globals(), 'fourc')
+    demo = I21Demo(globals())

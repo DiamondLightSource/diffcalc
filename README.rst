@@ -41,7 +41,6 @@ Diffcalc’s standard calculation engine is an implementation of [You1999]_ and
      :width: 50%
      :align: center
 
-
 Diffcalc can be configured to work with any diffractometer geometry which is a
 subset of this. For example, a five-circle diffractometer might be missing the
 nu circle above.
@@ -358,9 +357,9 @@ Orientation Commands
 +-----------------------------+---------------------------------------------------+
 | **REFERENCE (SURFACE)**                                                         |
 +-----------------------------+---------------------------------------------------+
-| **-- setnphi** {x y z}      | sets or displays n_phi reference                  |
+| **-- setnphi** {[x y z]}    | sets or displays n_phi reference                  |
 +-----------------------------+---------------------------------------------------+
-| **-- setnhkl** {h k l}      | sets or displays n_hkl reference                  |
+| **-- setnhkl** {[h k l]}    | sets or displays n_hkl reference                  |
 +-----------------------------+---------------------------------------------------+
 | **REFLECTIONS**                                                                 |
 +-----------------------------+---------------------------------------------------+

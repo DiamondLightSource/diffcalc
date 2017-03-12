@@ -5,7 +5,6 @@ Created on 19 Feb 2017
 '''
 
 import diffcmd.ipython
-from gevent.ares import result
 
 try:
     __IPYTHON__  # @UndefinedVariable
@@ -14,7 +13,7 @@ except NameError:
     IPYTHON = False
     
 
-GEOMETRIES = ['sixc', 'fivec', 'fourc']
+GEOMETRIES = ['sixc', 'fivec', 'fourc', 'i16']
 
 
 def echo(cmd):
@@ -42,7 +41,8 @@ class Demo(object):
         self.remove_test_ubcalc()
         
         pos_cmd = {
-            'sixc': 'pos sixc [0 60 0 30 0 0]',
+            'sixc': 'pos sixc [0 60 0 30 0 0]', # mu, delta, gam, eta, chi, phi
+            'i16': 'pos sixc [0 0 30 0 60 0]', #  phi, chi, eta, mu, delta, gam
             'fivec': 'pos fivec [60 0 30 0 0]',
             'fourc': 'pos fourc [60 30 0 0]'
             }[self.geometry]
@@ -64,10 +64,11 @@ class Demo(object):
         
     def constrain(self):
         print_heading('Constraint demo')
-        con_mu_cmd = 'con mu 0' if self.geometry == 'sixc' else ''
+        con_qaz_cmd = '' if self.geometry == 'fourc' else 'con qaz 90'
+        con_mu_cmd = 'con mu 0' if self.geometry in ('sixc', 'i16') else ''
         self.echorun_magiccmd_list([
             'help hkl',
-            'con qaz 90',
+            con_qaz_cmd,
             'con a_eq_b',
             con_mu_cmd,
             'con',
@@ -76,11 +77,12 @@ class Demo(object):
             
     def scan(self):
         print_heading('Scanning demo')
+        diff_name = 'sixc' if self.geometry == 'i16' else self.geometry
         self.echorun_magiccmd_list([
             'pos hkl [1 0 0]',
             'scan delta 40 80 10 hkl ct 1',
             'pos hkl [0 1 0]',
-            'scan h 0 1 .2 k l %s ct 1' % self.geometry,
+            'scan h 0 1 .2 k l %s ct 1' % diff_name,
             'con psi',
             'scan psi 0 90 10 hkl [1 0 1] eta chi phi ct .1'])
  
