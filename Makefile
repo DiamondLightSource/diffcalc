@@ -2,13 +2,13 @@
 test-all: test-python test-jython test-integration test-launcher
 
 test-python:
-	pytest
+	py.test
 	
 test-jython:
-	export CLASSPATH=$(HOME)/lib/Jama-1.0.3.jar:$(CLASSPATH); echo $$CLASSPATH; $(HOME)/jython/bin/pytest
+	export CLASSPATH=$(HOME)/lib/Jama-1.0.3.jar:$(CLASSPATH); echo $$CLASSPATH; $(HOME)/jython/bin/py.test
 	
 test-integration:
-	pytest --boxed integration_checks.py
+	py.test --boxed integration_checks.py
 	
 test-launcher:
 	./diffcalc.py --help

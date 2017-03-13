@@ -14,7 +14,7 @@ before_install:
   - if [ "$JYTHON" == "false" ]; then pip install pytest-xdist; fi
   
 before_script:
-  - if [ "$JYTHON" == "true" ]; then export PYTEST=$HOME/jython/bin/pytest; else export PYTEST=pytest; fi
+  - if [ "$JYTHON" == "true" ]; then export PYTEST=$HOME/jython/bin/py.test; else export PYTEST=py.test; fi
   - echo PYTEST:- $PYTEST
 
 script: $PYTEST
