@@ -55,7 +55,7 @@ class Pair:
 
 class _BaseTest():
 
-    def setup(self):
+    def setup_method(self):
         self.mock_ubcalc = createMockUbcalc(None)
         self.mock_geometry = createMockDiffractometerGeometry()
         names = ['delta', NUNAME, 'mu', 'eta', 'chi', 'phi']
@@ -119,15 +119,15 @@ class _BaseTest():
 
 class _TestCubic(_BaseTest):
 
-    def setup(self):
-        _BaseTest.setup(self)
+    def setup_method(self):
+        _BaseTest.setup_method(self)
         self.B = I * 2 * pi
 
 
 class _TestCubicVertical(_TestCubic):
 
-    def setup(self):
-        _TestCubic.setup(self)
+    def setup_method(self):
+        _TestCubic.setup_method(self)
 
     def makes_cases(self, zrot, yrot):
         self.zrot = zrot
@@ -179,24 +179,24 @@ class _TestCubicVertical(_TestCubic):
 
 class TestCubicVertical_aeqb(_TestCubicVertical):
 
-    def setup(self):
-        _TestCubicVertical.setup(self)
+    def setup_method(self):
+        _TestCubicVertical.setup_method(self)
         self.constraints._constrained = {'a_eq_b': None, 'mu': 0, NUNAME: 0}
 
 
 class TestCubicVertical_psi_90(_TestCubicVertical):
     '''mode psi=90 should be the same as mode a_eq_b'''
 
-    def setup(self):
-        _TestCubicVertical.setup(self)
+    def setup_method(self):
+        _TestCubicVertical.setup_method(self)
         self.constraints._constrained = {'psi': 90 * TORAD, 'mu': 0, NUNAME: 0}
 
 
 class TestCubicVertical_qaz_90(_TestCubicVertical):
     '''mode psi=90 should be the same as mode a_eq_b'''
 
-    def setup(self):
-        _TestCubicVertical.setup(self)
+    def setup_method(self):
+        _TestCubicVertical.setup_method(self)
         self.constraints._constrained = {'a_eq_b': None, 'mu': 0,
                                          'qaz': 90 * TORAD}
 
@@ -207,8 +207,8 @@ class SkipTestYouHklCalculatorWithCubicMode_aeqb_delta_60(_TestCubicVertical):
     Skip all tests.
     '''
 
-    def setup(self):
-        _TestCubicVertical.setup(self)
+    def setup_method(self):
+        _TestCubicVertical.setup_method(self)
         self.constraints._constrained = {'a_eq_b': None, 'mu': 0,
                                          'delta': 60 * TORAD}
         self.places = 5
@@ -216,8 +216,8 @@ class SkipTestYouHklCalculatorWithCubicMode_aeqb_delta_60(_TestCubicVertical):
 
 class _TestCubicHorizontal(_TestCubic):
 
-    def setup(self):
-        _TestCubic.setup(self)
+    def setup_method(self):
+        _TestCubic.setup_method(self)
 
     def makes_cases(self, zrot, yrot):
         self.zrot = zrot
@@ -273,22 +273,22 @@ class _TestCubicHorizontal(_TestCubic):
 
 class TestCubicHorizontal_qaz0_aeqb(_TestCubicHorizontal):
 
-    def setup(self):
-        _TestCubicHorizontal.setup(self)
+    def setup_method(self):
+        _TestCubicHorizontal.setup_method(self)
         self.constraints._constrained = {'a_eq_b': None, 'qaz': 0, 'eta': 0}
 
 
 class TestCubicHorizontal_delta0_aeqb(_TestCubicHorizontal):
 
-    def setup(self):
-        _TestCubicHorizontal.setup(self)
+    def setup_method(self):
+        _TestCubicHorizontal.setup_method(self)
         self.constraints._constrained = {'a_eq_b': None, 'delta': 0, 'eta': 0}
 
 
 class TestAgainstSpecSixcB16_270608(_BaseTest):
     '''NOTE: copied from test.diffcalc.scenarios.session3'''
-    def setup(self):
-        _BaseTest.setup(self)
+    def setup_method(self):
+        _BaseTest.setup_method(self)
 
         U = matrix(((0.997161, -0.062217, 0.042420),
                     (0.062542, 0.998022, -0.006371),
@@ -352,8 +352,8 @@ class SkipTestThreeTwoCircleForDiamondI06andI10(_BaseTest):
     beamline.
     """
 
-    def setup(self):
-        _BaseTest.setup(self)
+    def setup_method(self):
+        _BaseTest.setup_method(self)
         self.constraints._constrained = {'phi': -pi / 2, NUNAME: 0, 'mu': 0}
         self.wavelength = 12.39842 / 1.650
 
@@ -395,8 +395,8 @@ class TestFixedChiPhiPsiMode_DiamondI07SurfaceNormalHorizontal(_TestCubic):
     The data here is taken from an experiment performed on Diamonds I07
     beamline, obtained using Vlieg's DIF software"""
 
-    def setup(self):
-        _TestCubic.setup(self)
+    def setup_method(self):
+        _TestCubic.setup_method(self)
         self.mock_hardware.set_lower_limit(NUNAME, 0)
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'a_eq_b': None}
         self.wavelength = 1
@@ -476,8 +476,8 @@ class TestFixedChiPhiPsiMode_DiamondI07SurfaceNormalHorizontal(_TestCubic):
 
 class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
 
-    def setup(self):
-        _TestCubic.setup(self)
+    def setup_method(self):
+        _TestCubic.setup_method(self)
         self.mock_hardware.set_lower_limit(NUNAME, 0)
         self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0,
                                          'a_eq_b': None}
@@ -562,8 +562,8 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
 class SkipTestFixedChiPhiPsiModeSurfaceNormalVerticalI16(_TestCubic):
     # testing with Chris N. for pre christmas 2012 i16 experiment
 
-    def setup(self):
-        _TestCubic.setup(self)
+    def setup_method(self):
+        _TestCubic.setup_method(self)
         self.mock_hardware.set_lower_limit('nu', 0)
         self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0,
                                          'a_eq_b': None}
@@ -609,8 +609,8 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVerticalI16(_TestCubic):
 
 class TestConstrain3Sample_ChiPhiEta(_TestCubic):
 
-    def setup(self):
-        _TestCubic.setup(self)
+    def setup_method(self):
+        _TestCubic.setup_method(self)
         self.mock_hardware.set_lower_limit(NUNAME, 0)
         self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0,
                                          'a_eq_b': None}
@@ -726,8 +726,8 @@ class TestHorizontalDeltaNadeta0_JiraI16_32_failure(_BaseTest):
     The data here is taken from a trial experiment which failed. Diamond's internal Jira: 
     http://jira.diamond.ac.uk/browse/I16-32"""
 
-    def setup(self):
-        _BaseTest.setup(self)
+    def setup_method(self):
+        _BaseTest.setup_method(self)
         self.mock_hardware.set_lower_limit(NUNAME, 0)
         
         self.wavelength = 12.39842 / 8

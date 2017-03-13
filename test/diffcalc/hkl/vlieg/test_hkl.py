@@ -27,6 +27,7 @@ from diffcalc.util import MockRawInput
 from diffcalc.hkl.vlieg.calc import VliegHklCalculator
 from diffcalc.ub.calc import UBCalculation
 from diffcalc.ub.persistence import UbCalculationNonPersister
+import pytest
 
 try:
     from gdascripts.pd.dummy_pds import DummyPD  # @UnusedImport
@@ -40,9 +41,9 @@ def prepareRawInput(listOfStrings):
 prepareRawInput([])
 
 
-class TestHklCommands(unittest.TestCase):
+class TestHklCommands(object):
 
-    def setUp(self):
+    def setup_method(self):
         self.geometry = SixCircleGammaOnArmGeometry()
         dummy = 'alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'
         self.hardware = DummyHardwareAdapter(dummy)
@@ -61,9 +62,10 @@ class TestHklCommands(unittest.TestCase):
         prepareRawInput([])
 
     def testHklmode(self):
-        self.assertRaises(TypeError, self.hkl.hklmode, 1, 2)
-        self.assertRaises(
-            ValueError, self.hkl.hklmode, 'unwanted_string')
+        with pytest.raises(TypeError):
+            self.hkl.hklmode(1, 2)
+        with pytest.raises(ValueError):
+            self.hkl.hklmode('unwanted_string')
         print self.hkl.hklmode()
         print self.hkl.hklmode(1)
 
@@ -73,10 +75,10 @@ class TestHklCommands(unittest.TestCase):
         self.hkl.setpar('alpha', 1)
         self.hkl.setpar('alpha', 1.1)
         pm = self.hkl.hklcalc.parameter_manager
-        self.assertEqual(pm.get_constraint('alpha'), 1.1)
+        assert pm.get_constraint('alpha') == 1.1
 
     def testSetWithScannable(self):
         alpha = DummyPD('alpha')
         self.hkl.setpar(alpha, 1.1)
         pm = self.hkl.hklcalc.parameter_manager
-        self.assertEqual(pm.get_constraint('alpha'), 1.1)
+        assert pm.get_constraint('alpha') == 1.1

@@ -22,11 +22,12 @@ from diffcalc.hkl.vlieg.constraints import ModeSelector, VliegParameterManager
 from diffcalc.util import DiffcalcException
 from test.diffcalc.hkl.vlieg.test_calc import \
     createMockHardwareMonitor, createMockDiffractometerGeometry
+import pytest
 
 
-class TestModeSelector(unittest.TestCase):
+class TestModeSelector(object):
 
-    def setUp(self):
+    def setup_method(self):
 
         self.ms = ModeSelector(createMockDiffractometerGeometry(),
                                parameterManager=None)
@@ -36,9 +37,9 @@ class TestModeSelector(unittest.TestCase):
 
     def testSetModeByIndex(self):
         self.ms.setModeByIndex(0)
-        self.assert_(self.ms.getMode().name == '4cFixedw')
+        assert self.ms.getMode().name == '4cFixedw'
         self.ms.setModeByIndex(1)
-        self.assert_(self.ms.getMode().name == '4cBeq')
+        assert self.ms.getMode().name == '4cBeq'
 
     def testGetMode(self):
         # tested implicetely by testSetmode
@@ -48,33 +49,34 @@ class TestModeSelector(unittest.TestCase):
         print self.ms.reportAvailableModes()
 
 
-class TestParameterManager(unittest.TestCase):
+class TestParameterManager(object):
 
-    def setUp(self):
+    def setup_method(self):
         self.hw = createMockHardwareMonitor()
         self.ms = ModeSelector(createMockDiffractometerGeometry())
         self.pm = VliegParameterManager(createMockDiffractometerGeometry(),
                                         self.hw, self.ms)
 
     def testDefaultParameterValues(self):
-        self.assertEqual(self.pm.get_constraint('alpha'), 0)
-        self.assertEqual(self.pm.get_constraint('gamma'), 0)
-        self.assertRaises(DiffcalcException, self.pm.get_constraint,
-                          'not-a-parameter-name')
+        assert self.pm.get_constraint('alpha') == 0
+        assert self.pm.get_constraint('gamma') == 0
+        with pytest.raises(DiffcalcException):
+            self.pm.get_constraint('not-a-parameter-name')
 
     def testSetParameter(self):
         self.pm.set_constraint('alpha', 10.1)
-        self.assertEqual(self.pm.get_constraint('alpha'), 10.1)
+        assert self.pm.get_constraint('alpha') == 10.1
 
     def testSetTrackParameter_isParameterChecked(self):
-        self.assertEqual(self.pm.isParameterTracked('alpha'), False)
+        assert not self.pm.isParameterTracked('alpha')
         self.pm.set_constraint('alpha', 9)
 
         self.pm.setTrackParameter('alpha', True)
-        self.assertEqual(self.pm.isParameterTracked('alpha'), True)
-        self.assertRaises(DiffcalcException, self.pm.set_constraint, 'alpha', 10)
+        assert self.pm.isParameterTracked('alpha') == True
+        with pytest.raises(DiffcalcException):
+            self.pm.set_constraint('alpha', 10)
         self.hw.get_position.return_value = 888, 11, 999
-        self.assertEqual(self.pm.get_constraint('alpha'), 11)
+        assert self.pm.get_constraint('alpha') == 11
 
         print self.pm.reportAllParameters()
         print "**"
@@ -82,9 +84,9 @@ class TestParameterManager(unittest.TestCase):
         print self.pm.reportParametersUsedInCurrentMode()
 
         self.pm.setTrackParameter('alpha', False)
-        self.assertEqual(self.pm.isParameterTracked('alpha'), False)
-        self.assertEqual(self.pm.get_constraint('alpha'), 11)
+        assert not self.pm.isParameterTracked('alpha')
+        assert self.pm.get_constraint('alpha') == 11
         self.hw.get_position.return_value = 888, 12, 999
-        self.assertEqual(self.pm.get_constraint('alpha'), 11)
+        assert self.pm.get_constraint('alpha') == 11
         self.pm.set_constraint('alpha', 13)
-        self.assertEqual(self.pm.get_constraint('alpha'), 13)
+        assert self.pm.get_constraint('alpha') == 13

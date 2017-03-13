@@ -28,9 +28,9 @@ from diffcalc.ub.crystal import CrystalUnderTest
 from test.diffcalc import scenarios
 
 
-class TestCrystalUnderTest(unittest.TestCase):
+class TestCrystalUnderTest(object):
 
-    def setUp(self):
+    def setup_method(self):
         self.tclatt = []
         self.tcbmat = []
 

@@ -33,9 +33,9 @@ class NoneReturningSingleFieldDummyScannable(SingleFieldDummyScannable):
             return None
 
 
-class TestPos(unittest.TestCase):
+class TestPos(object):
 
-    def setUp(self):
+    def setup_method(self):
         self.dummyMainNamespace = namespace = {}
         namespace['notAScannable'] = 3.124
         namespace['scnA'] = SingleFieldDummyScannable('scnA')
@@ -49,13 +49,11 @@ class TestPos(unittest.TestCase):
 
     def testPosReturningReportWithRead(self):
         scnA = self.dummyMainNamespace['scnA']
-        self.assertEquals(self.pos.posReturningReport(scnA),
-                          'scnA:      0.0000')
+        assert self.pos.posReturningReport(scnA) == 'scnA:      0.0000'
 
     def testPosReturningReportWithMove(self):
         scnA = self.dummyMainNamespace['scnA']
-        self.assertEquals(self.pos.posReturningReport(scnA, 1.123),
-                          'scnA:      1.1230')
+        assert self.pos.posReturningReport(scnA, 1.123) == 'scnA:      1.1230'
 
     def test__call__(self):
         scnA = self.dummyMainNamespace['scnA']
@@ -67,27 +65,24 @@ class TestPos(unittest.TestCase):
 
     def testPosReturningReportWithMultiFieldScannables(self):
         scn = MultiInputExtraFieldsDummyScannable('mie', ['i1', 'i2'], ['e1'])
-        self.assertEquals(self.pos.posReturningReport(scn),
-                          'mie:      i1: 0.0000 i2: 0.0000 e1: 100.0000 ')
+        assert (self.pos.posReturningReport(scn) 
+                == 'mie:      i1: 0.0000 i2: 0.0000 e1: 100.0000 ')
 
     def testPosReturningReportWithBadScannable(self):
         scnBad = self.dummyMainNamespace['scnBad']
-        self.assertEquals(self.pos.posReturningReport(scnBad),
-                          "scnBad:   Error: Problem")
-        self.assertEquals(self.pos.posReturningReport(scnBad, 4.321),
-                          "scnBad:   Error: Problem")
+        assert self.pos.posReturningReport(scnBad) == "scnBad:   Error: Problem"
+        assert (self.pos.posReturningReport(scnBad, 4.321)
+                 == "scnBad:   Error: Problem")
 
     def testPosReturningReportWithNoneReturningScannable(self):
         scnNone = self.dummyMainNamespace['scnNone']
-        self.assertEquals(self.pos.posReturningReport(scnNone),
-                          "scnNone:  ---")
-        self.assertEquals(self.pos.posReturningReport(scnNone, 4.321),
-                          "scnNone:  ---")
+        assert self.pos.posReturningReport(scnNone) == "scnNone:  ---"
+        assert self.pos.posReturningReport(scnNone, 4.321) == "scnNone:  ---"
 
 
-class TestScan(unittest.TestCase):
+class TestScan(object):
 
-    def setUp(self):
+    def setup_method(self):
         self.scan = Scan([ScanDataPrinter()])
 
     def test__parseScanArgsIntoScannableArgGroups(self):
@@ -102,7 +97,7 @@ class TestScan(unittest.TestCase):
                   r[2].scannable, r[2].args, r[3].scannable, r[3].args]
         desired = [scnA, [1, 2, 3], scnB, [[4, 5, 6], ], scnC, list(), scnD,
                    [1.123456]]
-        self.assertEqual(result, desired)
+        assert result == desired
 
     def test__reorderGroupsAccordingToLevel(self):
         scn4 = SingleFieldDummyScannable('scn4')
@@ -120,13 +115,13 @@ class TestScan(unittest.TestCase):
             return [r[0].scannable, r[1].scannable, r[2].scannable,
                     r[3].scannable]
 
-        self.assertEqual(t((scn5a, 1, 2, 3, scn6, 1, scn5b, scn4)),
-                         [scn5a, scn4, scn5b, scn6])
-        self.assertEqual(t((scn5a, 1, 3, scn6, 1, scn5b, scn4)),
-                         [scn4, scn5a, scn5b, scn6])
+        assert (t((scn5a, 1, 2, 3, scn6, 1, scn5b, scn4))
+                == [scn5a, scn4, scn5b, scn6])
+        assert (t((scn5a, 1, 3, scn6, 1, scn5b, scn4))
+                == [scn4, scn5a, scn5b, scn6])
 
     def test__Frange(self):
-        self.assertEquals(self.scan._frange(1, 1.3, .1), [1.0, 1.1, 1.2, 1.3])
+        assert self.scan._frange(1, 1.3, .1) == [1.0, 1.1, 1.2, 1.3]
 
     def test__Call__(self):
         scn4 = SingleFieldDummyScannable('scn4')

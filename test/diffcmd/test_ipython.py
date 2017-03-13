@@ -50,7 +50,7 @@ def assert_raises_syntax_error_with_message(msg, func, *args, **kwargs):
 
 
 
-def setup():
+def setup_module():
     if not IPYTHON:
         raise SkipTest('ipython not available')
     
