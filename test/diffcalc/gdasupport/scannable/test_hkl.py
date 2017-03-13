@@ -24,6 +24,7 @@ from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
 from diffcalc.gdasupport.scannable.hkl import Hkl
 from test.diffcalc.gdasupport.scannable.mockdiffcalc import MockDiffcalc
+import pytest
 try:
     from gda.device.scannable.scannablegroup import ScannableGroup
 except ImportError:
@@ -56,16 +57,16 @@ class Popper:
         return self.items.pop(0)
 
 
-class TestHkl(unittest.TestCase):
+class TestHkl(object):
 
-    def setUp(self):
+    def setup_method(self):
         self.mock_dc_module = mock.Mock()
         self.mockSixc = mock.Mock(spec=DiffractometerScannableGroup)
         self.hkl = Hkl('hkl', self.mockSixc, self.mock_dc_module)
 
     def testInit(self):
         self.mock_dc_module.angles_to_hkl.return_value = ([1, 2, 3], PARAM_DICT)
-        self.assertEqual(self.hkl.getPosition(), [1, 2, 3])
+        assert self.hkl.getPosition() == [1, 2, 3]
 
     def testAsynchronousMoveTo(self):
         self.mock_dc_module.hkl_to_angles.return_value = ([6, 5, 4, 3, 2, 1],
@@ -77,7 +78,7 @@ class TestHkl(unittest.TestCase):
     def testGetPosition(self):
         self.mockSixc.getPosition.return_value = [6, 5, 4, 3, 2, 1]
         self.mock_dc_module.angles_to_hkl.return_value = ([1, 0, 1], PARAM_DICT)
-        self.assertEqual(self.hkl.getPosition(), [1, 0, 1])
+        assert self.hkl.getPosition() == [1, 0, 1]
         self.mock_dc_module.angles_to_hkl.assert_called_with([6, 5, 4, 3, 2, 1])
 
     def testAsynchronousMoveToWithNonesOutsideScan(self):
@@ -147,7 +148,7 @@ class TestHkl(unittest.TestCase):
 
     def testIsBusy(self):
         self.mockSixc.isBusy.return_value = False
-        self.assertFalse(self.hkl.isBusy(), False)
+        assert not self.hkl.isBusy()
         self.mockSixc.isBusy.assert_called()
 
     def testWaitWhileBusy(self):
@@ -168,26 +169,24 @@ class TestHkl(unittest.TestCase):
 
 
 class TestHklReturningVirtualangles(TestHkl):
-    def setUp(self):
-        TestHkl.setUp(self)
+    def setup_method(self):
+        TestHkl.setup_method(self)
         self.hkl = Hkl('hkl', self.mockSixc, self.mock_dc_module,
                        ['theta', '2theta', 'Bin', 'Bout', 'azimuth'])
 
     def testInit(self):
         self.mock_dc_module.angles_to_hkl.return_value = ([1, 0, 1], PARAM_DICT)
-        self.assertEqual(self.hkl.getPosition(),
-                         [1, 0, 1, 1, 12, 123, 1234, 12345])
+        assert self.hkl.getPosition() == [1, 0, 1, 1, 12, 123, 1234, 12345]
 
     def testGetPosition(self):
         self.mockSixc.getPosition.return_value = [6, 5, 4, 3, 2, 1]
         self.mock_dc_module.angles_to_hkl.return_value = ([1, 0, 1], PARAM_DICT)
-        self.assertEqual(self.hkl.getPosition(),
-                         [1, 0, 1, 1, 12, 123, 1234, 12345])
+        assert self.hkl.getPosition() == [1, 0, 1, 1, 12, 123, 1234, 12345]
         self.mock_dc_module.angles_to_hkl.assert_called_with([6, 5, 4, 3, 2, 1])
 
 
-class TestHklWithFailingAngleCalculator(unittest.TestCase):
-    def setUp(self):
+class TestHklWithFailingAngleCalculator(object):
+    def setup_method(self):
         class BadMockAngleCalculator:
             def angles_to_hkl(self, pos):
                 raise Exception("Problem in angles_to_hkl")
@@ -201,21 +200,23 @@ class TestHklWithFailingAngleCalculator(unittest.TestCase):
                        BadMockAngleCalculator())
 
     def testGetPosition(self):
-        self.assertRaises(Exception, self.hkl.getPosition, None)
+        with pytest.raises(Exception):
+            self.hkl.getPosition(None)
 
     def test__repr__(self):
-        self.assertEqual(self.hkl.__repr__(), "<hkl: Problem in angles_to_hkl>")
+        assert self.hkl.__repr__() == "<hkl: Problem in angles_to_hkl>"
 
     def test__str__(self):
-        self.assertEqual(self.hkl.__str__(), "<hkl: Problem in angles_to_hkl>")
+        assert self.hkl.__str__() == "<hkl: Problem in angles_to_hkl>"
 
     def testComponentGetPosition(self):
-        self.assertRaises(Exception, self.hkl.h.getPosition, None)
+        with pytest.raises(Exception):
+            self.hkl.h.getPosition(None)
 
     def testComponent__repr__(self):
         raise nose.SkipTest()
-        self.assertEqual(self.hkl.h.__repr__(), "<h: Problem in angles_to_hkl>")
+        assert self.hkl.h.__repr__() == "<h: Problem in angles_to_hkl>"
 
     def testComponent__str__(self):
         raise nose.SkipTest()
-        self.assertEqual(self.hkl.h.__str__(), "<h: Problem in angles_to_hkl>")
+        assert self.hkl.h.__str__() == "<h: Problem in angles_to_hkl>"

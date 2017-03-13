@@ -29,11 +29,12 @@ from diffcalc.hkl.vlieg.transform import TransformA, TransformB, TransformC, \
     transformsFromSector, TransformCommands, \
     VliegTransformSelector, VliegPositionTransformer
 import diffcalc.util  # @UnusedImport
+import pytest
 
 
-class TestVliegPositionTransformer(unittest.TestCase):
+class TestVliegPositionTransformer(object):
 
-    def setUp(self):
+    def setup_method(self):
         names = 'a', 'd', 'g', 'o', 'c', 'phi'
         self.hardware = DummyHardwareAdapter(names)
         self.geometry = SixCircleGammaOnArmGeometry()
@@ -99,8 +100,10 @@ class TestVliegPositionTransformer(unittest.TestCase):
     def testTransform(self):
         # mapper
         self.transform_commands.transform()  # should print its state
-        self.assertRaises(TypeError, self.transform_commands.transform, 1)
-        self.assertRaises(TypeError, self.transform_commands.transform, 'a', 1)
+        with pytest.raises(TypeError):
+            self.transform_commands.transform(1)
+        with pytest.raises(TypeError):
+            self.transform_commands.transform('a', 1)
 
     def testTransformsOnOff(self):
         # transforma [on/off/auto/manual]
@@ -130,9 +133,12 @@ class TestVliegPositionTransformer(unittest.TestCase):
 
     def testTransformsBadInput(self):
         transforma = self.transform_commands.transforma
-        self.assertRaises(TypeError, transforma, 1)
-        self.assertRaises(TypeError, transforma, 'not_valid')
-        self.assertRaises(TypeError, transforma, 'auto', 1)
+        with pytest.raises(TypeError):
+            transforma(1)
+        with pytest.raises(TypeError):
+            transforma('not_valid')
+        with pytest.raises(TypeError):
+            transforma('auto', 1)
 
     def testSector(self):
         #sector [0-7]
@@ -141,8 +147,10 @@ class TestVliegPositionTransformer(unittest.TestCase):
         eq_(ss.sector, 0, "test assumes sector is 0 to start")
         self.transform_commands.sector(1)
         eq_(ss.sector, 1)
-        self.assertRaises(TypeError, self.transform_commands.sector, 1, 2)
-        self.assertRaises(TypeError, self.transform_commands.sector, 'a')
+        with pytest.raises(TypeError):
+            self.transform_commands.sector(1, 2)
+        with pytest.raises(TypeError):
+            self.transform_commands.sector('a')
 
     def testAutosectors(self):
         #autosector [0-7]
@@ -157,10 +165,10 @@ class TestVliegPositionTransformer(unittest.TestCase):
         eq_(ss.autosectors, [1])
         self.transform_commands.autosector(3)
         eq_(ss.autosectors, [3])
-        self.assertRaises(
-            TypeError, self.transform_commands.autosector, 1, 'a')
-        self.assertRaises(
-            TypeError, self.transform_commands.autosector, 'a')
+        with pytest.raises(TypeError):
+            self.transform_commands.autosector(1, 'a')
+        with pytest.raises(TypeError):
+            self.transform_commands.autosector('a')
 
 
 class MockLimitChecker(object):
@@ -175,48 +183,51 @@ class MockLimitChecker(object):
         return pos.delta <= 0
 
 
-class TestVliegTransformSelector(unittest.TestCase):
+class TestVliegTransformSelector(object):
 
-    def setUp(self):
+    def setup_method(self):
         self.limitChecker = MockLimitChecker()
         self.ss = VliegTransformSelector()
         self.ss.limitCheckerFunction = self.limitChecker.isPoswithiLimits
 
     def test__init__(self):
-        self.assertEquals(self.ss.sector, 0)
+        assert (self.ss.sector, 0)
 
     def testCutPosition(self):
         d = .1
         tocut = P(-180., 180., 180. - d, 180. + d, -180. + d, -180. - d)
         expected = P(-180., 180., 180. - d, -180. + d, -180. + d, 180. - d)
-        self.assert_(self.ss.cutPosition(tocut) == expected)
+        assert (self.ss.cutPosition(tocut) == expected)
 
     def testTransformNWithoutCut(self):
         pos = P(1, 2, 3, 4, 5, 6)
-        self.assert_(self.ss.transformNWithoutCut(0, pos) == pos)
+        assert (self.ss.transformNWithoutCut(0, pos) == pos)
 
     def testTransformPosition(self):
         pos = P(0 - 360, .1 + 360, .2 - 360, .3 + 360, .4, 5)
         res = self.ss.transformPosition(pos)
         des = P(0, .1, .2, .3, .4, 5)
-        self.assert_(res == des, '%s!=\n%s' % (res, des))
+        assert (res == des, '%s!=\n%s' % (res, des))
 
     def testSetSector(self):
         self.ss.setSector(4)
-        self.assertEquals(self.ss.sector, 4)
-        self.assertEquals(self.ss.transforms, ['b', 'c'])
+        assert (self.ss.sector, 4)
+        assert (self.ss.transforms, ['b', 'c'])
 
     def testSetTransforms(self):
         self.ss.setTransforms(('c', 'b'))
-        self.assertEquals(self.ss.sector, 4)
-        self.assertEquals(self.ss.transforms, ['b', 'c'])
+        assert (self.ss.sector, 4)
+        assert (self.ss.transforms, ['b', 'c'])
 
     def testAddAutoTransormWithBadInput(self):
-        self.assertEquals(self.ss.autosectors, [])
-        self.assertEquals(self.ss.autotransforms, [])
-        self.assertRaises(ValueError, self.ss.addAutoTransorm, 'not transform')
-        self.assertRaises(ValueError, self.ss.addAutoTransorm, 9999)
-        self.assertRaises(ValueError, self.ss.addAutoTransorm, [])
+        assert (self.ss.autosectors, [])
+        assert (self.ss.autotransforms, [])
+        with pytest.raises(ValueError):
+            self.ss.addAutoTransorm('not transform')
+        with pytest.raises(ValueError):
+            self.ss.addAutoTransorm(9999)
+        with pytest.raises(ValueError):
+            self.ss.addAutoTransorm([])
 
     def testAddAutoTransormWithTransforms(self):
         self.ss.autosectors = [1, 2, 3, 4, 5]
@@ -224,8 +235,8 @@ class TestVliegTransformSelector(unittest.TestCase):
         print "Should now print a warning..."
         self.ss.addAutoTransorm('a')  # twice
         self.ss.addAutoTransorm('b')
-        self.assertEquals(self.ss.autosectors, [])
-        self.assertEquals(self.ss.autotransforms, ['a', 'b'])
+        assert (self.ss.autosectors, [])
+        assert (self.ss.autotransforms, ['a', 'b'])
 
     def testAddAutoTransormWithSectors(self):
         self.ss.autotransforms = ['a', 'c']
@@ -233,13 +244,13 @@ class TestVliegTransformSelector(unittest.TestCase):
         print "Should now print a warning..."
         self.ss.addAutoTransorm(2)  # twice
         self.ss.addAutoTransorm(3)
-        self.assertEquals(self.ss.autosectors, [2, 3])
-        self.assertEquals(self.ss.autotransforms, [])
+        assert (self.ss.autosectors, [2, 3])
+        assert (self.ss.autotransforms, [])
 
     def testis_position_within_limits(self):
-        self.assertEquals(self.ss.is_position_within_limits(None), True)
+        assert (self.ss.is_position_within_limits(None), True)
         self.limitChecker.okay = False
-        self.assertEquals(self.ss.is_position_within_limits(None), False)
+        assert (self.ss.is_position_within_limits(None), False)
 
     def test__repr__(self):
         self.ss.setSector(0)
@@ -254,9 +265,9 @@ class TestVliegTransformSelector(unittest.TestCase):
         print "************************"
 
 
-class TestSectorSelectorAutoCode(unittest.TestCase):
+class TestSectorSelectorAutoCode(object):
 
-    def setUp(self):
+    def setup_method(self):
         self.limitChecker = MockLimitChecker()
         self.ss = VliegTransformSelector()
         self.ss.limitCheckerFunction = self.limitChecker.isDeltaNegative
@@ -269,32 +280,32 @@ class TestSectorSelectorAutoCode(unittest.TestCase):
     def testAddautoTransformWithSectors(self):
         self.ss.addAutoTransorm(2)
         self.ss.addAutoTransorm(3)
-        self.assertEquals(self.ss.autosectors, [2, 3])
-        self.assertEquals(self.ss.autotransforms, [])
+        assert (self.ss.autosectors, [2, 3])
+        assert (self.ss.autotransforms, [])
         self.ss.removeAutoTransform(3)
-        self.assertEquals(self.ss.autosectors, [2])
+        assert (self.ss.autosectors, [2])
 
     def testAddautoTransformTransforms(self):
         self.ss.addAutoTransorm('a')
         self.ss.addAutoTransorm('b')
-        self.assertEquals(self.ss.autosectors, [])
-        self.assertEquals(self.ss.autotransforms, ['a', 'b'])
+        assert (self.ss.autosectors, [])
+        assert (self.ss.autotransforms, ['a', 'b'])
 
     def testRemoveAutoTransformWithSectors(self):
         self.ss.addAutoTransorm(2)
         self.ss.addAutoTransorm(3)
         self.ss.removeAutoTransform(3)
-        self.assertEquals(self.ss.autosectors, [2])
+        assert (self.ss.autosectors, [2])
         self.ss.removeAutoTransform(2)
-        self.assertEquals(self.ss.autosectors, [])
+        assert (self.ss.autosectors, [])
 
     def testRemoveAutoTransformTransforms(self):
         self.ss.addAutoTransorm('a')
         self.ss.addAutoTransorm('b')
         self.ss.removeAutoTransform('b')
-        self.assertEquals(self.ss.autotransforms, ['a'])
+        assert (self.ss.autotransforms, ['a'])
         self.ss.removeAutoTransform('a')
-        self.assertEquals(self.ss.autotransforms, [])
+        assert (self.ss.autotransforms, [])
 
     def testTransformPosition(self):
         # Check that with no transforms set to autoapply, the limit
@@ -305,17 +316,15 @@ class TestSectorSelectorAutoCode(unittest.TestCase):
         ss.transformPosition(P(0, .1, .2, .3, .4, 5))
 
     def testMockLimitChecker(self):
-        self.assertFalse(
-            self.limitChecker.isDeltaNegative(P(0, .1, .2, .3, .4, 5)))
-        self.assertTrue(
-            self.limitChecker.isDeltaNegative(P(0, -.1, .2, .3, .4, 5)))
+        assert not self.limitChecker.isDeltaNegative(P(0, .1, .2, .3, .4, 5))
+        assert self.limitChecker.isDeltaNegative(P(0, -.1, .2, .3, .4, 5))
 
     def testAutoTransformPositionWithSectors(self):
         self.ss.addAutoTransorm(2)
         print "Should print 'INFO: Autosector changed sector from 0 to 2':"
         result = self.ss.autoTransformPositionBySector(self.pos)
-        self.assert_(result == self.pos_in2)
-        self.assertEquals(self.ss.sector, 2)
+        assert (result == self.pos_in2)
+        assert (self.ss.sector, 2)
 
     def testAutoTransformPositionWithSectorChoice(self):
         self.ss.addAutoTransorm(2)
@@ -323,8 +332,8 @@ class TestSectorSelectorAutoCode(unittest.TestCase):
         print "Should print 'WARNING: Autosector found multiple sectors...':"
         print "Should print 'INFO: Autosector changed sector from 0 to 2':"
         result = self.ss.autoTransformPositionBySector(self.pos)
-        self.assert_(result == self.pos_in2)
-        self.assertEquals(self.ss.sector, 2)
+        assert (result == self.pos_in2)
+        assert (self.ss.sector, 2)
 
     def testAutoTransformPositionWithSectorsFails(self):
         self.ss.addAutoTransorm(0)
@@ -332,17 +341,17 @@ class TestSectorSelectorAutoCode(unittest.TestCase):
         self.ss.addAutoTransorm(4)
         self.ss.addAutoTransorm(5)
         print "Should print 'INFO: Autosector changed sector from 0 to 2':"
-        self.assertRaises(
-            Exception, self.ss.autoTransformPositionBySector, self.pos)
+        with pytest.raises(Exception):
+            self.ss.autoTransformPositionBySector(self.pos)
         #self.ss.autoTransformPositionBySector(self.pos)
-        self.assertEquals(self.ss.sector, 0)  # unchanged
+        assert (self.ss.sector, 0)  # unchanged
 
     def testCreateListOfPossibleTransforms(self):
         self.ss.addAutoTransorm('a')
-        self.assertEquals(self.ss.createListOfPossibleTransforms(),
+        assert (self.ss.createListOfPossibleTransforms(),
                           [(), ['a', ]])
         self.ss.addAutoTransorm('b')
-        self.assertEquals(self.ss.createListOfPossibleTransforms(),
+        assert (self.ss.createListOfPossibleTransforms(),
                           [(), ['b', ], ['a', ], ['a', 'b']])
         self.ss.transforms = ['a', 'c']
 
@@ -350,8 +359,8 @@ class TestSectorSelectorAutoCode(unittest.TestCase):
         self.ss.addAutoTransorm('a')
         print "Should print 'INFO: ':"
         result = self.ss.autoTransformPositionByTransforms(self.pos)
-        self.assert_(result == self.pos_in2)
-        self.assertEquals(self.ss.sector, 2)
+        assert (result == self.pos_in2)
+        assert (self.ss.sector, 2)
 
     def testAutoTransformPositionWithTansformsChoice(self):
         self.ss.addAutoTransorm('a')
@@ -359,24 +368,24 @@ class TestSectorSelectorAutoCode(unittest.TestCase):
         print "Should print 'WARNING:':"
         print "Should print 'INFO: ':"
         result = self.ss.autoTransformPositionByTransforms(self.pos)
-        self.assert_(result == self.pos_in2)
-        self.assertEquals(self.ss.sector, 2)
+        assert (result == self.pos_in2)
+        assert (self.ss.sector, 2)
 
     def testTransformPositionWithAutoTransforms(self):
         self.ss.addAutoTransorm('a')
-        self.assert_(self.ss.transformPosition(self.pos) == self.pos_in2)
-        self.assertEquals(self.ss.sector, 2)
+        assert (self.ss.transformPosition(self.pos) == self.pos_in2)
+        assert (self.ss.sector, 2)
         print "Should not print 'INFO...'"
-        self.assert_(self.ss.transformPosition(self.pos) == self.pos_in2)
-        self.assertEquals(self.ss.sector, 2)
+        assert (self.ss.transformPosition(self.pos) == self.pos_in2)
+        assert (self.ss.sector, 2)
 
     def testTransformPositionWithAutoTransforms2(self):
         self.ss.addAutoTransorm(2)
-        self.assert_(self.ss.transformPosition(self.pos) == self.pos_in2)
-        self.assertEquals(self.ss.sector, 2)
+        assert (self.ss.transformPosition(self.pos) == self.pos_in2)
+        assert (self.ss.sector, 2)
         print "Should not print 'INFO...'"
-        self.assert_(self.ss.transformPosition(self.pos) == self.pos_in2)
-        self.assertEquals(self.ss.sector, 2)
+        assert (self.ss.transformPosition(self.pos) == self.pos_in2)
+        assert (self.ss.sector, 2)
 
     def test__repr__(self):
         self.ss.setSector(0)
@@ -401,9 +410,9 @@ class TestSectorSelectorAutoCode(unittest.TestCase):
         print "************************"
 
 
-class TestTransforms(unittest.TestCase):
+class TestTransforms(object):
 
-    def setUp(self):
+    def setup_method(self):
         self.limitCheckerFunction = Mock()
         self.ss = VliegTransformSelector()
         self.ss.limitCheckerFunction = self.limitCheckerFunction
@@ -425,7 +434,7 @@ class TestTransforms(unittest.TestCase):
         self.ss.setSector(n)
         fromss = self.ss.transformPosition(pos)
         fromhere = self.applyTransforms(transforms, pos)
-        self.assert_(fromss == fromhere,
+        assert (fromss == fromhere,
                      ("sector: %i\ntransforms:%s\n%s !=\n%s" %
                       (n, transforms, fromss, fromhere)))
 

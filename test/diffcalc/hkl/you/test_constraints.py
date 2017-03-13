@@ -35,7 +35,7 @@ def joined(d1, d2):
 
 class TestConstraintManager:
 
-    def setUp(self):
+    def setup_method(self):
         diffcalc.util.COLOURISE_TERMINAL_OUTPUT = False
         self.hardware_monitor = Mock()
         self.hardware_monitor.get_position.return_value = (1.,) * 6
@@ -501,7 +501,7 @@ class TestConstraintManager:
 
 class TestConstraintManagerWithFourCircles:
 
-    def setUp(self):
+    def setup_method(self):
         self.cm = YouConstraintManager(None, {NUNAME: 0, 'mu': 0})    
 
     def test_init(self):

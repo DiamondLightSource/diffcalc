@@ -127,7 +127,7 @@ class HardwareAdapter(object):
         raise NotImplementedError()
 
     def __str__(self):
-        s = self._name + ":\n"
+        s = self.name + ":\n"
         s += "  energy : " + str(self.get_energy()) + " keV\n"
         s += "  wavelength : " + str(self.get_wavelength()) + " Angstrom\n"
         names = self._diffractometerAngleNames
@@ -292,7 +292,8 @@ def cut_angle_at(cut_angle, value):
 class DummyHardwareAdapter(HardwareAdapter):
 
     def __init__(self, diffractometerAngleNames):
-        HardwareAdapter.__init__(self, diffractometerAngleNames)
+        super(self.__class__, self).__init__(diffractometerAngleNames)
+#         HardwareAdapter.__init__(self, diffractometerAngleNames)
 
         self._position = [0.] * len(diffractometerAngleNames)
         self._wavelength = 1.
@@ -346,7 +347,8 @@ class ScannableHardwareAdapter(HardwareAdapter):
     def __init__(self, diffractometerScannable, energyScannable,
                  energyScannableMultiplierToGetKeV=1):
         input_names = diffractometerScannable.getInputNames()
-        HardwareAdapter.__init__(self, input_names)
+        super(self.__class__, self).__init__(input_names)
+#         HardwareAdapter.__init__(self, input_names)
         self.diffhw = diffractometerScannable
         self.energyhw = energyScannable
         self.energyScannableMultiplierToGetKeV = \

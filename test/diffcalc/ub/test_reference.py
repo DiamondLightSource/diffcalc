@@ -30,7 +30,7 @@ except ImportError:
 
 class TestYouReference():
 
-    def setUp(self):
+    def setup_method(self):
         self.get_UB = Mock()
         self.reference = YouReference(self.get_UB)
         self.get_UB.return_value = matrix('1 0 0; 0 1 0; 0 0 1')

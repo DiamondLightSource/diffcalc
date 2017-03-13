@@ -18,6 +18,7 @@
 
 import unittest
 from diffcalc import settings
+import pytest
 
 try:
     from gdascripts.pd.dummy_pds import DummyPD  # @UnusedImport
@@ -45,14 +46,13 @@ class SimpleHardwareAdapter(HardwareAdapter):
         return 1.
 
 
-class TestHardwareAdapterBase(unittest.TestCase):
+class TestHardwareAdapterBase(object):
 
-    def setUp(self):
+    def setup_method(self):
         self.hardware = SimpleHardwareAdapter(['a', 'b', 'c'])
 
     def test__init__Andget_axes_names(self):
-        self.assertEquals(self.hardware.get_axes_names(),
-                          ('a', 'b', 'c'))
+        assert self.hardware.get_axes_names() == ('a', 'b', 'c')
 
     def test__repr__(self):
         print self.hardware.__repr__()
@@ -64,104 +64,97 @@ class TestHardwareAdapterBase(unittest.TestCase):
         pass
 
     def testget_position_by_name(self):
-        self.assertEqual(self.hardware.get_position_by_name('c'), 3.)
-        self.assertRaises(ValueError, self.hardware.get_position_by_name,
-                          'not an angle name')
+        assert self.hardware.get_position_by_name('c') == 3
+        with pytest.raises(ValueError):
+            self.hardware.get_position_by_name('not an angle name')
 
     def testLowerLimitSetAndGet(self):
         self.hardware.set_lower_limit('a', -1)
         self.hardware.set_lower_limit('b', -2)
         self.hardware.set_lower_limit('c', -3)
-        self.assertRaises(ValueError, self.hardware.set_lower_limit,
-                          'not an angle', 1)
+        with pytest.raises(ValueError):
+            self.hardware.set_lower_limit('not an angle', 1)
         self.hardware.set_lower_limit('b', None)
         print "Shoule print WARNING:"
         self.hardware.set_lower_limit('b', None)
-        self.assertEquals(self.hardware.get_lower_limit('a'), -1)
-        self.assertEquals(self.hardware.get_lower_limit('c'), -3)
+        assert self.hardware.get_lower_limit('a') == -1
+        assert self.hardware.get_lower_limit('c') == -3
 
     def testUpperLimitSetAndGet(self):
         self.hardware.set_upper_limit('a', 1)
         self.hardware.set_upper_limit('b', 2)
         self.hardware.set_upper_limit('c', 3)
-        self.assertRaises(ValueError, self.hardware.set_upper_limit,
-                          'not an angle', 1)
+        with pytest.raises(ValueError):
+            self.hardware.set_upper_limit('not an angle', 1)
         self.hardware.set_upper_limit('b', None)
         print "Shoule print WARNING:"
         self.hardware.set_upper_limit('b', None)
-        self.assertEquals(self.hardware.get_upper_limit('a'), 1)
-        self.assertEquals(self.hardware.get_upper_limit('c'), 3)
+        assert self.hardware.get_upper_limit('a') == 1
+        assert self.hardware.get_upper_limit('c') == 3
 
     def testis_position_within_limits(self):
         self.hardware.set_upper_limit('a', 1)
         self.hardware.set_upper_limit('b', 2)
         self.hardware.set_lower_limit('a', -1)
-        self.assertTrue(self.hardware.is_position_within_limits([0, 0, 999]))
-        self.assertTrue(self.hardware.is_position_within_limits([1, 2, 999]))
-        self.assertTrue(self.hardware.is_position_within_limits([-1, -999, 999]))
-        self.assertFalse(self.hardware.is_position_within_limits([1.01, 0, 999]))
-        self.assertFalse(self.hardware.is_position_within_limits([0, 2.01, 999]))
-        self.assertFalse(self.hardware.is_position_within_limits([-1.01, 0, 999]))
+        assert self.hardware.is_position_within_limits([0, 0, 999])
+        assert self.hardware.is_position_within_limits([1, 2, 999])
+        assert self.hardware.is_position_within_limits([-1, -999, 999])
+        assert not self.hardware.is_position_within_limits([1.01, 0, 999])
+        assert not self.hardware.is_position_within_limits([0, 2.01, 999])
+        assert not self.hardware.is_position_within_limits([-1.01, 0, 999])
 
     def testIsAxisWithinLimits(self):
         self.hardware.set_upper_limit('a', 1)
         self.hardware.set_upper_limit('b', 2)
         self.hardware.set_lower_limit('a', -1)
 
-        self.assertTrue(self.hardware.is_axis_value_within_limits('a', 0))
-        self.assertTrue(self.hardware.is_axis_value_within_limits('b', 0))
-        self.assertTrue(self.hardware.is_axis_value_within_limits('c', 999))
+        assert self.hardware.is_axis_value_within_limits('a', 0)
+        assert self.hardware.is_axis_value_within_limits('b', 0)
+        assert self.hardware.is_axis_value_within_limits('c', 999)
 
-        self.assertTrue(self.hardware.is_axis_value_within_limits('a', 1))
-        self.assertTrue(self.hardware.is_axis_value_within_limits('b', 2))
-        self.assertTrue(self.hardware.is_axis_value_within_limits('c', 999))
+        assert self.hardware.is_axis_value_within_limits('a', 1)
+        assert self.hardware.is_axis_value_within_limits('b', 2)
+        assert self.hardware.is_axis_value_within_limits('c', 999)
 
-        self.assertTrue(self.hardware.is_axis_value_within_limits('a', -1))
-        self.assertTrue(self.hardware.is_axis_value_within_limits('b', -999))
+        assert self.hardware.is_axis_value_within_limits('a', -1)
+        assert self.hardware.is_axis_value_within_limits('b', -999)
 
-        self.assertFalse(self.hardware.is_axis_value_within_limits('a', 1.01))
-        self.assertFalse(self.hardware.is_axis_value_within_limits('b', 2.01))
-        self.assertFalse(self.hardware.is_axis_value_within_limits('a', 1.01))
+        assert not self.hardware.is_axis_value_within_limits('a', 1.01)
+        assert not self.hardware.is_axis_value_within_limits('b', 2.01)
+        assert not self.hardware.is_axis_value_within_limits('a', 1.01)
 
     def setCutAndGetCuts(self):
         self.hardware.setCut('a', 2)
         self.hardware.setCut('b', 2)
         self.hardware.setCut('c', 2)
-        self.assertEquals(self.hardware.get_cuts(), {'a': 1, 'b': 2, 'c': 3})
+        assert self.hardware.get_cuts() == {'a': 1, 'b': 2, 'c': 3}
         self.assertRaises(KeyError, self.hardware.setCut, 'not_a_key', 1)
 
     def test__configureCuts(self):
         hardware = SimpleHardwareAdapter(['a', 'b', 'c'])
-        self.assertEquals(hardware.get_cuts(),
-                          {'a': -180, 'b': -180, 'c': -180})
+        assert hardware.get_cuts() == {'a': -180, 'b': -180, 'c': -180}
         hardware = SimpleHardwareAdapter(['a', 'phi', 'c'])
-        self.assertEquals(hardware.get_cuts(), {'a': -180, 'phi': 0, 'c': -180})
+        assert hardware.get_cuts() == {'a': -180, 'phi': 0, 'c': -180}
 
     def test__configureCutsWithDefaults(self):
-        hardware = SimpleHardwareAdapter(['a', 'b', 'c'],
-                                               {'a': 1, 'b': 2})
-        self.assertEquals(hardware.get_cuts(), {'a': 1, 'b': 2, 'c': -180})
+        hardware = SimpleHardwareAdapter(['a', 'b', 'c'], {'a': 1, 'b': 2})
+        assert hardware.get_cuts() == {'a': 1, 'b': 2, 'c': -180}
         hardware = SimpleHardwareAdapter(['a', 'phi', 'c'],
                                                {'a': 1, 'phi': 2})
-        self.assertEquals(hardware.get_cuts(), {'a': 1, 'phi': 2, 'c': -180})
-        self.assertRaises(
-            KeyError, SimpleHardwareAdapter, ['a', 'b', 'c'],
-            {'a': 1, 'not_a_key': 2})
+        assert hardware.get_cuts() == {'a': 1, 'phi': 2, 'c': -180}
+        with pytest.raises(KeyError):
+            SimpleHardwareAdapter(['a', 'b', 'c'], {'a': 1, 'not_a_key': 2})
 
     def testCut(self):
-        self.assertEquals(self.hardware.cut_angles((1, 2, 3)),
-                          (1, 2, 3))
-        self.assertEquals(self.hardware.cut_angles((-181, 0, 181)),
-                          (179, 0, -179))
-        self.assertEquals(self.hardware.cut_angles((-180, 0, 180,)),
-                          (-180, 0, 180))
-        self.assertEquals(self.hardware.cut_angles((-360, 0, 360)),
-                          (0, 0, 0))
+        assert self.hardware.cut_angles((1, 2, 3)) == (1, 2, 3)
+        assert self.hardware.cut_angles((-181, 0, 181)) == (179, 0, -179)
+        assert self.hardware.cut_angles((-180, 0, 180,)) == (-180, 0, 180)
+        assert self.hardware.cut_angles((-360, 0, 360)) == (0, 0, 0)
 
 
 class TestHardwareCommands():
 
-    def setup(self):
+    def setup_method(self):
         self.hardware = SimpleHardwareAdapter(['a', 'b', 'c'])
         settings.hardware = self.hardware
         from diffcalc import hardware
@@ -191,18 +184,18 @@ class TestHardwareCommands():
         print "*******"
 
 
-class TestDummyHardwareAdapter(unittest.TestCase):
+class TestDummyHardwareAdapter(object):
 
-    def setUp(self):
+    def setup_method(self):
         self.hardware = DummyHardwareAdapter(
             ['alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'])
 
     def test__init__(self):
-        self.assertEquals(self.hardware.get_position(), [0.] * 6)
-        self.assertEquals(self.hardware.get_energy(), 12.39842)
-        self.assertEquals(self.hardware.get_wavelength(), 1.)
-        self.assertEquals(self.hardware.get_axes_names(),
-                          ('alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'))
+        assert self.hardware.get_position() == [0.] * 6
+        assert self.hardware.get_energy() == 12.39842
+        assert self.hardware.get_wavelength() == 1.
+        assert (self.hardware.get_axes_names()
+                == ('alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'))
 
     def test__repr__(self):
         print self.hardware.__repr__()
@@ -215,9 +208,9 @@ class TestDummyHardwareAdapter(unittest.TestCase):
 
     def testget_position_by_name(self):
         self.hardware.position = [1., 2., 3., 4., 5., 6.]
-        self.assertEqual(self.hardware.get_position_by_name('gamma'), 3.)
-        self.assertRaises(ValueError, self.hardware.get_position_by_name,
-                          'not an angle name')
+        assert self.hardware.get_position_by_name('gamma') == 3
+        with pytest.raises(ValueError):
+            self.hardware.get_position_by_name('not an angle name')
 
 
 def createDummyAxes(names):
@@ -227,30 +220,27 @@ def createDummyAxes(names):
     return result
 
 
-class TestGdaHardwareMonitor(unittest.TestCase):
+class TestGdaHardwareMonitor(object):
 
-    def setUp(self):
+    def setup_method(self):
         dummy = createDummyAxes(['a', 'b', 'c', 'd', 'e', 'f'])
         self.grp = ScannableGroup('grp', dummy)
         self.diffhw = DiffractometerScannableGroup('sixc', MockDiffcalc(6),
                                                    self.grp)
         self.energyhw = MockMotor()
-        self.hardware = ScannableHardwareAdapter(self.diffhw,
-                                                       self.energyhw)
+        self.hardware = ScannableHardwareAdapter(self.diffhw, self.energyhw)
 
     def test__init__Andget_axes_names(self):
-        self.assertEquals(self.hardware.get_axes_names(),
-                          ('a', 'b', 'c', 'd', 'e', 'f'))
+        assert self.hardware.get_axes_names() == ('a', 'b', 'c', 'd', 'e', 'f')
 
     def testGetPosition(self):
         self.diffhw.asynchronousMoveTo((1, 2, 3, 4, 5, 6))
-        self.assertEqual(self.hardware.get_position(),
-                         [1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+        assert self.hardware.get_position() == [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
 
     def testGetEnergy(self):
         self.energyhw.asynchronousMoveTo(1.0)
-        self.assertEqual(self.hardware.get_energy(), 1.0)
+        assert self.hardware.get_energy() == 1.0
 
     def testGetWavelength(self):
         self.energyhw.asynchronousMoveTo(1.0)
-        self.assertEqual(self.hardware.get_wavelength(), 12.39842 / 1.0)
+        assert self.hardware.get_wavelength() == 12.39842 / 1.0
