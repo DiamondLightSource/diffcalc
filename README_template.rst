@@ -50,6 +50,8 @@ Note that the first versions of Diffcalc were based on [Vlieg1993]_ and
 based on [Willmott2011]_. The ‘You’ engine is more generic and the plan is to
 remove the old ‘Vlieg’ engine once beamlines have been migrated.
 
+If we choose the x axis parallel to b, the yaxis intheplaneofblandb2,andthezaxis perpendicular to that plane,
+
 Installation
 ------------
 
@@ -135,6 +137,12 @@ To create a new UB-calculation::
 
    ==> newub 'example'
    ==> setlat '1Acube' 1 1 1 90 90 90
+
+where the basis is defined by Busing & Levy:
+
+	"...we choose the x axis parallel to b, the y axis in the plane of bl
+	and b2, and the zaxis perpendicular to that plane."
+
 
 Find U matrix from two reflections::
 
