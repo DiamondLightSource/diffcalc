@@ -1,4 +1,7 @@
+from diffcalc.util import x_rotation, y_rotation, z_rotation, TORAD, TODEG
+import startup._demo
 from startup._common_imports import *
+
 
 if '_fivec' in globals() and 'en' in globals():
     # Assume we are running in a live GDA deployment with a _fivec ScannableGroup
@@ -6,7 +9,6 @@ if '_fivec' in globals() and 'en' in globals():
     # Ensure that these five Scannables exist.
     # There must also be Scannable en for moving and reading the energy
     print "Diffcalc using predefined _fivec and en Scannables"
-
 else:
     ### Create dummy scannables ###
     print "Diffcalc creating dummy Scannables as _fivec and en were not found"
@@ -28,42 +30,156 @@ settings.energy_scannable = en
 settings.axes_scannable_group = _fivec
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
 
+
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
+
 
 if GDA:
     print "Running in GDA --- aliasing commands"
     alias_commands(globals())
-    
-lastub()  # Load the last ub calculation used
+ 
+  
+# Load the last ub calculation used  
+lastub()
+
+# 
+# setmax(delta, 28)
+# setmin(delta, -1)
+# setmin(gam, 0)
+# setmax(gam, 16)
+# setmin(eta, -10)
+# setmax(eta, 10)
+# setmin(chi, 90 - 12)
+# setmax(chi, 90 + 12)
+# setmin(phi, -88)
+# setmax(phi, 88)
+# setcut(phi, -90)
+# hardware()
 
 
-setmax(delta, 28)
+setmax(delta, 90)
 setmin(delta, -1)
 setmin(gam, 0)
-setmax(gam, 15)
-setmin(eta, -10)
-setmax(eta, 10)
-setmin(chi, 75)
-setmax(chi, 105)
+setmax(gam, 90)
+setmin(eta, -90)
+setmax(eta, 90)
+setmin(chi, -10)
+setmax(chi, 100)
 setmin(phi, -88)
 setmax(phi, 88)
-
+setcut(phi, -90)
 hardware()
+
+
+
+def X(th_deg):
+    return x_rotation(th_deg * TORAD)
+
+
+def Y(th_deg):
+    return y_rotation(th_deg * TORAD)
+                      
+
+def Z(th_deg):
+    return z_rotation(th_deg * TORAD)
+
+
+WEDGE = X(15)
+
 
 if not GDA:
-    from startup._common_imports import *
-    import startup._demo
     demo = startup._demo.Demo(globals(), 'fivec')
     
-setmax(delta, 24)
-setmin(delta, -1)
-setmin(gam, 0)
-setmax(gam, 15)
-setmin(eta, -10)
-setmax(eta, 10)
-setmin(chi, 75)
-setmax(chi, 105)
-setmin(phi, -88)
-setmax(phi, 88)
+    
+"""
+Fivec, no real limits, working out U matrix
+===========================================
+U = xyz_rotation([-0.70711, 0.70711, 0.00000], 54.73561 * TORAD)
+setu U
+pos en 20
+con qaz 90
+con a_eq_b
+UBCALC
 
-hardware()
+   name:     2017-03-07-i13
+
+   n_phi:     -0.00000  -0.00000   1.00000
+   n_hkl:      0.57735   0.57735   0.57735 <- set
+   miscut:
+      angle:   0.00003
+      axis:    0.70711  -0.70711   0.00000
+
+CRYSTAL
+
+   name:         Si111
+
+   a, b, c:    5.43000   5.43000   5.43000
+              90.00000  90.00000  90.00000
+
+   B matrix:   1.15712   0.00000   0.00000
+               0.00000   1.15712   0.00000
+               0.00000   0.00000   1.15712
+
+UB MATRIX
+
+   U matrix:   0.78868  -0.21133  -0.57735
+              -0.21132   0.78867  -0.57735
+               0.57735   0.57735   0.57735
+
+      angle:  54.73564
+       axis:   0.70711  -0.70711   0.00000
+
+   UB matrix:  0.91260  -0.24453  -0.66807
+              -0.24453   0.91259  -0.66807
+               0.66807   0.66807   0.66807
+
+REFLECTIONS
+
+     ENERGY     H     K     L     DELTA      GAM      ETA      CHI      PHI  TAG
+   1 20.000  1.00  1.00  1.00   11.3483   0.0000   5.6741  90.0000  45.0000  
+   2 20.000  4.00  0.00  0.00   26.3978   0.0000  13.1989  35.2644 -15.0000  
+
+In [80]: listub
+UB calculations in: /Users/zrb13439/.diffcalc/i13
+
+ 0) 2017-03-07-i13  14 Mar 2017 (14:35)
+ 1) test            07 Mar 2017 (11:38)
+ 
+ In [81]: hardware
+    -1.0 <= delta <=   90.0 (cut: -180.0)
+     0.0 <=   gam <=   90.0 (cut: -180.0)
+   -90.0 <=   eta <=   90.0 (cut: -180.0)
+   -10.0 <=   chi <=  100.0 (cut: -180.0)
+  -180.0 <=   phi <=  180.0 (cut:  -90.0)
+Note: When auto sector/transforms are used,
+       cuts are applied before checking limits.
+       
+Add in delta and gamma constraintss:
+In [85]: atan(28/16)*TODEG
+Out[85]: 45.0
+
+In [86]: atan(28/16.)*TODEG
+Out[86]: 60.25511870305777
+
+In [87]: con qaz 60
+    qaz  : 60.0000
+    a_eq_b
+    mu   : 0.0000
+
+In [88]: sim hkl [4 0 0]
+_fivec would move to:
+  delta :   22.6459
+    gam :   13.9379
+    eta :   59.2132
+    chi :    8.8270
+    phi :  -63.0717
+
+  alpha :    7.5752
+   beta :    7.5752
+    naz :    4.5446
+    psi :   90.0000
+    qaz :   60.0000
+    tau :   54.7356
+  theta :   13.1989
+
+""""

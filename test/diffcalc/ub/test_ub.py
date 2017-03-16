@@ -16,10 +16,10 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-import unittest
 from nose.tools import eq_  # @UnresolvedImport
 import tempfile
 import os.path
+import pytest
 
 try:
     from numpy import matrix
@@ -54,9 +54,9 @@ from diffcalc.ub.persistence import UbCalculationNonPersister
 
 
 
-class TestUBCommandsBase(unittest.TestCase):
+class TestUBCommandsBase():
 
-    def setUp(self):
+    def setup_method(self):
         names = 'alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'
         self.hardware = DummyHardwareAdapter(names)
         _geometry = SixCircleGammaOnArmGeometry()
@@ -84,7 +84,8 @@ class TestUbCommands(TestUBCommandsBase):
     def testNewUb(self):
         self.ub.newub('test1')
         eq_(self.ub.ubcalc._state.name, 'test1')
-        self.assertRaises(TypeError, self.ub.newub, 1)
+        with pytest.raises(TypeError):
+            self.ub.newub(1)
 
     def testNewUbInteractively(self):
         prepareRawInput(['ubcalcname', 'xtal', '1', '2', '3', '91', '92',
@@ -92,27 +93,35 @@ class TestUbCommands(TestUBCommandsBase):
         self.ub.newub()
 
     def testLoadub(self):
-        self.assertRaises(TypeError, self.ub.loadub, (1, 2))
+        with pytest.raises(TypeError):
+            self.ub.loadub((1, 2))
 
     def testSaveubcalcas(self):
-        self.assertRaises(TypeError, self.ub.saveubas, 1)
-        self.assertRaises(TypeError, self.ub.saveubas, (1, 2))
+        with pytest.raises(TypeError):
+            self.ub.saveubas(1)
+        with pytest.raises(TypeError):
+            self.ub.saveubas((1, 2))
         self.ub.saveubas('blarghh')
 
     def testUb(self):
-        self.assertRaises(TypeError, self.ub.showref, (1))
+        with pytest.raises(TypeError):
+            self.ub.showref((1))
         self.ub.ub()
         self.ub.newub('testubcalc')
         self.ub.ub()
 
     def testSetlat(self):
         # "Exception should result if no UBCalculation started")
-        self.assertRaises(DiffcalcException, self.ub.setlat, 'HCl', 2)
+        with pytest.raises(DiffcalcException):
+            self.ub.setlat('HCl', 2)
 
         self.ub.newub('testing_setlat')
-        self.assertRaises(TypeError, self.ub.setlat, 1)
-        self.assertRaises(TypeError, self.ub.setlat, 1, 2)
-        self.assertRaises(TypeError, self.ub.setlat, 'HCl')
+        with pytest.raises(TypeError):
+            self.ub.setlat(1)
+        with pytest.raises(TypeError):
+            self.ub.setlat(1, 2)
+        with pytest.raises(TypeError):
+            self.ub.setlat('HCl')
         self.ub.setlat('NaCl', 1.1)
         ubcalc = self.ub.ubcalc
         eq_(('NaCl', 1.1, 1.1, 1.1, 90, 90, 90), ubcalc._state.crystal.getLattice())
@@ -122,8 +131,8 @@ class TestUbCommands(TestUBCommandsBase):
         eq_(('NaCl', 1.1, 2.2, 3.3, 90, 90, 90), ubcalc._state.crystal.getLattice())
         self.ub.setlat('NaCl', 1.1, 2.2, 3.3, 91)
         eq_(('NaCl', 1.1, 2.2, 3.3, 90, 90, 91), ubcalc._state.crystal.getLattice())
-        self.assertRaises(
-            TypeError, self.ub.setlat, ('NaCl', 1.1, 2.2, 3.3, 91, 92))
+        with pytest.raises(TypeError):
+            self.ub.setlat(('NaCl', 1.1, 2.2, 3.3, 91, 92))
         self.ub.setlat('NaCl', 1.1, 2.2, 3.3, 91, 92, 93)
         assert_iterable_almost_equal(
             ('NaCl', 1.1, 2.2, 3.3, 91, 92, 92.99999999999999),
@@ -144,17 +153,20 @@ class TestUbCommands(TestUBCommandsBase):
         eq_(getLattice(), ('xtal', 1., 1., 1., 90, 90, 90))
 
     def testShowref(self):
-        self.assertRaises(TypeError, self.ub.showref, (1))
+        with pytest.raises(TypeError):
+            self.ub.showref((1))
         eq_(self.ub.showref(), None)  # No UBCalculation loaded
         # will be tested, for exceptions at least, implicitely below
         self.ub.newub('testing_showref')
         eq_(self.ub.showref(), None)  # No UBCalculation loaded"
 
     def testAddref(self):
-#        self.assertRaises(TypeError, self.ub.addref)
-        self.assertRaises(TypeError, self.ub.addref, 1)
-        self.assertRaises(TypeError, self.ub.addref, 1, 2)
-        self.assertRaises(TypeError, self.ub.addref, 1, 2, 'blarghh')
+        with pytest.raises(TypeError):
+            self.ub.addref(1)
+        with pytest.raises(TypeError):
+            self.ub.addref(1, 2)
+        with pytest.raises(TypeError):
+            self.ub.addref(1, 2, 'blarghh')
         # start new ubcalc
         self.ub.newub('testing_addref')
         reflist = self.ub.ubcalc._state.reflist  # for conveniance
@@ -249,9 +261,12 @@ class TestUbCommands(TestUBCommandsBase):
         eq_(result[:-1], ([1.1, 2, 3.1], pos2, 12, 'newtag'))
 
     def testSwapref(self):
-        self.assertRaises(TypeError, self.ub.swapref, 1)
-        self.assertRaises(TypeError, self.ub.swapref, 1, 2, 3)
-        self.assertRaises(TypeError, self.ub.swapref, 1, 1.1)
+        with pytest.raises(TypeError):
+            self.ub.swapref(1)
+        with pytest.raises(TypeError):
+            self.ub.swapref(1, 2, 3)
+        with pytest.raises(TypeError):
+            self.ub.swapref(1, 1.1)
         self.ub.newub('testing_swapref')
         pos = (1.1, 1.2, 1.3, 1.4, 1.5, 1.6)
         self.ub.addref([1, 2, 3], pos, 10, 'tag1')
@@ -280,21 +295,27 @@ class TestUbCommands(TestUBCommandsBase):
         reflist = self.ub.ubcalc._state.reflist
         reflist.get_reflection_in_external_angles(1)
         self.ub.delref(1)
-        self.assertRaises(IndexError, reflist.get_reflection_in_external_angles, 1)
+        with pytest.raises(IndexError):
+            reflist.get_reflection_in_external_angles(1)
 
     def testSetu(self):
         # just test calling this method
         #self.ub.setu([[1,2,3],[1,2,3],[1,2,3]])
         self.ub.newub('testsetu')
         setu = self.ub.setu
-        self.assertRaises(TypeError, setu, 1, 2)
-        self.assertRaises(TypeError, setu, 1)
-        self.assertRaises(TypeError, setu, 'a')
-        self.assertRaises(TypeError, setu, [1, 2, 3])
-        self.assertRaises(TypeError, setu, [[1, 2, 3], [1, 2, 3], [1, 2]])
+        with pytest.raises(TypeError):
+            setu(1, 2)
+        with pytest.raises(TypeError):
+            setu(1)
+        with pytest.raises(TypeError):
+            setu('a')
+        with pytest.raises(TypeError):
+            setu([1, 2, 3])
+        with pytest.raises(TypeError):
+            setu([[1, 2, 3], [1, 2, 3], [1, 2]])
         # diffCalcException expected if no lattice set yet
-        self.assertRaises(DiffcalcException, setu,
-                          [[1, 2, 3], [1, 2, 3], [1, 2, 3]])
+        with pytest.raises(DiffcalcException):
+            setu([[1, 2, 3], [1, 2, 3], [1, 2, 3]])
         self.ub.setlat('NaCl', 1.1)
         setu([[1, 2, 3], [1, 2, 3], [1, 2, 3]])  # check no exceptions only
         setu(((1, 2, 3), (1, 2, 3), (1, 2, 3)))  # check no exceptions only
@@ -320,11 +341,16 @@ class TestUbCommands(TestUBCommandsBase):
         # just test calling this method
         self.ub.newub('testsetub')
         setub = self.ub.setub
-        self.assertRaises(TypeError, setub, 1, 2)
-        self.assertRaises(TypeError, setub, 1)
-        self.assertRaises(TypeError, setub, 'a')
-        self.assertRaises(TypeError, setub, [1, 2, 3])
-        self.assertRaises(TypeError, setub, [[1, 2, 3], [1, 2, 3], [1, 2]])
+        with pytest.raises(TypeError):
+            setub(1, 2)
+        with pytest.raises(TypeError):
+            setub(1)
+        with pytest.raises(TypeError):
+            setub('a')
+        with pytest.raises(TypeError):
+            setub([1, 2, 3])
+        with pytest.raises(TypeError):
+            setub([[1, 2, 3], [1, 2, 3], [1, 2]])
         setub([[1, 2, 3], [1, 2, 3], [1, 2, 3]])  # check no exceptions only
         setub(((1, 2, 3), (1, 2, 3), (1, 2, 3)))  # check no exceptions only
 
@@ -345,12 +371,15 @@ class TestUbCommands(TestUBCommandsBase):
             [[1, 0, 0], [9, 9.9, 99], [0, 0, 1]])
 
     def testCalcub(self):
-        self.assertRaises(TypeError, self.ub.calcub, 1)  # wrong input
+        with pytest.raises(TypeError):
+            self.ub.calcub(1)  # wrong input
         # no ubcalc started:
-        self.assertRaises(DiffcalcException, self.ub.calcub)
+        with pytest.raises(DiffcalcException):
+            self.ub.calcub()
         self.ub.newub('testcalcub')
         # not enougth reflections:
-        self.assertRaises(DiffcalcException, self.ub.calcub)
+        with pytest.raises(DiffcalcException):
+            self.ub.calcub()
 
         s = scenarios.sessions()[0]
         self.ub.setlat(s.name, *s.lattice)
@@ -367,12 +396,14 @@ class TestUbCommands(TestUBCommandsBase):
     def testC2th(self):
         self.ub.newub('testcalcub')
         self.ub.setlat('cube', 1, 1, 1, 90, 90, 90)
-        self.assertAlmostEquals(self.ub.c2th((0, 0, 1)), 60)
+        assert self.ub.c2th((0, 0, 1)) == pytest.approx(60)
 
     def testSigtau(self):
         # sigtau [sig tau]
-        self.assertRaises(TypeError, self.ub.sigtau, 1)
-        self.assertRaises(ValueError, self.ub.sigtau, 1, 'a')
+        with pytest.raises(TypeError):
+            self.ub.sigtau(1)
+        with pytest.raises(ValueError):
+            self.ub.sigtau(1, 'a')
         self.ub.sigtau(1, 2)
         self.ub.sigtau(1, 2.0)
         eq_(self.ub.ubcalc.sigma, 1)
@@ -391,21 +422,23 @@ class TestUbCommands(TestUBCommandsBase):
         eq_(self.ub.ubcalc.tau, -4.)
 
     def testSetWithString(self):
-        self.assertRaises(TypeError, self.ub.setlat, 'alpha', 'a')
-        self.assertRaises(TypeError, self.ub.setlat, 'alpha', 1, 'a')   
+        with pytest.raises(TypeError):
+            self.ub.setlat('alpha', 'a')
+        with pytest.raises(TypeError):
+            self.ub.setlat('alpha', 1, 'a')   
         
     def test_setnphihkl_at_various_phases(self):
-        self.ub.setnphi(1, 0, 1)
-        self.ub.setnhkl(1, 0, 1)
+        self.ub.setnphi([1, 0, 1])
+        self.ub.setnhkl([1, 0, 1])
         self.ub.newub('test')
-        self.ub.setnphi(1, 0, 1)
-        self.ub.setnhkl(1, 0, 1) 
+        self.ub.setnphi([1, 0, 1])
+        self.ub.setnhkl([1, 0, 1]) 
         self.ub.setlat('cube', 1, 1, 1, 90, 90, 90)
-        self.ub.setnphi(1, 0, 1)
-        self.ub.setnhkl(1, 0, 1)
+        self.ub.setnphi([1, 0, 1])
+        self.ub.setnhkl([1, 0, 1])
         self.ub.setu([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-        self.ub.setnphi(1, 0, 1)
-        self.ub.setnhkl(1, 0, 1)
+        self.ub.setnphi([1, 0, 1])
+        self.ub.setnhkl([1, 0, 1])
 
         
 class TestUbCommandsJsonPersistence(TestUBCommandsBase):
@@ -425,8 +458,8 @@ class TestUbCommandsJsonPersistence(TestUBCommandsBase):
         
     def test_n_phi_persistance(self):
         self.ub.newub('test1')
-        self.ub.setnphi(0, 1, 0)
-        arrayeq_(self.ub.ubcalc.n_phi, [0, 1, 0])
+        self.ub.setnphi([0, 1, 0])
+        arrayeq_(self.ub.ubcalc.n_phi.T.tolist()[0], [0, 1, 0])
         self.ub.loadub('test1')
-        arrayeq_(self.ub.ubcalc.n_phi, [0, 1, 0])        
+        arrayeq_(self.ub.ubcalc.n_phi.T.tolist()[0], [0, 1, 0])        
         

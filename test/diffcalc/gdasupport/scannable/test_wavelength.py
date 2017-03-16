@@ -25,16 +25,16 @@ except ImportError:
     from diffcalc.gdasupport.minigda.scannable import DummyPD
 
 
-class TestWavelength(unittest.TestCase):
+class TestWavelength(object):
 
-    def setUp(self):
+    def setup_method(self):
         self.en = DummyPD('en')
         self.wl = Wavelength('wl', self.en)
 
     def testIt(self):
         self.en.asynchronousMoveTo(12.39842)
-        self.assertEqual(self.wl.getPosition(), 1)
+        assert self.wl.getPosition() == 1
 
         self.wl.asynchronousMoveTo(1.)
-        self.assertEqual(self.wl.getPosition(), 1.)
-        self.assertEqual(self.en.getPosition(), 12.39842)
+        assert self.wl.getPosition() == 1.
+        assert self.en.getPosition() == 12.39842

@@ -1,0 +1,23 @@
+# based on https://www.topbug.net/blog/2012/05/27/use-travis-ci-with-jython/
+
+language: python
+
+python:
+  - "2.7"
+
+env:
+  - JYTHON=false
+  - JYTHON=true
+
+before_install:
+  - if [ "$JYTHON" == "true" ]; then . install-jython-environment.sh; fi
+  - if [ "$JYTHON" == "false" ]; then pip install --upgrade pytest; pip install pytest-xdist; fi
+ 
+install: pip install --upgrade pytest
+ 
+before_script:
+  - if [ "$JYTHON" == "true" ]; then export PYTEST=$HOME/jython/bin/pytest; else export PYTEST=pytest; fi
+  - echo PYTEST:- $PYTEST
+
+script: $PYTEST
+

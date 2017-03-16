@@ -4,5 +4,5 @@
 doc/build/
 .pydevproject
 .project
-
+.tox
 .DS_Store

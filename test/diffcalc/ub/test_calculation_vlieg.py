@@ -41,9 +41,9 @@ TORAD = pi / 180
 
 
 
-class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
+class TestUBCalculationWithSixCircleGammaOnArm(object):
 
-    def setUp(self):
+    def setup_method(self):
         self.geometry = SixCircleGammaOnArmGeometry()
         mock_hardware = Mock()
         mock_hardware.get_axes_names.return_value = ('a', 'd', 'g', 'o', 'c', 'p')
@@ -56,8 +56,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
 
     def testNewCalculation(self):
         self.ubcalc.start_new('testcalc')
-        self.assertEqual(self.ubcalc.name, 'testcalc',
-                         "Name not set by newCalcualtion")
+        assert self.ubcalc.name, 'testcalc' == "Name not set by newCalcualtion"
 
     @raises(DiffcalcException)
     def testNewCalculationHasNoU(self):
@@ -83,7 +82,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
         # Test the calculations with U=I
         U = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         for sess in scenarios.sessions():
-            self.setUp()
+            self.setup_method()
             self.ubcalc.start_new('testcalc')
             self.ubcalc.set_lattice(sess.name, *sess.lattice)
             self.ubcalc.set_U_manually(U)
@@ -113,7 +112,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(unittest.TestCase):
     def testCalculateU(self):
 
         for sess in scenarios.sessions():
-            self.setUp()
+            self.setup_method()
             self.ubcalc.start_new('testcalc')
             # Skip this test case unless it contains a umatrix
             if sess.umatrix is None:
@@ -189,9 +188,10 @@ CUBIC = (1, 1, 1, 90, 90, 90)
 ROT = 29
 
 
-class TestUBCalcWithCubic():
+class TestUBCalcWithCubic(object):
 
-    def setUp(self):
+    def setup_method(self):
+        print "TestUBCalcWithCubic.setup_method"
         hardware = Mock()
         hardware.get_axes_names.return_value = \
             ('a', 'd', 'g', 'o', 'c', 'p')
@@ -303,50 +303,62 @@ class TestUBCalcWithcubicOneRef(TestUBCalcWithCubic):
         for testname, ref, u in pairs:
             yield self.check, testname, ref, u
 
-    def test_with_x_mismount(self):
+    def test_with_x_mismount_h(self):
         U = x_rotation(ROT)
         href = ((1, 0, 0),
                 Pos(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0))
+        self.check("h", href, I)
+        
+    def test_with_x_mismount_k(self):
+        U = x_rotation(ROT)
         kref = ((0, 1, 0),
                 Pos(alpha=0, delta=60, gamma=0, omega=30 - ROT + 90, chi=90,
                     phi=0))
+        self.check("k", kref, U)
+        
+    def test_with_x_mismount_l(self):
+        U = x_rotation(ROT)
         lref = ((0, 0, 1),
                 Pos(alpha=0, delta=60, gamma=0, omega=30 - ROT, chi=90, phi=0))
-        pairs = (("h", href, I),  # TODO: can't pass - word instructions
-                 ("k", kref, U),
-                 ("l", lref, U))
-        for testname, ref, u in pairs:
-            yield self.check, testname, ref, u
+        self.check("l", lref, U)
 
-    def test_with_y_mismount(self):
+    def test_with_y_mismount_h(self):
         U = y_rotation(ROT)
         href = ((1, 0, 0),
                 Pos(alpha=0, delta=60, gamma=0, omega=30, chi=0 - ROT, phi=0))
+        self.check("h", href, U)
+
+    def test_with_y_mismount_k(self):
+        U = y_rotation(ROT)
         kref = ((0, 1, 0),
                 Pos(alpha=0, delta=60, gamma=0, omega=30 + 90, chi=90, phi=0))
+        self.check("k", kref, I)  # TODO: can't pass - word instructions
+
+    def test_with_y_mismount_l(self):
+        U = y_rotation(ROT)
         lref = ((0, 0, 1),
                 Pos(alpha=0, delta=60, gamma=0, omega=30, chi=90 - ROT, phi=0))
-        pairs = (("h", href, U),
-                 ("k", kref, I),  # TODO: can't pass - word instructions
-                 ("l", lref, U))
-        for testname, ref, u in pairs:
-            yield self.check, testname, ref, u
+        self.check("l", lref, U)
 
-    def test_with_z_mismount(self):
+    def test_with_z_mismount_h(self):
         U = z_rotation(ROT)
 
         href = ((1, 0, 0),
                 Pos(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0 + ROT))
+        self.check("h", href, U)
+
+    def test_with_z_mismount_k(self):
+        U = z_rotation(ROT)
         kref = ((0, 1, 0),
                 Pos(alpha=0, delta=60, gamma=0, omega=30 + 90, chi=0,
                     phi=0 + ROT))
+        self.check("k", kref, U),
+
+    def test_with_z_mismount_l(self):
+        U = z_rotation(ROT)
         lref = ((0, 0, 1),  # phi degenerate
                 Pos(alpha=0, delta=60, gamma=0, omega=30, chi=90, phi=67))
-        pairs = (("h", href, U),
-                 ("k", kref, U),
-                 ("l", lref, I))  # TODO: can't pass - word instructions
-        for testname, ref, u in pairs:
-            yield self.check, testname, ref, u
+        self.check("l", lref, I)  # TODO: can't pass - word instructions
 
     #Probably lost cause, conclusion is be careful and return the angle and
     #direction of resulting u matrix

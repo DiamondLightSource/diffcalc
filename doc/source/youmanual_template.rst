@@ -316,7 +316,7 @@ reciprocal lattice space is inferred from the UB matrix.
 
 To set the reference vector in the phi coordinate frame use::
 
-   >>> setnphi 0 0 1
+   >>> setnphi [0 0 1]
    ...
 
 This is useful if the surface normal has be found with a laser or by x-ray
@@ -328,7 +328,7 @@ To set the reference vector in the crystal's reciprocal lattice space use (this
 is a quick way to determine the surface orientation if the surface is known to
 be cleaved cleanly along a known axis)::
 
-   >>> setnhkl 0 0 1 ...
+   >>> setnhkl [0 0 1] ...
 
 Motion
 ======

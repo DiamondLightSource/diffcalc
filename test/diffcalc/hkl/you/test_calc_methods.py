@@ -58,7 +58,7 @@ def isnan(n):
 
 class Test_anglesToVirtualAngles():
 
-    def setup(self):
+    def setup_method(self):
         constraints = Mock()
         constraints.is_fully_constrained.return_value = True
         self.calc = YouHklCalculator(createMockUbcalc(None),
@@ -243,7 +243,7 @@ class Test_anglesToVirtualAngles():
 
 class Test_calc_theta():
 
-    def setup(self):
+    def setup_method(self):
         self.calc = YouHklCalculator(createMockUbcalc(I * 2 * pi),
                                      createMockDiffractometerGeometry(),
                                      createMockHardwareMonitor(),
@@ -270,7 +270,7 @@ class Test_calc_remaining_reference_angles_given_one():
 
     # TODO: These are very incomplete due to either totally failing inutuition
     #       or code!
-    def setup(self):
+    def setup_method(self):
         self.calc = YouHklCalculator(createMockUbcalc(None),
                                      createMockDiffractometerGeometry(),
                                      createMockHardwareMonitor(),
@@ -363,7 +363,7 @@ class Test_calc_remaining_reference_angles_given_one():
 
 class Test_calc_detector_angles_given_one():
 
-    def setup(self):
+    def setup_method(self):
         self.calc = YouHklCalculator(createMockUbcalc(None),
                                      createMockDiffractometerGeometry(),
                                      createMockHardwareMonitor(),
@@ -420,7 +420,7 @@ class Test_calc_angle_between_naz_and_qaz():
 
 class Test_calc_remaining_sample_angles_given_one():
     #_calc_remaining_detector_angles_given_one
-    def setup(self):
+    def setup_method(self):
         self.calc = YouHklCalculator(createMockUbcalc(None),
                                      createMockDiffractometerGeometry(),
                                      createMockHardwareMonitor(),
@@ -511,7 +511,7 @@ class Test_calc_remaining_sample_angles_given_one():
 
 
 class TestSolutionGenerator():
-    def setup(self):
+    def setup_method(self):
 
         names = ['delta', NUNAME, 'mu', 'eta', 'chi', 'phi']
         self.hardware = SimpleHardwareAdapter(names)

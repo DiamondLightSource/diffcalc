@@ -24,15 +24,15 @@ from test.diffcalc.gdasupport.scannable.mockdiffcalc import \
     MockParameterManager
 
 
-class TestDiffractionCalculatorParameter(unittest.TestCase):
+class TestDiffractionCalculatorParameter(object):
 
-    def setUp(self):
+    def setup_method(self):
         self.dcp = DiffractionCalculatorParameter('dcp', 'betain',
                                                   MockParameterManager())
 
     def testAsynchronousMoveToAndGetPosition(self):
         self.dcp.asynchronousMoveTo(12.3)
-        self.assertEqual(self.dcp.getPosition(), 12.3)
+        assert self.dcp.getPosition() == 12.3
 
     def testIsBusy(self):
-        self.assertEqual(self.dcp.isBusy(), False)
+        assert not self.dcp.isBusy()

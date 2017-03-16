@@ -26,6 +26,7 @@ except ImportError:
     __NUMPY_AVAILABLE__ = False
 try:
     import numjy
+    import Jama
     __NUMJY_AVAILABLE__ = True
 except ImportError:
     __NUMJY_AVAILABLE__ = False
@@ -45,6 +46,9 @@ class _TestNumpyMatrix():
         meq_(self.m('1, 2; 3, 4'), m)
         meq_(self.m('1, 2; 3 4'), m)
         meq_(self.m('1 ,  2;  3  4  '), m)
+        
+    def test__init__with_row_vector(self):
+        meq_(self.m([1, 2]), self.m([[1, 2]]))
 
     def test_shape(self):
         shape = self.m('1 2 3; 4 5 6').shape

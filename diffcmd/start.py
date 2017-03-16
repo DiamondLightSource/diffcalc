@@ -55,6 +55,7 @@ print HELP_STRING  # @UndefinedVariable
 if 'LOCAL_MANUAL' in locals():
     print "Local:  " + LOCAL_MANUAL  # @UndefinedVariable
 print bold('-' * 79)
+print
 
 
 # magic commands if IPython
