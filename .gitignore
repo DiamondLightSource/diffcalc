@@ -6,3 +6,4 @@ doc/build/
 .project
 .tox
 .DS_Store
+.idea

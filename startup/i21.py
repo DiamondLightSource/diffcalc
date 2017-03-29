@@ -40,6 +40,9 @@ satilt = sa.satilt
 saaz = sa.saaz
 tpphi = sa.tp_phi_scannable
 
+def zerosample():
+    raise Exception('not implemented yet!')
+
 tplab = I21TPLab('tplab', sa)
 tplabx = tplab.tplabx
 tplaby = tplab.tplaby
