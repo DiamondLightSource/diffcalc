@@ -17,7 +17,7 @@
 ###
 
 import unittest
-
+import diffcalc.gdasupport.minigda.command
 from diffcalc.gdasupport.minigda.command import Pos, Scan, ScanDataPrinter
 from diffcalc.gdasupport.minigda.scannable import \
     MultiInputExtraFieldsDummyScannable, SingleFieldDummyScannable
@@ -45,7 +45,10 @@ class TestPos(object):
         namespace['scnNone'] = \
             NoneReturningSingleFieldDummyScannable('scnNone')
         namespace['scnBad'] = BadSingleFieldDummyScannable('scnBad')
-        self.pos = Pos(self.dummyMainNamespace)
+        
+        diffcalc.gdasupport.minigda.command.ROOT_NAMESPACE_DICT = \
+            self.dummyMainNamespace
+        self.pos = Pos()
 
     def testPosReturningReportWithRead(self):
         scnA = self.dummyMainNamespace['scnA']
