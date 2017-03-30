@@ -28,29 +28,12 @@ angles to Diffcalc angles and visa versa.
 
 Options to use Diffcalc:
 
+- **The User manual next to this developer manual or README file on github.**
 - The :ref:`quickstart-api` section describes how to run up only
-  the core in Python_ or IPython_. This provides a base option for
-  system integration.
-- The :ref:`quickstart-scan` section describes how to start Diffcalc
-  in Python in a way that provides a scan command and that also
-  exposes user-level commands to the root namespace. This does not
-  provide motor control, but does provide dummy software motor objects
-  that could be easily replaced with real implementations for EPICS or
-  TANGO for example.
-- The :ref:`quickstart-opengda` section describes how to start Diffcalc
-  within the Jython interpreter of an OpenGDA_ server. OpenGDA
-  provides a scan command, a system for controlling motors and also a
-  way to 'alias' user-level commands so that brackets and commas need
-  not be typed, e.g typing:
-  
-     >>> addref [1 0 0]
-  
-  calls from the root namespace::
-  
-     >>> addref([1, 0, 0])
-     
-Diffcalc will work with Python 2.5 or higher with numpy_, or with
-Jython 2.5 of higher with Jama_.
+  the core in Python_. This provides a base option for system integration.
+
+Diffcalc will work with Python 2.7 or higher with numpy_, or with
+Jython 2.7 of higher with Jama_.
 
 
 .. [*] The very small 'Willmott' engine currently handles the case for
