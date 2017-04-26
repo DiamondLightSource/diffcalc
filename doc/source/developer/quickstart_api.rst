@@ -1,5 +1,7 @@
 .. _quickstart-api:
 
+.. warning:: This documentation is out of date. The README and the user doc has been updated recently. For now if you need help with API, please contact me at Diamond. -- Rob Walton
+
 Quick-Start: Python API
 =======================
 
