@@ -53,7 +53,7 @@ Type:   > help ub
 
 
 if GDA:
-    from gda.configuration.properties import LocalProperties
+    from gda.configuration.properties import LocalProperties  # @UnresolvedImport
     var_folder = LocalProperties.get("gda.var")
     diffcalc_persistance_path = os.path.join(var_folder, 'diffcalc')
     if not os.path.exists(diffcalc_persistance_path):

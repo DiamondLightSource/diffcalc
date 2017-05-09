@@ -5,7 +5,7 @@ import startup._demo
 LOCAL_MANUAL = "http://confluence.diamond.ac.uk/x/UoIQAw"
 # Diffcalc i21
 # ======== === 
-# delta    diode_tth or vessel_tth
+# delta    diodetth or vesseltth
 # eta      sapolar
 # chi      satilt + 90deg
 # phi      saazimuth
@@ -14,11 +14,14 @@ LOCAL_MANUAL = "http://confluence.diamond.ac.uk/x/UoIQAw"
 
 ### Create dummy scannables ###
 if GDA:    
-    assert 'diode_tth' in locals()
-    assert 'vessel_tth' in locals()
-    assert '_sapol' in locals()
-    assert '_satilt' in locals()
-    assert '_saaz' in locals()
+    assert 'diode_tth' in locals()  #GDA name is diodetth
+    assert 'vessel_tth' in locals() #GDA name is vesseltth - m5 has 2 mirrors with fixed tth offset
+    assert '_sapol' in locals()     #GDA name is sapolar
+    assert '_satilt' in locals()    #GDA name is satilt    - fix 90 deg offset
+    assert '_saaz' in locals()      #GDA name is saazimuth
+    assert 'sax'in locals()
+    assert 'say'in locals()
+    assert 'saz'in locals()
     assert 'xyx_eta' in locals()
 else:   
     diode_tth = Dummy('diode_tth')
@@ -60,7 +63,7 @@ if GDA:
 
 else:
     from diffcalc.gdasupport.minigda.scannable import ScannableAdapter
-    from IPython.core.magic import register_line_magic
+    from IPython.core.magic import register_line_magic  # @UnresolvedImport
     from diffcmd.ipython import parse_line
     delta = ScannableAdapter(diode_tth, 'delta')  # or vessel_tth
     eta = ScannableAdapter(sapol, 'eta')
@@ -74,7 +77,7 @@ else:
         delta.delegate_scn = vessel_tth
         
     if IPYTHON:
-        from IPython import get_ipython
+        from IPython import get_ipython  # @UnresolvedImport @UnusedImport
         register_line_magic(parse_line(usediode, globals()))
         del usediode
         register_line_magic(parse_line(usevessel, globals()))
