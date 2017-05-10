@@ -32,13 +32,13 @@ try:
 except ImportError:
     from numjy import matrix
 
-from diffcalc.gdasupport.minigda.command import Pos
+import diffcalc.gdasupport.minigda.command
 from test.tools import mneq_
 
 from diffcalc import settings
 import diffcalc.hkl.you.calc
-
-pos = Pos(globals())
+diffcalc.gdasupport.minigda.command.ROOT_NAMESPACE_DICT = globals()
+pos = diffcalc.gdasupport.minigda.command.Pos()
 
 en = SingleFieldDummyScannable('en')  # keV
 mu = SingleFieldDummyScannable('mu')

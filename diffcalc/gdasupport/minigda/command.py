@@ -25,19 +25,20 @@ from diffcalc.util import getMessageFromException, allnum, bold
 import math
 
 
+ROOT_NAMESPACE_DICT = {}
+
 class Pos(object):
 
-    def __init__(self, mainNamepaceDict):
-        self.mainNamepaceDict = mainNamepaceDict
+    def __init__(self):
         self.__name__ = 'pos'
 
     def __call__(self, *posargs):
         if len(posargs) == 0:
 
-            keys = self.mainNamepaceDict.keys()
+            keys = dict(ROOT_NAMESPACE_DICT).keys()
             keys.sort()
             for key in keys:
-                val = self.mainNamepaceDict[key]
+                val = ROOT_NAMESPACE_DICT[key]
                 if isinstance(val, Scannable):
                     print self.posReturningReport(val)
         else:

@@ -7,6 +7,9 @@ diffcalc
 test
    Diffcalcs unit-test package (use Nose_ to run them).
 
+diffcmd
+    A spec-like openGDA emulator.
+
 numjy
    A *very* minimal implentation of numpy for jython. It supports only what
    Diffcalc needs.
@@ -17,11 +20,8 @@ doc
    installed use ``make clean all`` from within the user and developer guide
    folders to build the documentation.
 
-doc/references
-   Includes links to relevant papers.
-
-example
-   Example startup scripts.
+startup
+   Starup scripts called by diffcmd or openGDA to startup diffcalc
  
 model
    Vrml models of diffractometers and a hokey script for animating then and

@@ -15,8 +15,6 @@ Diffcalc Developer Guide
    intro
    package
    quickstart_api
-   quickstart_scan
-   quickstart_gda
    development
    ACKS
 
