@@ -14,6 +14,7 @@ import sys
 from diffcalc.ub.persistence import UBCalculationJSONPersister
 from diffcalc.util import bold
 import diffcalc.util
+import diffcalc.gdasupport.minigda.command
 DIFFCALC_ROOT = os.path.realpath(diffcalc.__file__).split('diffcalc/__init__.py')[0]
 
 try:
@@ -48,6 +49,7 @@ print "Startup script: '%s'" % script
 namespace = {}
 execfile(script, namespace)
 globals().update(namespace)
+diffcalc.gdasupport.minigda.command.ROOT_NAMESPACE_DICT = dict(namespace)
 print bold('-' * 36 + ' Help ' + '-' * 37)
 print HELP_STRING  # @UndefinedVariable
 if 'LOCAL_MANUAL' in locals():
@@ -78,7 +80,7 @@ if 'MANUALS_TO_MAKE' in locals():
         print "    Target:", target_path
         
         make_manual(source_path, target_path,
-                    ub_commands_for_help,
+                    ub_commands_for_help,  # @UndefinedVariable
                     hkl_commands_for_help)  # @UndefinedVariable
         summary_lines.append(' - ' + source_path + ' -- > ' + target_path)
     print '\n'.join(summary_lines)

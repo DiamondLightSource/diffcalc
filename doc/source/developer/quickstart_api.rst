@@ -6,12 +6,9 @@ Quick-Start: Python API
 =======================
 
 This section describes how to run up only the core in Python or
-IPython.  Starting diffcalc without the additional functionality
-described in :ref:`quickstart-scan` or :ref:`quickstart-opengda`
-provides a good way to understand how the code is structured.  It also
-provides an API which could be used to integrate Diffcalc into an
+IPython.  This provides an API which could be used to integrate Diffcalc into an
 existing data acquisition system; although the interface described in
-:ref:`quickstart-scan` would normally provide a better starting point.
+the README would normally provide a better starting point.
 
 For a full description of what Diffcalc does and how to use it please
 see the 'Diffcalc user manual'.
@@ -26,33 +23,35 @@ Start
 -----
 
 With Python start the sixcircle_api.py example startup script (notice
-the -i and -m) and type ``demo.all()``::
+the -i and -m) and call `demo_all()`::
 
-   $ python -i -m example/sixcircle_api
-   >>> demo.all()
+   $ python -i -m startup.api.sixcircle
+   >>> demo_all()
 
-Or with IPython::
+IPython requires::
 
-   $ ipython -i example/sixcircle_api.py
-   >>> demo.all()
+   $ ipython -i startup/api/sixcircle.py
+   >>> demo_all()
 
 Alternatively start Python or IPython and cut and paste lines from the rest of
-this tutorial::
-
-   $ python
-   $ ipython
+this tutorial.
 
 Configure a diffraction calculator
 ----------------------------------
 
-To setup a Diffcalc calculator::
+By default some exceptions are handled in a way to make user interaction
+friendlier. Switch this off with::
 
-   >>> from diffcalc.hkl.you.geometry import SixCircle
-   >>> from diffcalc.hardware import DummyHardwareAdapter
-   >>> from diffcalc.diffcalc_ import create_diffcalc
+   >>> import diffcalc.util
+   >>> diffcalc.util.DEBUG = True
 
-   >>> hardware = DummyHardwareAdapter(('mu', 'delta', 'nu', 'eta', 'chi', 'phi'))
-   >>> dc = create_diffcalc('you', SixCircle(), hardware)
+To setup a Diffcalc calculator, first configure `diffcalc.settings` module::
+
+	>>> from diffcalc import settings
+	>>> from diffcalc.hkl.you.geometry import SixCircle
+	>>> from diffcalc.hardware import DummyHardwareAdapter
+	>>> settings.hardware = DummyHardwareAdapter(('mu', 'delta', 'gam', 'eta', 'chi', 'phi'))
+	>>> settings.geometry = SixCircle()  # @UndefinedVariable
 
 The hardware adapter is used by Diffcalc to read up the current angle
 settings, wavelength and axes limits. It is primarily used to simplify
@@ -66,77 +65,133 @@ contain a dictionary of the 'missing' angles which Diffcalc internally
 uses to constrain these angles, and a methods to map from
 external angles to Diffcalc angles and visa versa.
 
+
+Calling the API
+---------------
+
+The ``diffcalc.dc.dcyou`` module (and others) read the ``diffcalc.settings`` module when first
+imported. Note that this means that changes to the settings will most likely
+have no effect unless ``diffcalc.dc.dcyou`` is reloaded::
+
+	>>> import diffcalc.dc.dcyou as dc
+	
+This includes the two critical functions::
+
+	def hkl_to_angles(h, k, l, energy=None):
+	    """Convert a given hkl vector to a set of diffractometer angles
+	    
+	    return angle tuple and virtual angles dictionary
+	    """
+	
+	def angles_to_hkl(angle_tuple, energy=None):
+	    """Converts a set of diffractometer angles to an hkl position
+	    
+	    Return hkl tuple and virtual angles dictionary	    
+	    """
+
+``diffcalc.dc.dcyou`` also brings in all the commands from  ``diffcalc.ub.ub``,
+``diffcalc.hardware`` and ``diffcalc.hkl.you.hkl``. That is it includes all the
+commands exposed in the top level namespace when diffcalc is used interactively::
+
+	>>> dir(dc)
+	
+	['__builtins__', '__doc__', '__file__', '__name__', '__package__',
+	'_hardware','_hkl', '_ub', 'addref', 'allhkl', 'angles_to_hkl', 'c2th',
+	'calcub', 'checkub', 'clearref', 'con', 'constraint_manager', 'delref',
+	'diffcalc', 'editref', 'energy_to_wavelength', 'hardware', 'hkl_to_angles',
+	'hklcalc', 'lastub', 'listub', 'loadub', 'newub', 'rmub', 'saveubas', 'setcut',
+	'setlat', 'setmax', 'setmin', 'settings', 'setu', 'setub', 'showref',
+	'swapref', 'trialub', 'ub', 'ub_commands_for_help', 'ubcalc', 'uncon']
+
+This doesn't form the best API to program against though, so it is best to
+use the four modules more directly. The example below assumes you have
+also imported::
+	
+	>>> from diffcalc.ub import ub
+	>>> from diffcalc import hardware
+	>>> from diffcalc.hkl.you import hkl
+
 Getting help
 ------------
 
-To get help for the orientation phase, the angle calculation phase,
-and the dummy hardware adapter commands::
+To get help for the diffcalc angle calculations, the orientation phase, the
+angle calculation phase, and the dummy hardware adapter commands::
 
-   >>> help(dc.ub)
-   >>> help(dc.hkl)
+   >>> help(dc)
+   >>> help(ub)
+   >>> help(hkl)
    >>> help(hardware)
+
 
 Orientation
 -----------
 
 To orient the crystal for example (see the user manual for a fuller
 tutorial) first find some reflections::
-
-   >>> # Create a new ub calculation and set lattice parameters
-   >>> dc.ub.newub('test')
-   >>> dc.ub.setlat('cubic', 1, 1, 1, 90, 90, 90)
-
-   >>> # Add 1st reflection
-   >>> dc.ub.c2th([1, 0, 0])                      # energy from hardware
-   60.
-   >>> hardware.position = 0, 60, 0, 30, 0, 0     # mu del nu eta chi phi
-   >>> dc.ub.addref([1, 0, 0])                    # energy and pos from hardware
-
-   >>> # Add 2nd reflection
-   >>> dc.ub.addref([0, 1, 0], [0, 60, 0, 30, 0, 90], en)
-   Calculating UB matrix.
+    
+   # Create a new ub calculation and set lattice parameters
+   ub.newub('test')
+   ub.setlat('cubic', 1, 1, 1, 90, 90, 90)
+		
+   # Add 1st reflection (demonstrating the hardware adapter)
+   hardware.settings.hardware.wavelength = 1
+   ub.c2th([1, 0, 0])                              # energy from hardware
+   settings.hardware.position = 0, 60, 0, 30, 0, 0 # mu del nu eta chi ph
+   ub.addref([1, 0, 0])                            # energy & pos from hardware
+	
+   # Add 2nd reflection (this time without the hardware adapter)
+   ub.c2th([0, 1, 0], 12.39842)
+   ub.addref([0, 1, 0], [0, 60, 0, 30, 0, 90], 12.39842)
+   
 
 To check the state of the current UB calculation::
 
-   >>> dc.ub.ub()
+   >>> ub.ub()
 
-   UBCALC
-
-      name:          test
-
-   CRYSTAL
-
-      name:         cubic
-
-      a, b, c:    1.00000   1.00000   1.00000
-                 90.00000  90.00000  90.00000
-
-      B matrix:   6.28319  -0.00000  -0.00000
-                  0.00000   6.28319  -0.00000 0.00000   0.00000 6.28319
-
-   UB MATRIX
-
-      U matrix:   1.00000   0.00000   0.00000
-                 -0.00000   1.00000   0.00000
-                  0.00000   0.00000   1.00000
-
-      UB matrix:  6.28319  -0.00000  -0.00000
-                 -0.00000   6.28319  -0.00000
-                  0.00000   0.00000   6.28319
-
-   REFLECTIONS
-
-        ENERGY     H     K     L       MU   DELTA      NU     ETA     CHI     PHI  TAG
-      1 12.398  1.00  0.00  0.00   0.0000 60.0000  0.0000 30.0000  0.0000  0.0000
-      2 12.398  0.00  1.00  0.00   0.0000 60.0000  0.0000 30.0000  0.0000 90.0000
-
-
+	UBCALC
+	
+	   name:          test
+	
+	   n_phi:      0.00000   0.00000   1.00000 <- set
+	   n_hkl:     -0.00000   0.00000   1.00000
+	   miscut:     None
+	
+	CRYSTAL
+	
+	   name:         cubic
+	
+	   a, b, c:    1.00000   1.00000   1.00000
+	              90.00000  90.00000  90.00000
+	
+	   B matrix:   6.28319   0.00000   0.00000
+	               0.00000   6.28319   0.00000
+	               0.00000   0.00000   6.28319
+	
+	UB MATRIX
+	
+	   U matrix:   1.00000   0.00000   0.00000
+	               0.00000   1.00000   0.00000
+	               0.00000   0.00000   1.00000
+	
+	   U angle:    0
+	
+	   UB matrix:  6.28319   0.00000   0.00000
+	               0.00000   6.28319   0.00000
+	               0.00000   0.00000   6.28319
+	
+	REFLECTIONS
+	
+	     ENERGY     H     K     L        MU    DELTA      GAM      ETA      CHI      PHI  TAG
+	   1 12.398  1.00  0.00  0.00    0.0000  60.0000   0.0000  30.0000   0.0000   0.0000  
+	   2 12.398  0.00  1.00  0.00    0.0000  60.0000   0.0000  30.0000   0.0000  90.0000  
+	
 And finally to check the reflections were specified acurately::
 
    >>> dc.checkub()
-        ENERGY     H     K     L   H_COMP  K_COMP  L_COMP     TAG
-    1  12.3984  1.00  0.00  0.00   1.0000  0.0000  0.0000
-    2  12.3984  0.00  1.00  0.00   0.0000  1.0000  0.0000
+   
+       ENERGY     H     K     L    H_COMP   K_COMP   L_COMP     TAG
+   1  12.3984  1.00  0.00  0.00    1.0000   0.0000   0.0000        
+   2  12.3984  0.00  1.00  0.00   -0.0000   1.0000   0.0000 
 
 Motion
 ------
@@ -144,15 +199,17 @@ Motion
 Hkl positions and virtual angles can now be read up from angle
 settings (the easy direction!)::
 
-   >>> dc.angles_to_hkl((0., 60., 0., 30., 0., 0.))     # energy from hardware
-   ((1., 0.0, 0.0),
-    {'alpha': 0.0,
-     'beta': 0.0,
-     'naz': 0.0,
-     'psi': 90.0,
-     'qaz': 90.0,
-     'tau': 90.0,
-     'theta': 29.999999999999996})
+
+	>>> dc.angles_to_hkl((0., 60., 0., 30., 0., 0.)) # energy from hardware
+
+	((1.0, 5.5511151231257827e-17, 0.0),
+	{'alpha': -0.0,
+	 'beta': 3.5083546492674376e-15,
+	 'naz': 0.0,
+	 'psi': 90.0,
+	 'qaz': 90.0,
+	 'tau': 90.0,
+	 'theta': 29.999999999999996})
 
 Before calculating the settings to reach an hkl position (the trickier
 direction) hardware limits must be set and combination of constraints
@@ -160,23 +217,23 @@ chosen. The constraints here result in a four circle like mode with a
 vertical scattering plane and incident angle 'alpha' equal to the exit
 angle 'beta'::
 
-    >>> dc.hkl.con('qaz', 90)
+   >>> hkl.con('qaz', 90)
    !   2 more constraints required
        qaz: 90.0000
 
-    >>> dc.hkl.con('a_eq_b')
+   >>> hkl.con('a_eq_b')
    !   1 more constraint required
        qaz: 90.0000
        a_eq_b
 
-    >>> dc.hkl.con('mu', 0)
+   >>> hkl.con('mu', 0)
        qaz: 90.0000
        a_eq_b
        mu: 0.0000
 
 To check the constraints::
 
-    >>> dc.hkl.con()
+   >>> hkl.con()
        DET        REF        SAMP
        ======     ======     ======
        delta  --> a_eq_b --> mu
@@ -193,7 +250,7 @@ To check the constraints::
 
 Limits can be set to help Diffcalc choose a solution::
 
-    >>> hardware.set_lower_limit('delta', 0)       # used when choosing solution
+    >>> hardware.setmin('delta', 0)       # used when choosing solution
 
 Angles and virtual angles are then easily determined for a given hkl reflection::
 
@@ -205,4 +262,5 @@ Angles and virtual angles are then easily determined for a given hkl reflection:
      'psi': 90.0,
      'qaz': 90.0,
      'tau': 90.0,
-     'theta': 30.0})
+     'theta': 30.0}
+    )

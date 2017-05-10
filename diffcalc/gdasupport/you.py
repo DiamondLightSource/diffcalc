@@ -19,7 +19,7 @@ except:
     
 if not GDA:
     from diffcalc.gdasupport.minigda import command
-    _pos = command.Pos(globals())
+    _pos = command.Pos()
     _scan = command.Scan(command.ScanDataPrinter())
 
     def pos(*args):

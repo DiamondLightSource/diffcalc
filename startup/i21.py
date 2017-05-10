@@ -1,6 +1,7 @@
 from startup._common_imports import *
 from diffcalc.gdasupport.minigda.scannable import ScannableMotionWithScannableFieldsBase
-from startup.beamlinespecific.i21 import I21SampleStage, I21FourAxisHintGenerator
+from startup.beamlinespecific.i21 import I21SampleStage, I21DiffractometerStage,\
+    I21TPLab
 import startup._demo
 LOCAL_MANUAL = "http://confluence.diamond.ac.uk/x/UoIQAw"
 # Diffcalc i21
@@ -37,7 +38,21 @@ sa = I21SampleStage('sa', _sapol, _satilt, _saaz, xyz_eta)
 sapol = sa.sapol
 satilt = sa.satilt
 saaz = sa.saaz
-    
+tpphi = sa.tp_phi_scannable
+
+def zerosample():
+    raise Exception('not implemented yet!')
+
+tplab = I21TPLab('tplab', sa)
+tplabx = tplab.tplabx
+tplaby = tplab.tplaby
+tplabz = tplab.tplabz
+
+_fourc = I21DiffractometerStage('_fourc', diode_tth, sa, chi_offset = 90)
+delta = _fourc.delta
+eta = _fourc.eta
+chi = _fourc.chi
+phi = _fourc.phi
 
 
 ### Wrap i21 names to get diffcalc names
@@ -62,16 +77,16 @@ else:
     from diffcalc.gdasupport.minigda.scannable import ScannableAdapter
     from IPython.core.magic import register_line_magic
     from diffcmd.ipython import parse_line
-    delta = ScannableAdapter(diode_tth, 'delta')  # or vessel_tth
-    eta = ScannableAdapter(sapol, 'eta')
-    chi = ScannableAdapter(satilt, 'chi', 90)  # chi = satilt + 90deg
-    phi = ScannableAdapter(saaz, 'phi')
+#     delta = ScannableAdapter(diode_tth, 'delta')  # or vessel_tth
+#     eta = ScannableAdapter(sapol, 'eta')
+#     chi = ScannableAdapter(satilt, 'chi', 90)  # chi = satilt + 90deg
+#     phi = ScannableAdapter(saaz, 'phi')
     
     def usediode():
-        delta.delegate_scn = diode_tth
+        _fourc.delta_scn = diode_tth
     
     def usevessel():
-        delta.delegate_scn = vessel_tth
+        _fourc.delta_scn = vessel_tth
         
     if IPYTHON:
         from IPython import get_ipython
@@ -82,7 +97,6 @@ else:
         
 print "Created i21 bespoke commands: usediode & usevessel"
  
-_fourc = ScannableGroup('_fourc', (delta, eta, chi, phi))
 en = Dummy('en')
 en.level = 3
  
@@ -101,9 +115,7 @@ from diffcalc.gdasupport.you import *  # @UnusedWildImport
 
 
 # fourc is created in diffcalc.gdasupport.you. Add some I21 hints into it
-
-    
-fourc.hint_generator = I21FourAxisHintGenerator((delta, eta, chi, phi))  # @UndefinedVariable
+fourc.hint_generator = _fourc.get_hints  # (the callablemethod) # @UndefinedVariable
 
 if GDA:
     print "Running in GDA --- aliasing commands"

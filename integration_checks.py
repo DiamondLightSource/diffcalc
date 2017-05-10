@@ -64,3 +64,9 @@ def test_i21_startup_bespoke():
     import startup.i21
     startup.i21.ct.pause = False
     startup.i21.demo.i21()
+    
+    
+def test_sixcirle_api():
+    import startup.api.sixcircle
+    startup.api.sixcircle.demo_all()
+
