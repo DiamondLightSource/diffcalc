@@ -63,7 +63,7 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
         self._scn_list = [pol_scn, tilt_scn, az_scn]
         self.xyz_eta_scn = xyz_eta_scn
         
-        self.setInputNames(['sapol', 'satilt', 'saaz'])  # note, names copied below
+        self.setInputNames([pol_scn.getName(), tilt_scn.getName(), az_scn.getName()])  # note, names copied below
         self.setOutputFormat(['%7.5f'] * 3)
         self.completeInstantiation()
         
@@ -118,9 +118,9 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
         
         sa_col = []
         sa_col.append('%s:' % self.getName())
-        sa_col.append('sapol  : %s (eta)' % formatted_values[0])
+        sa_col.append('sapolar  : %s (eta)' % formatted_values[0])
         sa_col.append('satilt : %s (chi-90)' % formatted_values[1])
-        sa_col.append('saaz   : %s (phi)' % formatted_values[2])
+        sa_col.append('saazimuth   : %s (phi)' % formatted_values[2])
         sa_col_width = len(sa_col[2])
         
         # Toolpoint column
