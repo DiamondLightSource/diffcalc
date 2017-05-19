@@ -63,12 +63,7 @@ phi = _fourc.phi
 
 ### Wrap i21 names to get diffcalc names
 if GDA:
-    from diffcalc.gdasupport.minigda.scannable import ScannableAdapter
-    delta = ScannableAdapter(diodetth, 'delta')  # or vessel_tth
-    eta = ScannableAdapter(sapolar, 'eta')
-    chi = ScannableAdapter(satilt, 'chi', 90)  # chi = satilt + 90deg
-    phi = ScannableAdapter(saazimuth, 'phi')
-    
+   
     def usediode():
         _fourc.delta_scn = diodetth
     
