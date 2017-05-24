@@ -5,7 +5,7 @@ if not GDA:
     import startup._demo
 else:
 #     import __main__  # @UnresolvedImport
-    from __main__ import diodetth,m5tth,sapolar,satilt,saazimuth,sax,say,saz  # @UnresolvedImport
+    from __main__ import diodetth,m5tth,sapolar,satilt,saazimuth,sax,say,saz, energy  # @UnresolvedImport
 LOCAL_MANUAL = "http://confluence.diamond.ac.uk/x/UoIQAw"
 # Diffcalc i21
 # ======== === 
@@ -109,8 +109,15 @@ else:
         del usevessel
         
 print "Created i21 bespoke commands: usediode & usevessel"
- 
-en = Dummy('en')
+
+if GDA:
+    en=energy
+    if float(en.getPosition()) == 0: # no energy value - dummy?
+        en(800)
+else:
+    en = Dummy('en')
+    en(800)
+    
 en.level = 3
  
  
