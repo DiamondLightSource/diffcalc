@@ -99,8 +99,8 @@ class UBCalculationPersister(object):
     """
     def __init__(self):
         try:
-            from gda.util.persistence import LocalJythonShelfManager
-            from gda.util.persistence.LocalDatabase import \
+            from uk.ac.diamond.daq.persistence.jythonshelf import LocalJythonShelfManager
+            from uk.ac.diamond.daq.persistence.jythonshelf.LocalDatabase import \
                 LocalDatabaseException
             self.shelf = LocalJythonShelfManager.getLocalObjectShelf(
                 'diffcalc.ub')
