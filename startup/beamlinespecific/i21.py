@@ -7,21 +7,24 @@ from diffcalc.gdasupport.minigda.scannable import ScannableMotionWithScannableFi
     ScannableBase
 from math import pi
 
+# TP_HELP="""
+# Use the Scannables tplab, tplabx, tplaby, tplabz to move the configured tool point in
+# the lab frame. For example to move it to the centre of the diffractomter:
+# 
+#    >>> pos tplab [0 0 0]  # Move the toolpoint 
+#     
+# use 'settp' to change the configured toolpoint in the phi frame:
+# 
+#    >>> pos tphi [0 0 1]  # will not move anything
+#    
+# or use it with no args to make the location in the phi frame currently in
+# the centre of the diffracomtter the tool point. i.e. to make the tblab
+# report back [0 0 0]
+# """
 TP_HELP="""
-Use the Scannables tplab, tplabx, tplaby, tplabz to move the configured tool point in
-the lab frame. For example to move it to the centre of the diffractomter:
 
-   >>> pos tplab [0 0 0]  # Move the toolpoint 
-    
-use 'settp' to change the configured toolpoint in the phi frame:
-
-   >>> pos tphi [0 0 1]  # will not move anything
-   
-or use it with no args to make the location in the phi frame currently in
-the centre of the diffracomtter the tool point. i.e. to make the tblab
-report back [0 0 0]
+For help with sa, tp_phi and tp_lab see: http://confluence.diamond.ac.uk/x/CBIAB
 """
-
 
 from diffcalc.hkl.you.geometry import calcETA, calcCHI, calcPHI
 
