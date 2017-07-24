@@ -73,7 +73,7 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
         #  tp_phi is the TARGET tool point to end up at the diffractometer centre
         self.tp_phi = [0, 0, 0]
         
-        self.tp_phi_scannable = I21SampleStage.TpPhiScannable('tpphi', self)
+        self.tp_phi_scannable = I21SampleStage.TpPhiScannable('tp_phi', self)
     
     def asynchronousMoveTo(self, pos_triple):
 
@@ -121,15 +121,14 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
         
         sa_col = []
         sa_col.append('%s:' % self.getName())
-        sa_col.append('sapolar  : %s (eta)' % formatted_values[0])
-        sa_col.append('satilt : %s (chi-90)' % formatted_values[1])
-        sa_col.append('saazimuth   : %s (phi)' % formatted_values[2])
+        sa_col.append('sapolar:   %s (eta)' % formatted_values[0])
+        sa_col.append('satilt:    %s (chi-90)' % formatted_values[1])
+        sa_col.append('saazimuth: %s (phi)' % formatted_values[2])
         sa_col_width = len(sa_col[2])
         
         # Toolpoint column
         xyz_eta = list(self.xyz_eta_scn.getPosition())
         eta, chi, phi = self.getEulerPosition()
-        print 'chi:', chi
         tp_lab = calc_tp_lab(self.tp_phi, eta, chi, phi, xyz_eta)
         
         tp_col = []
