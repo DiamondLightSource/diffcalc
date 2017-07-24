@@ -26,6 +26,7 @@ if GDA:
 #     assert 'sax'in __main__.__dict__
 #     assert 'say'in __main__.__dict__
 #     assert 'saz'in __main__.__dict__
+    print "WARNING: saz may need to be reversed to agree with diffcalc"
     xyz_eta = ScannableGroup('xyz_eta', [sax, say, saz])  # @UndefinedVariable
 else:   
     diodetth = Dummy('diodetth')
@@ -34,25 +35,26 @@ else:
     satilt = Dummy('satilt')
     saazimuth = Dummy('saazimuth')
     sax = Dummy('sax')
-    say = Dummy('sax')
-    saz = Dummy('sax')
+    say = Dummy('say')
+    saz = Dummy('saz')
     xyz_eta = ScannableGroup('xyz_eta', [sax, say, saz])
     
     
 
 sa = I21SampleStage('sa', sapolar, satilt, saazimuth, xyz_eta)
-sapol = sa.sapolar
+sapolar = sa.sapolar
 satilt = sa.satilt
-saaz = sa.saazimuth
-tpphi = sa.tp_phi_scannable
+saazimuth = sa.saazimuth
+
+tp_phi = sa.tp_phi_scannable
 
 def zerosample():
     raise Exception('not implemented yet!')
 
-tplab = I21TPLab('tplab', sa)
-tplabx = tplab.tplabx
-tplaby = tplab.tplaby
-tplabz = tplab.tplabz
+tp_lab = I21TPLab('tp_lab', sa)
+tp_labx = tp_lab.tp_labx
+tp_laby = tp_lab.tp_laby
+tp_labz = tp_lab.tp_labz
 
 _fourc = I21DiffractometerStage('_fourc', diodetth, sa, chi_offset = 90)
 delta = _fourc.delta
