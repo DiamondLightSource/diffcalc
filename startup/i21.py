@@ -68,7 +68,7 @@ if GDA:
         _fourc.delta_scn = diodetth
     
     def usevessel():
-        _fourc.delta_scn = m5tth
+        _fourc.delta_scn = m5tth  # note, if changed also update in _fourc_vessel constructor!
  
 #    raise Exception('need gda class for wrapping scannables. There is one somewhere')
 #     import what_is_its_name as XYZ  # @UnresolvedImport
@@ -139,10 +139,60 @@ if GDA:
     print "Running in GDA --- aliasing commands"
     alias_commands(globals())
  
-# Load the last ub calculation used
+### Load the last ub calculation used
 lastub() 
+
+### Set i21 specifi limits
+print "Warning: diffcalc limits set in $diffcalc/startup/i21.py are unrealistic"
 setmin(delta, 0)
 setmin(chi, 0)
+
+### Create i21 bespoke secondary hkl devices
+# Warning: this breaks the encapsulation provided by the diffcalc.dc.you public
+#          interface, and may be prone to breakage in future.
+
+print 'Creating i21 bespoke scannables:'
+
+from diffcalc.dc import dcyou as _dc
+from diffcalc.gdasupport.scannable.diffractometer import DiffractometerScannableGroup
+from diffcalc.gdasupport.scannable.hkl import Hkl
+
+print '- fourc_vessel & hkl_vessel'
+_fourc_vessel = I21DiffractometerStage('_fourc_vessel', m5tth, sa, chi_offset = 90)
+fourc_vessel = DiffractometerScannableGroup('fourc_vessel', _dc, _fourc_vessel)
+fourc_vessel.hint_generator = _fourc_vessel.get_hints
+hkl_vessel = Hkl('hkl_vessel', _fourc_vessel, _dc)
+h_vessel, k_vessel, l_vessel = hkl_vessel.h, hkl_vessel.k, hkl_vessel.l
+
+print '- fourc_lowq & hkl_lowq'
+LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING = - 1
+_fourc_lowq = I21DiffractometerStage(
+    '_fourc_lowq', m5tth, sa, chi_offset=90,
+    delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)
+fourc_lowq = DiffractometerScannableGroup('fourc_lowq', _dc, _fourc_lowq)
+fourc_lowq.hint_generator = _fourc_lowq.get_hints
+hkl_lowq = Hkl('hkl_lowq', _fourc_lowq, _dc)
+h_lowq, k_lowq, l_lowq = hkl_lowq.h, hkl_lowq.k, hkl_lowq.l
+
+print '- fourc_highq & hkl_highq'
+highq_OFFSET_ADDED_TO_DELTA_WHEN_READING = 1
+_fourc_highq = I21DiffractometerStage(
+    '_fourc_highq', m5tth, sa, chi_offset=90,
+    delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)
+fourc_highq = DiffractometerScannableGroup('fourc_highq', _dc, _fourc_highq)
+fourc_highq.hint_generator = _fourc_highq.get_hints
+hkl_highq = Hkl('hkl_highq', _fourc_highq, _dc)
+h_highq, k_highq, l_highq = hkl_highq.h, hkl_highq.k, hkl_highq.l
+
+# vessel
+print '- fourc_diode & hkl_diode'
+_fourc_diode = I21DiffractometerStage('_fourc_diode', diodetth, sa, chi_offset = 90)
+fourc_diode = DiffractometerScannableGroup('fourc_diode', _dc, _fourc_diode)
+fourc_diode.hint_generator = _fourc_diode.get_hints
+hkl_diode = Hkl('hkl_diode', _fourc_diode, _dc)
+h_diode, k_diode, l_diode = hkl_diode.h, hkl_diode.k, hkl_diode.l
+
+### Demo ###
 
 if not GDA:
     class I21Demo(startup._demo.Demo):

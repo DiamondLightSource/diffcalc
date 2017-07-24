@@ -176,11 +176,20 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
 
 class I21DiffractometerStage(ScannableMotionWithScannableFieldsBase):
     
-    def __init__(self, name, delta_scn, sample_stage_scn, chi_offset):
+    def __init__(self, name, delta_scn, sample_stage_scn, chi_offset,
+                 delta_offset=0):
+        """Create diffractomter stage from 3circle sample axes and a
+        delta/tth axis.
+        
+        Both the chi and delta offsets are added to underlying scannable values
+        when *reading* the position. iu the same offset is subtracted when
+        *setting* the position. 
+        """
         
         self.sample_stage_scn = sample_stage_scn
         self.delta_scn = delta_scn
         self.chi_offset = chi_offset
+        self.delta_offset = delta_offset
         self.setName(name)
           
         self.setInputNames(['delta', 'eta', 'chi', 'phi'])  # note, names copied below
@@ -197,7 +206,7 @@ class I21DiffractometerStage(ScannableMotionWithScannableFieldsBase):
         az = phi
         
         if delta is not None:
-            self.delta_scn.asynchronousMoveTo(delta)
+            self.delta_scn.asynchronousMoveTo(delta - self.delta_offset)
         
         if (pol is not None) or (tilt is not None) or (az is not None):
             self.sample_stage_scn.asynchronousMoveTo([pol, tilt, az])
@@ -206,7 +215,7 @@ class I21DiffractometerStage(ScannableMotionWithScannableFieldsBase):
         delta = self.delta_scn.getPosition()
         pol, tilt, az = self.sample_stage_scn.getPosition()
         eta, chi, phi = pol, tilt + self.chi_offset, az
-        return delta, eta, chi, phi
+        return delta + self.delta_offset, eta, chi, phi
     
     def getFieldPosition(self, i):
         return self.getPosition()[i]
@@ -228,9 +237,14 @@ class I21DiffractometerStage(ScannableMotionWithScannableFieldsBase):
     def get_hints(self):
         sample_names = self.sample_stage_scn.getInputNames()
         hints = []
-        hints.append(' (%s)' % self.delta_scn.getName())                # delta
+        if self.delta_offset != 0:
+            sign = '+' if self.delta_offset > 0 else '-'
+            hints.append(' (%s %s %s)' % 
+                         (self.delta_scn.getName(), sign, abs(self.delta_offset)))                # delta
+        else:
+            hints.append(' (%s)' % self.delta_scn.getName())                # delta
         hints.append(' (%s)' % sample_names[0])                         # eta
-        hints.append(' (%s+%s)' % (sample_names[1], self.chi_offset)) # chi
+        hints.append(' (%s + %s)' % (sample_names[1], self.chi_offset)) # chi
         hints.append(' (%s)' % sample_names[2])                         # phi
         return hints
  
