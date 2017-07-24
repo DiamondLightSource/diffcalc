@@ -261,11 +261,15 @@ class I21TPLab(ScannableMotionWithScannableFieldsBase):
         self.setInputNames([name + 'x', name + 'y', name + 'z'])  # note, names copied below
         self.setOutputFormat(['%7.4f'] * 3)
         self.completeInstantiation()
+        self.setAutoCompletePartialMoveToTargets(True)
+
     
-    def asynchronousMoveTo(self, tp_lab_target):
+    def rawAsynchronousMoveTo(self, tp_lab_target):
         if len(tp_lab_target) != 3:
             raise ValueError(self.getName() + ' device expects three inputs')
         
+        if None in tp_lab_target:
+            raise ValueError('unexpected None in tp_lab_target: ', tp_lab_target)
 
         eta, chi, phi = self.sample_stage_scn.getEulerPosition()        
         ETA = calcETA(eta * TORAD)
