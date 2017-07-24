@@ -40,25 +40,32 @@ class Demo(object):
         print_heading('Orientation demo')
         self.remove_test_ubcalc()
         
-        pos_cmd = {
-            'sixc': 'pos sixc [0 60 0 30 0 0]', # mu, delta, gam, eta, chi, phi
-            'i16': 'pos sixc [0 0 30 0 60 0]', #  phi, chi, eta, mu, delta, gam
-            'fivec': 'pos fivec [60 0 30 0 0]',
-            'fourc': 'pos fourc [60 30 0 0]'
+        pos_cmd_001 = {
+            'sixc': 'pos sixc [0 60 0 30 90 0]', # mu, delta, gam, eta, chi, phi
+            'i16': 'pos sixc [0 90 30 0 60 0]', #  phi, chi, eta, mu, delta, gam
+            'fivec': 'pos fivec [60 0 30 90 0]',
+            'fourc': 'pos fourc [60 30 90 0]'
             }[self.geometry]
-        
+ 
+        pos_cmd_011 = {
+            'sixc': 'pos sixc [0 90 0 45 45 90]', # mu, delta, gam, eta, chi, phi
+            'i16': 'pos sixc [90 45 45 0 90 0]', #  phi, chi, eta, mu, delta, gam
+            'fivec': 'pos fivec [90 0 45 45 90]',
+            'fourc': 'pos fourc [90 45 45 90]'
+            }[self.geometry]
+                   
         self.echorun_magiccmd_list([
             'help ub',
             'pos wl 1',
             "newub 'test'",
             "setlat 'cubic' 1 1 1 90 90 90",
             'ub',
-            'c2th [1 0 0]',
-            pos_cmd,
-            'addref [1 0 0]',
-            'c2th [0 1 0]',
-            'pos phi 90',
-            'addref [0 1 0]',
+            'c2th [0 0 1]',
+            pos_cmd_001,
+            'addref [0 0 1]',
+            'c2th [0 1 1]',
+            pos_cmd_011,
+            'addref [0 1 1]',
             'ub',
             'checkub'])
         
@@ -80,7 +87,7 @@ class Demo(object):
         diff_name = 'sixc' if self.geometry == 'i16' else self.geometry
         self.echorun_magiccmd_list([
             'pos hkl [1 0 0]',
-            'scan delta 40 80 10 hkl ct 1',
+            'scan delta 40 90 10 hkl ct 1',
             'pos hkl [0 1 0]',
             'scan h 0 1 .2 k l %s ct 1' % diff_name,
             'con psi',
