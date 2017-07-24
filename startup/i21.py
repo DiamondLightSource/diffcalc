@@ -141,6 +141,9 @@ if GDA:
  
 # Load the last ub calculation used
 lastub() 
+setmin(delta, 0)
+setmin(chi, 0)
+
 if not GDA:
     class I21Demo(startup._demo.Demo):
         
