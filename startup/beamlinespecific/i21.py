@@ -230,7 +230,7 @@ class I21DiffractometerStage(ScannableMotionWithScannableFieldsBase):
         hints = []
         hints.append(' (%s)' % self.delta_scn.getName())                # delta
         hints.append(' (%s)' % sample_names[0])                         # eta
-        hints.append(' (%s-%s)' % (sample_names[1], self.chi_offset)) # chi
+        hints.append(' (%s+%s)' % (sample_names[1], self.chi_offset)) # chi
         hints.append(' (%s)' % sample_names[2])                         # phi
         return hints
  
