@@ -38,6 +38,8 @@ TORAD = pi / 180
 TODEG = 180 / pi
 
 
+DEBUG = False
+
 def calc_tp_lab(tp_phi_tuple, eta, chi, phi, xyz_eta=[0, 0, 0]):
     tp_phi = matrix(tp_phi_tuple).T
     ETA = calcETA(eta * TORAD)
@@ -52,6 +54,15 @@ def calc_tp_lab(tp_phi_tuple, eta, chi, phi, xyz_eta=[0, 0, 0]):
 def calc_tp_eta(tp_phi_tuple, chi, phi):
     return calc_tp_lab(tp_phi_tuple, 0, chi, phi, [0, 0, 0])
 
+
+def move_lab_origin_into_phi(chi, phi, xyz_eta_tuple):
+    # the inverse of calc_tp_lab with tp_lab=0:
+    CHI = calcCHI(chi * TORAD)
+    PHI = calcPHI(phi * TORAD)
+    xyz_eta = matrix(xyz_eta_tuple).T
+    tp_phi = PHI.I * CHI.I * (-1 * xyz_eta)
+    return list(tp_phi.T.tolist()[0])
+    
 
 def _format_vector(vector, fmt = '%7.4f'):
     vals = [fmt % e for e in vector]
@@ -93,8 +104,9 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
         chi = tilt + 90
         phi = az
         tp_offset_eta = calc_tp_eta(self.tp_phi, chi, phi)
-        print ('{Correcting xyz_eta for '
-               'tilt(chi-90)=%.2f & az(phi)=%.2f}' % (tilt, az)).rjust(79)
+        if DEBUG:
+            print ('{Correcting xyz_eta for '
+                   'tilt(chi-90)=%.2f & az(phi)=%.2f}' % (tilt, az)).rjust(79)
         xyz = [-1 * e for e in tp_offset_eta]
         self.xyz_eta_scn.asynchronousMoveTo(xyz)
                
@@ -173,7 +185,20 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
             self.i21_sample_stage.tp_phi = list(new_position)
     
         def getPosition(self):
-            return list(self.i21_sample_stage.tp_phi) 
+            return list(self.i21_sample_stage.tp_phi)
+        
+    def zerosample(self):
+        """Calculate tp_phi from the currently centred sample location."""
+        _, chi, phi = self.getEulerPosition()
+        xyz_eta_tuple = self.xyz_eta_scn.getPosition()
+        tp_phi = move_lab_origin_into_phi(chi, phi, xyz_eta_tuple)
+        self.tp_phi = tp_phi
+        print "tp_phi set to: %s" % tp_phi
+        
+    def centresample(self):
+        """Centre the sample. Equivilent to moving sa to its current position."""
+        self.asynchronousMoveTo([None, None, None])
+        self.waitWhileBusy()
             
 
 class I21DiffractometerStage(ScannableMotionWithScannableFieldsBase):
@@ -303,11 +328,4 @@ class I21TPLab(ScannableMotionWithScannableFieldsBase):
     
     def waitWhileBusy(self):
         self.self.sample_stage_scn.xyz_eta_scn.waitWhileBusy()
-
-
-
-
-
-
-
-                
+        

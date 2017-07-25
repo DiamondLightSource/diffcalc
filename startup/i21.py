@@ -48,8 +48,11 @@ saazimuth = sa.saazimuth
 
 tp_phi = sa.tp_phi_scannable
 
+def centresample():
+    sa.centresample()
+
 def zerosample():
-    raise Exception('not implemented yet!')
+    sa.zerosample()
 
 tp_lab = I21TPLab('tp_lab', sa)
 tp_labx = tp_lab.tp_labx
@@ -87,6 +90,8 @@ if GDA:
     from gda.jython.commands.GeneralCommands import alias  # @UnresolvedImport
     alias("usediode")
     alias("usevessel")
+    alias("centresample")
+    alias("zerosample")
 
 else:
     from diffcalc.gdasupport.minigda.scannable import ScannableAdapter
@@ -109,6 +114,11 @@ else:
         del usediode
         register_line_magic(parse_line(usevessel, globals()))
         del usevessel
+        register_line_magic(parse_line(centresample, globals()))
+        del centresample
+        register_line_magic(parse_line(zerosample, globals()))
+        del zerosample
+
         
 print "Created i21 bespoke commands: usediode & usevessel"
 

@@ -6,7 +6,7 @@ Created on 28 Feb 2017
 import unittest
 from diffcalc.gdasupport.scannable.mock import MockMotor
 from startup.beamlinespecific.i21 import I21SampleStage, calc_tp_lab,\
-    I21DiffractometerStage, I21TPLab
+    I21DiffractometerStage, I21TPLab, move_lab_origin_into_phi
 import mock
 from diffcalc.gdasupport.minigda.scannable import Scannable, ScannableBase
 from nose.tools import eq_
@@ -56,10 +56,10 @@ class TestI21SampleStageNoTp(TestI21SampleStageBase):
         
         print self.sa.__str__()
         desired = \
-"""sa:                           
-sapol  : 0.00000 (eta)        tp_phi :  1.0000  2.0000  3.0000 (set)
-satilt : -90.00000 (chi-90)   tp_lab : 11.0000 22.0000 33.0000
-saaz   : 0.00000 (phi)        xyz_eta: 10.0000 20.0000 30.0000"""
+"""sa:                             
+sapolar:   0.00000 (eta)        tp_phi :  1.0000  2.0000  3.0000 (set)
+satilt:    -90.00000 (chi-90)   tp_lab : 11.0000 22.0000 33.0000
+saazimuth: 0.00000 (phi)        xyz_eta: 10.0000 20.0000 30.0000"""
         result_lines = self.sa.__str__().split('\n')[0:4]
         print 'Result:'
         print '\n'.join(result_lines)
@@ -186,7 +186,25 @@ class TestCalcTpLabWithXyzEta(unittest.TestCase):
 #         aneq_(calc_tp_lab([1, 1, 0], 0, 0, 45), [sqrt(2), 0, 0]) 
 #         aneq_(calc_tp_lab([1, 1, 0], 46, 0, -1), [sqrt(2), 0, 0]) 
 #  
+class TestMoveLabOriginIntoPhi(unittest.TestCase):
+    
+    def test_xyz_eta_0(self):
+        aneq_(move_lab_origin_into_phi(0, 0, [0, 0, 0]), [0, 0, 0])
+        aneq_(move_lab_origin_into_phi(1, 2, [0, 0, 0]), [0, 0, 0])
 
+    def test_chi_phi_0(self):
+        aneq_(move_lab_origin_into_phi(0, 0, [1, 2, 3]), [-1, -2, -3])
+        aneq_(move_lab_origin_into_phi(0, 0, [-3, -2, -1]), [3, 2, 1])
+        
+    def test_stable_about_phi(self):
+        aneq_(move_lab_origin_into_phi(0, 99, [0, 0, 3]), [0, 0, -3])
+
+    def test_stable_about_chi(self):
+        aneq_(move_lab_origin_into_phi(99, 0, [0, 3, 0]), [0, -3, 0])
+
+    def test_rotate_about_phi(self):
+        aneq_(move_lab_origin_into_phi(0, 45, [0, 1, 4]),
+              [sqrt(.5), -sqrt(.5), -4])
 
 
 class TestI21SampleStageWithTP(TestI21SampleStageBase):
