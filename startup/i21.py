@@ -134,7 +134,7 @@ en.level = 3
  
  
 ### Configure and import diffcalc objects ###
-ESMTGKeV = 1
+ESMTGKeV = 0.001
 settings.hardware = ScannableHardwareAdapter(_fourc, en, ESMTGKeV)
 settings.geometry = diffcalc.hkl.you.geometry.FourCircle()  # @UndefinedVariable
 settings.energy_scannable = en
