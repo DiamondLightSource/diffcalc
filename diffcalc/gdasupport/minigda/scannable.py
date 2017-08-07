@@ -399,6 +399,10 @@ class ScannableMotionWithScannableFieldsBase(ScannableBase):
             toMoveTo = [None] * len(self.parentScannable.getInputNames())
             toMoveTo[self.index] = new_position
             self.parentScannable.asynchronousMoveTo(toMoveTo)
+            
+        def moveTo(self, new_position):
+            self.asynchronousMoveTo(new_position)
+            self.waitWhileBusy()
 
         def getPosition(self):
             return self.parentScannable.getPosition()[self.index]
