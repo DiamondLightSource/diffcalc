@@ -61,48 +61,6 @@ except ImportError:
         def atCommandFailure(self):
             pass
     
-    ###
-    
-        def __repr__(self):
-            pos = self.getPosition()
-            formattedValues = self.formatPositionFields(pos)
-            if len(tuple(self.getInputNames()) + tuple(self.getExtraNames())) > 1:
-                result = self.getName() + ': '
-            else:
-                result = ''
-    
-            names = tuple(self.getInputNames()) + tuple(self.getExtraNames())
-            for name, val in zip(names, formattedValues):
-                result += ' ' + name + ': ' + val
-            return result
-    ###
-    
-        def formatPositionFields(self, pos):
-            """Returns position as array of formatted strings"""
-            # Make sure pos is a tuple or list
-            if type(pos) not in (tuple, list):
-                pos = tuple([pos])
-    
-            # Sanity check
-            if len(pos) != len(self.getOutputFormat()):
-                raise Exception(
-                    "In scannable '%s':number of position fields differs from "
-                    "number format strings specified" % self.getName())
-    
-            result = []
-            for field, format in zip(pos, self.getOutputFormat()):
-                if field is None:
-                    result.append('???')
-                else:
-                    s = (format % field)
-    ##                if width!=None:
-    ##                s = s.ljust(width)
-                    result.append(s)
-    
-            return result
-    
-    ###
-    
         def getName(self):
             return self.name
     
@@ -360,6 +318,48 @@ class ScannableMotionWithScannableFieldsBase(ScannableBase):
     def atScanEnd(self):
         self.positionAtScanStart = None
 
+###
+
+    def __repr__(self):
+        pos = self.getPosition()
+        formattedValues = self.formatPositionFields(pos)
+        if len(tuple(self.getInputNames()) + tuple(self.getExtraNames())) > 1:
+            result = self.getName() + ': '
+        else:
+            result = ''
+
+        names = tuple(self.getInputNames()) + tuple(self.getExtraNames())
+        for name, val in zip(names, formattedValues):
+            result += ' ' + name + ': ' + val
+        return result
+###
+
+    def formatPositionFields(self, pos):
+        """Returns position as array of formatted strings"""
+        # Make sure pos is a tuple or list
+        if type(pos) not in (tuple, list):
+            pos = tuple([pos])
+
+        # Sanity check
+        if len(pos) != len(self.getOutputFormat()):
+            raise Exception(
+                "In scannable '%s':number of position fields differs from "
+                "number format strings specified" % self.getName())
+
+        result = []
+        for field, format in zip(pos, self.getOutputFormat()):
+            if field is None:
+                result.append('???')
+            else:
+                s = (format % field)
+##                if width!=None:
+##                s = s.ljust(width)
+                result.append(s)
+
+        return result
+
+###
+    
     def addScannableParts(self):
         '''
         Creates an array of MotionScannableParts each of which allows access to
