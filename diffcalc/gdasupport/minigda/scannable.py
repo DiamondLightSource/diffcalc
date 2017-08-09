@@ -18,128 +18,174 @@
 
 import time
 
-
-class Scannable(object):
-    pass
-
-class ScannableBase(Scannable):
-    """Implemtation of a subset of OpenGDA's Scannable interface
-    """
-
-    level = 5
-    inputNames = []
-    extraNames = []
-    outputFormat = []
-
-    def isBusy(self):
-        raise NotImplementedError()
-
-    def rawGetPosition(self):
-        raise NotImplementedError()
-
-    def rawAsynchronousMoveTo(self, newpos):
-        raise NotImplementedError()
-
-    def waitWhileBusy(self):
-        while self.isBusy():
-            time.sleep(.1)
-
-    def getPosition(self):
-        return self.rawGetPosition()
-
-    def asynchronousMoveTo(self, newpos):
-        self.rawAsynchronousMoveTo(newpos)
-
-    def atScanStart(self):
+try:
+    from gda.device.scannable import ScannableBase
+except ImportError:
+    class Scannable(object):
         pass
-
-    def atScanEnd(self):
-        pass
-
-    def atCommandFailure(self):
-        pass
-
-###
-
-    def __repr__(self):
-        pos = self.getPosition()
-        formattedValues = self.formatPositionFields(pos)
-        if len(tuple(self.getInputNames()) + tuple(self.getExtraNames())) > 1:
-            result = self.getName() + ': '
-        else:
-            result = ''
-
-        names = tuple(self.getInputNames()) + tuple(self.getExtraNames())
-        for name, val in zip(names, formattedValues):
-            result += ' ' + name + ': ' + val
-        return result
-###
-
-    def formatPositionFields(self, pos):
-        """Returns position as array of formatted strings"""
-        # Make sure pos is a tuple or list
-        if type(pos) not in (tuple, list):
-            pos = tuple([pos])
-
-        # Sanity check
-        if len(pos) != len(self.getOutputFormat()):
-            raise Exception(
-                "In scannable '%s':number of position fields differs from "
-                "number format strings specified" % self.getName())
-
-        result = []
-        for field, format in zip(pos, self.getOutputFormat()):
-            if field is None:
-                result.append('???')
+    
+    class ScannableBase(Scannable):
+        """Implemtation of a subset of OpenGDA's Scannable interface
+        """
+    
+        level = 5
+        inputNames = []
+        extraNames = []
+        outputFormat = []
+    
+        def isBusy(self):
+            raise NotImplementedError()
+    
+        def rawGetPosition(self):
+            raise NotImplementedError()
+    
+        def rawAsynchronousMoveTo(self, newpos):
+            raise NotImplementedError()
+    
+        def waitWhileBusy(self):
+            while self.isBusy():
+                time.sleep(.1)
+    
+        def getPosition(self):
+            return self.rawGetPosition()
+    
+        def asynchronousMoveTo(self, newpos):
+            self.rawAsynchronousMoveTo(newpos)
+    
+        def atScanStart(self):
+            pass
+    
+        def atScanEnd(self):
+            pass
+    
+        def atCommandFailure(self):
+            pass
+    
+    ###
+    
+        def __repr__(self):
+            pos = self.getPosition()
+            formattedValues = self.formatPositionFields(pos)
+            if len(tuple(self.getInputNames()) + tuple(self.getExtraNames())) > 1:
+                result = self.getName() + ': '
             else:
-                s = (format % field)
-##                if width!=None:
-##                s = s.ljust(width)
-                result.append(s)
-
-        return result
-
-###
-
-    def getName(self):
-        return self.name
-
-    def setName(self, value):
-        self.name = value
-
-    def getLevel(self):
-        return self.level
-
-    def setLevel(self, value):
-        self.level = value
-
-    def getInputNames(self):
-        return self.inputNames
-
-    def setInputNames(self, value):
-        self.inputNames = value
-
-    def getExtraNames(self):
-        return self.extraNames
-
-    def setExtraNames(self, value):
-        self.extraNames = value
-
-    def getOutputFormat(self):
-        return self.outputFormat
-
-    def setOutputFormat(self, value):
-        if type(value) not in (tuple, list):
-            raise TypeError(
-                "%s.setOutputFormat() expects tuple or list; not %s" %
-                (self.getName(), str(type(value))))
-        self.outputFormat = value
-
-    def __call__(self, newpos=None):
-        if newpos is None:
-            return self.getPosition()
-        self.asynchronousMoveTo(newpos)
-
+                result = ''
+    
+            names = tuple(self.getInputNames()) + tuple(self.getExtraNames())
+            for name, val in zip(names, formattedValues):
+                result += ' ' + name + ': ' + val
+            return result
+    ###
+    
+        def formatPositionFields(self, pos):
+            """Returns position as array of formatted strings"""
+            # Make sure pos is a tuple or list
+            if type(pos) not in (tuple, list):
+                pos = tuple([pos])
+    
+            # Sanity check
+            if len(pos) != len(self.getOutputFormat()):
+                raise Exception(
+                    "In scannable '%s':number of position fields differs from "
+                    "number format strings specified" % self.getName())
+    
+            result = []
+            for field, format in zip(pos, self.getOutputFormat()):
+                if field is None:
+                    result.append('???')
+                else:
+                    s = (format % field)
+    ##                if width!=None:
+    ##                s = s.ljust(width)
+                    result.append(s)
+    
+            return result
+    
+    ###
+    
+        def getName(self):
+            return self.name
+    
+        def setName(self, value):
+            self.name = value
+    
+        def getLevel(self):
+            return self.level
+    
+        def setLevel(self, value):
+            self.level = value
+    
+        def getInputNames(self):
+            return self.inputNames
+    
+        def setInputNames(self, value):
+            self.inputNames = value
+    
+        def getExtraNames(self):
+            return self.extraNames
+    
+        def setExtraNames(self, value):
+            self.extraNames = value
+    
+        def getOutputFormat(self):
+            return self.outputFormat
+    
+        def setOutputFormat(self, value):
+            if type(value) not in (tuple, list):
+                raise TypeError(
+                    "%s.setOutputFormat() expects tuple or list; not %s" %
+                    (self.getName(), str(type(value))))
+            self.outputFormat = value
+    
+        def __call__(self, newpos=None):
+            if newpos is None:
+                return self.getPosition()
+            self.asynchronousMoveTo(newpos)
+    
+    class ScannableAdapter(Scannable):
+        '''Wrap up a Scannable and give it a new name and optionally an offset
+        (added to the delegate when reading up and subtracting when setting down
+        '''
+        
+        def __init__(self, delegate_scn, name, offset=0):
+            assert len(delegate_scn.getInputNames()) == 1
+            assert len(delegate_scn.getExtraNames()) == 0
+            self.delegate_scn = delegate_scn
+            self.name = name
+            self.offset = offset
+                   
+        def __getattr__(self, name):
+            return getattr(self.delegate_scn, name)
+        
+        def getName(self):
+            return self.name
+        
+        def getInputNames(self):
+            return [self.name]
+        
+        def getPosition(self):
+            return self.delegate_scn.getPosition() + self.offset
+        
+        def asynchronousMoveTo(self, newpos):
+            self.delegate_scn.asynchronousMoveTo(newpos - self.offset)
+            
+        def __repr__(self):
+            pos = self.getPosition()
+            formatted_values = self.delegate_scn.formatPositionFields(pos)  
+            return self.name + ': ' + formatted_values[0] + ' ' + self.get_hint()
+        
+        def get_hint(self):
+            if self.offset:
+                offset_hint = ' + ' if self.offset >= 0 else ' - '
+                offset_hint += str(self.offset)
+            else:
+                offset_hint = ''
+            return '(%s%s)' % (self.delegate_scn.name, offset_hint)
+        
+        def __call__(self, newpos=None):
+            if newpos is None:
+                return self.getPosition()
+            self.asynchronousMoveTo(newpos)
 
 class SingleFieldDummyScannable(ScannableBase):
 
@@ -421,49 +467,5 @@ class ScannableMotionWithScannableFieldsBase(ScannableBase):
             return parentName + "." + name + " : " + str(self.getPosition())
 
 
-class ScannableAdapter(Scannable):
-    '''Wrap up a Scannable and give it a new name and optionally an offset
-    (added to the delegate when reading up and subtracting when setting down
-    '''
-    
-    def __init__(self, delegate_scn, name, offset=0):
-        assert len(delegate_scn.getInputNames()) == 1
-        assert len(delegate_scn.getExtraNames()) == 0
-        self.delegate_scn = delegate_scn
-        self.name = name
-        self.offset = offset
-               
-    def __getattr__(self, name):
-        return getattr(self.delegate_scn, name)
-    
-    def getName(self):
-        return self.name
-    
-    def getInputNames(self):
-        return [self.name]
-    
-    def getPosition(self):
-        return self.delegate_scn.getPosition() + self.offset
-    
-    def asynchronousMoveTo(self, newpos):
-        self.delegate_scn.asynchronousMoveTo(newpos - self.offset)
-        
-    def __repr__(self):
-        pos = self.getPosition()
-        formatted_values = self.delegate_scn.formatPositionFields(pos)  
-        return self.name + ': ' + formatted_values[0] + ' ' + self.get_hint()
-    
-    def get_hint(self):
-        if self.offset:
-            offset_hint = ' + ' if self.offset >= 0 else ' - '
-            offset_hint += str(self.offset)
-        else:
-            offset_hint = ''
-        return '(%s%s)' % (self.delegate_scn.name, offset_hint)
-    
-    def __call__(self, newpos=None):
-        if newpos is None:
-            return self.getPosition()
-        self.asynchronousMoveTo(newpos)
     
         
