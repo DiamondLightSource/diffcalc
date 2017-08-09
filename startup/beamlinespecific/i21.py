@@ -315,7 +315,7 @@ class I21TPLab(ScannableMotionWithScannableFieldsBase):
     def rawGetPosition(self):
         tp_phi = list(self.sample_stage_scn.tp_phi)
         eta, chi, phi = self.sample_stage_scn.getEulerPosition()
-        xyz_eta = self.sample_stage_scn.xyz_eta_scn.getPosition()
+        xyz_eta = list(self.sample_stage_scn.xyz_eta_scn.getPosition())
         
         tp_lab = calc_tp_lab(tp_phi, eta, chi, phi, xyz_eta)
         return tp_lab
