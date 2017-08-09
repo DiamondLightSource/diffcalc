@@ -177,7 +177,7 @@ hkl_vessel = Hkl('hkl_vessel', _fourc_vessel, _dc)
 h_vessel, k_vessel, l_vessel = hkl_vessel.h, hkl_vessel.k, hkl_vessel.l
 
 print '- fourc_lowq & hkl_lowq'
-LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING = - 1
+LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING = -8
 _fourc_lowq = I21DiffractometerStage(
     '_fourc_lowq', m5tth, sa, chi_offset=90,
     delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)
@@ -187,7 +187,7 @@ hkl_lowq = Hkl('hkl_lowq', _fourc_lowq, _dc)
 h_lowq, k_lowq, l_lowq = hkl_lowq.h, hkl_lowq.k, hkl_lowq.l
 
 print '- fourc_highq & hkl_highq'
-highq_OFFSET_ADDED_TO_DELTA_WHEN_READING = 1
+highq_OFFSET_ADDED_TO_DELTA_WHEN_READING = 0
 _fourc_highq = I21DiffractometerStage(
     '_fourc_highq', m5tth, sa, chi_offset=90,
     delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)
