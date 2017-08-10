@@ -60,7 +60,12 @@ def move_lab_origin_into_phi(chi, phi, xyz_eta_tuple):
     CHI = calcCHI(chi * TORAD)
     PHI = calcPHI(phi * TORAD)
     xyz_eta = matrix(xyz_eta_tuple).T
-    tp_phi = PHI.I * CHI.I * (-1 * xyz_eta)
+    try:
+        #work in IPython with numpy
+        tp_phi = PHI.I * CHI.I * (-1.0 * xyz_eta)
+    except:
+        # work in GDA using jama_matrix_wrapper - definitely not nice
+        tp_phi = PHI.I * CHI.I * (xyz_eta.__mul__(-1.0))
     return list(tp_phi.T.tolist()[0])
     
 
@@ -190,7 +195,7 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
     def zerosample(self):
         """Calculate tp_phi from the currently centred sample location."""
         _, chi, phi = self.getEulerPosition()
-        xyz_eta_tuple = self.xyz_eta_scn.getPosition()
+        xyz_eta_tuple = list(self.xyz_eta_scn.getPosition())
         tp_phi = move_lab_origin_into_phi(chi, phi, xyz_eta_tuple)
         self.tp_phi = tp_phi
         print "tp_phi set to: %s" % tp_phi
