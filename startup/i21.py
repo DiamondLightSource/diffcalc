@@ -1,6 +1,7 @@
 from startup._common_imports import *  # @UnusedWildImport
 from diffcalc.gdasupport.minigda.scannable import ScannableMotionWithScannableFieldsBase  # @UnusedImport
 from startup.beamlinespecific.i21 import I21SampleStage, I21DiffractometerStage, I21TPLab
+
 if not GDA:    
     import startup._demo
 else:
@@ -65,15 +66,20 @@ eta = _fourc.eta
 chi = _fourc.chi
 phi = _fourc.phi
 
+from diffcalc.hardware import setmax, setmin, hardware
 
 ### Wrap i21 names to get diffcalc names
 if GDA:
    
     def usediode():
         _fourc.delta_scn = diodetth
-    
+        setmin(delta, 0)
+        setmax(delta, 180)
+        
     def usevessel():
         _fourc.delta_scn = m5tth  # note, if changed also update in _fourc_vessel constructor!
+        setmin(delta, 0)
+        setmax(delta, 150)
  
 #    raise Exception('need gda class for wrapping scannables. There is one somewhere')
 #     import what_is_its_name as XYZ  # @UnresolvedImport
@@ -104,9 +110,13 @@ else:
     
     def usediode():
         _fourc.delta_scn = diodetth
-    
+        setmin(delta, 0)
+        setmax(delta, 180)
+        
     def usevessel():
         _fourc.delta_scn = m5tth
+        setmin(delta, 0)
+        setmax(delta, 150)
         
     if IPYTHON:
         from IPython import get_ipython  # @UnresolvedImport @UnusedImport
@@ -152,13 +162,21 @@ if GDA:
     alias_commands(globals())
  
 ### Load the last ub calculation used
+from diffcalc.ub.ub import lastub
 lastub() 
 
 ### Set i21 specifi limits
-print "Warning: diffcalc limits set in $diffcalc/startup/i21.py are unrealistic"
+print "INFO: diffcalc limits set in $diffcalc/startup/i21.py taken from http://confluence.diamond.ac.uk/pages/viewpage.action?pageId=51413586"
 setmin(delta, 0)
-setmin(chi, 0)
-
+setmax(delta, 150) #defult to m5tth limits
+setmin(chi, 60)
+setmax(chi, 135)
+setmin(eta, 0)
+setmax(eta, 360)
+setmin(phi, -179)
+setmax(phi, 179)
+print "Current hardware limits set to:"
+hardware()
 ### Create i21 bespoke secondary hkl devices
 # Warning: this breaks the encapsulation provided by the diffcalc.dc.you public
 #          interface, and may be prone to breakage in future.
