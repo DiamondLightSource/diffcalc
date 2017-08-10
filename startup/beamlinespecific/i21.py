@@ -327,5 +327,5 @@ class I21TPLab(ScannableMotionWithScannableFieldsBase):
         return self.sample_stage_scn.xyz_eta_scn.isBusy()
     
     def waitWhileBusy(self):
-        self.self.sample_stage_scn.xyz_eta_scn.waitWhileBusy()
+        self.sample_stage_scn.xyz_eta_scn.waitWhileBusy()
         
