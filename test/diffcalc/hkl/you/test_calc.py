@@ -145,6 +145,10 @@ class _TestCubicVertical(_TestCubic):
             Pair('001', (0, 0, 1),
                  Pos(mu=0, delta=60, nu=0, eta=30, chi=90 - self.yrot,
                      phi=0 + self.zrot)),
+            Pair('0.1 0 1.5', (0.1, 0, 1.5),  # cover case where delta > 90 !
+                  Pos(mu=0, delta=97.46959231642, nu=0,
+                      eta=97.46959231642/2, chi=86.18592516571 - self.yrot,
+                      phi=0 + self.zrot)),
             Pair('001-->100', (cos(86 * TORAD), 0, sin(86 * TORAD)),
                  Pos(mu=0, delta=60, nu=0, eta=30, chi=86 - self.yrot,
                      phi=0 + self.zrot)),
