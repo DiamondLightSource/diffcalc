@@ -62,7 +62,12 @@ def sequence_ne(a_seq, b_seq):
 
 
 def sign(x):
-    return 1 if x > 0 else -1
+    if x == 0:
+        return 0
+    if x > 0:
+        return 1
+    # x < 0
+    return -1
 
 
 def normalised(vector):
@@ -176,6 +181,9 @@ def _theta_and_qaz_from_detector_angles(delta, nu):
     cos_2theta = cos(delta) * cos(nu)
     theta = acos(bound(cos_2theta)) / 2.
     qaz = atan2(tan(delta), sin(nu))
+    # qaz flips downward if delta > 90, so flip it back (kludge)
+    if delta > pi / 2:
+        qaz *= -1
     return theta, qaz
 
 

@@ -180,6 +180,14 @@ class _TestCubicVertical(_TestCubic):
         for case_tuple in self.case_generator():
             yield case_tuple
 
+    def testHklDeltaGreaterThan90(self):
+        wavelength = 1            
+        hkl = (0.1, 0, 1.5)
+        pos = P(mu=0, delta=97.46959231642, nu=0,
+                      eta=97.46959231642/2, chi=86.18592516571,
+                      phi=0)
+        self._check_hkl_to_angles('', 0, 0, hkl, pos, wavelength)
+
 
 class TestCubicVertical_aeqb(_TestCubicVertical):
 
