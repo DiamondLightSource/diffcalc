@@ -66,6 +66,8 @@ class _BaseTest():
 
         self.mock_hardware.set_lower_limit('delta', 0)
         self.mock_hardware.set_upper_limit('delta', 179.999)
+        self.mock_hardware.set_lower_limit(NUNAME, 0)
+        self.mock_hardware.set_upper_limit(NUNAME, 179.999)
         self.mock_hardware.set_lower_limit('mu', 0)
         self.mock_hardware.set_lower_limit('eta', 0)
         self.mock_hardware.set_lower_limit('chi', -10)
@@ -410,6 +412,7 @@ class TestFixedChiPhiPsiMode_DiamondI07SurfaceNormalHorizontal(_TestCubic):
     def setup_method(self):
         _TestCubic.setup_method(self)
         self.mock_hardware.set_lower_limit(NUNAME, 0)
+        self.mock_hardware.set_upper_limit('delta', 90)
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'a_eq_b': None}
         self.wavelength = 1
         self.UB = I * 2 * pi

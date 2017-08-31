@@ -23,6 +23,9 @@ from diffcalc.ub import ub
 from diffcalc import hardware
 from diffcalc.hkl.you import hkl
 
+# Set some limits
+hardware.setmin('gam', -179)
+hardware.setmax('gam', 179)
 
 # These demos reproduce the outline in the developer guide
 def demo_all():

@@ -27,7 +27,11 @@ if GDA:
     print "Running in GDA --- aliasing commands"
     alias_commands(globals())
 
- # Load the last ub calculation used
-lastub() 
+# Load the last ub calculation used
+lastub()
+
+# Set some limits
+setmin('gam', -179)
+setmax('gam', 179)
 
 demo = startup._demo.Demo(globals(), 'sixc')

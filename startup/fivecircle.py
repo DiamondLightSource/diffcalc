@@ -29,5 +29,8 @@ if GDA:
     
 lastub()  # Load the last ub calculation used
 
+# Set some limits
+setmin('gam', -179)
+setmax('gam', 179)
 
 demo = startup._demo.Demo(globals(), 'fivec')
