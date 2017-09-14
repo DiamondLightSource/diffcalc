@@ -54,6 +54,12 @@ def centresample():
 
 def zerosample():
     sa.zerosample()
+    
+def toolpoint_on():
+    sa.centre_toolpoint = True
+
+def toolpoint_off():
+    sa.centre_toolpoint = False
 
 tp_lab = I21TPLab('tp_lab', sa)
 tp_labx = tp_lab.tp_labx
@@ -80,6 +86,7 @@ if GDA:
         _fourc.delta_scn = m5tth  # note, if changed also update in _fourc_vessel constructor!
         setmin(delta, 0)
         setmax(delta, 150)
+        
  
 #    raise Exception('need gda class for wrapping scannables. There is one somewhere')
 #     import what_is_its_name as XYZ  # @UnresolvedImport
@@ -98,6 +105,8 @@ if GDA:
     alias("usevessel")
     alias("centresample")
     alias("zerosample")
+    alias("toolpoint_on")
+    alias("toolpoint_off")
 
 else:
     from diffcalc.gdasupport.minigda.scannable import ScannableAdapter
@@ -128,6 +137,10 @@ else:
         del centresample
         register_line_magic(parse_line(zerosample, globals()))
         del zerosample
+        register_line_magic(parse_line(toolpoint_on, globals()))
+        del toolpoint_on
+        register_line_magic(parse_line(toolpoint_off, globals()))
+        del toolpoint_off
 
         
 print "Created i21 bespoke commands: usediode & usevessel"

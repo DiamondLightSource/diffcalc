@@ -22,7 +22,6 @@ from math import pi
 # report back [0 0 0]
 # """
 TP_HELP="""
-
 For help with sa, tp_phi and tp_lab see: http://confluence.diamond.ac.uk/x/CBIAB
 """
 
@@ -90,6 +89,7 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
         self.tp_phi = [0, 0, 0]
         
         self.tp_phi_scannable = I21SampleStage.TpPhiScannable('tp_phi', self)
+        self.centre_toolpoint = True
     
     def asynchronousMoveTo(self, pos_triple):
 
@@ -104,16 +104,17 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
             self._scn_list[1].asynchronousMoveTo(tilt)
         if az is not None:
             self._scn_list[2].asynchronousMoveTo(az)
-            
-        _, tilt, az = self.completePosition(pos_triple)
-        chi = tilt + 90
-        phi = az
-        tp_offset_eta = calc_tp_eta(self.tp_phi, chi, phi)
-        if DEBUG:
-            print ('{Correcting xyz_eta for '
-                   'tilt(chi-90)=%.2f & az(phi)=%.2f}' % (tilt, az)).rjust(79)
-        xyz = [-1 * e for e in tp_offset_eta]
-        self.xyz_eta_scn.asynchronousMoveTo(xyz)
+        
+        if self.centre_toolpoint:  
+            _, tilt, az = self.completePosition(pos_triple)
+            chi = tilt + 90
+            phi = az
+            tp_offset_eta = calc_tp_eta(self.tp_phi, chi, phi)
+            if DEBUG:
+                print ('{Correcting xyz_eta for '
+                       'tilt(chi-90)=%.2f & az(phi)=%.2f}' % (tilt, az)).rjust(79)
+            xyz = [-1 * e for e in tp_offset_eta]
+            self.xyz_eta_scn.asynchronousMoveTo(xyz)
                
     def rawGetPosition(self):
         return [scn.getPosition() for scn in self._scn_list]
@@ -160,7 +161,11 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
             sa_row = sa_col.pop(0) if sa_col else ''
             tp_row = tp_col.pop(0) if tp_col else ''
             lines.append(sa_row.ljust(sa_col_width + 3) + tp_row)
-  
+        
+        if self.centre_toolpoint:
+            lines.append("\nToolpoint centring ENABLED (disable with toolpoint_off)")
+        else:
+            lines.append("\nToolpoint centring DISABLED (enable with toolpoint_on)")
         # Add some help
         return '\n'.join(lines) + TP_HELP
     
