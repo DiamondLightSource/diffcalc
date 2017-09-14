@@ -43,9 +43,9 @@ else:
     
 
 sa = I21SampleStage('sa', sapolar, satilt, saazimuth, xyz_eta)
-dcsapolar = sa.sapolar
-dcsatilt = sa.satilt
-dcsaazimuth = sa.saazimuth
+sapolar = sa.sapolar
+satilt = sa.satilt
+saazimuth = sa.saazimuth
 
 tp_phi = sa.tp_phi_scannable
 
@@ -235,9 +235,9 @@ if not GDA:
     
             self.echorun_magiccmd_list([
                 'sa',
-                'pos dcsapolar 1',
-                'pos dcsatilt 2',
-                'pos dcsaazimuth 3',
+                'pos sapolar 1',
+                'pos satilt 2',
+                'pos saazimuth 3',
                 'pos m5tth 4',
                 'usevessel',
                 'fourc'])
