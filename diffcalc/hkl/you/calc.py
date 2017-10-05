@@ -180,10 +180,7 @@ def _theta_and_qaz_from_detector_angles(delta, nu):
     # Equation 19:
     cos_2theta = cos(delta) * cos(nu)
     theta = acos(bound(cos_2theta)) / 2.
-    qaz = atan2(tan(delta), sin(nu))
-    # qaz flips downward if delta > 90, so flip it back (kludge)
-    if delta > pi / 2:
-        qaz *= -1
+    qaz = atan2(sin(delta), cos(delta) * sin(nu))
     return theta, qaz
 
 
