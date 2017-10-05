@@ -72,7 +72,7 @@ eta = _fourc.eta
 chi = _fourc.chi
 phi = _fourc.phi
 
-from diffcalc.hardware import setmax, setmin, hardware
+from diffcalc.hardware import setmax, setmin, hardware,setcut
 
 ### Wrap i21 names to get diffcalc names
 if GDA:
@@ -188,6 +188,9 @@ setmin(eta, 0)
 setmax(eta, 360)
 setmin(phi, -179)
 setmax(phi, 179)
+#http://jira.diamond.ac.uk/browse/I21-361
+setcut(eta, 0.0)
+setcut(phi, -180)
 print "Current hardware limits set to:"
 hardware()
 ### Create i21 bespoke secondary hkl devices
