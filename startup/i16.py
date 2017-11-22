@@ -13,7 +13,7 @@ class SixCircleI16(diffcalc.hkl.you.geometry.YouGeometry):
         #    i16:   phi, chi, eta, mu, delta, gam
         # H. You:   mu, delta, nu, eta, chi, phi
         phi, chi, eta, mu, delta, gam = physical_angle_tuple     
-        return YouPosition(mu, delta, gam, eta, chi, phi)
+        return YouPosition(mu, delta, gam, eta, chi, phi, unit='DEG')
 
     def internal_position_to_physical_angles(self, internal_position):
         mu, delta, nu, eta, chi, phi = internal_position.totuple()

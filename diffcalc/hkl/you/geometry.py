@@ -18,7 +18,7 @@
 
 from math import pi
 
-from diffcalc.util import AbstractPosition
+from diffcalc.util import AbstractPosition, DiffcalcException
 
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -39,7 +39,7 @@ class YouGeometry(object):
         raise NotImplementedError()
 
     def create_position(self, *args):
-        return YouPosition(*args)
+        return YouPosition(*args, unit='DEG')
 
 
 #==============================================================================
@@ -55,7 +55,7 @@ class SixCircle(YouGeometry):
 
     def physical_angles_to_internal_position(self, physical_angle_tuple):
         # mu, delta, nu, eta, chi, phi
-        return YouPosition(*physical_angle_tuple)
+        return YouPosition(*physical_angle_tuple, unit='DEG')
 
     def internal_position_to_physical_angles(self, internal_position):
         return internal_position.totuple()
@@ -71,7 +71,7 @@ class FourCircle(YouGeometry):
     def physical_angles_to_internal_position(self, physical_angle_tuple):
         # mu, delta, nu, eta, chi, phi
         delta, eta, chi, phi = physical_angle_tuple
-        return YouPosition(0, delta, 0, eta, chi, phi)
+        return YouPosition(0, delta, 0, eta, chi, phi, 'DEG')
 
     def internal_position_to_physical_angles(self, internal_position):
         _, delta, _, eta, chi, phi = internal_position.totuple()
@@ -88,7 +88,7 @@ class FiveCircle(YouGeometry):
     def physical_angles_to_internal_position(self, physical_angle_tuple):
         # mu, delta, nu, eta, chi, phi
         delta, nu, eta, chi, phi = physical_angle_tuple
-        return YouPosition(0, delta, nu, eta, chi, phi)
+        return YouPosition(0, delta, nu, eta, chi, phi, 'DEG')
 
     def internal_position_to_physical_angles(self, internal_position):
         _, delta, nu, eta, chi, phi = internal_position.totuple()
@@ -136,43 +136,74 @@ def calcPHI(phi):
     return z_rotation(-phi)
 
 
+def you_position_names():
+    return ('mu', 'delta', NUNAME, 'eta', 'chi', 'phi')
+
 class YouPosition(AbstractPosition):
 
-    def __init__(self, mu=None, delta=None, nu=None, eta=None, chi=None,
-                 phi=None):
+    def __init__(self, mu, delta, nu, eta, chi, phi, unit):
         self.mu = mu
         self.delta = delta
         self.nu = nu
         self.eta = eta
         self.chi = chi
         self.phi = phi
+        if unit not in ['DEG', 'RAD']:
+            raise DiffcalcException("Invalid angle unit value %s." % str(unit))
+        else:
+            self.unit = unit
 
     def clone(self):
         return YouPosition(self.mu, self.delta, self.nu, self.eta, self.chi,
-                           self.phi)
+                           self.phi, self.unit)
 
     def changeToRadians(self):
-        self.mu *= TORAD
-        self.delta *= TORAD
-        self.nu *= TORAD
-        self.eta *= TORAD
-        self.chi *= TORAD
-        self.phi *= TORAD
+        if self.unit == 'DEG':
+            self.mu *= TORAD
+            self.delta *= TORAD
+            self.nu *= TORAD
+            self.eta *= TORAD
+            self.chi *= TORAD
+            self.phi *= TORAD
+            self.unit = 'RAD'
+        elif self.unit == 'RAD':
+            return
+        else:
+            raise DiffcalcException("Invalid angle unit value %s." % str(self.unit))
 
     def changeToDegrees(self):
-        self.mu *= TODEG
-        self.delta *= TODEG
-        self.nu *= TODEG
-        self.eta *= TODEG
-        self.chi *= TODEG
-        self.phi *= TODEG
+        if self.unit == 'RAD':
+            self.mu *= TODEG
+            self.delta *= TODEG
+            self.nu *= TODEG
+            self.eta *= TODEG
+            self.chi *= TODEG
+            self.phi *= TODEG
+            self.unit = 'DEG'
+        elif self.unit == 'DEG':
+            return
+        else:
+            raise DiffcalcException("Invalid angle unit value %s." % str(self.unit))
 
     def totuple(self):
         return (self.mu, self.delta, self.nu, self.eta, self.chi, self.phi)
 
     def __str__(self):
-        return ("YouPosition(mu %r delta: %r nu: %r eta: %r chi: %r  phi: %r)"
-                % self.totuple())
+        mu, delta, nu, eta, chi, phi = self.totuple()
+        return ("YouPosition(mu %r delta: %r nu: %r eta: %r chi: %r  phi: %r) in %s"
+                % (mu, delta, nu, eta, chi, phi, self.unit))
     
     def __eq__(self, other):
         return self.totuple() == other.totuple()
+
+
+class WillmottHorizontalPosition(YouPosition):
+
+    def __init__(self, delta=None, gamma=None, omegah=None, phi=None):
+        self.mu = 0
+        self.delta = delta
+        self.nu = gamma
+        self.eta = omegah
+        self.chi = -90
+        self.phi = phi
+        self.unit= 'DEG'

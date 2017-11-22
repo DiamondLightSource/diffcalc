@@ -18,13 +18,15 @@
 
 from math import pi, cos, sin
 from nose.tools import raises
+from pprint import pprint
 
 try:
-    from numpy import matrix
+    from numpy import matrix, isclose
 except ImportError:
-    from numjy import matrix
+    from numjy import matrix, isclose
 
 from diffcalc.hkl.you.calc import YouHklCalculator
+from diffcalc.hkl.you.calc_opt import YouHklOptimizer
 from diffcalc.hkl.you.constraints import YouConstraintManager
 from test.tools import assert_array_almost_equal, \
     assert_second_dict_almost_in_first
@@ -63,6 +65,8 @@ class _BaseTest():
         self.constraints = YouConstraintManager(self.mock_hardware)
         self.calc = YouHklCalculator(self.mock_ubcalc, self.mock_geometry,
                                      self.mock_hardware, self.constraints)
+        self.calc_opt = YouHklOptimizer(self.mock_ubcalc, self.mock_geometry,
+                                     self.mock_hardware, self.constraints)
 
         self.mock_hardware.set_lower_limit('delta', 0)
         self.mock_hardware.set_upper_limit('delta', 179.999)
@@ -70,9 +74,11 @@ class _BaseTest():
         self.mock_hardware.set_upper_limit(NUNAME, 179.999)
         self.mock_hardware.set_lower_limit('mu', 0)
         self.mock_hardware.set_lower_limit('eta', 0)
+        self.mock_hardware.set_upper_limit('chi', 179.999)
         self.mock_hardware.set_lower_limit('chi', -10)
+        self.mock_hardware.set_cut('phi', -179.999)
 
-        self.places = 11
+        self.places = 5
 
     def _configure_ub(self):
         ZROT = z_rotation(self.zrot * TORAD)  # -PHI
@@ -88,11 +94,29 @@ class _BaseTest():
                 virtual_expected))
         self.zrot, self.yrot = zrot, yrot
         self._configure_ub()
+
         pos, virtual = self.calc.hklToAngles(hkl[0], hkl[1], hkl[2],
                                              wavelength)
         assert_array_almost_equal(pos.totuple(), pos_expected.totuple(),
-                                  self.places)
+                                    self.places)
         assert_second_dict_almost_in_first(virtual, virtual_expected)
+        
+        hkl_new, virtual_new = self.calc.anglesToHkl(pos, wavelength)
+        assert_array_almost_equal(hkl_new, hkl, places=self.places)
+        pprint(virtual_new)
+        
+        #assert_array_almost_equal(pos.totuple(), pos_expected.totuple(),
+        #                          self.places)
+        #assert_second_dict_almost_in_first(virtual_new, virtual_expected, places=2)
+        
+        ##pos_new = self.calc.optimizerHKLToAngles((hkl[0], hkl[1], hkl[2]), wavelength)
+        #pos, func = self.calc_opt.minimizerHKLToAngles((hkl[0], hkl[1], hkl[2]), wavelength)
+        #assert func == approx(0., abs=1e-8)
+        ##
+        #hkl_new, virtual_new = self.calc.anglesToHkl(pos, wavelength)
+        #assert_array_almost_equal(hkl_new, hkl, places=self.places)
+        ##pprint(virtual_new)
+        
 
     def _check_angles_to_hkl(self, testname, zrot, yrot, hkl_expected, pos,
                              wavelength, virtual_expected={}):
@@ -138,22 +162,22 @@ class _TestCubicVertical(_TestCubic):
         self.cases = (
             Pair('100', (1, 0, 0),
                  Pos(mu=0, delta=60, nu=0, eta=30, chi=0 - self.yrot,
-                     phi=0 + self.zrot)),
+                     phi=0 + self.zrot, unit='DEG')),
             Pair('100-->001', (cos(4 * TORAD), 0, sin(4 * TORAD)),
                  Pos(mu=0, delta=60, nu=0, eta=30, chi=4 - self.yrot,
-                     phi=0 + self.zrot),),
+                     phi=0 + self.zrot, unit='DEG'),),
             Pair('010', (0, 1, 0),
-                 Pos(mu=0, delta=60, nu=0, eta=30, chi=0, phi=90 + self.zrot)),
+                 Pos(mu=0, delta=60, nu=0, eta=30, chi=0, phi=90 + self.zrot, unit='DEG')),
             Pair('001', (0, 0, 1),
                  Pos(mu=0, delta=60, nu=0, eta=30, chi=90 - self.yrot,
-                     phi=0 + self.zrot)),
+                     phi=0 + self.zrot, unit='DEG')),
             Pair('0.1 0 1.5', (0.1, 0, 1.5),  # cover case where delta > 90 !
                   Pos(mu=0, delta=97.46959231642, nu=0,
                       eta=97.46959231642/2, chi=86.18592516571 - self.yrot,
-                      phi=0 + self.zrot)),
+                      phi=0 + self.zrot, unit='DEG')),
             Pair('001-->100', (cos(86 * TORAD), 0, sin(86 * TORAD)),
                  Pos(mu=0, delta=60, nu=0, eta=30, chi=86 - self.yrot,
-                     phi=0 + self.zrot)),
+                     phi=0 + self.zrot, unit='DEG')),
         )
         self.case_dict = {}
         for case in self.cases:
@@ -182,12 +206,22 @@ class _TestCubicVertical(_TestCubic):
         for case_tuple in self.case_generator():
             yield case_tuple
 
+    def test_hkl_to_angles_zrotm1_yrot2(self):
+        self.makes_cases(-1, 2)
+        for case_tuple in self.case_generator():
+            yield case_tuple
+
+    def test_hkl_to_angles_zrotm1_yrotm2(self):
+        self.makes_cases(-1, -2)
+        for case_tuple in self.case_generator():
+            yield case_tuple
+
     def testHklDeltaGreaterThan90(self):
         wavelength = 1            
         hkl = (0.1, 0, 1.5)
         pos = P(mu=0, delta=97.46959231642, nu=0,
                       eta=97.46959231642/2, chi=86.18592516571,
-                      phi=0)
+                      phi=0, unit='DEG')
         self._check_hkl_to_angles('', 0, 0, hkl, pos, wavelength)
 
 
@@ -215,6 +249,206 @@ class TestCubicVertical_qaz_90(_TestCubicVertical):
                                          'qaz': 90 * TORAD}
 
 
+class TestCubicVertical_ChiPhiMode(_TestCubic):
+
+    def setup_method(self):
+        _TestCubic.setup_method(self)
+        self.constraints._constrained = {NUNAME: 0, 'chi': 90. * TORAD, 'phi': 0.}
+        self.mock_hardware.set_lower_limit('mu', -180.)
+        self.mock_hardware.set_lower_limit('eta', -180.)
+        self.places = 5
+
+    def makes_cases(self, zrot, yrot):
+        self.zrot = zrot
+        self.yrot = yrot
+        self.wavelength = 1
+        self.cases = (
+            Pair('110', (1, 1, 0),
+                 Pos(mu=-90, delta=90, nu=0, eta=90, chi=90,
+                     phi=0, unit='DEG')),
+            Pair('100-->001', (sin(4 * TORAD), 0, cos(4 * TORAD)),
+                 Pos(mu=-8.01966360660, delta=60, nu=0, eta=29.75677306273, chi=90,
+                     phi=0, unit='DEG'),),
+            Pair('010', (0, 1, 0),
+                 Pos(mu=0, delta=60, nu=0, eta=120, chi=90, phi=0, unit='DEG')),
+            Pair('001', (0, 0, 1),
+                 Pos(mu=0, delta=60, nu=0, eta=30 - self.yrot, chi=90,
+                     phi=0, unit='DEG')),
+            Pair('0.1 0 1.5', (0.1, 0, 1.5),  # cover case where delta > 90 !
+                  Pos(mu=-5.077064540005, delta=97.46959231642, nu=0,
+                      eta=48.62310452627, chi=90 - self.yrot,
+                      phi=0 + self.zrot, unit='DEG')),
+            Pair('010-->001', (0, cos(86 * TORAD), sin(86 * TORAD)),
+                 Pos(mu=0, delta=60, nu=0, eta=34, chi=90,
+                     phi=0, unit='DEG')),
+        )
+        self.case_dict = {}
+        for case in self.cases:
+            self.case_dict[case.name] = case
+
+    def test_pairs_zrot0_yrot0(self):
+        self.makes_cases(0, 0)
+        self.case_dict['001'].fails = True  # q||n
+        for case_tuple in self.case_generator():
+            yield case_tuple
+
+class TestCubic_FixedPhiMode(_TestCubic):
+
+    def setup_method(self):
+        _TestCubic.setup_method(self)
+        self.constraints._constrained = {'mu': 0, NUNAME: 0, 'phi': 0}
+        self.mock_hardware.set_upper_limit('chi', 180.)
+        self.mock_hardware.set_lower_limit('chi', -180.)
+
+    def makes_cases(self, zrot, yrot):
+        self.zrot = zrot
+        self.yrot = yrot
+        self.wavelength = 1
+        self.cases = (
+            Pair('100', (1, 0, 0),
+                 Pos(mu=0, delta=60, nu=0, eta=30 + self.zrot, chi=0 - self.yrot,
+                     phi=0, unit='DEG')),
+            Pair('100-->001', (cos(4 * TORAD), 0, sin(4 * TORAD)),
+                 Pos(mu=0, delta=60, nu=0, eta=30 + self.zrot, chi=4 - self.yrot,
+                     phi=0, unit='DEG'),),
+            #Pair('010', (0, 1, 0),
+            #     Pos(mu=0, delta=60, nu=0, eta=30 + self.zrot, chi=0, phi=90, unit='DEG')),
+            Pair('001', (0, 0, 1),
+                 Pos(mu=0, delta=60, nu=0, eta=30 + self.zrot, chi=90 - self.yrot,
+                     phi=0, unit='DEG')),
+            Pair('0.1 0 1.5', (0.1, 0, 1.5),  # cover case where delta > 90 !
+                  Pos(mu=0, delta=97.46959231642, nu=0,
+                      eta=97.46959231642/2 + self.zrot, chi=86.18592516571 - self.yrot,
+                      phi=0, unit='DEG')),
+            Pair('001-->100', (cos(86 * TORAD), 0, sin(86 * TORAD)),
+                 Pos(mu=0, delta=60, nu=0, eta=30 + self.zrot, chi=86 - self.yrot,
+                     phi=0, unit='DEG')),
+        )
+        self.case_dict = {}
+        for case in self.cases:
+            self.case_dict[case.name] = case
+
+    def test_pairs_various_zrot0_and_yrot(self):
+        for yrot in [0, 2, -2, 45, -45, 90, -90]:  # -180, 180 work if recut
+            self.makes_cases(0, yrot)
+            if yrot == 0:
+                self.case_dict['001'].fails = True  # q||n
+            if yrot == -90:
+                self.case_dict['100'].fails = True  # q||n
+            
+            for case_tuple in self.case_generator():
+                yield case_tuple
+
+class TestCubic_FixedPhi30Mode(_TestCubic):
+
+    def setup_method(self):
+        _TestCubic.setup_method(self)
+        self.constraints._constrained = {'mu': 0, NUNAME: 0, 'phi': 30 * TORAD}
+        self.mock_hardware.set_upper_limit('chi', 180.)
+        self.mock_hardware.set_lower_limit('chi', -180.)
+
+    def makes_cases(self, zrot, yrot):
+        self.zrot = zrot
+        self.yrot = yrot
+        self.wavelength = 1
+        self.cases = (
+            Pair('100', (1, 0, 0),
+                 Pos(mu=0, delta=60, nu=0, eta=0 + self.zrot, chi=0 - self.yrot,
+                     phi=30, unit='DEG')),
+            #Pair('100-->001', (cos(4 * TORAD), 0, sin(4 * TORAD)),
+            #     Pos(mu=0, delta=60, nu=0, eta=0 + self.zrot, chi=4 - self.yrot,
+            #         phi=30, unit='DEG'),),
+            #Pair('010', (0, 1, 0),
+            #     Pos(mu=0, delta=60, nu=0, eta=30 + self.zrot, chi=0, phi=90, unit='DEG')),
+            Pair('001', (0, 0, 1),
+                 Pos(mu=0, delta=60, nu=0, eta=30 + self.zrot, chi=90 - self.yrot,
+                     phi=30, unit='DEG')),
+            Pair('0.1 0 1.5', (0.1, 0, 1.5),  # cover case where delta > 90 !
+                  Pos(mu=0, delta=97.46959231642, nu=0,
+                      eta=46.828815370173 + self.zrot, chi=86.69569481984 - self.yrot,
+                      phi=30, unit='DEG')),
+            #Pair('001-->100', (cos(86 * TORAD), 0, sin(86 * TORAD)),
+            #     Pos(mu=0, delta=60, nu=0, eta=0 + self.zrot, chi=86 - self.yrot,
+            #         phi=30, unit='DEG')),
+        )
+        self.case_dict = {}
+        for case in self.cases:
+            self.case_dict[case.name] = case
+
+    def test_pairs_zrot0_and_yrot0(self):
+        self.makes_cases(0, 0)
+        self.case_dict['001'].fails = True  # q||n
+        
+        for case_tuple in self.case_generator():
+            yield case_tuple
+
+class TestCubic_FixedPhiMode010(TestCubic_FixedPhiMode):
+
+    def setup_method(self):
+        TestCubic_FixedPhiMode.setup_method(self)
+        self.constraints._constrained = {'mu': 0, NUNAME: 0, 'phi': 90 * TORAD}
+
+    def makes_cases(self, zrot, yrot):
+        self.zrot = zrot
+        self.yrot = yrot
+        self.wavelength = 1
+        self.cases = (
+            Pair('010', (0, 1, 0),
+                 Pos(mu=0, delta=60, nu=0, eta=30 + self.zrot, chi=0, phi=90, unit='DEG')),
+        )
+        self.case_dict = {}
+        for case in self.cases:
+            self.case_dict[case.name] = case
+
+    def test_pairs_various_zrot0_and_yrot(self):
+        for yrot in [0, 2, -2, 45, -45, 90, -90]:  # -180, 180 work if recut
+            self.makes_cases(0, yrot)
+            
+            for case_tuple in self.case_generator():
+                yield case_tuple
+
+class TestCubicVertical_MuEtaMode(_TestCubic):
+
+    def setup_method(self):
+        _TestCubic.setup_method(self)
+        self.constraints._constrained = {NUNAME: 0, 'mu': 90. * TORAD, 'eta': 0.}
+        self.mock_hardware.set_lower_limit('chi', -180.)
+
+    def makes_cases(self, zrot, yrot):
+        self.zrot = zrot
+        self.yrot = yrot
+        self.wavelength = 1
+        self.cases = (
+            Pair('011', (0, 1, 1),
+                 Pos(mu=90, delta=90, nu=0, eta=0, chi=0,
+                     phi=90, unit='DEG')),
+            Pair('100-->001', (sin(4 * TORAD), 0, cos(4 * TORAD)),
+                 Pos(mu=90, delta=60, nu=0, eta=0, chi=56,
+                     phi=0, unit='DEG'),),
+            Pair('010', (0, 1, 0),
+                 Pos(mu=90, delta=60, nu=0, eta=0, chi=-30, phi=90, unit='DEG')),
+            Pair('001', (0, 0, 1),
+                 Pos(mu=90, delta=60, nu=0, eta=0, chi=60,
+                     phi=0, unit='DEG')),
+            Pair('0.1 0 1.5', (0.1, 0, 1.5),  # cover case where delta > 90 !
+                  Pos(mu=90, delta=97.46959231642, nu=0,
+                      eta=0, chi=37.45112900750 - self.yrot,
+                      phi=0 + self.zrot, unit='DEG')),
+            Pair('010-->001', (0, cos(86 * TORAD), sin(86 * TORAD)),
+                 Pos(mu=90, delta=60, nu=0, eta=0, chi=56,
+                     phi=90, unit='DEG')),
+        )
+        self.case_dict = {}
+        for case in self.cases:
+            self.case_dict[case.name] = case
+
+    def test_pairs_zrot0_yrot0(self):
+        self.makes_cases(0, 0)
+        self.case_dict['001'].fails = True  # q||n
+        for case_tuple in self.case_generator():
+            yield case_tuple
+
+
 class SkipTestYouHklCalculatorWithCubicMode_aeqb_delta_60(_TestCubicVertical):
     '''
     Works to 4-5 decimal places but chooses different solutions when phi||eta .
@@ -240,19 +474,19 @@ class _TestCubicHorizontal(_TestCubic):
         self.cases = (
              Pair('100', (1, 0, 0),
                   Pos(mu=30, delta=0, nu=60, eta=0, chi=90 + self.yrot,
-                      phi=-180 + self.zrot)),
+                      phi=-180 + self.zrot, unit='DEG')),
              Pair('100-->001', (cos(4 * TORAD), 0, sin(4 * TORAD)),
                   Pos(mu=30, delta=0, nu=60, eta=0, chi=90 - 4 + self.yrot,
-                      phi=-180 + self.zrot)),
+                      phi=-180 + self.zrot, unit='DEG')),
              Pair('010', (0, 1, 0),
                   Pos(mu=30, delta=0, nu=60, eta=0, chi=90,
-                      phi=-90 + self.zrot)),  # no yrot as chi||q
+                      phi=-90 + self.zrot, unit='DEG')),  # no yrot as chi||q
              Pair('001', (0, 0, 1),
                   Pos(mu=30, delta=0, nu=60, eta=0, chi=0 - self.yrot,
-                      phi=0 + self.zrot)),
+                      phi=0 + self.zrot, unit='DEG')),
              Pair('001-->100', (cos(86 * TORAD), 0, sin(86 * TORAD)),
                   Pos(mu=30, delta=0, nu=60, eta=0, chi=0 - 4 - self.yrot,
-                      phi=0 + self.zrot)),
+                      phi=0 + self.zrot, unit='DEG')),
             )
         self.case_dict = {}
         for case in self.cases:
@@ -325,16 +559,16 @@ class TestAgainstSpecSixcB16_270608(_BaseTest):
         self.cases = (
             Pair('7_9_13', (0.7, 0.9, 1.3),
                  Pos(mu=0, delta=27.352179, nu=0, eta=13.676090,
-                     chi=37.774500, phi=53.965500)),
+                     chi=37.774500, phi=53.965500, unit='DEG')),
             Pair('100', (1, 0, 0),
                  Pos(mu=0, delta=18.580230, nu=0, eta=9.290115,
-                     chi=-2.403500, phi=3.589000)),
+                     chi=-2.403500, phi=3.589000, unit='DEG')),
             Pair('010', (0, 1, 0),
                  Pos(mu=0, delta=18.580230, nu=0, eta=9.290115,
-                     chi=0.516000, phi=93.567000)),
+                     chi=0.516000, phi=93.567000, unit='DEG')),
             Pair('110', (1, 1, 0),
                  Pos(mu=0, delta=26.394192, nu=0, eta=13.197096,
-                     chi=-1.334500, phi=48.602000)),
+                     chi=-1.334500, phi=48.602000, unit='DEG')),
             )
         self.case_dict = {}
         for case in self.cases:
@@ -379,7 +613,7 @@ class SkipTestThreeTwoCircleForDiamondI06andI10(_BaseTest):
     def testHkl001(self):
         hkl = (0, 0, 1)
         pos = Pos(mu=0, delta=33.07329403295449, nu=0, eta=16.536647016477247,
-                  chi=90, phi=-90)
+                  chi=90, phi=-90, unit='DEG')
         self._check_angles_to_hkl(
             '001', 999, 999, hkl, pos, self.wavelength, {})
         self._check_hkl_to_angles(
@@ -388,7 +622,7 @@ class SkipTestThreeTwoCircleForDiamondI06andI10(_BaseTest):
     def testHkl100(self):
         hkl = (1, 0, 0)
         pos = Pos(mu=0, delta=89.42926563609406, nu=0, eta=134.71463281804702,
-                  chi=90, phi=-90)
+                  chi=90, phi=-90, unit='DEG')
         self._check_angles_to_hkl(
             '100', 999, 999, hkl, pos, self.wavelength, {})
         self._check_hkl_to_angles(
@@ -397,7 +631,7 @@ class SkipTestThreeTwoCircleForDiamondI06andI10(_BaseTest):
     def testHkl101(self):
         hkl = (1, 0, 1)
         pos = Pos(mu=0, delta=98.74666191021282, nu=0, eta=117.347760720783,
-                  chi=90, phi=-90)
+                  chi=90, phi=-90, unit='DEG')
         self._check_angles_to_hkl(
             '101', 999, 999, hkl, pos, self.wavelength, {})
         self._check_hkl_to_angles(
@@ -420,6 +654,10 @@ class TestFixedChiPhiPsiMode_DiamondI07SurfaceNormalHorizontal(_TestCubic):
 
     def _configure_ub(self):
         self.mock_ubcalc.UB = self.UB
+        # Set some random reference vector orientation
+        # that won't coincide with the scattering vector direction.
+        #self.mock_ubcalc.n_phi = matrix([[0.087867277], [0.906307787], [0.413383038]])
+        #self.mock_ubcalc.n_phi = matrix([[0.], [1.], [0.]])
 
     def _check(self, hkl, pos, virtual_expected={}, fails=False):
         self._check_angles_to_hkl(
@@ -433,60 +671,60 @@ class TestFixedChiPhiPsiMode_DiamondI07SurfaceNormalHorizontal(_TestCubic):
 
     def testHkl001(self):
         self._check((0, 0, 1),  # betaout=30
-                    P(mu=30, delta=0, nu=60, eta=90, chi=0, phi=0), fails=True)
+                    P(mu=30, delta=0, nu=60, eta=90, chi=0, phi=0, unit='DEG'), fails=True)
 
     def testHkl010(self):
         self._check((0, 1, 0),  # betaout=0
-                    P(mu=0, delta=60, nu=0, eta=120, chi=0, phi=0))
+                    P(mu=0, delta=60, nu=0, eta=120, chi=0, phi=0, unit='DEG'))
 
     def testHkl011(self):
         self._check((0, 1, 1),  # betaout=30
-                    P(mu=30, delta=54.7356, nu=90, eta=125.2644, chi=0, phi=0))
+                    P(mu=30, delta=54.7356, nu=90, eta=125.2644, chi=0, phi=0, unit='DEG'))
 
     def testHkl100(self):
         self._check((1, 0, 0),  # betaout=0
-                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0))
+                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
 
     def testHkl101(self):
         self._check((1, 0, 1),  # betaout=30
-                    P(mu=30, delta=54.7356, nu=90, eta=35.2644, chi=0, phi=0))
+                    P(mu=30, delta=54.7356, nu=90, eta=35.2644, chi=0, phi=0, unit='DEG'))
 
     def testHkl110(self):
         self._check((1, 1, 0),  # betaout=0
-                    P(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0))
+                    P(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0, unit='DEG'))
 
     def testHkl11nearly0(self):
         self.places = 3
         self._check((1, 1, .0001),  # betaout=0
                     P(mu=0.0029, delta=89.9971, nu=90.0058, eta=90, chi=0,
-                      phi=0))
+                      phi=0, unit='DEG'))
 
     def testHkl111(self):
         self._check((1, 1, 1),  # betaout=30
-                    P(mu=30, delta=54.7356, nu=150, eta=99.7356, chi=0, phi=0))
+                    P(mu=30, delta=54.7356, nu=150, eta=99.7356, chi=0, phi=0, unit='DEG'))
 
     def testHklover100(self):
         self._check((1.1, 0, 0),  # betaout=0
-                    P(mu=0, delta=66.7340, nu=0, eta=33.3670, chi=0, phi=0))
+                    P(mu=0, delta=66.7340, nu=0, eta=33.3670, chi=0, phi=0, unit='DEG'))
 
     def testHklunder100(self):
         self._check((.9, 0, 0),  # betaout=0
-                    P(mu=0, delta=53.4874, nu=0, eta=26.7437, chi=0, phi=0))
+                    P(mu=0, delta=53.4874, nu=0, eta=26.7437, chi=0, phi=0, unit='DEG'))
 
     def testHkl788(self):
         self._check((.7, .8, .8),  # betaout=23.5782
                     P(mu=23.5782, delta=59.9980, nu=76.7037, eta=84.2591,
-                      chi=0, phi=0))
+                      chi=0, phi=0, unit='DEG'))
 
     def testHkl789(self):
         self._check((.7, .8, .9),  # betaout=26.7437
                     P(mu=26.74368, delta=58.6754, nu=86.6919, eta=85.3391,
-                      chi=0, phi=0))
+                      chi=0, phi=0, unit='DEG'))
 
     def testHkl7810(self):
         self._check((.7, .8, 1),  # betaout=30
                     P(mu=30, delta=57.0626, nu=96.86590, eta=86.6739, chi=0,
-                      phi=0))
+                      phi=0, unit='DEG'))
 
 
 class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
@@ -519,60 +757,60 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
 
     def testHkl001(self):
         self._check((0, 0, 1),  # betaout=30
-                    P(mu=30, delta=0, nu=60, eta=90, chi=0, phi=0), fails=True)
+                    P(mu=30, delta=0, nu=60, eta=90, chi=0, phi=0, unit='DEG'), fails=True)
 
     def testHkl010(self):
         self._check((0, 1, 0),  # betaout=0
-                    P(mu=120, delta=0, nu=60, eta=0, chi=90, phi=0))
+                    P(mu=120, delta=0, nu=60, eta=0, chi=90, phi=0, unit='DEG'))
 
     def testHkl011(self):
         self._check((0, 1, 1),  # betaout=30
-                    P(mu=30, delta=54.7356, nu=90, eta=125.2644, chi=0, phi=0))
+                    P(mu=30, delta=54.7356, nu=90, eta=125.2644, chi=0, phi=0, unit='DEG'))
 
     def testHkl100(self):
         self._check((1, 0, 0),  # betaout=0
-                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0))
+                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
 
     def testHkl101(self):
         self._check((1, 0, 1),  # betaout=30
-                    P(mu=30, delta=54.7356, nu=90, eta=35.2644, chi=0, phi=0))
+                    P(mu=30, delta=54.7356, nu=90, eta=35.2644, chi=0, phi=0, unit='DEG'))
 
     def testHkl110(self):
         self._check((1, 1, 0),  # betaout=0
-                    P(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0))
+                    P(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0, unit='DEG'))
 
     def testHkl11nearly0(self):
         self.places = 3
         self._check((1, 1, .0001),  # betaout=0
                     P(mu=0.0029, delta=89.9971, nu=90.0058, eta=90, chi=0,
-                      phi=0))
+                      phi=0, unit='DEG'))
 
     def testHkl111(self):
         self._check((1, 1, 1),  # betaout=30
-                    P(mu=30, delta=54.7356, nu=150, eta=99.7356, chi=0, phi=0))
+                    P(mu=30, delta=54.7356, nu=150, eta=99.7356, chi=0, phi=0, unit='DEG'))
 
     def testHklover100(self):
         self._check((1.1, 0, 0),  # betaout=0
-                    P(mu=0, delta=66.7340, nu=0, eta=33.3670, chi=0, phi=0))
+                    P(mu=0, delta=66.7340, nu=0, eta=33.3670, chi=0, phi=0, unit='DEG'))
 
     def testHklunder100(self):
         self._check((.9, 0, 0),  # betaout=0
-                    P(mu=0, delta=53.4874, nu=0, eta=26.7437, chi=0, phi=0))
+                    P(mu=0, delta=53.4874, nu=0, eta=26.7437, chi=0, phi=0, unit='DEG'))
 
     def testHkl788(self):
         self._check((.7, .8, .8),  # betaout=23.5782
                     P(mu=23.5782, delta=59.9980, nu=76.7037, eta=84.2591,
-                      chi=0, phi=0))
+                      chi=0, phi=0, unit='DEG'))
 
     def testHkl789(self):
         self._check((.7, .8, .9),  # betaout=26.7437
                     P(mu=26.74368, delta=58.6754, nu=86.6919, eta=85.3391,
-                      chi=0, phi=0))
+                      chi=0, phi=0, unit='DEG'))
 
     def testHkl7810(self):
         self._check((.7, .8, 1),  # betaout=30
                     P(mu=30, delta=57.0626, nu=96.86590, eta=86.6739, chi=0,
-                      phi=0))
+                      phi=0, unit='DEG'))
 
 class SkipTestFixedChiPhiPsiModeSurfaceNormalVerticalI16(_TestCubic):
     # testing with Chris N. for pre christmas 2012 i16 experiment
@@ -605,21 +843,21 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVerticalI16(_TestCubic):
 
     def testHkl_1_1_0(self):
         self._check((1, 1, 0.001),  # betaout=0
-                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0))
+                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
         #(-89.9714,  89.9570,  90.0382,  90.0143,  90.0000,  0.0000)
 
     def testHkl_1_1_05(self):
         self._check((1, 1, 0.5),  # betaout=0
-                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0))
+                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
 
     def testHkl_1_1_1(self):
         self._check((1, 1, 1),  # betaout=0
-                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0))
+                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
         #    (-58.6003,  42.7342,  132.9004,  106.3249,  90.0000,  0.0000
 
     def testHkl_1_1_15(self):
         self._check((1, 1, 1.5),  # betaout=0
-                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0))
+                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
 
 
 class TestConstrain3Sample_ChiPhiEta(_TestCubic):
@@ -639,6 +877,9 @@ class TestConstrain3Sample_ChiPhiEta(_TestCubic):
 
     def _configure_ub(self):
         self.mock_ubcalc.UB = self.UB
+        # Set some random reference vector orientation
+        # that won't coincide with the scattering vector direction.
+        #self.mock_ubcalc.n_phi = matrix([[0.087867277], [0.906307787], [0.413383038]])
 
     def _check(self, hkl, pos, virtual_expected={}, fails=False):
         self._check_angles_to_hkl(
@@ -653,86 +894,86 @@ class TestConstrain3Sample_ChiPhiEta(_TestCubic):
     def testHkl_all0_001(self):
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0}
         self._check((0, 0, 1),
-                    P(mu=30, delta=0, nu=60, eta=0, chi=0, phi=0))
+                    P(mu=30, delta=0, nu=60, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_all0_010(self):
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0}
         self._check((0, 1, 0),
-                    P(mu=120, delta=0, nu=60, eta=0, chi=0, phi=0))
+                    P(mu=120, delta=0, nu=60, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_all0_011(self):
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0}
         self._check((0, 1, 1),
-                    P(mu=90, delta=0, nu=90, eta=0, chi=0, phi=0))
+                    P(mu=90, delta=0, nu=90, eta=0, chi=0, phi=0, unit='DEG'))
         
     def testHkl_phi30_100(self):
         self.constraints._constrained = {'chi': 0, 'phi': 30 * TORAD, 'eta': 0}
         self._check((1, 0, 0),
-                    P(mu=0, delta=60, nu=0, eta=0, chi=0, phi=30))
+                    P(mu=0, delta=60, nu=0, eta=0, chi=0, phi=30, unit='DEG'))
         
     def testHkl_eta30_100(self):
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 30 * TORAD}
         self._check((1, 0, 0),
-                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0))
+                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
         
     def testHkl_phi90_110(self):
         self.constraints._constrained = {'chi': 0, 'phi': 90 * TORAD, 'eta': 0}
         self._check((1, 1, 0),
-                    P(mu=0, delta=90, nu=0, eta=0, chi=0, phi=90))
+                    P(mu=0, delta=90, nu=0, eta=0, chi=0, phi=90, unit='DEG'))
         
     def testHkl_eta90_110(self):
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 90 * TORAD}
         self._check((1, 1, 0),
-                    P(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0))
+                    P(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0, unit='DEG'))
 
     def testHkl_all0_1(self):
         self.mock_hardware.set_upper_limit('delta', 91)
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0 * TORAD}
         self._check((.01, .01, .1),
-                    P(mu=8.6194, delta=0.5730, nu=5.7607, eta=0, chi=0, phi=0))
+                    P(mu=8.6194, delta=0.5730, nu=5.7607, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_all0_2(self):
         self.mock_hardware.set_upper_limit('delta', 91)
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0 * TORAD}
         self._check((0, 0, .1),
-                    P(mu=2.8660, delta=0, nu=5.7320, eta=0, chi=0, phi=0))
+                    P(mu=2.8660, delta=0, nu=5.7320, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_all0_3(self):
         self.mock_hardware.set_upper_limit('delta', 91)
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0 * TORAD}
         self._check((.1, 0, .01),
-                    P(mu=30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0))
+                    P(mu=30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_show_all_solutionsall0_3(self):
         self.mock_hardware.set_upper_limit('delta', 91)
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0 * TORAD}
         self._check((.1, 0, .01),
-                    P(mu=30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0))
-        print self.calc.hkl_to_all_angles(.1, 0, .01, 1)
+                    P(mu=30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0, unit='DEG'))
+        #print self.calc.hkl_to_all_angles(.1, 0, .01, 1)
 
     def testHkl_all0_010to001(self):
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0}
         self._check((0, cos(4 * TORAD), sin(4 * TORAD)),
-                    P(mu=120-4, delta=0, nu=60, eta=0, chi=0, phi=0))
+                    P(mu=120-4, delta=0, nu=60, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_1(self):
         self.wavelength = .1
         self.constraints._constrained = {'chi': 0, 'phi': 0 * TORAD, 'eta': 0}
         self._check((0, 0, 1),
-                    P(mu=2.8660, delta=0, nu=5.7320, eta=0, chi=0, phi=0))
+                    P(mu=2.8660, delta=0, nu=5.7320, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_2(self):
         self.wavelength = .1
         self.constraints._constrained = {'chi': 0, 'phi': 0 * TORAD, 'eta': 0}
         self._check((0, 0, 1),
-                    P(mu=2.8660, delta=0, nu=5.7320, eta=0, chi=0, phi=0))
+                    P(mu=2.8660, delta=0, nu=5.7320, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_3(self):
         self.mock_hardware.set_upper_limit('delta', 91)
         self.wavelength = .1
         self.constraints._constrained = {'chi': 0, 'phi': 0 * TORAD, 'eta': 0}
         self._check((1, 0, .1),
-                    P(mu= 30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0))
+                    P(mu= 30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0, unit='DEG'))
 
 
 
@@ -768,30 +1009,30 @@ class TestHorizontalDeltaNadeta0_JiraI16_32_failure(_BaseTest):
     def test_hkl_bisecting_works_okay_on_i16(self):
         self.constraints._constrained = {'delta': 0, 'a_eq_b': None, 'eta': 0}
         self._check([-1.1812112493619709, -0.71251524866987204, 5.1997083010199221],
-                    P(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360), fails=False)
+                    P(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360, unit='DEG'), fails=False)
 
     def test_hkl_psi90_works_okay_on_i16(self):
         # This is failing here but on the live one. Suggesting some extreme sensitivity?
         self.constraints._constrained = {'delta': 0, 'psi': 90 * TORAD, 'eta': 0}
         self._check([-1.1812112493619709, -0.71251524866987204, 5.1997083010199221],
-                    P(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360), fails=False)
+                    P(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360, unit='DEG'), fails=False)
         
     def test_hkl_alpha_17_9776_used_to_fail(self):
         # This is failing here but on the live one. Suggesting some extreme sensitivity?
         self.constraints._constrained = {'delta': 0, 'alpha': 17.9776 * TORAD, 'eta': 0}
         self._check([-1.1812112493619709, -0.71251524866987204, 5.1997083010199221],
-                    P(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360), fails=False)
+                    P(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360, unit='DEG'), fails=False)
 
     def test_hkl_alpha_17_9776_failing_after_bigger_small(self):
         # This is failing here but on the live one. Suggesting some extreme sensitivity?
         self.constraints._constrained = {'delta': 0, 'alpha': 17.8776 * TORAD, 'eta': 0}
         self._check([-1.1812112493619709, -0.71251524866987204, 5.1997083010199221],
-                    P(mu=25.85, delta=0, nu=52, eta=0, chi=45.2453, phi=-173.518), fails=False)
+                    P(mu=25.85, delta=0, nu=52, eta=0, chi=45.2453, phi=-173.518, unit='DEG'), fails=False)
   
 #skip_test_pair_verification
 
 def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
-    return YouPosition(mu, delta, gamma, eta, chi, phi)
+    return YouPosition(mu, delta, gamma, eta, chi, phi, unit='DEG')
 
 
 class TestAnglesToHkl_I16Examples():
@@ -822,3 +1063,66 @@ class TestAnglesToHkl_I16Examples():
         pos = posFromI16sEuler(1.9, 2.9, 30.9, 0.9, 60.9, 2.9).inRadians()
         arrayeq_(youAnglesToHkl(pos, self.WL1, self.UB1),
                  [1.01174189, 0.02368622, 0.06627361])
+
+
+class Test_I21ExamplesUB(_BaseTest):
+    '''NOTE: copied from test.diffcalc.scenarios.session3'''
+    def setup_method(self):
+        _BaseTest.setup_method(self)
+
+        U = matrix(((1.0,  0., 0.),
+                    (0.0, 0.18479, -0.98275),
+                    (0.0, 0.98275,  0.18479)))
+
+        B = matrix(((1.66222,     0.0,     0.0),
+                    (    0.0, 1.66222,     0.0),
+                    (    0.0,     0.0, 0.31260)))
+
+        self.UB = U * B
+
+        self.mock_hardware.set_lower_limit('delta', 0)
+        self.mock_hardware.set_upper_limit('delta', 150.0)
+        self.mock_hardware.set_lower_limit('eta', 0)
+        self.mock_hardware.set_upper_limit('eta', 360)
+        self.mock_hardware.set_lower_limit('chi', 60)
+        self.mock_hardware.set_upper_limit('chi', 135)
+        self.mock_hardware.set_lower_limit('phi', -179)
+        self.mock_hardware.set_upper_limit('phi', 179)
+        self.mock_hardware.set_cut('eta', 0)
+        self.constraints._constrained = {'a_eq_b': None, 'mu': 0, NUNAME: 0}
+        self.wavelength = 12.39842 / .650
+        self.places = 5
+
+    def _configure_ub(self):
+        self.mock_ubcalc.UB = self.UB
+        self.mock_ubcalc.n_phi = matrix([[1.], [0.], [0.]])
+
+    def makes_cases(self, zrot, yrot):
+        del zrot, yrot  # not used
+        self.cases = (
+            Pair('0_0_0.25', (0.0, 0.25,  0.25),
+                 Pos(mu=0, delta=79.85393, nu=0, eta=39.92540,
+                     chi=90.0, phi=0.0, unit='DEG')),
+            #Pair('0.25_0.25_0', (0.25, 0.25, 0.0),
+            #     Pos(mu=0, delta=27.352179, nu=0, eta=13.676090,
+            #         chi=37.774500, phi=53.965500, unit='DEG')),
+            )
+        self.case_dict = {}
+        for case in self.cases:
+            self.case_dict[case.name] = case
+
+    def case_generator(self):
+        zrot, yrot = 999, 999
+        for case in self.cases:
+            yield (self._check_angles_to_hkl, case.name, zrot, yrot, case.hkl,
+                   case.position, self.wavelength, {})
+            test_method = (self._check_hkl_to_angles_fails if case.fails else
+                           self._check_hkl_to_angles)
+            yield (test_method, case.name, zrot, yrot, case.hkl, case.position,
+                   self.wavelength, {})
+
+    def test_hkl_to_angles_given_UB(self):
+        self.makes_cases(None, None)  # xrot, yrot unused
+        for case_tuple in self.case_generator():
+            yield case_tuple
+

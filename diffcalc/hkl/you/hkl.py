@@ -56,10 +56,15 @@ def con(*args):
     Not all constraint combinations are currently available:
 
         1 x samp:              all 80 of 80
+
         2 x samp and 1 x ref:  chi & phi
                                mu & eta
-                               chi=90 & mu=0 (2.5 of 6)
-        2 x samp and 1 x det:  0 of 6
+                               chi & mu (3 of 6)
+
+        2 x samp and 1 x det:  chi & phi
+                               mu & eta
+                               mu & phi (3 of 6)
+
         3 x samp:              eta, chi & phi (1 of 4)
 
     See also 'uncon'
