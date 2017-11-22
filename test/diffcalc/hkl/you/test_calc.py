@@ -55,7 +55,7 @@ class Pair:
         self.fails = fails
 
 
-class _BaseTest():
+class _BaseTest(object):
 
     def setup_method(self):
         self.mock_ubcalc = createMockUbcalc(None)
@@ -239,6 +239,13 @@ class TestCubicVertical_psi_90(_TestCubicVertical):
         _TestCubicVertical.setup_method(self)
         self.constraints._constrained = {'psi': 90 * TORAD, 'mu': 0, NUNAME: 0}
 
+    def test_hkl_to_angles_zrot1_yrotm2(self):
+        self.constraints._constrained = {'psi': -90 * TORAD, 'mu': 0, NUNAME: 0}
+        super(TestCubicVertical_psi_90, self).test_hkl_to_angles_zrot1_yrotm2()
+
+    def test_hkl_to_angles_zrotm1_yrotm2(self):
+        self.constraints._constrained = {'psi': -90 * TORAD, 'mu': 0, NUNAME: 0}
+        super(TestCubicVertical_psi_90, self).test_hkl_to_angles_zrotm1_yrotm2()
 
 class TestCubicVertical_qaz_90(_TestCubicVertical):
     '''mode psi=90 should be the same as mode a_eq_b'''
@@ -1013,7 +1020,7 @@ class TestHorizontalDeltaNadeta0_JiraI16_32_failure(_BaseTest):
 
     def test_hkl_psi90_works_okay_on_i16(self):
         # This is failing here but on the live one. Suggesting some extreme sensitivity?
-        self.constraints._constrained = {'delta': 0, 'psi': 90 * TORAD, 'eta': 0}
+        self.constraints._constrained = {'delta': 0, 'psi': -90 * TORAD, 'eta': 0}
         self._check([-1.1812112493619709, -0.71251524866987204, 5.1997083010199221],
                     P(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360, unit='DEG'), fails=False)
         
