@@ -24,6 +24,7 @@ from diffcalc.ub.persistence import UBCalculationJSONPersister, UBCalculationPer
 from diffcalc.util import DiffcalcException, cross3, dot3, bold
 from math import acos, cos, sin, pi
 from diffcalc.ub.reference import YouReference
+from diffcalc.ub.orientations import OrientationList
 
 try:
     from numpy import matrix, hstack
@@ -99,8 +100,9 @@ class UBCalculation:
         # the long run. We can't remove this entire object, and recreate it.
         # It also contains a required link to the angle calculator.
         reflist = ReflectionList(self._geometry, self._get_diffractometer_axes_names())
+        orientlist = OrientationList()
         reference = YouReference(self._get_UB)
-        self._state = UBCalcState(name=name, reflist=reflist, reference=reference)
+        self._state = UBCalcState(name=name, reflist=reflist, orientlist=orientlist, reference=reference)
         self._U = None
         self._UB = None
         self._state.configure_calc_type()
@@ -134,7 +136,12 @@ class UBCalculation:
             if self._state.or1 is None:
                 self.calculate_UB_from_primary_only()
             else:
-                self.calculate_UB()
+                if self._state.reflist:
+                    self.calculate_UB()
+                elif self._state.orientlist:
+                    self.calculate_UB_from_orientation()
+                else:
+                    pass
         else:
             pass
     
@@ -208,6 +215,12 @@ class UBCalculation:
         lines.append("")
         
         lines.extend(self._state.reflist.str_lines())
+        
+        lines.append("")
+        lines.append(bold("CRYSTAL ORIENTAATIONS"))
+        lines.append("")
+        
+        lines.extend(self._state.orientlist.str_lines())
         
         return '\n'.join(lines)
 
@@ -426,6 +439,71 @@ class UBCalculation:
                 print "Recalculating UB matrix."
             self.calculate_UB()
 
+### Orientations ###
+
+    def add_orientation(self, h, k, l, x, y, z, tag, time):
+        """add_reflection(h, k, l, x, y, z, tag=None) -- adds a crystal orientation
+        """
+        if self._state.orientlist is None:
+            raise DiffcalcException("No UBCalculation loaded")
+        self._state.orientlist.add_orientation(h, k, l, x, y, z, tag, time)
+        self.save()  # incase autocalculateUbAndReport fails
+
+        # If second reflection has just been added then calculateUB
+        if len(self._state.orientlist) == 2:
+            self._autocalculateOrientationUbAndReport()
+        self.save()
+
+    def edit_orientation(self, num, h, k, l, x, y, z, tag, time):
+        """
+        edit_orientation(num, h, k, l, x, y, z, tag=None) -- edit a crystal reflection        """
+        if self._state.orientlist is None:
+            raise DiffcalcException("No UBCalculation loaded")
+        self._state.reflist.edit_orientation(num, h, k, l, x, y, z, tag, time)
+
+        # If first or second orientation has been changed and there are
+        # two orientations then recalculate  UB
+        if (num == 1 or num == 2) and len(self._state.orientlist) == 2:
+            self._autocalculateOrientationUbAndReport()
+        self.save()
+
+    def get_orientation(self, num):
+        """--> ( [h, k, l], [x, y, z], tag, time
+        num starts at 1"""
+        return self._state.orientlist.getOrientation(num)
+
+    def get_number_orientations(self):
+        return 0 if self._state.orientlist is None else len(self._state.reflist)
+
+    def del_orientation(self, orientationNumber):
+        self._state.orientlist.removeOrientation(orientationNumber)
+        if ((orientationNumber == 2) and (self._U != None)):
+            self._autocalculateOrientationUbAndReport()
+        self.save()
+
+    def swap_orientations(self, num1, num2):
+        self._state.orientlist.swap_orientations(num1, num2)
+        if ((num1 == 2 or num2 == 2) and
+            (self._U != None)):
+            self._autocalculateOrientationUbAndReport()
+        self.save()
+
+    def _autocalculateOrientationUbAndReport(self):
+        if len(self._state.orientlist) < 2:
+            pass
+        elif self._state.crystal is None:
+            print ("Not calculating UB matrix as no lattice parameters have "
+                   "been specified.")
+        elif not self._state.is_okay_to_autocalculate_ub:
+            print ("Not calculating UB matrix as it has been manually set. "
+                   "Use 'calcub' to explicitly recalculate it.")
+        else:  # okay to autocalculate
+            if self._UB is None:
+                print "Calculating UB matrix."
+            else:
+                print "Recalculating UB matrix."
+            self.calculate_UB_from_orientation()
+
 #    @property
 #    def reflist(self):
 #        return self._state.reflist
@@ -491,45 +569,10 @@ class UBCalculation:
         else:
             return self._UB
 
-    def calculate_UB(self):
-        """
-        Calculate orientation matrix. Uses first two orientation reflections
-        as in Busang and Levy, but for the diffractometer in Lohmeier and
-        Vlieg.
-        """
-
-        # Major variables:
-        # h1, h2: user input reciprical lattice vectors of the two reflections
-        # h1c, h2c: user input vectors in cartesian crystal plane
-        # pos1, pos2: measured diffractometer positions of the two reflections
-        # u1a, u2a: measured reflection vectors in alpha frame
-        # u1p, u2p: measured reflection vectors in phi frame
-
-
-        # Get hkl and angle values for the first two refelctions
-        if self._state.reflist is None:
-            raise DiffcalcException("Cannot calculate a U matrix until a "
-                                    "UBCalculation has been started with "
-                                    "'newub'")
-        try:
-            (h1, pos1, _, _, _) = self._state.reflist.getReflection(1)
-            (h2, pos2, _, _, _) = self._state.reflist.getReflection(2)
-        except IndexError:
-            raise DiffcalcException(
-                "Two reflections are required to calculate a u matrix")
-        h1 = matrix([h1]).T  # row->column
-        h2 = matrix([h2]).T
-        pos1.changeToRadians()
-        pos2.changeToRadians()
-
-        # Compute the two reflections' reciprical lattice vectors in the
-        # cartesian crystal frame
+    def _calc_UB(self, h1, h2, u1p, u2p):
         B = self._state.crystal.B
         h1c = B * h1
         h2c = B * h2
-
-        u1p = self._strategy.calculate_q_phi(pos1)
-        u2p = self._strategy.calculate_q_phi(pos2)
 
         # Create modified unit vectors t1, t2 and t3 in crystal and phi systems
         t1c = h1c
@@ -564,6 +607,75 @@ class UBCalculation:
         self._U = Tp * Tc.I
         self._UB = self._U * B
         self.save()
+
+    def calculate_UB(self):
+        """
+        Calculate orientation matrix. Uses first two orientation reflections
+        as in Busang and Levy, but for the diffractometer in Lohmeier and
+        Vlieg.
+        """
+
+        # Major variables:
+        # h1, h2: user input reciprical lattice vectors of the two reflections
+        # h1c, h2c: user input vectors in cartesian crystal plane
+        # pos1, pos2: measured diffractometer positions of the two reflections
+        # u1a, u2a: measured reflection vectors in alpha frame
+        # u1p, u2p: measured reflection vectors in phi frame
+
+
+        # Get hkl and angle values for the first two refelctions
+        if self._state.reflist is None:
+            raise DiffcalcException("Cannot calculate a U matrix until a "
+                                    "UBCalculation has been started with "
+                                    "'newub'")
+        try:
+            (h1, pos1, _, _, _) = self._state.reflist.getReflection(1)
+            (h2, pos2, _, _, _) = self._state.reflist.getReflection(2)
+        except IndexError:
+            raise DiffcalcException(
+                "Two reflections are required to calculate a U matrix")
+        h1 = matrix([h1]).T  # row->column
+        h2 = matrix([h2]).T
+        pos1.changeToRadians()
+        pos2.changeToRadians()
+
+        # Compute the two reflections' reciprical lattice vectors in the
+        # cartesian crystal frame
+        u1p = self._strategy.calculate_q_phi(pos1)
+        u2p = self._strategy.calculate_q_phi(pos2)
+        
+        self._calc_UB(h1, h2, u1p, u2p)
+
+    def calculate_UB_from_orientation(self):
+        """
+        Calculate orientation matrix. Uses first two crystal orientations.
+        """
+
+        # Major variables:
+        # h1, h2: user input reciprical lattice vectors of the two reflections
+        # h1c, h2c: user input vectors in cartesian crystal plane
+        # pos1, pos2: measured diffractometer positions of the two reflections
+        # u1a, u2a: measured reflection vectors in alpha frame
+        # u1p, u2p: measured reflection vectors in phi frame
+
+
+        # Get hkl and angle values for the first two crystal orientations
+        if self._state.orientlist is None:
+            raise DiffcalcException("Cannot calculate a U matrix until a "
+                                    "UBCalculation has been started with "
+                                    "'newub'")
+        try:
+            (h1, x1, _, _) = self._state.orientlist.getOrientation(1)
+            (h2, x2, _, _) = self._state.orientlist.getOrientation(2)
+        except IndexError:
+            raise DiffcalcException(
+                "Two crystal orientations are required to calculate a U matrix")
+        h1 = matrix([h1]).T  # row->column
+        h2 = matrix([h2]).T
+        u1p = matrix([x1]).T
+        u2p = matrix([x2]).T
+
+        self._calc_UB(h1, h2, u1p, u2p)
 
     def calculate_UB_from_primary_only(self):
         """

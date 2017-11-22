@@ -4,6 +4,7 @@ from diffcalc.ub.reflections import ReflectionList, _Reflection
 from math import pi
 import datetime  # @UnusedImport For crazy time eval code!
 from diffcalc.ub.reference import YouReference
+from diffcalc.ub.orientations import _Orientation, OrientationList
 
 try:
     from collection import OrderedDict
@@ -26,13 +27,14 @@ TODEG = 180 / pi
 
 class UBCalcState():
     
-    def __init__(self, name=None, crystal=None, reflist=None, tau=0, sigma=0,
+    def __init__(self, name=None, crystal=None, reflist=None, orientlist=None, tau=0, sigma=0,
                  manual_U=None, manual_UB=None, or0=None, or1=None, reference=None):
 
         assert reflist is not None
         self.name = name
         self.crystal = crystal
         self.reflist = reflist
+        self.orientlist = orientlist
         self.tau = tau  # degrees
         self.sigma = sigma  # degrees
         self.manual_U = manual_U
@@ -71,6 +73,7 @@ class UBCalcStateEncoder(json.JSONEncoder):
             d['name'] = obj.name
             d['crystal'] = obj.crystal
             d['reflist'] = obj.reflist
+            d['orientlist'] = obj.orientlist
             d['tau'] = obj.tau
             d['sigma'] = obj.sigma
             d['reference'] = obj.reference
@@ -105,6 +108,21 @@ class UBCalcStateEncoder(json.JSONEncoder):
             d['time'] = None if dt is None else dt.isoformat()
             return d
         
+        if isinstance(obj, OrientationList):
+            d = OrderedDict()
+            for n, orient in enumerate(obj._orientlist):
+                d[str(n+1)] = orient
+            return d
+
+        if isinstance(obj, _Orientation):
+            d = OrderedDict()
+            d['tag'] = obj.tag
+            d['hkl'] = repr([obj.h, obj.k, obj.l])
+            d['xyz'] = repr([obj.x, obj.y, obj.z])
+            dt = eval(obj.time)  # e.g. --> datetime.datetime(2013, 8, 5, 15, 47, 7, 962432)
+            d['time'] = None if dt is None else dt.isoformat()
+            return d
+        
         if isinstance(obj, YouReference):
             d = OrderedDict()
             if obj.n_hkl_configured is not None:
@@ -123,10 +141,17 @@ class UBCalcStateEncoder(json.JSONEncoder):
 
 def decode_ubcalcstate(state, geometry, diffractometer_axes_names):
 
+    # Backwards compatibility code
+    orientlist_=OrientationList([])
+    try:
+        orientlist_=decode_orientlist(state['orientlist'])
+    except KeyError:
+        pass
     return UBCalcState(
         name=state['name'],
         crystal=state['crystal'] and CrystalUnderTest(*eval(state['crystal'])),
         reflist=decode_reflist(state['reflist'], geometry, diffractometer_axes_names),
+        orientlist=orientlist_,
         tau=state['tau'],
         sigma=state['sigma'],
         manual_U=state['u'] and decode_matrix(state['u']),
@@ -149,6 +174,14 @@ def decode_reflist(reflist_dict, geometry, diffractometer_axes_names):
     return ReflectionList(geometry, diffractometer_axes_names, reflections)
 
 
+def decode_orientlist(orientlist_dict):
+    orientations = []
+    for key in sorted(orientlist_dict.keys()):
+        orientations.append(decode_orientation(orientlist_dict[key]))
+        
+    return OrientationList(orientations)
+
+
 def decode_reflection(ref_dict, geometry):
     h, k, l = eval(ref_dict['hkl'])
     time = ref_dict['time'] and gt(ref_dict['time'])
@@ -161,7 +194,6 @@ def decode_reflection(ref_dict, geometry):
 
 
 def decode_reference(ref_dict):
-    
     reference = YouReference(None)  # TODO: We can't set get_ub method yet (tangles!)
     if ref_dict:   
         nhkl = ref_dict.get('n_hkl_configured', None)
@@ -171,6 +203,14 @@ def decode_reference(ref_dict):
         if nphi:
             reference.n_phi_configured = matrix([eval(nphi)]).T
     return reference
+
+
+def decode_orientation(orient_dict):
+    h, k, l = eval(orient_dict['hkl'])
+    x, y, z = eval(orient_dict['xyz'])
+    time = orient_dict['time'] and gt(orient_dict['time'])
+    return _Orientation(h, k, l, x, y, z, str(orient_dict['tag']), repr(time))
+
 
 # From: http://stackoverflow.com/questions/127803/how-to-parse-iso-formatted-date-in-python
 def gt(dt_str):

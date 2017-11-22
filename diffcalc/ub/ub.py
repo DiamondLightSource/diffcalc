@@ -39,9 +39,10 @@ TODEG = 180 / pi
 # When using ipython magic, these functions must not be imported to the top
 # level namespace. Doing so will stop them from being called with magic.
 
-__all__ = ['addref', 'c2th', 'calcub', 'delref', 'editref', 'listub', 'loadub',
-           'newub', 'saveubas', 'setlat', 'setu', 'setub', 'showref', 'swapref',
-           'trialub', 'checkub', 'ub', 'ubcalc', 'rmub', 'clearref', 'lastub']
+__all__ = ['addorient', 'addref', 'c2th', 'calcub', 'delorient', 'delref', 'editorient',
+           'editref', 'listub', 'loadub', 'newub', 'orientub', 'saveubas', 'setlat',
+           'setu', 'setub', 'showorient', 'showref', 'swaporient', 'swapref', 'trialub',
+           'checkub', 'ub', 'ubcalc', 'rmub', 'clearorient', 'clearref', 'lastub']
 
 if settings.include_sigtau:
     __all__.append('sigtau')
@@ -390,6 +391,113 @@ def swapref(num1=None, num2=None):
     else:
         raise TypeError()
 
+### U calculation from crystal orientation
+@command
+def showorient():
+    """showorient -- shows full list of crystal orientations"""
+    if ubcalc._state.orientlist:
+        print '\n'.join(ubcalc._state.orientlist.str_lines())
+    else:
+        print "<<< No crystal orientations stored >>>"
+
+@command
+def addorient(*args):
+    """
+    addorient -- add crystal orientation interactively
+    addorient [h k l] [x y z] {'tag'} -- add crystal orientation in laboratory frame
+    """
+
+    if len(args) == 0:
+        h = promptForNumber('h', 0.)
+        k = promptForNumber('k', 0.)
+        l = promptForNumber('l', 0.)
+        if None in (h, k, l):
+            _handleInputError("h,k and l must all be numbers")
+
+        x = promptForNumber('x', 0.)
+        y = promptForNumber('y', 0.)
+        z = promptForNumber('z', 0.)
+        if None in (x, y, z):
+            _handleInputError("x,y and z must all be numbers")
+
+        tag = promptForInput("tag")
+        if tag == '':
+            tag = None
+        ubcalc.add_orientation(h, k, l, x , y, z, tag,
+                                   datetime.now())
+    elif len(args) in (1, 2, 3):
+        args = list(args)
+        h, k, l = args.pop(0)
+        if not (isnum(h) and isnum(k) and isnum(l)):
+            raise TypeError()
+        x, y, z = args.pop(0)
+        if not (isnum(x) and isnum(y) and isnum(z)):
+            raise TypeError()
+        if len(args) == 1:
+            tag = args.pop(0)
+            if not isinstance(tag, str):
+                raise TypeError()
+        else:
+            tag = None
+        ubcalc.add_orientation(h, k, l, x, y ,z, tag,
+                                   datetime.now())
+    else:
+        raise TypeError()
+
+@command
+def editorient(num):
+    """editorient num -- interactively edit a crystal orientation.
+    """
+    num = int(num)
+
+    # Get old reflection values
+    [oldh, oldk, oldl], [oldx, oldy, oldz], oldTag, oldT = \
+        ubcalc.get_orientation(num)
+    del oldT  # current time will be used.
+
+    h = promptForNumber('h', oldh)
+    k = promptForNumber('k', oldk)
+    l = promptForNumber('l', oldl)
+    if None in (h, k, l):
+        _handleInputError("h,k and l must all be numbers")
+    x = promptForNumber('x', oldx)
+    y = promptForNumber('y', oldy)
+    z = promptForNumber('z', oldz)
+    if None in (x, y, z):
+        _handleInputError("x,y and z must all be numbers")
+    tag = promptForInput("tag", oldTag)
+    if tag == '':
+        tag = None
+    ubcalc.edit_orientation(num, h, k, l, x, y, z, tag,
+                                datetime.now())
+
+@command
+def delorient(num):
+    """delorient num -- deletes a crystal orientation (numbered from 1)
+    """
+    ubcalc.del_orientation(int(num))
+    
+@command
+def clearorient():
+    """clearorient -- deletes all the crystal orientations
+    """
+    while ubcalc.get_number_orientations():
+        ubcalc.del_orientation(1)
+
+@command
+def swaporient(num1=None, num2=None):
+    """
+    swaporient -- swaps first two crystal orientations used for calulating U matrix
+    swaporient num1 num2 -- swaps two crystal orientations (numbered from 1)
+    """
+    if num1 is None and num2 is None:
+        ubcalc.swap_orientations(1, 2)
+    elif isinstance(num1, int) and isinstance(num2, int):
+        ubcalc.swap_orientations(num1, num2)
+    else:
+        raise TypeError()
+
+
 ### UB calculations ###
 
 @command
@@ -435,15 +543,21 @@ def _promptFor3x3MatrixDefaultingToIdentity():
 
 @command
 def calcub():
-    """calcub -- (re)calculate u matrix from ref1 and ref2.
+    """calcub -- (re)calculate U matrix from ref1 and ref2.
     """
     ubcalc.calculate_UB()
 
 @command
 def trialub():
-    """trialub -- (re)calculate u matrix from ref1 only (check carefully).
+    """trialub -- (re)calculate U matrix from ref1 only (check carefully).
     """
     ubcalc.calculate_UB_from_primary_only()
+
+@command
+def orientub():
+    """orientub -- (re)calculate U matrix from orient1 and orient2.
+    """
+    ubcalc.calculate_UB_from_orientation()
 
 
     # This command requires the ubcalc
@@ -502,11 +616,19 @@ commands_for_help.extend([
                      delref,
                      clearref,
                      swapref,
-                     'ub matrix',
+                     'Orientations',
+                     showorient,
+                     addorient,
+                     editorient,
+                     delorient,
+                     clearorient,
+                     swaporient,
+                     'UB matrix',
                      checkub,
                      setu,
                      setub,
                      calcub,
+                     orientub,
                      trialub])
 
 
