@@ -456,12 +456,6 @@ class YouHklCalculator(HklCalculatorBase):
                         if not is_small(pseudo_angles['alpha'] - pseudo_angles['beta']):
                             is_sol = False
                             break
-                    #TODO: check that this is an intuitive approach for setting psi constraint
-                    #      and possibly needs to be applied to other azimuthal angle constraints
-                    elif constraint_name == 'psi':
-                        if not is_small(abs(constraint_value) - abs(pseudo_angles[constraint_name])):
-                            is_sol = False
-                            break
                     else:
                         if not is_small(constraint_value - pseudo_angles[constraint_name]):
                             is_sol = False
