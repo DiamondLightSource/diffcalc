@@ -158,7 +158,7 @@ def _tidy_degenerate_solutions(pos, constraints):
 def _theta_and_qaz_from_detector_angles(delta, nu):
     # Equation 19:
     cos_2theta = cos(delta) * cos(nu)
-    theta = acos(bound(cos_2theta)) / 2.
+    theta = acos(cos_2theta) / 2.
     sgn = sign(sin(2. * theta))
     qaz = atan2(sgn * sin(delta), sgn * cos(delta) * sin(nu))
     return theta, qaz
@@ -400,9 +400,10 @@ class YouHklCalculator(HklCalculatorBase):
                 solution_tuples.extend(angles)
 
         elif len(samp_constraints) == 3:
-            solution_tuples = self._calc_angles_given_three_sample_constraints(
+            for angles in self._calc_angles_given_three_sample_constraints(
                 h, k, l, wavelength, return_all_solutions, samp_constraints,
-                 h_phi, theta)
+                 h_phi, theta):
+                solution_tuples.append(angles)
         
         if not solution_tuples:
             raise DiffcalcException('No solutions were found. '
@@ -475,8 +476,8 @@ class YouHklCalculator(HklCalculatorBase):
             raise DiffcalcException('Reflection is unreachable as |Q| is 0')
         wavevector = 2 * pi / wavelength
         try:
-            theta = asin(q_length / (2 * wavevector))
-        except ValueError:
+            theta = asin(bound(q_length / (2 * wavevector)))
+        except AssertionError:
             raise DiffcalcException(
                 'Reflection is unreachable as |Q| is too long')
         return theta
@@ -499,7 +500,11 @@ class YouHklCalculator(HklCalculatorBase):
         else:
             cos_psi = ((cos(tau) * sin(theta) - sin(alpha)) / cos_theta) # (28)
             if qaz is None or naz is None :
-                acos_psi = acos(cos_psi / sin_tau)
+                try:
+                    acos_psi = acos(bound(cos_psi / sin_tau))
+                except AssertionError:
+                    print ('WARNING: Diffcalc could not calculate an azimuth (psi)')
+                    yield float('Nan')
                 for psi in [acos_psi, -acos_psi]:
                     yield psi
             else:
@@ -534,7 +539,7 @@ class YouHklCalculator(HklCalculatorBase):
             beta = asin(bound(sin_beta))
 
         elif name == 'a_eq_b':
-            alpha = beta = asin(bound(cos(tau) * sin(theta)))            # (24)
+            alpha = beta = asin(cos(tau) * sin(theta))            # (24)
 
         elif name == 'alpha':
             alpha = value                                                # (24)
@@ -557,7 +562,10 @@ class YouHklCalculator(HklCalculatorBase):
             self, det_constraint, naz_constraint, theta, tau, alpha):
         
         assert det_constraint or naz_constraint
-        naz_qaz_angle = _calc_angle_between_naz_and_qaz(theta, alpha, tau)
+        try:
+            naz_qaz_angle = _calc_angle_between_naz_and_qaz(theta, alpha, tau)
+        except AssertionError:
+            raise StopIteration
         if det_constraint:
             # One of the detector angles is given                 (Section 5.1)
             det_constraint_name, det_constraint = det_constraint.items()[0]
@@ -597,7 +605,10 @@ class YouHklCalculator(HklCalculatorBase):
 
         if constraint_name == 'delta':
             delta = constraint_value
-            asin_qaz = asin(bound(sin(delta) / sin_2theta))              # (17 & 18)
+            try:
+                asin_qaz = asin(bound(sin(delta) / sin_2theta))              # (17 & 18)
+            except AssertionError:
+                yield StopIteration
             cos_delta = cos(delta)
             if is_small(cos_delta):
                 #raise DiffcalcException(
@@ -608,7 +619,10 @@ class YouHklCalculator(HklCalculatorBase):
                        (NUNAME, NUNAME, NUNAME))
                 acos_nu = 1.
             else:
-                acos_nu = acos(bound(cos_2theta / cos_delta))
+                try:
+                    acos_nu = acos(bound(cos_2theta / cos_delta))
+                except AssertionError:
+                    yield StopIteration
             sgn_ref = sign(sin_2theta) * sign(cos_delta)
             if is_small(cos(asin_qaz)):
                 qaz_angles = [sign(asin_qaz) * pi / 2.,]
@@ -632,8 +646,11 @@ class YouHklCalculator(HklCalculatorBase):
                     'Please change this constraint or use 4-circle mode.' % (NUNAME, nu * TODEG))
             cos_delta = cos_2theta / cos(nu)
             cos_qaz = cos_delta * sin(nu) / sin_2theta
-            acos_delta = acos(bound(cos_delta))
-            acos_qaz = acos(bound(cos_qaz))
+            try:
+                acos_delta = acos(bound(cos_delta))
+                acos_qaz = acos(bound(cos_qaz))
+            except AssertionError:
+                yield StopIteration
             sgn_ref = sign(sin_2theta)
             if is_small(acos_qaz):
                 qaz_angles = [0.,]
@@ -730,7 +747,10 @@ class YouHklCalculator(HklCalculatorBase):
         if constraint_name == 'mu':                                      # (35)
             mu = constraint_value
             V = calcMU(mu).I * N_lab * N_phi.T
-            acos_chi = acos(bound(V[2, 2]))
+            try:
+                acos_chi = acos(bound(V[2, 2]))
+            except AssertionError:
+                yield StopIteration
             if is_small(sin(acos_chi)):
                 # chi ~= 0 or 180 and therefor phi || eta The solutions for phi
                 # and eta here will be valid but will be chosen unpredictably.
@@ -755,7 +775,10 @@ class YouHklCalculator(HklCalculatorBase):
         elif constraint_name == 'phi':                                     # (37)
             phi = constraint_value
             V = N_lab * N_phi.I * calcPHI(phi).T
-            asin_eta = asin(bound(V[0, 1]))
+            try:
+                asin_eta = asin(bound(V[0, 1]))
+            except AssertionError:
+                yield StopIteration
             if is_small(cos(asin_eta)):
                 raise DiffcalcException('Chi and mu cannot be chosen uniquely '
                                         'with eta so close to +/-90.')
@@ -774,7 +797,10 @@ class YouHklCalculator(HklCalculatorBase):
                     raise DiffcalcException(
                         'Chi and mu cannot be chosen uniquely with eta '
                         'constrained so close to +-90.')
-                asin_chi = asin(Z[0, 2] / cos_eta)
+                try:
+                    asin_chi = asin(bound(Z[0, 2] / cos_eta))
+                except AssertionError:
+                    yield StopIteration
                 all_eta = [eta,]
                 all_chi = [asin_chi, pi - asin_chi]
 
@@ -786,7 +812,10 @@ class YouHklCalculator(HklCalculatorBase):
                         'Eta and phi cannot be chosen uniquely with chi '
                         'constrained so close to 0. (Please contact developer '
                         'if this case is useful for you)')
-                acos_eta = acos(Z[0, 2] / sin_chi)
+                try:
+                    acos_eta = acos(bound(Z[0, 2] / sin_chi))
+                except AssertionError:
+                    yield StopIteration
                 all_eta = [acos_eta, -acos_eta]
                 all_chi = [chi,]
 
@@ -836,19 +865,19 @@ class YouHklCalculator(HklCalculatorBase):
             eta_ = self.constraints.sample['eta']
             chi_ = self.constraints.sample['chi']
             phi_ = self.constraints.sample['phi']
-            two_mu_qaz_pairs = _mu_and_qaz_from_eta_chi_phi(eta_, chi_, phi_, theta, h_phi)
+            try:
+                two_mu_qaz_pairs = _mu_and_qaz_from_eta_chi_phi(eta_, chi_, phi_, theta, h_phi)
+            except AssertionError:
+                yield StopIteration
         else:
             raise DiffcalcException(
                 'No code yet to handle this combination of 3 sample constraints!')
     # TODO: Code duplicated above
-        all_solutions = []
         for mu_, qaz in two_mu_qaz_pairs:
             logger.debug("--- Trying mu_:%.f qaz_%.f", mu_ * TODEG, qaz * TODEG)
             for delta, nu, _ in self._calc_remaining_detector_angles('qaz', qaz, theta):
                 logger.info("delta=%.3f, %s=%.3f", delta * TODEG, NUNAME, nu * TODEG)
-                all_solutions.append((mu_, delta, nu, eta_, chi_, phi_))
-        
-        return all_solutions
+                yield mu_, delta, nu, eta_, chi_, phi_
 
     def _calc_sample_angles_given_two_sample_and_reference(
             self, samp_constraints, psi, theta, q_phi, n_phi):
@@ -874,7 +903,10 @@ class YouHklCalculator(HklCalculatorBase):
             #atan2_xi = atan2(-V[2, 0], V[2, 2])
             #atan2_eta = atan2(-V[0, 1], V[1, 1])
             #atan2_mu = atan2(-V[2, 1], sqrt(V[2, 2] ** 2 + V[2, 0] ** 2))
-            asin_mu = asin(-V[2, 1])
+            try:
+                asin_mu = asin(bound(-V[2, 1]))
+            except AssertionError:
+                yield StopIteration
             for mu in [asin_mu, pi - asin_mu]:
                 sgn_cosmu = sign(cos(mu))
                 #xi = atan2(-sgn_cosmu * V[2, 0], sgn_cosmu * V[2, 2])
@@ -888,8 +920,10 @@ class YouHklCalculator(HklCalculatorBase):
             eta = samp_constraints['eta']
 
             V = N_phi * PSI.T * THETA.T                                  # (49)
-
-            bot = -V[2, 1] / sqrt(sin(eta) ** 2 * cos(mu) ** 2 + sin(mu) ** 2)
+            try:
+                bot = bound(-V[2, 1] / sqrt(sin(eta) ** 2 * cos(mu) ** 2 + sin(mu) ** 2))
+            except AssertionError:
+                yield StopIteration
             if is_small(cos(mu) * sin(eta)):
                 eps = atan2(sin(eta) * cos(mu), sin(mu))
                 chi_vals = [eps + acos(bot), eps - acos(bot)]
@@ -935,7 +969,10 @@ class YouHklCalculator(HklCalculatorBase):
 
             V = N_phi * PSI.T * THETA.T                                  # (49)
 
-            asin_eta = asin(bound((-V[2, 1] - cos(chi) * sin(mu)) / (sin(chi) * cos(mu))))
+            try:
+                asin_eta = asin(bound((-V[2, 1] - cos(chi) * sin(mu)) / (sin(chi) * cos(mu))))
+            except AssertionError:
+                yield StopIteration
 
             for eta in [asin_eta, pi - asin_eta]:
                 a = sin(chi) * cos(eta)
@@ -974,7 +1011,10 @@ class YouHklCalculator(HklCalculatorBase):
             THETA = z_rotation(-theta)
             V = calcETA(eta).T * calcMU(mu).T * F * THETA                       # (56)
 
-            bot = -V[1, 0] / sqrt(N_phi[0, 0]**2 + N_phi[1, 0]**2)
+            try:
+                bot = bound(-V[1, 0] / sqrt(N_phi[0, 0]**2 + N_phi[1, 0]**2))
+            except AssertionError:
+                yield StopIteration
             eps = atan2(N_phi[1, 0], N_phi[0, 0])
             for phi in [asin(bot) + eps, pi - asin(bot) + eps]:                 # (59)
                 a = N_phi[0, 0] * cos(phi) + N_phi[1, 0] * sin(phi)
@@ -991,7 +1031,10 @@ class YouHklCalculator(HklCalculatorBase):
             PHI = calcPHI(phi)
             V = CHI * PHI * N_phi                     # (62)
 
-            bot = V[2, 0] / sqrt(cos(qaz) ** 2 * cos(theta) ** 2 + sin(theta) ** 2)
+            try:
+                bot = bound(V[2, 0] / sqrt(cos(qaz) ** 2 * cos(theta) ** 2 + sin(theta) ** 2))
+            except AssertionError:
+                yield StopIteration
             eps = atan2(-cos(qaz) * cos(theta), sin(theta))
             for mu in [asin(bot) + eps, pi - asin(bot) + eps]:
                 a = cos(theta) * sin(qaz)
@@ -1013,7 +1056,10 @@ class YouHklCalculator(HklCalculatorBase):
             V = calcMU(mu).T * F * THETA
             E = calcPHI(phi) * N_phi
             
-            bot = -V[2, 0] / sqrt(E[0, 0]**2 + E[2, 0]**2)
+            try:
+                bot = bound(-V[2, 0] / sqrt(E[0, 0]**2 + E[2, 0]**2))
+            except AssertionError:
+                yield StopIteration
             eps = atan2(E[2, 0], E[0, 0])
             for chi in [asin(bot) + eps, pi - asin(bot) + eps]:
                 a = E[0, 0] * cos(chi) + E[2, 0] * sin(chi)

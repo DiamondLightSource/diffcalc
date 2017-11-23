@@ -1072,6 +1072,42 @@ class TestAnglesToHkl_I16Examples():
                  [1.01174189, 0.02368622, 0.06627361])
 
 
+class TestAnglesToHkl_I16GaAsExample(_BaseTest):
+
+    def setup_method(self):
+        _BaseTest.setup_method(self)
+
+        self.UB = matrix((
+           (-0.78935,   0.78234,   0.01191),
+           (-0.44391,  -0.46172,   0.90831),
+           ( 0.64431,   0.64034,   0.64039))
+            )
+
+        self.constraints._constrained = {'qaz': 90. * TORAD, 'alpha': 11. * TORAD, 'mu': 0.}
+        self.wavelength = 1.239842
+        self.places = 4
+
+    def _configure_ub(self):
+        self.mock_ubcalc.UB = self.UB
+
+    def _check(self, hkl, pos, virtual_expected={}, fails=False, skip_test_pair_verification=False):
+        if not skip_test_pair_verification:
+            self._check_angles_to_hkl(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        if fails:
+            self._check_hkl_to_angles_fails(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        else:
+            self._check_hkl_to_angles(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+
+    def test_hkl_to_angles_given_UB(self):
+        self._check([1., 1., 1.],
+                     posFromI16sEuler(10.7263, 89.8419, 11.0000, 0., 21.8976, 0.), fails=False)
+        self._check([0., 0., 2.],
+                     posFromI16sEuler(81.2389, 35.4478, 19.2083, 0., 25.3375, 0.), fails=False)
+
+
 class Test_I21ExamplesUB(_BaseTest):
     '''NOTE: copied from test.diffcalc.scenarios.session3'''
     def setup_method(self):
