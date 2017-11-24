@@ -18,7 +18,6 @@
 
 from math import pi, cos, sin
 from nose.tools import raises
-from pprint import pprint
 
 try:
     from numpy import matrix, isclose
@@ -26,7 +25,6 @@ except ImportError:
     from numjy import matrix, isclose
 
 from diffcalc.hkl.you.calc import YouHklCalculator
-from diffcalc.hkl.you.calc_opt import YouHklOptimizer
 from diffcalc.hkl.you.constraints import YouConstraintManager
 from test.tools import assert_array_almost_equal, \
     assert_second_dict_almost_in_first
@@ -65,8 +63,6 @@ class _BaseTest(object):
         self.constraints = YouConstraintManager(self.mock_hardware)
         self.calc = YouHklCalculator(self.mock_ubcalc, self.mock_geometry,
                                      self.mock_hardware, self.constraints)
-        self.calc_opt = YouHklOptimizer(self.mock_ubcalc, self.mock_geometry,
-                                     self.mock_hardware, self.constraints)
 
         self.mock_hardware.set_lower_limit('delta', 0)
         self.mock_hardware.set_upper_limit('delta', 179.999)
@@ -98,25 +94,8 @@ class _BaseTest(object):
         pos, virtual = self.calc.hklToAngles(hkl[0], hkl[1], hkl[2],
                                              wavelength)
         assert_array_almost_equal(pos.totuple(), pos_expected.totuple(),
-                                    self.places)
+                                  self.places)
         assert_second_dict_almost_in_first(virtual, virtual_expected)
-        
-        hkl_new, virtual_new = self.calc.anglesToHkl(pos, wavelength)
-        assert_array_almost_equal(hkl_new, hkl, places=self.places)
-        pprint(virtual_new)
-        
-        #assert_array_almost_equal(pos.totuple(), pos_expected.totuple(),
-        #                          self.places)
-        #assert_second_dict_almost_in_first(virtual_new, virtual_expected, places=2)
-        
-        ##pos_new = self.calc.optimizerHKLToAngles((hkl[0], hkl[1], hkl[2]), wavelength)
-        #pos, func = self.calc_opt.minimizerHKLToAngles((hkl[0], hkl[1], hkl[2]), wavelength)
-        #assert func == approx(0., abs=1e-8)
-        ##
-        #hkl_new, virtual_new = self.calc.anglesToHkl(pos, wavelength)
-        #assert_array_almost_equal(hkl_new, hkl, places=self.places)
-        ##pprint(virtual_new)
-        
 
     def _check_angles_to_hkl(self, testname, zrot, yrot, hkl_expected, pos,
                              wavelength, virtual_expected={}):
