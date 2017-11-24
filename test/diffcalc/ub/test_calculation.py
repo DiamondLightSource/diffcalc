@@ -35,7 +35,7 @@ except ImportError:
 
 
 def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
-    return YouPosition(mu, delta, gamma, eta, chi, phi)
+    return YouPosition(mu, delta, gamma, eta, chi, phi, unit='DEG')
 
 UB1 = matrix(
     ((0.9996954135095477, -0.01745240643728364, -0.017449748351250637),

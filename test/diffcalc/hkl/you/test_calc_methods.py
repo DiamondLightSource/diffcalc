@@ -28,9 +28,9 @@ except ImportError:
     from numjy import matrix
 
 from diffcalc.hkl.you.calc import YouHklCalculator, I, \
-    _calc_angle_between_naz_and_qaz, merge_nearly_equal_pairs
+    _calc_angle_between_naz_and_qaz
 from test.tools import  assert_matrix_almost_equal, \
-    assert_2darray_almost_equal, aneq_
+    assert_2darray_almost_equal
 from diffcalc.hkl.you.geometry  import YouPosition
 from test.diffcalc.hkl.vlieg.test_calc import \
     createMockDiffractometerGeometry, createMockHardwareMonitor, \
@@ -69,7 +69,7 @@ class Test_anglesToVirtualAngles():
     def check_angle(self, name, expected, mu=-99, delta=99, nu=99,
                      eta=99, chi=99, phi=99):
         """All in degrees"""
-        pos = YouPosition(mu, delta, nu, eta, chi, phi)
+        pos = YouPosition(mu, delta, nu, eta, chi, phi, unit='DEG')
         pos.changeToRadians()
         calculated = self.calc._anglesToVirtualAngles(pos, None)[name] * TODEG
         assert_almost_equal(calculated, expected)
@@ -203,7 +203,7 @@ class Test_anglesToVirtualAngles():
     #psi
 
     def test_psi0(self):
-        pos = YouPosition(0, 0, 0, 0, 0, 0)
+        pos = YouPosition(0, 0, 0, 0, 0, 0, 'DEG')
         assert isnan(self.calc._anglesToVirtualAngles(pos, None)['psi'])
 
     def test_psi1(self):
@@ -224,7 +224,7 @@ class Test_anglesToVirtualAngles():
     def test_psi5(self):
         #self.check_angle('psi', 0, mu=10, delta=.00000001,
         #nu=0, eta=0, chi=90, phi=0)
-        pos = YouPosition(0, .00000001, 0, 0, 90, 0)
+        pos = YouPosition(0, .00000001, 0, 0, 90, 0, 'DEG')
         pos.changeToRadians()
         assert isnan(self.calc._anglesToVirtualAngles(pos, None)['psi'])
 
@@ -336,31 +336,6 @@ class Test_calc_remaining_reference_angles_given_one():
 #        self.check('psi', 90, theta=10, tau=45, psi_e=90,
 #                    alpha_e=7.0530221302831952, beta_e=7.0530221302831952)
     
-    def test_merge_nearly_equal_detector_angle_pairs_different(self):
-        pairs = [(1,2), (1,2.1)]
-        assert_2darray_almost_equal(
-            merge_nearly_equal_pairs(pairs), pairs)
-
-    def test_merge_nearly_equal_detector_angle_pairs_1(self):
-        pairs = [(1, 2), (1, 2)]
-        assert_2darray_almost_equal(
-            merge_nearly_equal_pairs(pairs), [(1, 2)])
-
-    def test_merge_nearly_equal_detector_angle_pairs_2(self):
-        pairs = [(1, 2), (1, 2), (1, 2)]
-        assert_2darray_almost_equal(
-            merge_nearly_equal_pairs(pairs), [(1, 2)])
-
-    def test_merge_nearly_equal_detector_angle_pairs_3(self):
-        pairs = [(1, 2.2), (1, 2), (1, 2), (1, 2)]
-        assert_2darray_almost_equal(
-            merge_nearly_equal_pairs(pairs), [(1, 2.2), (1, 2)])
-
-    def test_merge_nearly_equal_detector_angle_pairs_4(self):
-        pairs = [(1, 2.2), (1, 2), (1, 2), (1, 2.2)]
-        assert_2darray_almost_equal(
-            merge_nearly_equal_pairs(pairs), [(1, 2.2), (1, 2)])
-
 class Test_calc_detector_angles_given_one():
 
     def setup_method(self):

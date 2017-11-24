@@ -69,13 +69,13 @@ class SkipTestSurfaceNormalVerticalCubic(_BaseTest):
                                       virtual_expected)
 
     def testHkl001(self):
-        pos = YouPos(mu=-90, delta=60, nu=0, eta=0, chi=90 + 30, phi=-90)
+        pos = YouPos(mu=-90, delta=60, nu=0, eta=0, chi=90 + 30, phi=-90, unit='DEG')
         self._check((0, 0, 1), pos, {'alpha': 30, 'beta': 30})
 
     def testHkl011(self):
         # raise SkipTest()
         # skipped because we can't calculate values to check against by hand
-        pos = YouPos(mu=-90, delta=90, nu=0, eta=0, chi=90 + 90, phi=-90)
+        pos = YouPos(mu=-90, delta=90, nu=0, eta=0, chi=90 + 90, phi=-90, unit='DEG')
         self._check((0, 1, 1), pos, {'alpha': 45, 'beta': 45})
 
     def testHkl010fails(self):
@@ -91,7 +91,7 @@ class SkipTestSurfaceNormalVerticalCubic(_BaseTest):
     def testHkl111(self):
         raise SkipTest()
         # skipped because we can't calculate values to check against by hand
-        pos = YouPos(mu=-90, delta=90, nu=0, eta=0, chi=90 + 90, phi=-90)
+        pos = YouPos(mu=-90, delta=90, nu=0, eta=0, chi=90 + 90, phi=-90, unit='DEG')
         self._check((1, 1, 1), pos, {'alpha': 45, 'beta': 45})
 
 
@@ -280,7 +280,8 @@ def willmott_to_you_fixed_mu_chi(pos):
                        nu=pos.gamma,
                        eta=pos.omegah,
                        chi=90,
-                       phi=-pos.phi)
+                       phi=-pos.phi,
+                       unit='DEG')
     if pos.phi > 180:
         pos.phi -= 360
     elif pos.phi < -180:
