@@ -53,7 +53,7 @@ def is_small(x):
 
 
 def sign(x):
-    if x == 0:
+    if is_small(x):
         return 0
     if x > 0:
         return 1
@@ -491,12 +491,16 @@ class YouHklCalculator(HklCalculatorBase):
             print ('WARNING: Diffcalc could not calculate a unique azimuth '
                    '(psi) as the scattering vector (Q) and the reference '
                    'vector (n) are parallel')
-            yield float('Nan')
+            yield float('nan')
         elif is_small(cos_theta):
             print ('WARNING: Diffcalc could not calculate a unique azimuth '
-                   '(psi) because the scattering vector (Q) and xray beam are '
-                   " are parallel and don't form a unique reference plane")
-            yield float('Nan')
+                   '(psi) because the scattering vector (Q) and x-ray beam are '
+                   "parallel and don't form a unique reference plane")
+            yield float('nan')
+        elif is_small(sin(theta)):
+            print ('WARNING: Diffcalc could not calculate a unique azimuth '
+                   '(psi) because the scattering vector (Q) is 0 ')
+            yield float('nan')
         else:
             cos_psi = ((cos(tau) * sin(theta) - sin(alpha)) / cos_theta) # (28)
             if qaz is None or naz is None :
@@ -504,17 +508,21 @@ class YouHklCalculator(HklCalculatorBase):
                     acos_psi = acos(bound(cos_psi / sin_tau))
                 except AssertionError:
                     print ('WARNING: Diffcalc could not calculate an azimuth (psi)')
-                    yield float('Nan')
-                for psi in [acos_psi, -acos_psi]:
-                    yield psi
+                    yield float('nan')
+                if is_small(acos_psi):
+                    yield 0.
+                else:
+                    for psi in [acos_psi, -acos_psi]:
+                        yield psi
             else:
                 sin_psi = cos(alpha) * sin(qaz - naz)
                 sgn = sign(sin_tau)
                 eps = sin_psi**2 + cos_psi**2
-                if not is_small(eps/sin_tau**2 - 1):
+                sigma_ = eps/sin_tau**2 - 1
+                if not is_small(sigma_):
                     print ('WARNING: Diffcalc could not calculate a unique azimuth '
                            '(psi) because of loss of accuracy in numerical calculation')
-                    yield float('Nan')
+                    yield float('nan')
                 else:
                     psi = atan2(sgn * sin_psi, sgn * cos_psi)
                     yield psi
@@ -623,7 +631,6 @@ class YouHklCalculator(HklCalculatorBase):
                     acos_nu = acos(bound(cos_2theta / cos_delta))
                 except AssertionError:
                     yield StopIteration
-            sgn_ref = sign(sin_2theta) * sign(cos_delta)
             if is_small(cos(asin_qaz)):
                 qaz_angles = [sign(asin_qaz) * pi / 2.,]
             else:
@@ -633,7 +640,8 @@ class YouHklCalculator(HklCalculatorBase):
             else:
                 nu_angles = [acos_nu, -acos_nu]
             for qaz, nu in product(qaz_angles, nu_angles):
-                sgn_ratio = sign(sin(nu)) * sign(cos(qaz))
+                sgn_ref = sign(sin_2theta) * sign(cos(qaz))
+                sgn_ratio = sign(sin(nu)) * sign(cos_delta)
                 if sgn_ref == sgn_ratio:
                     yield delta, nu, qaz
 
@@ -651,7 +659,6 @@ class YouHklCalculator(HklCalculatorBase):
                 acos_qaz = acos(bound(cos_qaz))
             except AssertionError:
                 yield StopIteration
-            sgn_ref = sign(sin_2theta)
             if is_small(acos_qaz):
                 qaz_angles = [0.,]
             else:
@@ -661,7 +668,8 @@ class YouHklCalculator(HklCalculatorBase):
             else:
                 delta_angles = [acos_delta, -acos_delta]
             for qaz, delta in product(qaz_angles, delta_angles):
-                sgn_ratio = sign(sin(qaz)) * sign(sin(delta))
+                sgn_ref = sign(sin(delta))
+                sgn_ratio = sign(sin(qaz)) * sign(sin_2theta)
                 if sgn_ref == sgn_ratio:
                     yield delta, nu, qaz
 
