@@ -344,7 +344,7 @@ class TestConstraintManager:
 
     def test_is_implemented_2_samp_ref_mu_chi(self):
         self._constrain('beta', 'mu', 'chi')
-        eq_(self.cm.is_current_mode_implemented(), False)
+        eq_(self.cm.is_current_mode_implemented(), True)
 
     def test_is_implemented_2_samp_ref_mu90_chi0(self):
         self._constrain('beta', 'mu', 'chi')
@@ -380,11 +380,11 @@ class TestConstraintManager:
 
     def test_is_implemented_2_samp_det_mu_eta(self):
         self._constrain('qaz', 'mu', 'eta')
-        eq_(self.cm.is_current_mode_implemented(), False)
+        eq_(self.cm.is_current_mode_implemented(), True)
 
     def test_is_implemented_2_samp_det_mu_phi(self):
         self._constrain('qaz', 'mu', 'phi')
-        eq_(self.cm.is_current_mode_implemented(), False)
+        eq_(self.cm.is_current_mode_implemented(), True)
 
     def test_is_implemented_2_samp_det_eta_chi(self):
         self._constrain('qaz', 'eta', 'chi')
@@ -396,7 +396,7 @@ class TestConstraintManager:
 
     def test_is_implemented_2_samp_det_chi_phi(self):
         self._constrain('qaz', 'chi', 'phi')
-        eq_(self.cm.is_current_mode_implemented(), False)
+        eq_(self.cm.is_current_mode_implemented(), True)
 
     # 3 samp
 

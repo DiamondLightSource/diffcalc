@@ -29,8 +29,8 @@ except ImportError:
 
 from diffcalc.hkl.you.calc import YouHklCalculator, I, \
     _calc_angle_between_naz_and_qaz
-from test.tools import  assert_matrix_almost_equal, \
-    assert_2darray_almost_equal
+from test.tools import  assert_array_almost_equal, \
+    assert_matrix_almost_equal
 from diffcalc.hkl.you.geometry  import YouPosition
 from test.diffcalc.hkl.vlieg.test_calc import \
     createMockDiffractometerGeometry, createMockHardwareMonitor, \
@@ -211,11 +211,11 @@ class Test_anglesToVirtualAngles():
 
     def test_psi2(self):
         self.check_angle(
-            'psi', 100, mu=10, delta=.00000001, nu=0, eta=0, chi=0, phi=0)
+            'psi', 100, mu=10, delta=.001, nu=0, eta=0, chi=0, phi=0)
 
     def test_psi3(self):
         self.check_angle(
-            'psi', 80, mu=-10, delta=.00000001, nu=0, eta=0, chi=0, phi=0)
+            'psi', 80, mu=-10, delta=.001, nu=0, eta=0, chi=0, phi=0)
 
     def test_psi4(self):
         self.check_angle(
@@ -224,21 +224,21 @@ class Test_anglesToVirtualAngles():
     def test_psi5(self):
         #self.check_angle('psi', 0, mu=10, delta=.00000001,
         #nu=0, eta=0, chi=90, phi=0)
-        pos = YouPosition(0, .00000001, 0, 0, 90, 0, 'DEG')
+        pos = YouPosition(0, 0, 0, 0, 90, 0, 'DEG')
         pos.changeToRadians()
         assert isnan(self.calc._anglesToVirtualAngles(pos, None)['psi'])
 
     def test_psi6(self):
         self.check_angle(
-            'psi', 90, mu=0, delta=0.00000001, nu=0, eta=90, chi=0, phi=0)
+            'psi', 90, mu=0, delta=0.001, nu=0, eta=90, chi=0, phi=0)
 
     def test_psi7(self):
         self.check_angle(
-            'psi', 92, mu=0, delta=0.00000001, nu=0, eta=90, chi=2, phi=0)
+            'psi', 92, mu=0, delta=0.001, nu=0, eta=90, chi=2, phi=0)
 
     def test_psi8(self):
         self.check_angle(
-            'psi', 88, mu=0, delta=0.00000001, nu=0, eta=90, chi=-2, phi=0)
+            'psi', 88, mu=0, delta=0.001, nu=0, eta=90, chi=-2, phi=0)
 
 
 class Test_calc_theta():
@@ -276,58 +276,56 @@ class Test_calc_remaining_reference_angles_given_one():
                                      createMockHardwareMonitor(),
                                      Mock())
 
-    def check(self, name, value, theta, tau, psi_e, alpha_e, beta_e):
+    def check(self, name, value, theta, tau, psi_e, alpha_e, beta_e, places=7):
         # all in deg
-        psi, alpha, beta = self.calc._calc_remaining_reference_angles(
+        alpha, beta = self.calc._calc_remaining_reference_angles(
             name, value * TORAD, theta * TORAD, tau * TORAD)
-        print 'psi', psi * TODEG, ' alpha:', alpha * TODEG,\
-              ' beta:', beta * TODEG
-        if psi_e is not None:
-            assert_almost_equal(psi * TODEG, psi_e)
         if alpha_e is not None:
-            assert_almost_equal(alpha * TODEG, alpha_e)
+            assert_almost_equal(alpha * TODEG, alpha_e, places)
         if beta_e is not None:
-            assert_almost_equal(beta * TODEG, beta_e)
+            assert_almost_equal(beta * TODEG, beta_e, places)
+        psi_vals = list(self.calc._calc_psi(alpha, theta * TORAD, tau * TORAD))
+        if psi_e is not None:
+            assert_array_almost_equal(sorted([v * TODEG for v in psi_vals]), sorted(psi_e))
+        for psi in psi_vals:
+            print 'psi', psi * TODEG, ' alpha:', alpha * TODEG,\
+                  ' beta:', beta * TODEG
 
     def test_psi_given0(self):
-        self.check('psi', 90, theta=10, tau=90, psi_e=90,
+        self.check('psi', 90, theta=10, tau=90, psi_e=[-90, 90],
                     alpha_e=0, beta_e=0)
 
     def test_psi_given1(self):
-        self.check('psi', 92, theta=0, tau=90, psi_e=92,
+        self.check('psi', 92, theta=0.001, tau=90, psi_e=[-92, 92],
                     alpha_e=2, beta_e=-2)
 
     def test_psi_given3(self):
-        self.check('psi', 88, theta=0, tau=90, psi_e=88,
+        self.check('psi', 88, theta=0.001, tau=90, psi_e=[-88, 88],
                     alpha_e=-2, beta_e=2)
 
     def test_psi_given4(self):
-        self.check('psi', 0, theta=0, tau=90, psi_e=0,
-                    alpha_e=-90, beta_e=90)
+        self.check('psi', 0, theta=0.001, tau=90, psi_e=[0,],
+                    alpha_e=-90, beta_e=90, places=2)
 
     def test_psi_given4a(self):
-        self.check('psi', 180, theta=0, tau=90, psi_e=180,
-                    alpha_e=90, beta_e=-90)
+        self.check('psi', 180, theta=0.001, tau=90, psi_e=[-180, 180],
+                    alpha_e=90, beta_e=-90, places=2)
 
     def test_psi_given5(self):
-        raise SkipTest
-        # TODO: I don't understand why this one passes!
-        self.check('psi', 180, theta=0, tau=80,
-                   psi_e=180, alpha_e=80, beta_e=-80)
-        self.check('psi', 180, theta=0, tau=80,
-                   psi_e=180, alpha_e=90, beta_e=-90)
+        self.check('psi', 180, theta=0.001, tau=80,
+                   psi_e=[-180, 180], alpha_e=80, beta_e=-80, places=2)
 
     def test_a_eq_b0(self):
-        self.check('a_eq_b', 9999, theta=0, tau=90,
-                   psi_e=90, alpha_e=0, beta_e=0)
+        self.check('a_eq_b', 9999, theta=0.001, tau=90,
+                   psi_e=[-90, 90], alpha_e=0, beta_e=0)
 
     def test_alpha_given(self):
-        self.check('alpha', 2, theta=0, tau=90,
-                   psi_e=92, alpha_e=2, beta_e=-2)
+        self.check('alpha', 2, theta=0.001, tau=90,
+                   psi_e=[-92, 92], alpha_e=2, beta_e=-2)
 
     def test_beta_given(self):
-        self.check('beta', 2, theta=0, tau=90,
-                   psi_e=88, alpha_e=-2, beta_e=2)
+        self.check('beta', 2, theta=0.001, tau=90,
+                   psi_e=[-88, 88], alpha_e=-2, beta_e=2)
 #    def test_a_eq_b1(self):
 #        self.check('a_eq_b', 9999, theta=20, tau=90,
 #                   psi_e=90, alpha_e=10, beta_e=10)
@@ -346,38 +344,40 @@ class Test_calc_detector_angles_given_one():
 
     def check(self, name, value, theta, delta_e, nu_e, qaz_e):
         # all in deg
-        delta, nu, qaz = self.calc._calc_remaining_detector_angles(
-            name, value * TORAD, theta * TORAD)
-        assert_almost_equal(delta * TODEG, delta_e)
-        assert_almost_equal(nu * TODEG, nu_e)
+        delta, nu, qaz = zip(*self.calc._calc_remaining_detector_angles(
+            name, value * TORAD, theta * TORAD))
+        for delta_, nu_, qaz_ in zip(delta, nu, qaz):
+            print 'delta:', delta_ * TODEG, ' nu:', nu_ * TODEG, ' qaz:', qaz_ * TODEG
+        assert_array_almost_equal([v * TODEG for v in delta], delta_e)
+        assert_array_almost_equal([v * TODEG for v in nu], nu_e)
         if qaz_e is not None:
-            assert_almost_equal(qaz * TODEG, qaz_e)
+            assert_array_almost_equal([v * TODEG for v in qaz], qaz_e)
 
     def test_nu_given0(self):
-        self.check(NUNAME, 0, theta=3, delta_e=6, nu_e=0, qaz_e=90)
+        self.check(NUNAME, 0, theta=3, delta_e=[6, -6], nu_e=[0, 0], qaz_e=[90, -90])
 
     def test_nu_given1(self):
         self.check(NUNAME, 10, theta=7.0530221302831952,
-                   delta_e=10, nu_e=10, qaz_e=None)
+                   delta_e=[10, -10], nu_e=[10, 10], qaz_e=None)
 
     def test_nu_given2(self):
-        self.check(NUNAME, 6, theta=3, delta_e=0, nu_e=6, qaz_e=0)
+        self.check(NUNAME, 6, theta=3, delta_e=[0,], nu_e=[6,], qaz_e=[0,])
 
     def test_delta_given0(self):
-        self.check('delta', 0, theta=3, delta_e=0, nu_e=6, qaz_e=0)
+        self.check('delta', 0, theta=3, delta_e=[0, 0], nu_e=[6, -6], qaz_e=[0, 180])
 
     def test_delta_given1(self):
         self.check('delta', 10, theta=7.0530221302831952,
-                   delta_e=10, nu_e=10, qaz_e=None)
+                   delta_e=[10, 10], nu_e=[10, -10], qaz_e=None)
 
     def test_delta_given2(self):
-        self.check('delta', 6, theta=3, delta_e=6, nu_e=0, qaz_e=90)
+        self.check('delta', 6, theta=3, delta_e=[6,], nu_e=[0,], qaz_e=[90,])
 
     def test_qaz_given0(self):
-        self.check('qaz', 90, theta=3, delta_e=6, nu_e=0, qaz_e=90)
+        self.check('qaz', 90, theta=3, delta_e=[6, 174], nu_e=[0, -180], qaz_e=[90, 90])
 
     def test_qaz_given2(self):
-        self.check('qaz', 0, theta=3, delta_e=0, nu_e=6, qaz_e=0)
+        self.check('qaz', 0, theta=3, delta_e=[0, 180], nu_e=[6, -174], qaz_e=[0, 0])
 
 
 class Test_calc_angle_between_naz_and_qaz():
@@ -403,280 +403,80 @@ class Test_calc_remaining_sample_angles_given_one():
 
     def check(self, name, value, Q_lab, n_lab, Q_phi, n_phi,
               phi_e, chi_e, eta_e, mu_e):
-        phi, chi, eta, mu = self.calc._calc_remaining_sample_angles(
-                            name, value * TORAD, Q_lab, n_lab, Q_phi, n_phi)
-        print 'phi', phi * TODEG, ' chi:', chi * TODEG, ' eta:', eta * TODEG,\
-              ' mu:', mu * TODEG
+        mu, eta, chi, phi = zip(*self.calc._calc_remaining_sample_angles(
+                            name, value * TORAD, Q_lab, n_lab, Q_phi, n_phi))
+        for  mu_, eta_, chi_, phi_ in zip(mu, eta, chi, phi):
+            print 'phi', phi_ * TODEG, ' chi:', chi_ * TODEG, ' eta:', eta_ * TODEG,\
+                  ' mu:', mu_ * TODEG
         if phi_e is not None:
-            assert_almost_equal(phi * TODEG, phi_e)
+            assert_array_almost_equal([v * TODEG for v in phi], phi_e)
         if chi_e is not None:
-            assert_almost_equal(chi * TODEG, chi_e)
+            assert_array_almost_equal([v * TODEG for v in chi], chi_e)
         if eta_e is not None:
-            assert_almost_equal(eta * TODEG, eta_e)
+            assert_array_almost_equal([v * TODEG for v in eta], eta_e)
         if mu_e is not None:
-            assert_almost_equal(mu * TODEG, mu_e)
+            assert_array_almost_equal([v * TODEG for v in mu], mu_e)
 
-    @raises(ValueError)
+    @raises(DiffcalcException)
     def test_constrain_xx_degenerate(self):
         self.check('mu', 0, Q_lab=x, n_lab=x, Q_phi=x, n_phi=x,
                     phi_e=0, chi_e=0, eta_e=0, mu_e=0)
 
     def test_constrain_mu_0(self):
-        raise SkipTest()
         self.check('mu', 0, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-                    phi_e=0, chi_e=0, eta_e=0, mu_e=0)
+                    phi_e=[0,], chi_e=[0,], eta_e=[0,], mu_e=[0,])
 
     def test_constrain_mu_10(self):
-        raise SkipTest()
         self.check('mu', 10, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-                    phi_e=-90, chi_e=10, eta_e=-90, mu_e=10)
+                    phi_e=[90, -90], chi_e=[10, -10], eta_e=[-90, 90], mu_e=[10, 10])
 
     def test_constrain_mu_n10(self):
-        raise SkipTest()
         self.check('mu', -10, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-                    phi_e=90, chi_e=10, eta_e=90, mu_e=-10)
+                    phi_e=[-90, 90], chi_e=[10, -10], eta_e=[90, -90], mu_e=[-10, -10])
 
     def test_constrain_eta_10_wasfailing(self):
         # Required the choice of a different equation
         self.check('eta', 10, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-                    phi_e=-10, chi_e=0, eta_e=10, mu_e=0)
+                    phi_e=[-10, -170], chi_e=[0, 180], eta_e=[10, 10], mu_e=[0, -180])
 
     def test_constrain_eta_n10(self):
         self.check('eta', -10, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-                    phi_e=10, chi_e=0, eta_e=-10, mu_e=0)
+                    phi_e=[10, 170], chi_e=[0, 180], eta_e=[-10, -10], mu_e=[0, 180])
 
     def test_constrain_eta_20_with_theta_20(self):
         theta = 20 * TORAD
         Q_lab = matrix([[cos(theta)], [-sin(theta)], [0]])
         self.check('eta', 20, Q_lab=Q_lab, n_lab=z, Q_phi=x, n_phi=z,
-                    phi_e=0, chi_e=0, eta_e=20, mu_e=0)
+                    phi_e=[0, -140], chi_e=[0, 180], eta_e=[20, 20], mu_e=[0, -180])
 
-    @raises(ValueError)
+    @raises(DiffcalcException)
     def test_constrain_chi_0_degenerate(self):
         self.check('chi', 0, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
                     phi_e=0, chi_e=0, eta_e=0, mu_e=0)
 
     def test_constrain_chi_10(self):
         self.check('chi', 10, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-                    phi_e=-90, chi_e=10, eta_e=90, mu_e=-10)
+                    phi_e=[-90, 90], chi_e=[10, 10], eta_e=[90, -90], mu_e=[-10, 10])
 
     def test_constrain_chi_90(self):
-        # mu is off by 180, but youcalc tries +-x and 180+-x anyway
-        raise SkipTest()
         self.check('chi', 90, Q_lab=z * (-1), n_lab=x, Q_phi=x, n_phi=z,
-                    phi_e=0, chi_e=90, eta_e=0, mu_e=0)
+                    phi_e=[0, 0], chi_e=[90, 90], eta_e=[0, 0], mu_e=[-180, 0])
 
     def test_constrain_phi_0(self):
         self.check('phi', 0, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-                    phi_e=0, chi_e=0, eta_e=0, mu_e=0)
+                    phi_e=[0, 0], chi_e=[0, -180], eta_e=[0, 180], mu_e=[0, -180])
 
     def test_constrain_phi_10(self):
         self.check('phi', 10, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-                    phi_e=10, chi_e=0, eta_e=-10, mu_e=0)
+                    phi_e=[10, 10], chi_e=[0, -180], eta_e=[-10, 190], mu_e=[0, -180])
 
     def test_constrain_phi_n10(self):
         self.check('phi', -10, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
-                    phi_e=-10, chi_e=0, eta_e=10, mu_e=0)
+                    phi_e=[-10, -10], chi_e=[0, -180], eta_e=[10, 170], mu_e=[0, -180])
 
     def test_constrain_phi_20_with_theta_20(self):
         theta = 20 * TORAD
         Q_lab = matrix([[cos(theta)], [-sin(theta)], [0]])
         self.check('phi', 20, Q_lab=Q_lab, n_lab=z, Q_phi=x, n_phi=z,
-                    phi_e=20, chi_e=0, eta_e=0, mu_e=0)
+                    phi_e=[20, 20], chi_e=[0, -180], eta_e=[0, 180], mu_e=[0, -180])
 
-
-class TestSolutionGenerator():
-    def setup_method(self):
-
-        names = ['delta', NUNAME, 'mu', 'eta', 'chi', 'phi']
-        self.hardware = SimpleHardwareAdapter(names)
-        self.calc = YouHklCalculator(createMockUbcalc(None),
-                                     createMockDiffractometerGeometry(),
-                                     self.hardware,
-                                     Mock())
-
-    # constraint could have been 'delta', NUNAME, 'qaz' or 'naz'.
-
-    def test_generate_possible_det_soln_no_limits_constrained_qaz_or_naz(self):
-        # we will enfoce the order too, incase this later effects heuristically
-        # made choices
-        expected = (
-                    (.1, .2),
-                    (.1, -.2),
-                    (.1, .2 - pi),
-                    (.1, pi - .2),
-                    (-.1, .2),
-                    (-.1, -.2),
-                    (-.1, .2 - pi),
-                    (-.1, pi - .2),
-                    (.1 - pi, .2),  # pi + x cuts to x-pi
-                    (.1 - pi, -.2),
-                    (.1 - pi, .2 - pi),
-                    (.1 - pi, pi - .2),
-                    (pi - .1, .2),
-                    (pi - .1, -.2),
-                    (pi - .1, .2 - pi),
-                    (pi - .1, pi - .2),
-                   )
-
-        assert_2darray_almost_equal(expected,
-            self.calc._generate_possible_solutions(
-                (.1, .2), ('delta', NUNAME), ('naz',)))
-        assert_2darray_almost_equal(expected,
-            self.calc._generate_possible_solutions(
-                (.1, .2), ('delta', NUNAME), ('qaz',)))
-
-    def test_generate_poss_det_soln_no_lim_cons_qaz_or_naz_delta_and_nu_at_zro(self):  # @IgnorePep8
-        # we will enfoce the order too, incase this later effects hearistically
-        # made choices
-        expected = (
-                    (0., 0,),
-                    (0., pi),
-                    (pi, 0.),
-                    (pi, pi)
-                    )
-
-        assert_2darray_almost_equal(expected,
-            self.calc._generate_possible_solutions(
-                (-2e-9, 2e-9), ('delta', NUNAME), ('naz',)))
-        assert_2darray_almost_equal(expected,
-            self.calc._generate_possible_solutions(
-                (-2e-9, 2e-9), ('delta', NUNAME), ('qaz',)))
-
-    def test_generate_possible_det_solutions_no_limits_constrained_delta(self):
-        expected = (
-                    (.1, .2),
-                    (.1, -.2),
-                    (.1, .2 - pi),
-                    (.1, pi - .2),
-                   )
-
-        assert_2darray_almost_equal(expected,
-                self.calc._generate_possible_solutions(
-                    (.1, .2), ('delta', NUNAME), ('delta',)))
-
-    def test_generate_possible_det_solutions_no_limits_constrained_nu(self):
-        expected = (
-                    (.1, .2),
-                    (-.1, .2),
-                    (.1 - pi, .2),
-                    (pi - .1, .2),
-                   )
-
-        assert_2darray_almost_equal(expected,
-            self.calc._generate_possible_solutions(
-                (.1, .2), ('delta', NUNAME), (NUNAME,)))
-
-    def test_generate_possible_det_soln_with_limits_constrained_delta(self):
-        self.hardware.set_lower_limit(NUNAME, 0)
-        expected = (
-                    (.1, .2),
-                    (.1, pi - .2),
-                   )
-
-        assert_2darray_almost_equal(expected,
-            self.calc._generate_possible_solutions(
-                (.1, .2), ('delta', NUNAME), ('delta',)))
-
-    def test_generate_possible_det_solutions_with_limits_constrained_nu(self):
-        self.hardware.set_upper_limit('delta', 0)
-        expected = (
-                    (-.1, .2),
-                    (.1 - pi, .2),  # cuts to .1-pi
-                   )
-
-        assert_2darray_almost_equal(expected,
-            self.calc._generate_possible_solutions(
-                (.1, .2), ('delta', NUNAME), (NUNAME,)))
-
-    def test_generate_poss_det_soln_with_limits_overly_constrained_nu(self):
-        self.hardware.set_lower_limit('delta', .3)
-        self.hardware.set_upper_limit('delta', .31)
-        eq_(len(self.calc._generate_possible_solutions(
-            (.1, .2), ('delta', NUNAME), (NUNAME,))), 0)
-
-    def test_generate_possible_sample_solutions(self):
-        result = self.calc._generate_possible_solutions(
-            (.1, .2, .3, .4), ('mu', 'eta', 'chi', 'phi'), ('naz',))
-        generated = self._hardcoded_generate_possible_sample_solutions(
-            .1, .2, .3, .4, 'naz')
-        assert_2darray_almost_equal(generated, result)
-        eq_(4 ** 4, len(result))
-
-    def test_generate_possible_sample_solutions_fixed_chi(self):
-        result = self.calc._generate_possible_solutions(
-            (.1, .2, .3, .4), ('mu', 'eta', 'chi', 'phi'), ('chi',))
-        generated = self._hardcoded_generate_possible_sample_solutions(
-            .1, .2, .3, .4, 'chi')
-        assert_2darray_almost_equal(generated, result)
-        eq_(4 ** 3, len(result))
-
-    def test_generate_possible_sample_solutions_fixed_chi_positive_mu(self):
-        self.hardware.set_lower_limit('mu', 0)
-        result = self.calc._generate_possible_solutions(
-            (.1, .2, .3, .4), ('mu', 'eta', 'chi', 'phi'), ('chi',))
-        generated = self._hardcoded_generate_possible_sample_solutions(
-            .1, .2, .3, .4, 'chi')
-        assert_2darray_almost_equal(generated, result)
-        eq_(2 * (4 ** 2), len(result))
-
-    def _hardcoded_generate_possible_sample_solutions(self, mu, eta, chi, phi,
-                                                      sample_constraint_name):
-        possible_solutions = []
-        _identity = lambda x: x
-        _transforms = (_identity,
-                      lambda x: -x,
-                      lambda x: pi + x,
-                      lambda x: pi - x)
-        _transforms_for_zero = (lambda x: 0.,
-                               lambda x: pi,)
-        SMALL = 1e-8
-
-        def cut_at_minus_pi(value):
-            if value < (-pi - SMALL):
-                return value + 2 * pi
-            if value >= pi + SMALL:
-                return value - 2 * pi
-            return value
-
-        def is_small(x):
-            return abs(x) < SMALL
-
-        name = sample_constraint_name
-
-        for transform in ((_identity,) if name == 'mu' else
-                           _transforms if not is_small(mu) else
-                           _transforms_for_zero):
-            transformed_mu = (transform(mu))
-            if not self.hardware.is_axis_value_within_limits('mu',
-                    self.hardware.cut_angle('mu', transformed_mu * TODEG)):
-                continue
-            for transform in ((_identity,) if name == 'eta' else
-                               _transforms if not is_small(eta) else
-                               _transforms_for_zero):
-                transformed_eta = transform(eta)
-                if not self.hardware.is_axis_value_within_limits('eta',
-                    self.hardware.cut_angle('eta', transformed_eta * TODEG)):
-                    continue
-                for transform in ((_identity,) if name == 'chi' else
-                                   _transforms if not is_small(chi) else
-                                   _transforms_for_zero):
-                    transformed_chi = transform(chi)
-                    if not self.hardware.is_axis_value_within_limits('chi',
-                        self.hardware.cut_angle('chi',
-                                               transformed_chi * TODEG)):
-                        continue
-                    for transform in ((_identity,) if name == 'phi' else
-                                       _transforms if not is_small(phi) else
-                                       _transforms_for_zero):
-                        transformed_phi = transform(phi)
-                        if not self.hardware.is_axis_value_within_limits('phi',
-                            self.hardware.cut_angle('phi',
-                                                   transformed_phi * TODEG)):
-                            continue
-                        possible_solutions.append((
-                            cut_at_minus_pi(transformed_mu),
-                            cut_at_minus_pi(transformed_eta),
-                            cut_at_minus_pi(transformed_chi),
-                            cut_at_minus_pi(transformed_phi)))
-        return possible_solutions

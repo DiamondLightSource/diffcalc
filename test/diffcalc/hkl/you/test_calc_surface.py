@@ -138,7 +138,8 @@ def willmott_to_you_fixed_mu_eta(pos):
                        nu=pos.gamma,
                        eta=0,
                        chi=90 + pos.omegah,
-                       phi=-90 - pos.phi)
+                       phi=-90 - pos.phi,
+                       unit='DEG')
 
     if pos.phi > 180:
         pos.phi -= 360
@@ -202,8 +203,8 @@ class TestFixedMuEta(_BaseTest):
         self.mock_ubcalc.UB = self.UB
 
     def _check(self, hkl, pos, virtual_expected={}, fails=False):
-        self._check_angles_to_hkl('', 999, 999, hkl, pos, self.wavelength)
-#                                  virtual_expected)
+        self._check_angles_to_hkl('', 999, 999, hkl, pos, self.wavelength,
+                                  virtual_expected)
         if fails:
             self._check_hkl_to_angles_fails('', 999, 999, hkl, pos,
                                             self.wavelength, virtual_expected)
@@ -226,7 +227,6 @@ class TestFixedMuEta(_BaseTest):
                         self.wavelength, {'alpha': 2})
 
     def testHkl_2_19_32_calculated_from_DDIF(self):
-        raise SkipTest()  # diffcalc finds a different soln (with -ve gamma)
         self.places = 3
         willpos = WillPos(delta=21.974, gamma=4.419, omegah=2, phi=-33.803)
         self._check((2, 19, 32),
@@ -234,16 +234,14 @@ class TestFixedMuEta(_BaseTest):
                     {'alpha': 2})
 
     def testHkl_0_7_22_calculated_from_DDIF(self):
-        raise SkipTest()  # diffcalc finds a different soln (with -ve gamma)
         self.places = 3
         willpos = WillPos(delta=11.241801854649, gamma=-3.038407637123,
-                          omegah=2, phi=-3.436557497330)
+                          omegah=2, phi=-86.56344250267)
         self._check((0, 7, 22),
                     self._convert_willmott_pos(willpos),
                     {'alpha': 2})
 
     def testHkl_2_m5_12_calculated_from_DDIF(self):
-        raise SkipTest()  # diffcalc finds a different soln (with -ve gamma)
         self.places = 3
         willpos = WillPos(delta=5.224, gamma=10.415, omegah=2, phi=-1.972)
         self._check((2, -5, 12),
@@ -251,8 +249,8 @@ class TestFixedMuEta(_BaseTest):
                     {'alpha': 2})
 
     def testHkl_2_19_32_calculated_predicted_with_diffcalc_and_found(self):
-        willpos = WillPos(delta=21.974032376045, gamma=-4.418955754003,
-                          omegah=2, phi=64.027358409574)
+        willpos = WillPos(delta=21.974032376045, gamma=4.418955754003,
+                          omegah=2, phi=-33.80254)
         self._check((2, 19, 32),
                     self._convert_willmott_pos(willpos),
                     {'alpha': 2})
@@ -265,8 +263,8 @@ class TestFixedMuEta(_BaseTest):
                     {'alpha': 2})
 
     def testHkl_2_m5_12_calculated_predicted_with_diffcalc_and_found(self):
-        willpos = WillPos(delta=5.223972025344, gamma=-10.415435905622,
-                          omegah=2, phi=-90 - 102.995854571805)
+        willpos = WillPos(delta=5.223972025344, gamma=10.415435905622,
+                          omegah=2, phi=-90 + 88.02751)
         self._check((2, -5, 12),
                     self._convert_willmott_pos(willpos),
                     {'alpha': 2})
@@ -330,15 +328,19 @@ class Test_Fixed_Mu_Chi(TestFixedMuEta):
 
 
 Pt531_HKL0 = -1.000, 1.000, 6.0000
-Pt531_REF0 = WillPos(delta=9.3971025, gamma=-16.1812303, omegah=2,
-                                  phi=108.5510712)
+Pt531_REF0 = WillPos(delta=9.3971025, gamma=16.1812303, omegah=2,
+                                  phi=-52.1392905)
 
 Pt531_HKL1 = -2.000, -1.000, 7.0000
 Pt531_REF1 = WillPos(delta=11.0126958, gamma=-11.8636128, omegah=2,
                                   phi=40.3803393)
+Pt531_REF12 = WillPos(delta=11.0126958, gamma=11.8636128, omegah=2,
+                                  phi=-121.2155975)
 Pt531_HKL2 = 1, 1, 9
-Pt531_REF2 = WillPos(delta=14.1881617, gamma=-7.7585939, omegah=2,
-                                  phi=176.5348540)
+Pt531_REF2 = WillPos(delta=14.1881617, gamma=7.7585939, omegah=2,
+                                  phi=23.0203132)
+Pt531_REF22 = WillPos(delta=14.1881617, gamma=-7.7585939, omegah=2,
+                                  phi=-183.465146)
 Pt531_WAVELENGTH = 0.6358
 
 # This is U matrix displayed by DDIF
@@ -411,8 +413,8 @@ class Test_Pt531_FixedMuChi(_BaseTest):
         self.mock_ubcalc.UB = self.UB
 
     def _check(self, hkl, pos, virtual_expected={}, fails=False):
-#        self._check_angles_to_hkl('', 999, 999, hkl, pos, self.wavelength,
-#                                  virtual_expected)
+        self._check_angles_to_hkl('', 999, 999, hkl, pos, self.wavelength,
+                                  virtual_expected)
         if fails:
             self._check_hkl_to_angles_fails('', 999, 999, hkl, pos,
                                             self.wavelength, virtual_expected)
@@ -471,3 +473,25 @@ class Test_Pt531_Fixed_Mu_eta_(Test_Pt531_FixedMuChi):
 
     def _convert_willmott_pos(self, willmott_pos):
         return  willmott_to_you_fixed_mu_eta(willmott_pos)
+
+    def testHkl_1_calculated_from_DDIF(self):
+        self.places = 7
+        self._check(Pt531_HKL1,
+                    self._convert_willmott_pos(Pt531_REF12),
+                    {'alpha': 2})
+
+    def testHkl_2_calculated_from_DDIF(self):
+        self.places = 7
+        self._check(Pt531_HKL2,
+                    self._convert_willmott_pos(Pt531_REF22),
+                    {'alpha': 2})
+
+    def testHkl_2_m1_0_16(self):
+        self.places = 7
+        pos = WillPos(delta=25.7990976, gamma=6.2413545, omegah=2,
+                                  phi=-47.4949600)
+#        pos.phi -= 360
+        self._check((-1, 0, 16),
+                    self._convert_willmott_pos(pos),
+                    {'alpha': 2})
+

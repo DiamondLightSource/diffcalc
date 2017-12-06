@@ -20,14 +20,14 @@ from math import pi, cos, sin
 from nose.tools import raises
 
 try:
-    from numpy import matrix, isclose
+    from numpy import matrix
 except ImportError:
-    from numjy import matrix, isclose
+    from numjy import matrix
 
 from diffcalc.hkl.you.calc import YouHklCalculator
 from diffcalc.hkl.you.constraints import YouConstraintManager
 from test.tools import assert_array_almost_equal, \
-    assert_second_dict_almost_in_first
+    assert_second_dict_almost_in_first, arrayeq_
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.util import y_rotation, z_rotation, DiffcalcException
 from test.diffcalc.test_hardware import SimpleHardwareAdapter
@@ -35,7 +35,6 @@ from test.diffcalc.hkl.vlieg.test_calc import \
     createMockDiffractometerGeometry, createMockUbcalc
 from diffcalc.hkl.you.geometry import YouPosition as Pos, YouPosition as P,\
     YouPosition
-from test.tools import arrayeq_
 from diffcalc.hkl.you.calc import youAnglesToHkl
 
 TORAD = pi / 180
