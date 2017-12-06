@@ -9,11 +9,9 @@ env:
   - JYTHON=false
   - JYTHON=true
 
-before_install:
+install:
   - if [ "$JYTHON" == "true" ]; then . install-jython-environment.sh; fi
   - if [ "$JYTHON" == "false" ]; then pip install --upgrade pytest; pip install pytest-xdist; fi
- 
-install: pip install --upgrade pytest
  
 before_script:
   - if [ "$JYTHON" == "true" ]; then export PYTEST=$HOME/jython/bin/pytest; else export PYTEST=pytest; fi
