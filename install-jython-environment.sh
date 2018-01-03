@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-JYTHON_URL='http://search.maven.org/remotecontent?filepath=org/python/jython-installer/2.7.0/jython-installer-2.7.0.jar'
+JYTHON_URL='http://search.maven.org/remotecontent?filepath=org/python/jython-installer/2.7.1/jython-installer-2.7.1.jar'
 JAMA_JAR_URL='http://math.nist.gov/javanumerics/jama/Jama-1.0.3.jar'
 
 # Install Jama jar
