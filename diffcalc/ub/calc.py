@@ -217,7 +217,7 @@ class UBCalculation:
         lines.extend(self._state.reflist.str_lines())
         
         lines.append("")
-        lines.append(bold("CRYSTAL ORIENTAATIONS"))
+        lines.append(bold("CRYSTAL ORIENTATIONS"))
         lines.append("")
         
         lines.extend(self._state.orientlist.str_lines())
