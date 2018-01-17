@@ -1,12 +1,14 @@
 from startup._common_imports import *  # @UnusedWildImport
 from diffcalc.gdasupport.minigda.scannable import ScannableMotionWithScannableFieldsBase  # @UnusedImport
 from startup.beamlinespecific.i21 import I21SampleStage, I21DiffractometerStage, I21TPLab
+from diffcalc.hardware import setmax, setmin, hardware,setcut
 
 if not GDA:    
     import startup._demo
 else:
 #     import __main__  # @UnresolvedImport
-    from __main__ import diodetth,m5tth,sapolar,satilt,saazimuth,sax,say,saz, energy  # @UnresolvedImport
+    from __main__ import sax,say,saz,sapolar,satilt,saazimuth,diodetth,m5tth, energy, simsax,simsay,simsaz,simsapolar,simsatilt,simsaazimuth,simdiodetth,simm5tth # @UnresolvedImport
+
 LOCAL_MANUAL = "http://confluence.diamond.ac.uk/x/UoIQAw"
 # Diffcalc i21
 # ======== === 
@@ -16,17 +18,8 @@ LOCAL_MANUAL = "http://confluence.diamond.ac.uk/x/UoIQAw"
 # phi      saazimuth
 
 
-
 ### Create dummy scannables ###
 if GDA:  
-#     assert 'diodetth' in __main__.__dict__  #GDA name is diodetth
-#     assert 'm5tth' in __main__.__dict__ #GDA name is m5tth - m5 has 2 mirrors with fixed tth offset
-#     assert 'sapolar' in __main__.__dict__     #GDA name is sapolar
-#     assert 'satilt' in __main__.__dict__  #GDA name is satilt    - fix 90 deg offset
-#     assert 'saazimuth' in __main__.__dict__      #GDA name is saazimuth
-#     assert 'sax'in __main__.__dict__
-#     assert 'say'in __main__.__dict__
-#     assert 'saz'in __main__.__dict__
     print "WARNING: saz may need to be reversed to agree with diffcalc"
     xyz_eta = ScannableGroup('xyz_eta', [sax, say, saz])  # @UndefinedVariable
 else:   
@@ -39,8 +32,6 @@ else:
     say = Dummy('say')
     saz = Dummy('saz')
     xyz_eta = ScannableGroup('xyz_eta', [sax, say, saz])
-    
-    
 
 sa = I21SampleStage('sa', sapolar, satilt, saazimuth, xyz_eta)
 sapolar = sa.sapolar
@@ -48,18 +39,6 @@ satilt = sa.satilt
 saazimuth = sa.saazimuth
 
 tp_phi = sa.tp_phi_scannable
-
-def centresample():
-    sa.centresample()
-
-def zerosample():
-    sa.zerosample()
-    
-def toolpoint_on():
-    sa.centre_toolpoint = True
-
-def toolpoint_off():
-    sa.centre_toolpoint = False
 
 tp_lab = I21TPLab('tp_lab', sa)
 tp_labx = tp_lab.tp_labx
@@ -72,34 +51,31 @@ eta = _fourc.eta
 chi = _fourc.chi
 phi = _fourc.phi
 
-from diffcalc.hardware import setmax, setmin, hardware,setcut
 
+def centresample():
+    sa.centresample()
+
+def zerosample():
+    sa.zerosample()
+    
+def toolpoint_on():
+    sa.centre_toolpoint = True
+
+def toolpoint_off():
+    sa.centre_toolpoint = False
+    
+def usediode():
+    _fourc.delta_scn = diodetth
+    setmin(delta, 0)
+    setmax(delta, 180)
+    
+def usevessel():
+    _fourc.delta_scn = m5tth  # note, if changed also update in _fourc_vessel constructor!
+    setmin(delta, 0)
+    setmax(delta, 150)
+    
 ### Wrap i21 names to get diffcalc names
 if GDA:
-   
-    def usediode():
-        _fourc.delta_scn = diodetth
-        setmin(delta, 0)
-        setmax(delta, 180)
-        
-    def usevessel():
-        _fourc.delta_scn = m5tth  # note, if changed also update in _fourc_vessel constructor!
-        setmin(delta, 0)
-        setmax(delta, 150)
-        
- 
-#    raise Exception('need gda class for wrapping scannables. There is one somewhere')
-#     import what_is_its_name as XYZ  # @UnresolvedImport
-#     delta = XYZ(diode_tth, 'delta')  # or vessel_tth
-#     eta = XYZ(sapolar, 'eta')
-#     chi = XYZ(satilt, 'chi', 90)  # chi = satilt + 90deg
-#     phi = XYZ(saazimuth, 'phi')
-#     
-#     def usediode():
-#         raise Exception('needs implementing')
-#    
-#     def usevessel():
-#         raise Exception('needs implementing')
     from gda.jython.commands.GeneralCommands import alias  # @UnresolvedImport
     alias("usediode")
     alias("usevessel")
@@ -107,26 +83,9 @@ if GDA:
     alias("zerosample")
     alias("toolpoint_on")
     alias("toolpoint_off")
-
 else:
-    from diffcalc.gdasupport.minigda.scannable import ScannableAdapter
     from IPython.core.magic import register_line_magic  # @UnresolvedImport
     from diffcmd.ipython import parse_line
-#     delta = ScannableAdapter(diodetth, 'delta')  # or vessel_tth
-#     eta = ScannableAdapter(sapolar, 'eta')
-#     chi = ScannableAdapter(satilt, 'chi', 90)  # chi = satilt + 90deg
-#     phi = ScannableAdapter(saazimuth, 'phi')
-    
-    def usediode():
-        _fourc.delta_scn = diodetth
-        setmin(delta, 0)
-        setmax(delta, 180)
-        
-    def usevessel():
-        _fourc.delta_scn = m5tth
-        setmin(delta, 0)
-        setmax(delta, 150)
-        
     if IPYTHON:
         from IPython import get_ipython  # @UnresolvedImport @UnusedImport
         register_line_magic(parse_line(usediode, globals()))
@@ -149,12 +108,21 @@ if GDA:
     en=energy
     if float(en.getPosition()) == 0: # no energy value - dummy?
         en(800)
+
+    def useDummyEnergy():
+        import __main__
+        __main__.en=Dummy("en")
+        
+    def useRealEnergy():
+        import __main__
+        __main__.en=energy
 else:
     en = Dummy('en')
     en(800)
     
 en.level = 3
  
+
  
 ### Configure and import diffcalc objects ###
 ESMTGKeV = 0.001
@@ -176,12 +144,12 @@ if GDA:
  
 ### Load the last ub calculation used
 from diffcalc.ub.ub import lastub
-lastub() 
-
-### Set i21 specifi limits
+lastub()
+ 
+### Set i21 specific limits
 print "INFO: diffcalc limits set in $diffcalc/startup/i21.py taken from http://confluence.diamond.ac.uk/pages/viewpage.action?pageId=51413586"
 setmin(delta, 0)
-setmax(delta, 150) #defult to m5tth limits
+setmax(delta, 150) #default to m5tth limits
 setmin(chi, 60)
 setmax(chi, 135)
 setmin(eta, 0)
@@ -212,9 +180,7 @@ h_vessel, k_vessel, l_vessel = hkl_vessel.h, hkl_vessel.k, hkl_vessel.l
 
 print '- fourc_lowq & hkl_lowq'
 LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING = -8
-_fourc_lowq = I21DiffractometerStage(
-    '_fourc_lowq', m5tth, sa, chi_offset=90,
-    delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)
+_fourc_lowq = I21DiffractometerStage('_fourc_lowq', m5tth, sa, chi_offset=90,delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)
 fourc_lowq = DiffractometerScannableGroup('fourc_lowq', _dc, _fourc_lowq)
 fourc_lowq.hint_generator = _fourc_lowq.get_hints
 hkl_lowq = Hkl('hkl_lowq', _fourc_lowq, _dc)
@@ -222,9 +188,7 @@ h_lowq, k_lowq, l_lowq = hkl_lowq.h, hkl_lowq.k, hkl_lowq.l
 
 print '- fourc_highq & hkl_highq'
 highq_OFFSET_ADDED_TO_DELTA_WHEN_READING = 0
-_fourc_highq = I21DiffractometerStage(
-    '_fourc_highq', m5tth, sa, chi_offset=90,
-    delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)
+_fourc_highq = I21DiffractometerStage('_fourc_highq', m5tth, sa, chi_offset=90,delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)
 fourc_highq = DiffractometerScannableGroup('fourc_highq', _dc, _fourc_highq)
 fourc_highq.hint_generator = _fourc_highq.get_hints
 hkl_highq = Hkl('hkl_highq', _fourc_highq, _dc)
