@@ -139,9 +139,9 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
         
         sa_col = []
         sa_col.append('%s:' % self.getName())
-        sa_col.append('sapolar:   %s (eta)' % formatted_values[0])
-        sa_col.append('satilt:    %s (chi-90)' % formatted_values[1])
-        sa_col.append('saazimuth: %s (phi)' % formatted_values[2])
+        sa_col.append('%s:   %s (eta)' % (self._scn_list[0].getName(),formatted_values[0]))
+        sa_col.append('%s:    %s (chi-90)' % (self._scn_list[1].getName(),formatted_values[1]))
+        sa_col.append('%s: %s (phi)' % (self._scn_list[2].getName(),formatted_values[2]))
         sa_col_width = len(sa_col[2])
         
         # Toolpoint column
