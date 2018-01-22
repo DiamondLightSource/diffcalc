@@ -29,7 +29,7 @@ except ImportError:
 
 
 from diffcalc.util import getInputWithDefault as promptForInput, \
-    promptForNumber, promptForList, allnum, isnum, bold
+    promptForNumber, promptForList, allnum, isnum, bold, xyz_rotation
 from diffcalc.util import command
 
 TORAD = pi / 180
@@ -41,8 +41,9 @@ TODEG = 180 / pi
 
 __all__ = ['addorient', 'addref', 'c2th', 'calcub', 'delorient', 'delref', 'editorient',
            'editref', 'listub', 'loadub', 'newub', 'orientub', 'saveubas', 'setlat',
-           'setu', 'setub', 'showorient', 'showref', 'swaporient', 'swapref', 'trialub',
-           'checkub', 'ub', 'ubcalc', 'rmub', 'clearorient', 'clearref', 'lastub']
+           'addmiscut', 'setmiscut', 'setu', 'setub', 'showorient', 'showref', 'swaporient',
+           'swapref', 'trialub', 'checkub', 'ub', 'ubcalc', 'rmub', 'clearorient',
+           'clearref', 'lastub']
 
 if settings.include_sigtau:
     __all__.append('sigtau')
@@ -502,7 +503,7 @@ def swaporient(num1=None, num2=None):
 
 @command
 def setu(U=None):
-    """setu {[[..][..][..]]} -- manually set u matrix
+    """setu {[[..][..][..]]} -- manually set U matrix
     """
     if U is None:
         U = _promptFor3x3MatrixDefaultingToIdentity()
@@ -515,7 +516,7 @@ def setu(U=None):
 
 @command
 def setub(UB=None):
-    """setub {[[..][..][..]]} -- manually set ub matrix"""
+    """setub {[[..][..][..]]} -- manually set UB matrix"""
     if UB is None:
         UB = _promptFor3x3MatrixDefaultingToIdentity()
         if UB is None:
@@ -585,6 +586,39 @@ def checkub():
     print s
 
 
+@command
+def addmiscut(*args):
+    """addmiscut angle {[x y z]} -- apply miscut to U matrix using a specified miscut angle in degrees and a rotation axis"""
+    
+    if len(args) == 0:
+        _handleInputError("Please specify a miscut angle in degrees "
+                          "and, optionally, a rotation axis (default: [0 1 0])")
+    else:
+        args=list(args)
+        angle = args.pop(0)
+        rad_angle = float(angle) * TORAD
+        if len(args) == 0:
+            xyz =  [0, 1, 0]
+        else:
+            xyz = args.pop(0)
+        rot_matrix = xyz_rotation(xyz, rad_angle)
+        if ubcalc.is_ub_calculated():
+            ubcalc.set_U_manually(rot_matrix * ubcalc.U)
+        else:
+            ubcalc.set_U_manually(rot_matrix)
+        ubcalc.print_reference()
+
+@command
+def setmiscut(*args):
+    """setmiscut angle {[x y z]} -- manually set U matrix using a specified miscut angle in degrees and a rotation axis (default: [0 1 0])"""
+    
+    if len(args) == 0:
+        _handleInputError("Please specify a miscut angle in degrees "
+                          "and, optionally, a rotation axis (default: [0 1 0])")
+    else:
+        ubcalc.set_U_manually(matrix('1 0 0; 0 1 0; 0 0 1'))
+        addmiscut(*args)
+
 commands_for_help = ['State',
                      newub,
                      loadub,
@@ -629,7 +663,9 @@ commands_for_help.extend([
                      setub,
                      calcub,
                      orientub,
-                     trialub])
+                     trialub,
+                     addmiscut,
+                     setmiscut])
 
 
 
