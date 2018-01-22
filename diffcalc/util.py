@@ -338,10 +338,10 @@ def call_command(f, args):
         return f(*args)
     try:
         return f(*args)
-    except TypeError:
+    except TypeError, e:
         # NOTE: TypeErrors resulting from bugs in the core code will be
         # erroneously caught here! TODO: check depth of TypeError stack
-        raise TypeError('\n\nUSAGE:\n' + f.__doc__)
+        raise TypeError(e.message + '\n\nUSAGE:\n' + f.__doc__)
     except DiffcalcException, e:
         # TODO: log and create a new one to shorten stack trace for user
         raise DiffcalcException(e.message)
