@@ -80,12 +80,12 @@ class YouReference(object):
             lines.append("   n_hkl:".ljust(WIDTH) + self._pretty_vector(self.n_hkl) + nhkl_label)
             rotation_axis = cross3(matrix('0; 0; 1'), self.n_phi)
             if abs(norm(rotation_axis)) < SMALL:
-                lines.append("   miscut:".ljust(WIDTH) + "  None")
+                lines.append("   normal:".ljust(WIDTH) + "  None")
             else:
                 rotation_axis = rotation_axis * (1 / norm(rotation_axis))
                 cos_rotation_angle = dot3(matrix('0; 0; 1'), self.n_phi)
                 rotation_angle = acos(cos_rotation_angle)
-                lines.append("   miscut:")
+                lines.append("   normal:")
                 lines.append("      angle:".ljust(WIDTH) + "% 9.5f" % (rotation_angle * TODEG))
                 lines.append("      axis:".ljust(WIDTH) + self._pretty_vector(rotation_axis))
  

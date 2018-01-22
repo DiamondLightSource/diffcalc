@@ -240,12 +240,13 @@ class UBCalculation:
         y = matrix('0; 0; 1')
         rotation_axis = cross3(y, self.U * y)
         if abs(norm(rotation_axis)) < SMALL:
-            lines.append("   U angle:".ljust(WIDTH) + "  0")
+            lines.append("   miscut angle:".ljust(WIDTH) + "  0")
         else:
             rotation_axis = rotation_axis * (1 / norm(rotation_axis))
             cos_rotation_angle = dot3(y, self.U * y)
             rotation_angle = acos(cos_rotation_angle)
 
+            lines.append("   miscut:")
             lines.append("      angle:".ljust(WIDTH) + "% 9.5f" % (rotation_angle * TODEG))
             lines.append("       axis:".ljust(WIDTH) + fmt % tuple((rotation_axis.T).tolist()[0]))
  
