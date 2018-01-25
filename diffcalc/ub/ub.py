@@ -283,12 +283,12 @@ def addref(*args):
                                           " Return to accept default!")
                     return
                 positionList.append(val)
-            energy = promptForNumber('energy', settings.hardware.get_energy())  # @UndefinedVariable
+            muliplier = settings.hardware.energyScannableMultiplierToGetKeV  # @UndefinedVariable
+            energy = promptForNumber('energy', settings.hardware.get_energy() / muliplier)  # @UndefinedVariable
             if val is None:
                 _handleInputError("Please enter a number, or press "
                                       "Return to accept default!")
                 return
-            muliplier = settings.hardware.energyScannableMultiplierToGetKeV  # @UndefinedVariable
             energy = energy * muliplier
         tag = promptForInput("tag")
         if tag == '':
@@ -353,12 +353,13 @@ def editref(num):
                                       "Return to accept default!")
                 return
             positionList.append(val)
-        energy = promptForNumber('energy', oldEnergy)
+        muliplier = settings.hardware.energyScannableMultiplierToGetKeV  # @UndefinedVariable
+        energy = promptForNumber('energy', oldEnergy / muliplier)
         if val is None:
             _handleInputError("Please enter a number, or press Return "
                                   "to accept default!")
             return
-        energy = energy * settings.hardware.energyScannableMultiplierToGetKeV  # @UndefinedVariable
+        energy = energy * muliplier
     tag = promptForInput("tag", oldTag)
     if tag == '':
         tag = None
