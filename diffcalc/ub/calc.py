@@ -413,14 +413,14 @@ class UBCalculation:
     def del_reflection(self, reflectionNumber):
         self._state.reflist.removeReflection(reflectionNumber)
         if ((reflectionNumber == 1 or reflectionNumber == 2) and
-            (self._U != None)):
+            (self._U is not None)):
             self._autocalculateUbAndReport()
         self.save()
 
     def swap_reflections(self, num1, num2):
         self._state.reflist.swap_reflections(num1, num2)
         if ((num1 == 1 or num1 == 2 or num2 == 1 or num2 == 2) and
-            (self._U != None)):
+            (self._U is not None)):
             self._autocalculateUbAndReport()
         self.save()
 
@@ -478,14 +478,14 @@ class UBCalculation:
 
     def del_orientation(self, orientationNumber):
         self._state.orientlist.removeOrientation(orientationNumber)
-        if ((orientationNumber == 2) and (self._U != None)):
+        if ((orientationNumber == 2) and (self._U is not None)):
             self._autocalculateOrientationUbAndReport()
         self.save()
 
     def swap_orientations(self, num1, num2):
         self._state.orientlist.swap_orientations(num1, num2)
         if ((num1 == 2 or num2 == 2) and
-            (self._U != None)):
+            (self._U is not None)):
             self._autocalculateOrientationUbAndReport()
         self.save()
 
