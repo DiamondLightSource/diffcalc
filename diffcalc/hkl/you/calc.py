@@ -744,9 +744,6 @@ class YouHklCalculator(HklCalculatorBase):
                                       q_lab, n_lab, q_phi, n_phi):
         """Return phi, chi, eta and mu, given one of these"""
         #                                                         (section 5.3)
-        # TODO: Sould return a valid solution, rather than just one that can
-        # be mapped to a correct solution by applying +-x and 180+-x mappings?
-
 
         N_lab = _calc_N(q_lab, n_lab)
         N_phi = _calc_N(q_phi, n_phi)
@@ -876,7 +873,7 @@ class YouHklCalculator(HklCalculatorBase):
             try:
                 two_mu_qaz_pairs = _mu_and_qaz_from_eta_chi_phi(eta_, chi_, phi_, theta, h_phi)
             except AssertionError:
-               return
+                return
         else:
             raise DiffcalcException(
                 'No code yet to handle this combination of 3 sample constraints!')
@@ -892,8 +889,30 @@ class YouHklCalculator(HklCalculatorBase):
         """Available combinations:
         chi, phi, reference
         mu, eta, reference,
-        chi=90, mu=0, reference
+        chi, eta, reference
+        chi, mu, reference
         """
+
+        def __get_phi_and_qaz(chi, eta, mu):
+            a = sin(chi) * cos(eta)
+            b = sin(chi) * sin(eta) * sin(mu) - cos(chi) * cos(mu)
+            #atan2_xi = atan2(V[2, 2] * a + V[2, 0] * b,
+            #           V[2, 0] * a - V[2, 2] * b)                        # (54)
+            qaz = atan2(V[2, 0] * a - V[2, 2] * b,
+                       -V[2, 2] * a - V[2, 0] * b)                        # (54)
+    
+            a = sin(chi) * sin(mu) - cos(mu) * cos(chi) * sin(eta)
+            b = cos(mu) * cos(eta)
+            phi = atan2(V[1, 1] * a - V[0, 1] * b,
+                        V[0, 1] * a + V[1, 1] * b)                       # (55)
+    #        if is_small(mu+pi/2) and is_small(eta) and False:
+    #            phi_general = phi
+    #            # solved in extensions_to_yous_paper.wxm
+    #            phi = atan2(V[1, 1], V[0, 1])
+    #            logger.info("phi = %.3f or %.3f (std)",
+    #                        phi*TODEG, phi_general*TODEG )
+    
+            return qaz, phi
 
         N_phi = _calc_N(q_phi, n_phi)
         THETA = z_rotation(-theta)
@@ -950,24 +969,28 @@ class YouHklCalculator(HklCalculatorBase):
             #    chi = chi_orig
 
             for chi in chi_vals:
-                a = sin(chi) * cos(eta)
-                b = sin(chi) * sin(eta) * sin(mu) - cos(chi) * cos(mu)
-                #atan2_xi = atan2(V[2, 2] * a + V[2, 0] * b,
-                #           V[2, 0] * a - V[2, 2] * b)                        # (54)
-                qaz = atan2(V[2, 0] * a - V[2, 2] * b,
-                           -V[2, 2] * a - V[2, 0] * b)                        # (54)
-    
-                a = sin(chi) * sin(mu) - cos(mu) * cos(chi) * sin(eta)
-                b = cos(mu) * cos(eta)
-                phi = atan2(V[1, 1] * a - V[0, 1] * b,
-                            V[0, 1] * a + V[1, 1] * b)                       # (55)
-    #            if is_small(mu+pi/2) and is_small(eta) and False:
-    #                phi_general = phi
-    #                # solved in extensions_to_yous_paper.wxm
-    #                phi = atan2(V[1, 1], V[0, 1])
-    #                logger.info("phi = %.3f or %.3f (std)",
-    #                            phi*TODEG, phi_general*TODEG )
-    
+                qaz, phi = __get_phi_and_qaz(chi, eta, mu)
+                yield qaz, psi, mu, eta, chi, phi
+
+        elif 'chi' in samp_constraints and 'eta' in samp_constraints:
+
+            chi = samp_constraints['chi']
+            eta = samp_constraints['eta']
+
+            V = N_phi * PSI.T * THETA.T                                  # (49)
+            try:
+                bot = bound(-V[2, 1] / sqrt(sin(eta) ** 2 * sin(chi) ** 2 + cos(chi) ** 2))
+            except AssertionError:
+                return
+            if is_small(cos(chi)):
+                eps = atan2(cos(chi), sin(chi) * sin(eta))
+                mu_vals = [eps + acos(bot), eps - acos(bot)]
+            else:
+                eps = atan2(sin(chi) * sin(eta), cos(chi))
+                mu_vals = [asin(bot) - eps, pi - asin(bot) - eps]       # (52)
+
+            for mu in mu_vals:
+                qaz, phi = __get_phi_and_qaz(chi, eta, mu)
                 yield qaz, psi, mu, eta, chi, phi
 
         elif 'chi' in samp_constraints and 'mu' in samp_constraints:
@@ -983,17 +1006,7 @@ class YouHklCalculator(HklCalculatorBase):
                 return
 
             for eta in [asin_eta, pi - asin_eta]:
-                a = sin(chi) * cos(eta)
-                b = sin(chi) * sin(eta) * sin(mu) - cos(chi) * cos(mu)
-                #atan2_xi = atan2(V[2, 2] * a + V[2, 0] * b,
-                #           V[2, 0] * a - V[2, 2] * b)                        # (54)
-                qaz = atan2(V[2, 0] * a - V[2, 2] * b,
-                           -V[2, 2] * a - V[2, 0] * b)                        # (54)
-    
-                a = sin(chi) * sin(mu) - cos(mu) * cos(chi) * sin(eta)
-                b = cos(mu) * cos(eta)
-                phi = atan2(V[1, 1] * a - V[0, 1] * b,
-                            V[0, 1] * a + V[1, 1] * b)                       # (55)
+                qaz, phi = __get_phi_and_qaz(chi, eta, mu)
                 yield qaz, psi, mu, eta, chi, phi
 
         else:

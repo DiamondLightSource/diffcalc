@@ -239,8 +239,9 @@ class YouConstraintManager(object):
 
         if len(self.reference) == 1:
             return (set(self.sample.keys()) == set(['chi', 'phi']) or
-                    set(self.sample.keys()) == set(['mu', 'eta']) or
-                    set(self.sample.keys()) == set(['mu', 'chi']))
+                    set(self.sample.keys()) == set(['chi', 'eta']) or
+                    set(self.sample.keys()) == set(['chi', 'mu']) or
+                    set(self.sample.keys()) == set(['mu', 'eta']))
         
         if len(self.detector) == 1:
             return (set(self.sample.keys()) == set(['chi', 'phi']) or

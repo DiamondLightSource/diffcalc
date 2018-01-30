@@ -58,8 +58,9 @@ def con(*args):
         1 x samp:              all 80 of 80
 
         2 x samp and 1 x ref:  chi & phi
-                               mu & eta
-                               chi & mu (3 of 6)
+                               chi & eta
+                               chi & mu
+                               mu & eta (4 of 6)
 
         2 x samp and 1 x det:  chi & phi
                                mu & eta
