@@ -44,7 +44,7 @@ TODEG = 180 / pi
 
 class TestSixCirclePlugin(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.geometry = SixCircleGeometry()
 
     def testGetName(self):
@@ -76,7 +76,7 @@ class TestSixCirclePlugin(object):
 
 class TestSixCircleGammaOnArmGeometry(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.geometry = SixCircleGammaOnArmGeometry()
 
     def testGetName(self):
@@ -186,7 +186,7 @@ def test_generator_for_cases():
 
 class TestFiveCirclePlugin(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.geometry = Fivec()
 
     def testGetName(self):
@@ -218,7 +218,7 @@ class TestFiveCirclePlugin(object):
 
 class TestFourCirclePlugin(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.geometry = Fourc()
 
     def testGetName(self):

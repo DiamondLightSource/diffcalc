@@ -16,6 +16,8 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+from __future__ import with_statement
+
 from nose.tools import eq_
 import unittest
 
@@ -34,7 +36,7 @@ import pytest
 
 class TestVliegPositionTransformer(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         names = 'a', 'd', 'g', 'o', 'c', 'phi'
         self.hardware = DummyHardwareAdapter(names)
         self.geometry = SixCircleGammaOnArmGeometry()
@@ -185,7 +187,7 @@ class MockLimitChecker(object):
 
 class TestVliegTransformSelector(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.limitChecker = MockLimitChecker()
         self.ss = VliegTransformSelector()
         self.ss.limitCheckerFunction = self.limitChecker.isPoswithiLimits
@@ -267,7 +269,7 @@ class TestVliegTransformSelector(object):
 
 class TestSectorSelectorAutoCode(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.limitChecker = MockLimitChecker()
         self.ss = VliegTransformSelector()
         self.ss.limitCheckerFunction = self.limitChecker.isDeltaNegative
@@ -412,7 +414,7 @@ class TestSectorSelectorAutoCode(object):
 
 class TestTransforms(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.limitCheckerFunction = Mock()
         self.ss = VliegTransformSelector()
         self.ss.limitCheckerFunction = self.limitCheckerFunction

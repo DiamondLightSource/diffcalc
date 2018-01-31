@@ -35,7 +35,7 @@ class NoneReturningSingleFieldDummyScannable(SingleFieldDummyScannable):
 
 class TestPos(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.dummyMainNamespace = namespace = {}
         namespace['notAScannable'] = 3.124
         namespace['scnA'] = SingleFieldDummyScannable('scnA')
@@ -85,7 +85,7 @@ class TestPos(object):
 
 class TestScan(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.scan = Scan([ScanDataPrinter()])
 
     def test__parseScanArgsIntoScannableArgGroups(self):

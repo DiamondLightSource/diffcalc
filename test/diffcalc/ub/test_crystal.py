@@ -30,7 +30,7 @@ from test.diffcalc import scenarios
 
 class TestCrystalUnderTest(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.tclatt = []
         self.tcbmat = []
 

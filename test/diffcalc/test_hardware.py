@@ -16,6 +16,8 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+from __future__ import with_statement
+
 import unittest
 from diffcalc import settings
 import pytest
@@ -48,7 +50,7 @@ class SimpleHardwareAdapter(HardwareAdapter):
 
 class TestHardwareAdapterBase(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.hardware = SimpleHardwareAdapter(['a', 'b', 'c'])
 
     def test__init__Andget_axes_names(self):
@@ -154,7 +156,7 @@ class TestHardwareAdapterBase(object):
 
 class TestHardwareCommands():
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.hardware = SimpleHardwareAdapter(['a', 'b', 'c'])
         settings.hardware = self.hardware
         from diffcalc import hardware
@@ -186,7 +188,7 @@ class TestHardwareCommands():
 
 class TestDummyHardwareAdapter(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.hardware = DummyHardwareAdapter(
             ['alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'])
 
@@ -222,7 +224,7 @@ def createDummyAxes(names):
 
 class TestGdaHardwareMonitor(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         dummy = createDummyAxes(['a', 'b', 'c', 'd', 'e', 'f'])
         self.grp = ScannableGroup('grp', dummy)
         self.diffhw = DiffractometerScannableGroup('sixc', MockDiffcalc(6),

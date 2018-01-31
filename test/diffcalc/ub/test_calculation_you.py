@@ -64,7 +64,7 @@ class TestUBCalculationWithYouStrategy():
     """Testing the math only here.
     """
 
-    def setup_method(self):
+    def setup_method(self, method):
         geometry = SixCircle()  # pass through
         hardware = Mock()
         names = 'm', 'd', 'n', 'e', 'c', 'p'

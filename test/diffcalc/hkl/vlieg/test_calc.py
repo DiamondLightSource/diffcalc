@@ -16,6 +16,8 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+from __future__ import with_statement
+
 import random
 import unittest
 from math import pi
@@ -68,7 +70,7 @@ def createMockDiffractometerGeometry():
 
 class TestVliegCoreMathBits(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.many = [-91, -90, -89, -46, -45, -44, -1,
                      0, 1, 44, 45, 46, 89, 90, 91]
         self.many = (self.many +
@@ -149,7 +151,7 @@ class BaseTestHklCalculator():
     def setSessionAndCalculation(self):
         raise Exception("Abstract")
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.ac = VliegHklCalculator(None, createMockDiffractometerGeometry(),
                                      createMockHardwareMonitor())
         self.ac.raiseExceptionsIfAnglesDoNotMapBackToHkl = True

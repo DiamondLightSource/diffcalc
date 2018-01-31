@@ -17,7 +17,6 @@
 ###
 
 from math import pi, sin, cos, acos, asin, atan2, sqrt
-from itertools import product
 
 try:
     from numpy import matrix
@@ -239,10 +238,9 @@ class YouHklCalculator(HklCalculatorBase):
         sin_beta = 2 * sin(theta) * cos(tau) - sin(alpha)
         beta = asin(bound(sin_beta))                                     # (24)
 
-        psi = next(self._calc_psi(alpha, theta, tau, qaz, naz))
-
-        return {'theta': theta, 'qaz': qaz, 'alpha': alpha,
-                'naz': naz, 'tau': tau, 'psi': psi, 'beta': beta}
+        for psi in self._calc_psi(alpha, theta, tau, qaz, naz):
+            return {'theta': theta, 'qaz': qaz, 'alpha': alpha,
+                    'naz': naz, 'tau': tau, 'psi': psi, 'beta': beta}
 
 
     def _choose_single_solution(self, pos_virtual_angles_pairs_in_degrees):
@@ -409,7 +407,7 @@ class YouHklCalculator(HklCalculatorBase):
             raise DiffcalcException('No solutions were found. '
                 'Please consider using an alternative set of constraints.')
 
-        tidy_solutions = [_tidy_degenerate_solutions(YouPosition(*pos, unit='RAD'),
+        tidy_solutions = [_tidy_degenerate_solutions(YouPosition(*pos, **{'unit': 'RAD'}),
                                                      self.constraints).totuple() for pos in solution_tuples]
         merged_solution_tuples = set(self._filter_angle_limits(tidy_solutions,
                                                       ['mu', 'delta', NUNAME, 'eta', 'chi', 'phi'],
@@ -438,7 +436,7 @@ class YouHklCalculator(HklCalculatorBase):
         position_pseudo_angles_pairs = []
         for pos in merged_solution_tuples:
             # Create position
-            position = YouPosition(*pos, unit='RAD')
+            position = YouPosition(*pos, **{'unit': 'RAD'})
             #position = _tidy_degenerate_solutions(position, self.constraints)
             #if position.phi <= -pi + SMALL:
             #    position.phi += 2 * pi
@@ -639,11 +637,12 @@ class YouHklCalculator(HklCalculatorBase):
                 nu_angles = [0.,]
             else:
                 nu_angles = [acos_nu, -acos_nu]
-            for qaz, nu in product(qaz_angles, nu_angles):
-                sgn_ref = sign(sin_2theta) * sign(cos(qaz))
-                sgn_ratio = sign(sin(nu)) * sign(cos_delta)
-                if sgn_ref == sgn_ratio:
-                    yield delta, nu, qaz
+            for qaz in qaz_angles:
+                for nu in nu_angles:
+                    sgn_ref = sign(sin_2theta) * sign(cos(qaz))
+                    sgn_ratio = sign(sin(nu)) * sign(cos_delta)
+                    if sgn_ref == sgn_ratio:
+                        yield delta, nu, qaz
 
         elif constraint_name == NUNAME:
             nu = constraint_value
@@ -667,11 +666,12 @@ class YouHklCalculator(HklCalculatorBase):
                 delta_angles = [0.,]
             else:
                 delta_angles = [acos_delta, -acos_delta]
-            for qaz, delta in product(qaz_angles, delta_angles):
-                sgn_ref = sign(sin(delta))
-                sgn_ratio = sign(sin(qaz)) * sign(sin_2theta)
-                if sgn_ref == sgn_ratio:
-                    yield delta, nu, qaz
+            for qaz in qaz_angles:
+                for delta in delta_angles:
+                    sgn_ref = sign(sin(delta))
+                    sgn_ratio = sign(sin(qaz)) * sign(sin_2theta)
+                    if sgn_ref == sgn_ratio:
+                        yield delta, nu, qaz
 
         elif constraint_name == 'qaz':
             qaz = constraint_value
@@ -824,40 +824,41 @@ class YouHklCalculator(HklCalculatorBase):
                 all_eta = [acos_eta, -acos_eta]
                 all_chi = [chi,]
 
-            for chi, eta in product(all_chi, all_eta):
-                top_for_mu = Z[2, 2] * sin(eta) * sin(chi) + Z[1, 2] * cos(chi)
-                bot_for_mu = -Z[2, 2] * cos(chi) + Z[1, 2] * sin(eta) * sin(chi)
-                if is_small(top_for_mu) and is_small(bot_for_mu):
-                    # chi == +-90, eta == 0/180 and therefore phi || mu cos(chi) ==
-                    # 0 and sin(eta) == 0 Experience shows that even though e.g.
-                    # the z[2, 2] and z[1, 2] values used to calculate mu may be
-                    # basically 0 (1e-34) their ratio in every case tested so far
-                    # still remains valid and using them will result in a phi
-                    # solution that is continuous with neighbouring positions.
-                    #
-                    # We cannot test phi minus mu here unfortunately as the final
-                    # phi and mu solutions have not yet been chosen (they may be
-                    # +-x or 180+-x). Otherwise we could choose a sensible solution
-                    # here if the one found was incorrect.
-
-                    # tan(phi+eta)=v12/v11 from extensions_to_yous_paper.wxm
-                    phi_minus_mu = -atan2(Z[2, 0], Z[1, 1])
-                    logger.debug(
-                        'Mu and phi cannot be chosen uniquely with chi so close '
-                        'to +/-90 and eta so close 0 or 180.\n After the final '
-                        'solution has been chose phi-mu should equal: %.3f',
-                        phi_minus_mu * TODEG)
-                mu = atan2(-top_for_mu, -bot_for_mu)                         # (41)
-
-                top_for_phi = Z[0, 1] * cos(eta) * cos(chi) - Z[0, 0] * sin(eta)
-                bot_for_phi = Z[0, 1] * sin(eta) + Z[0, 0] * cos(eta) * cos(chi)
-                phi = atan2(top_for_phi, bot_for_phi)                        # (42)
-    #            if is_small(bot_for_phi) and is_small(top_for_phi):
-    #                raise DiffcalcException(
-    #                    'phi=%.3f cannot be known with confidence as top and '
-    #                    'bottom are both close to zero. chi=%.3f, eta=%.3f'
-    #                    % (mu * TODEG, chi * TODEG, eta * TODEG))
-                yield mu, eta, chi, phi
+            for chi in all_chi:
+                for eta in all_eta:
+                    top_for_mu = Z[2, 2] * sin(eta) * sin(chi) + Z[1, 2] * cos(chi)
+                    bot_for_mu = -Z[2, 2] * cos(chi) + Z[1, 2] * sin(eta) * sin(chi)
+                    if is_small(top_for_mu) and is_small(bot_for_mu):
+                        # chi == +-90, eta == 0/180 and therefore phi || mu cos(chi) ==
+                        # 0 and sin(eta) == 0 Experience shows that even though e.g.
+                        # the z[2, 2] and z[1, 2] values used to calculate mu may be
+                        # basically 0 (1e-34) their ratio in every case tested so far
+                        # still remains valid and using them will result in a phi
+                        # solution that is continuous with neighbouring positions.
+                        #
+                        # We cannot test phi minus mu here unfortunately as the final
+                        # phi and mu solutions have not yet been chosen (they may be
+                        # +-x or 180+-x). Otherwise we could choose a sensible solution
+                        # here if the one found was incorrect.
+    
+                        # tan(phi+eta)=v12/v11 from extensions_to_yous_paper.wxm
+                        phi_minus_mu = -atan2(Z[2, 0], Z[1, 1])
+                        logger.debug(
+                            'Mu and phi cannot be chosen uniquely with chi so close '
+                            'to +/-90 and eta so close 0 or 180.\n After the final '
+                            'solution has been chose phi-mu should equal: %.3f',
+                            phi_minus_mu * TODEG)
+                    mu = atan2(-top_for_mu, -bot_for_mu)                         # (41)
+    
+                    top_for_phi = Z[0, 1] * cos(eta) * cos(chi) - Z[0, 0] * sin(eta)
+                    bot_for_phi = Z[0, 1] * sin(eta) + Z[0, 0] * cos(eta) * cos(chi)
+                    phi = atan2(top_for_phi, bot_for_phi)                        # (42)
+        #            if is_small(bot_for_phi) and is_small(top_for_phi):
+        #                raise DiffcalcException(
+        #                    'phi=%.3f cannot be known with confidence as top and '
+        #                    'bottom are both close to zero. chi=%.3f, eta=%.3f'
+        #                    % (mu * TODEG, chi * TODEG, eta * TODEG))
+                    yield mu, eta, chi, phi
 
         else:
             raise DiffcalcException('Given angle must be one of phi, chi, eta or mu')

@@ -16,6 +16,8 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+from __future__ import with_statement
+
 import mock
 import nose
 import unittest
@@ -59,7 +61,7 @@ class Popper:
 
 class TestHkl(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.mock_dc_module = mock.Mock()
         self.mockSixc = mock.Mock(spec=DiffractometerScannableGroup)
         self.hkl = Hkl('hkl', self.mockSixc, self.mock_dc_module)
@@ -169,8 +171,8 @@ class TestHkl(object):
 
 
 class TestHklReturningVirtualangles(TestHkl):
-    def setup_method(self):
-        TestHkl.setup_method(self)
+    def setup_method(self, method):
+        TestHkl.setup_method(self, method)
         self.hkl = Hkl('hkl', self.mockSixc, self.mock_dc_module,
                        ['theta', '2theta', 'Bin', 'Bout', 'azimuth'])
 
@@ -186,7 +188,7 @@ class TestHklReturningVirtualangles(TestHkl):
 
 
 class TestHklWithFailingAngleCalculator(object):
-    def setup_method(self):
+    def setup_method(self, method):
         class BadMockAngleCalculator:
             def angles_to_hkl(self, pos):
                 raise Exception("Problem in angles_to_hkl")

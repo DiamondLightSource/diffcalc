@@ -192,7 +192,7 @@ def c2th(hkl, en=None):
             'the plane distance (%f)' % (wl, d))
     try:
         return 2.0 * asin(wl / (d * 2)) * TODEG
-    except ValueError as e:
+    except ValueError, e:
         raise ValueError('asin(wl / (d * 2) with wl=%f and d=%f: ' %(wl, d) + e.args[0])
     
 

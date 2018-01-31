@@ -46,9 +46,9 @@ I = matrix('1 0 0; 0 1 0; 0 0 1')
 
 class SkipTestSurfaceNormalVerticalCubic(_BaseTest):
 
-    def setup_method(self):
+    def setup_method(self, method):
 
-        _BaseTest.setup_method(self)
+        _BaseTest.setup_method(self, method)
         self.constraints._constrained = {'a_eq_b': None, 'mu': -pi / 2,
                                          'eta': 0}
         self.wavelength = 1
@@ -150,7 +150,7 @@ def willmott_to_you_fixed_mu_eta(pos):
 
 class TestUBCalculationWithWillmotStrategy_Si_5_5_12_FixedMuEta():
 
-    def setup_method(self):
+    def setup_method(self, method):
 
         hardware = Mock()
         hardware.get_axes_names.return_value = ('m', 'd', 'n', 'e', 'c',
@@ -176,8 +176,8 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12_FixedMuEta():
 
 class TestFixedMuEta(_BaseTest):
 
-    def setup_method(self):
-        _BaseTest.setup_method(self)
+    def setup_method(self, method):
+        _BaseTest.setup_method(self, method)
         self._configure_constraints()
         self.wavelength = 0.6358
         B = CrystalUnderTest('xtal', 7.68, 53.48,
@@ -289,7 +289,7 @@ def willmott_to_you_fixed_mu_chi(pos):
 
 class TestUBCalculationWithWillmotStrategy_Si_5_5_12_FixedMuChi():
 
-    def setup_method(self):
+    def setup_method(self, method):
 
         hardware = Mock()
         names = 'm', 'd', 'n', 'e', 'c', 'p'
@@ -356,7 +356,7 @@ Pt531_U_DIFFCALC = matrix([[-0.0023763, -0.9999970, -0.0006416],
 
 class TestUBCalculationWithYouStrategy_Pt531_FixedMuChi():
 
-    def setup_method(self):
+    def setup_method(self, method):
 
         hardware = Mock()
         names = 'm', 'd', 'n', 'e', 'c', 'p'
@@ -385,8 +385,8 @@ class TestUBCalculationWithYouStrategy_Pt531_FixedMuChi():
 
 class Test_Pt531_FixedMuChi(_BaseTest):
 
-    def setup_method(self):
-        _BaseTest.setup_method(self)
+    def setup_method(self, method):
+        _BaseTest.setup_method(self, method)
         self._configure_constraints()
         self.wavelength = Pt531_WAVELENGTH
         CUT = CrystalUnderTest('Pt531', 6.204, 4.806, 23.215, 90, 90, 49.8)

@@ -1,4 +1,3 @@
-from nose.tools import assert_sequence_equal  # @UnresolvedImport
 from nose.tools import eq_
 from nose import SkipTest
 
@@ -38,6 +37,7 @@ d = {
        
          
 def check(s, *expected):
+    from nose.tools import assert_sequence_equal  # @UnresolvedImport
     assert_sequence_equal(parse(s, d), expected)    
 
 
@@ -45,7 +45,7 @@ def assert_raises_syntax_error_with_message(msg, func, *args, **kwargs):
     try:
         func(*args, **kwargs)
         raise AssertionError()
-    except SyntaxError as e:
+    except SyntaxError, e:
         eq_(e.message, msg)
 
 

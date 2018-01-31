@@ -16,6 +16,8 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+from __future__ import with_statement
+
 import unittest
 
 from diffcalc.hkl.vlieg.constraints import ModeSelector, VliegParameterManager
@@ -27,7 +29,7 @@ import pytest
 
 class TestModeSelector(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
 
         self.ms = ModeSelector(createMockDiffractometerGeometry(),
                                parameterManager=None)
@@ -51,7 +53,7 @@ class TestModeSelector(object):
 
 class TestParameterManager(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.hw = createMockHardwareMonitor()
         self.ms = ModeSelector(createMockDiffractometerGeometry())
         self.pm = VliegParameterManager(createMockDiffractometerGeometry(),

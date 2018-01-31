@@ -25,7 +25,7 @@ import unittest
 
 class TestReflectionList(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self._geometry = SixCircleGammaOnArmGeometry()
         self.reflist = ReflectionList(self._geometry,
                                       ['a', 'd', 'g', 'o', 'c', 'p'])

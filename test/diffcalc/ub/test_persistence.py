@@ -43,7 +43,7 @@ def prepareEmptyGdaVarFolder():
 
 class TestUBCalculationNonPersister(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.persister = UbCalculationNonPersister()
 
     def testSaveAndLoad(self):
@@ -52,7 +52,7 @@ class TestUBCalculationNonPersister(object):
 
 class TestUBCalculationJSONPersister(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.tmpdir = tempfile.mkdtemp()
         print self.tmpdir
         self.persister = UBCalculationJSONPersister(self.tmpdir)

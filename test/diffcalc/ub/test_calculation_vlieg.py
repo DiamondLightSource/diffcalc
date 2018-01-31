@@ -43,7 +43,7 @@ TORAD = pi / 180
 
 class TestUBCalculationWithSixCircleGammaOnArm(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.geometry = SixCircleGammaOnArmGeometry()
         mock_hardware = Mock()
         mock_hardware.get_axes_names.return_value = ('a', 'd', 'g', 'o', 'c', 'p')
@@ -82,7 +82,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(object):
         # Test the calculations with U=I
         U = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         for sess in scenarios.sessions():
-            self.setup_method()
+            self.setup_method(self.testset_U_manually)
             self.ubcalc.start_new('testcalc')
             self.ubcalc.set_lattice(sess.name, *sess.lattice)
             self.ubcalc.set_U_manually(U)
@@ -112,7 +112,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(object):
     def testCalculateU(self):
 
         for sess in scenarios.sessions():
-            self.setup_method()
+            self.setup_method(self.testCalculateU)
             self.ubcalc.start_new('testcalc')
             # Skip this test case unless it contains a umatrix
             if sess.umatrix is None:
@@ -190,7 +190,7 @@ ROT = 29
 
 class TestUBCalcWithCubic(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         print "TestUBCalcWithCubic.setup_method"
         hardware = Mock()
         hardware.get_axes_names.return_value = \

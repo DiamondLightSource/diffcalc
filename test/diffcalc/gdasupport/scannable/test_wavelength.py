@@ -27,7 +27,7 @@ except ImportError:
 
 class TestWavelength(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.en = DummyPD('en')
         self.wl = Wavelength('wl', self.en)
 

@@ -60,7 +60,7 @@ class MockSlaveScannableDriver(object):
 
 class TestDiffractometerScannableGroup(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.a = MockMotor()
         self.b = MockMotor()
         self.c = MockMotor()
@@ -113,8 +113,8 @@ class TestDiffractometerScannableGroup(object):
 class TestDiffractometerScannableGroupWithSlave(
     TestDiffractometerScannableGroup):
 
-    def setup_method(self):
-        TestDiffractometerScannableGroup.setup_method(self)
+    def setup_method(self, method):
+        TestDiffractometerScannableGroup.setup_method(self, method)
         self.mock_driver = Mock(spec=SlaveScannableDriver)
         self.mock_driver.getPositions.return_value = 90, 91
         self.mock_driver.isBusy.return_value = False
@@ -150,7 +150,7 @@ class TestDiffractometerScannableGroupWithSlave(
 
 class TestDiffractometerScannableGroupWithFailingAngleCalculator(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         class BadMockAngleCalculator:
             def angles_to_hkl(self, pos):
                 raise Exception("Problem")

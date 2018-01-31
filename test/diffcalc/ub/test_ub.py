@@ -16,6 +16,8 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+from __future__ import with_statement
+
 from nose.tools import eq_  # @UnresolvedImport
 import tempfile
 import os.path
@@ -56,7 +58,7 @@ from diffcalc.ub.persistence import UbCalculationNonPersister
 
 class TestUBCommandsBase():
 
-    def setup_method(self):
+    def setup_method(self, method):
         names = 'alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'
         self.hardware = DummyHardwareAdapter(names)
         _geometry = SixCircleGammaOnArmGeometry()
@@ -396,7 +398,7 @@ class TestUbCommands(TestUBCommandsBase):
     def testC2th(self):
         self.ub.newub('testcalcub')
         self.ub.setlat('cube', 1, 1, 1, 90, 90, 90)
-        assert self.ub.c2th((0, 0, 1)) == pytest.approx(60)
+        assert abs(self.ub.c2th((0, 0, 1)) - 60) < 1e-6
 
     def testSigtau(self):
         # sigtau [sig tau]

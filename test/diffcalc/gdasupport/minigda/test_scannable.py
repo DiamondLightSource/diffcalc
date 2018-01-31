@@ -32,7 +32,7 @@ from diffcalc.gdasupport.scannable.base import ScannableGroup
 
 class TestScannable(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.scannable = Scannable()
 
     def testSomethingUnrelated(self):
@@ -49,7 +49,7 @@ def createDummyAxes(names):
 
 class TestScannableGroup(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.a = MockMotor('a')
         self.b = MockMotor('bbb')
         self.c = MockMotor('c')

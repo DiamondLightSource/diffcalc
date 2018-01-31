@@ -54,7 +54,7 @@ class Pair:
 
 class _BaseTest(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.mock_ubcalc = createMockUbcalc(None)
         self.mock_geometry = createMockDiffractometerGeometry()
         names = ['delta', NUNAME, 'mu', 'eta', 'chi', 'phi']
@@ -123,15 +123,15 @@ class _BaseTest(object):
 
 class _TestCubic(_BaseTest):
 
-    def setup_method(self):
-        _BaseTest.setup_method(self)
+    def setup_method(self, method):
+        _BaseTest.setup_method(self, method)
         self.B = I * 2 * pi
 
 
 class _TestCubicVertical(_TestCubic):
 
-    def setup_method(self):
-        _TestCubic.setup_method(self)
+    def setup_method(self, method):
+        _TestCubic.setup_method(self, method)
 
     def makes_cases(self, zrot, yrot):
         self.zrot = zrot
@@ -205,16 +205,16 @@ class _TestCubicVertical(_TestCubic):
 
 class TestCubicVertical_aeqb(_TestCubicVertical):
 
-    def setup_method(self):
-        _TestCubicVertical.setup_method(self)
+    def setup_method(self, method):
+        _TestCubicVertical.setup_method(self, method)
         self.constraints._constrained = {'a_eq_b': None, 'mu': 0, NUNAME: 0}
 
 
 class TestCubicVertical_psi_90(_TestCubicVertical):
     '''mode psi=90 should be the same as mode a_eq_b'''
 
-    def setup_method(self):
-        _TestCubicVertical.setup_method(self)
+    def setup_method(self, method):
+        _TestCubicVertical.setup_method(self, method)
         self.constraints._constrained = {'psi': 90 * TORAD, 'mu': 0, NUNAME: 0}
 
     def test_hkl_to_angles_zrot1_yrotm2(self):
@@ -228,16 +228,16 @@ class TestCubicVertical_psi_90(_TestCubicVertical):
 class TestCubicVertical_qaz_90(_TestCubicVertical):
     '''mode psi=90 should be the same as mode a_eq_b'''
 
-    def setup_method(self):
-        _TestCubicVertical.setup_method(self)
+    def setup_method(self, method):
+        _TestCubicVertical.setup_method(self, method)
         self.constraints._constrained = {'a_eq_b': None, 'mu': 0,
                                          'qaz': 90 * TORAD}
 
 
 class TestCubicVertical_ChiPhiMode(_TestCubic):
 
-    def setup_method(self):
-        _TestCubic.setup_method(self)
+    def setup_method(self, method):
+        _TestCubic.setup_method(self, method)
         self.constraints._constrained = {NUNAME: 0, 'chi': 90. * TORAD, 'phi': 0.}
         self.mock_hardware.set_lower_limit('mu', -180.)
         self.mock_hardware.set_lower_limit('eta', -180.)
@@ -279,8 +279,8 @@ class TestCubicVertical_ChiPhiMode(_TestCubic):
 
 class TestCubic_FixedPhiMode(_TestCubic):
 
-    def setup_method(self):
-        _TestCubic.setup_method(self)
+    def setup_method(self, method):
+        _TestCubic.setup_method(self, method)
         self.constraints._constrained = {'mu': 0, NUNAME: 0, 'phi': 0}
         self.mock_hardware.set_upper_limit('chi', 180.)
         self.mock_hardware.set_lower_limit('chi', -180.)
@@ -326,8 +326,8 @@ class TestCubic_FixedPhiMode(_TestCubic):
 
 class TestCubic_FixedPhi30Mode(_TestCubic):
 
-    def setup_method(self):
-        _TestCubic.setup_method(self)
+    def setup_method(self, method):
+        _TestCubic.setup_method(self, method)
         self.constraints._constrained = {'mu': 0, NUNAME: 0, 'phi': 30 * TORAD}
         self.mock_hardware.set_upper_limit('chi', 180.)
         self.mock_hardware.set_lower_limit('chi', -180.)
@@ -369,8 +369,8 @@ class TestCubic_FixedPhi30Mode(_TestCubic):
 
 class TestCubic_FixedPhiMode010(TestCubic_FixedPhiMode):
 
-    def setup_method(self):
-        TestCubic_FixedPhiMode.setup_method(self)
+    def setup_method(self, method):
+        TestCubic_FixedPhiMode.setup_method(self, method)
         self.constraints._constrained = {'mu': 0, NUNAME: 0, 'phi': 90 * TORAD}
 
     def makes_cases(self, zrot, yrot):
@@ -394,8 +394,8 @@ class TestCubic_FixedPhiMode010(TestCubic_FixedPhiMode):
 
 class TestCubicVertical_MuEtaMode(_TestCubic):
 
-    def setup_method(self):
-        _TestCubic.setup_method(self)
+    def setup_method(self, method):
+        _TestCubic.setup_method(self, method)
         self.constraints._constrained = {NUNAME: 0, 'mu': 90. * TORAD, 'eta': 0.}
         self.mock_hardware.set_lower_limit('chi', -180.)
 
@@ -440,8 +440,8 @@ class SkipTestYouHklCalculatorWithCubicMode_aeqb_delta_60(_TestCubicVertical):
     Skip all tests.
     '''
 
-    def setup_method(self):
-        _TestCubicVertical.setup_method(self)
+    def setup_method(self, method):
+        _TestCubicVertical.setup_method(self, method)
         self.constraints._constrained = {'a_eq_b': None, 'mu': 0,
                                          'delta': 60 * TORAD}
         self.places = 5
@@ -449,8 +449,8 @@ class SkipTestYouHklCalculatorWithCubicMode_aeqb_delta_60(_TestCubicVertical):
 
 class _TestCubicHorizontal(_TestCubic):
 
-    def setup_method(self):
-        _TestCubic.setup_method(self)
+    def setup_method(self, method):
+        _TestCubic.setup_method(self, method)
 
     def makes_cases(self, zrot, yrot):
         self.zrot = zrot
@@ -506,22 +506,22 @@ class _TestCubicHorizontal(_TestCubic):
 
 class TestCubicHorizontal_qaz0_aeqb(_TestCubicHorizontal):
 
-    def setup_method(self):
-        _TestCubicHorizontal.setup_method(self)
+    def setup_method(self, method):
+        _TestCubicHorizontal.setup_method(self, method)
         self.constraints._constrained = {'a_eq_b': None, 'qaz': 0, 'eta': 0}
 
 
 class TestCubicHorizontal_delta0_aeqb(_TestCubicHorizontal):
 
-    def setup_method(self):
-        _TestCubicHorizontal.setup_method(self)
+    def setup_method(self, method):
+        _TestCubicHorizontal.setup_method(self, method)
         self.constraints._constrained = {'a_eq_b': None, 'delta': 0, 'eta': 0}
 
 
 class TestAgainstSpecSixcB16_270608(_BaseTest):
     '''NOTE: copied from test.diffcalc.scenarios.session3'''
-    def setup_method(self):
-        _BaseTest.setup_method(self)
+    def setup_method(self, method):
+        _BaseTest.setup_method(self, method)
 
         U = matrix(((0.997161, -0.062217, 0.042420),
                     (0.062542, 0.998022, -0.006371),
@@ -585,8 +585,8 @@ class SkipTestThreeTwoCircleForDiamondI06andI10(_BaseTest):
     beamline.
     """
 
-    def setup_method(self):
-        _BaseTest.setup_method(self)
+    def setup_method(self, method):
+        _BaseTest.setup_method(self, method)
         self.constraints._constrained = {'phi': -pi / 2, NUNAME: 0, 'mu': 0}
         self.wavelength = 12.39842 / 1.650
 
@@ -628,8 +628,8 @@ class TestFixedChiPhiPsiMode_DiamondI07SurfaceNormalHorizontal(_TestCubic):
     The data here is taken from an experiment performed on Diamonds I07
     beamline, obtained using Vlieg's DIF software"""
 
-    def setup_method(self):
-        _TestCubic.setup_method(self)
+    def setup_method(self, method):
+        _TestCubic.setup_method(self, method)
         self.mock_hardware.set_lower_limit(NUNAME, 0)
         self.mock_hardware.set_upper_limit('delta', 90)
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'a_eq_b': None}
@@ -714,8 +714,8 @@ class TestFixedChiPhiPsiMode_DiamondI07SurfaceNormalHorizontal(_TestCubic):
 
 class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
 
-    def setup_method(self):
-        _TestCubic.setup_method(self)
+    def setup_method(self, method):
+        _TestCubic.setup_method(self, method)
         self.mock_hardware.set_lower_limit(NUNAME, 0)
         self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0,
                                          'a_eq_b': None}
@@ -800,8 +800,8 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
 class SkipTestFixedChiPhiPsiModeSurfaceNormalVerticalI16(_TestCubic):
     # testing with Chris N. for pre christmas 2012 i16 experiment
 
-    def setup_method(self):
-        _TestCubic.setup_method(self)
+    def setup_method(self, method):
+        _TestCubic.setup_method(self, method)
         self.mock_hardware.set_lower_limit('nu', 0)
         self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0,
                                          'a_eq_b': None}
@@ -847,8 +847,8 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVerticalI16(_TestCubic):
 
 class TestConstrain3Sample_ChiPhiEta(_TestCubic):
 
-    def setup_method(self):
-        _TestCubic.setup_method(self)
+    def setup_method(self, method):
+        _TestCubic.setup_method(self, method)
         self.mock_hardware.set_lower_limit(NUNAME, 0)
         self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0,
                                          'a_eq_b': None}
@@ -967,8 +967,8 @@ class TestHorizontalDeltaNadeta0_JiraI16_32_failure(_BaseTest):
     The data here is taken from a trial experiment which failed. Diamond's internal Jira: 
     http://jira.diamond.ac.uk/browse/I16-32"""
 
-    def setup_method(self):
-        _BaseTest.setup_method(self)
+    def setup_method(self, method):
+        _BaseTest.setup_method(self, method)
         self.mock_hardware.set_lower_limit(NUNAME, 0)
         
         self.wavelength = 12.39842 / 8
@@ -1052,8 +1052,8 @@ class TestAnglesToHkl_I16Examples():
 
 class TestAnglesToHkl_I16GaAsExample(_BaseTest):
 
-    def setup_method(self):
-        _BaseTest.setup_method(self)
+    def setup_method(self, method):
+        _BaseTest.setup_method(self, method)
 
         self.UB = matrix((
            (-0.78935,   0.78234,   0.01191),
@@ -1088,8 +1088,8 @@ class TestAnglesToHkl_I16GaAsExample(_BaseTest):
 
 class Test_I21ExamplesUB(_BaseTest):
     '''NOTE: copied from test.diffcalc.scenarios.session3'''
-    def setup_method(self):
-        _BaseTest.setup_method(self)
+    def setup_method(self, method):
+        _BaseTest.setup_method(self, method)
 
         U = matrix(((1.0,  0., 0.),
                     (0.0, 0.18479, -0.98275),

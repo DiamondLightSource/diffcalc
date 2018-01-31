@@ -26,7 +26,7 @@ from test.diffcalc.gdasupport.scannable.mockdiffcalc import \
 
 class TestDiffractionCalculatorParameter(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.dcp = DiffractionCalculatorParameter('dcp', 'betain',
                                                   MockParameterManager())
 

@@ -16,6 +16,8 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+from __future__ import with_statement
+
 import unittest
 from diffcalc import settings
 import pytest
@@ -70,7 +72,7 @@ class BaseTestDiffractionCalculatorWithData(object):
     def setSessionAndCalculation(self):
         raise Exception("Abstract")
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.geometry = SixCircleGammaOnArmGeometry()
         self.hardware = DummyHardwareAdapter(
             ('alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'))
@@ -124,9 +126,9 @@ class BaseTestDiffractionCalculatorWithData(object):
                    "%f %f %f "
                    % (s.name, c.tag, str(pos), hkl[0], hkl[1], hkl[2], h, k, l)
                    )
-            assert [h, k, l] == pytest.approx(hkl, abs=.001)
-#             self.assert_((abs(h - hkl[0]) < .001) & (abs(k - hkl[1]) < .001)
-#                          & (abs(l - hkl[2]) < .001), msg)
+#            assert [h, k, l] == pytest.approx(hkl, abs=.001)
+            assert (abs(h - hkl[0]) < .001) & (abs(k - hkl[1]) < .001) \
+                          & (abs(l - hkl[2]) < .001), msg
             # 2) specifying energy via hardware
             settings.hardware.energy = c.energy
             msg = ("wrong hkl calcualted for TestScenario=%s, "
@@ -134,7 +136,9 @@ class BaseTestDiffractionCalculatorWithData(object):
                    "  returned hkl=%f %f %f " %
                    (s.name, c.tag, str(pos), hkl[0], hkl[1], hkl[2], h, k, l))
             ((h, k, l), params) = self.dc.angles_to_hkl(pos.totuple())
-            assert [h, k, l] == pytest.approx(hkl, abs=.001)
+#            assert [h, k, l] == pytest.approx(hkl, abs=.001)
+            assert (abs(h - hkl[0]) < .001) & (abs(k - hkl[1]) < .001) \
+                          & (abs(l - hkl[2]) < .001), msg
             del params
 
     def test_hkl_to_angles(self):
@@ -309,9 +313,9 @@ class TestFourcBase(object):
         self.hkl = Hkl('hkl', self.fourc, self.dc)
 
 
-class SixCircleGammaOnArmTest(TestSixcBase):
+class TestSixCircleGammaOnArmTest(TestSixcBase):
 
-    def setup_method(self):
+    def setup_method(self, method):
         TestSixcBase.createDiffcalcAndScannables(self,
                                                  SixCircleGammaOnArmGeometry)
         self.hklverbose = Hkl('hkl', self.sixc, self.dc,
@@ -333,7 +337,7 @@ class SixCircleGammaOnArmTest(TestSixcBase):
         betain = DiffractionCalculatorParameter('betain', 'betain',
                                                 self.dc.parameter_manager)
         betain.asynchronousMoveTo(12.34)
-        self.assertEqual(betain.getPosition(), 12.34)
+        assert (abs(betain.getPosition() - 12.34) < .001)
 
     def mode(self, mode, alpha=0, gamma=0, betain=0, betaout=0, phi=0, sig=0,
              tau=0):
@@ -415,9 +419,9 @@ class SixCircleGammaOnArmTest(TestSixcBase):
         aneq_((15.4706, 22.0994, 1., -45.5521, 1.3500, 106.), self.sixc(), 4)
 
 
-class ZAxisGammaOnBaseTest(TestSixcBase):
+class TestZAxisGammaOnBaseTest(TestSixcBase):
 
-    def setup_method(self):
+    def setup_method(self, method):
         TestSixcBase.createDiffcalcAndScannables(self, SixCircleGeometry)
         self.hklverbose = Hkl('hkl', self.sixc, self.dc, ('Bout'))
         self.orient()
@@ -485,17 +489,17 @@ class ZAxisGammaOnBaseTest(TestSixcBase):
                       betaout=30, nu=-63.0210)
 
 
-class ZAxisGammaOnBaseIncludingNuRotationTest(ZAxisGammaOnBaseTest):
+class TestZAxisGammaOnBaseIncludingNuRotationTest(TestZAxisGammaOnBaseTest):
 
-    def setup_method(self):
-        ZAxisGammaOnBaseTest.setup_method(self)
+    def setup_method(self, method):
+        TestZAxisGammaOnBaseTest.setup_method(self, method)
         self.nu = DummyPD('nu')
         self.sixc.slaveScannableDriver = NuDriverForSixCirclePlugin(self.nu)
 
 
-class SixcGammaOnBaseTest(TestSixcBase):
+class TestSixcGammaOnBaseTest(TestSixcBase):
 
-    def setup_method(self):
+    def setup_method(self, method):
         TestSixcBase.createDiffcalcAndScannables(self, SixCircleGeometry)
         self.hklverbose = Hkl('hkl', self.sixc, self.dc, ('Bout'))
         self.orient()
@@ -536,9 +540,9 @@ class SixcGammaOnBaseTest(TestSixcBase):
         print "***"
 
 
-class FiveCircleTest(object):
+class TestFiveCircleTest(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.en = DummyPD('en')
         dummy = createDummyAxes(['alpha', 'delta', 'omega', 'chi', 'phi'])
         group = ScannableGroup('fivecgrp', dummy)
@@ -568,8 +572,8 @@ class FiveCircleTest(object):
         self.dc.checkub()
 
     def testSetGammaFails(self):
-        self.assertRaises(
-            DiffcalcException, self.dc.setpar, 'gamma', 9999)
+        with pytest.raises(DiffcalcException):
+            self.dc.setpar('gamma', 9999)
 
     def test1(self):
         self.dc.hklmode(1)
@@ -584,9 +588,9 @@ class FiveCircleTest(object):
         aneq_((5., 26.9296, 8.4916, 27.2563, 59.5855), self.fivec(), 4)
 
 
-class FourCircleTest(TestFourcBase):
+class TestFourCircleTest(TestFourcBase):
 
-    def setup_method(self):
+    def setup_method(self, method):
         TestFourcBase.createDiffcalcAndScannables(self)
         self.hklverbose = Hkl('hkl', self.fourc, self.dc,
                               ('theta', '2theta', 'Bin', 'Bout', 'azimuth'))
@@ -605,8 +609,8 @@ class FourCircleTest(TestFourcBase):
         self.dc.checkub()
 
     def testSetGammaFails(self):
-        self.assertRaises(
-            DiffcalcException, self.dc.setpar, 'gamma', 9999)
+        with pytest.raises(DiffcalcException):
+            self.dc.setpar('gamma', 9999)
 
     def test1(self):
         self.dc.hklmode(1)
@@ -615,9 +619,9 @@ class FourCircleTest(TestFourcBase):
                47.81491152277463), self.fourc(), 4)
 
 
-class FourCircleWithcubic(TestFourcBase):
+class TestFourCircleWithcubic(TestFourcBase):
 
-    def setup_method(self):
+    def setup_method(self, method):
         TestFourcBase.createDiffcalcAndScannables(self)
         self.hklverbose = Hkl('hkl', self.fourc, self.dc,
                               ('theta', '2theta', 'Bin', 'Bout', 'azimuth'))
@@ -673,9 +677,9 @@ class FourCircleWithcubic(TestFourcBase):
         #                           0.0000  -0.0000  -0.0000   0.0000  90.0000
 
 
-class FourCircleForI06Experiment(TestFourcBase):
+class TestFourCircleForI06Experiment(TestFourcBase):
 
-    def setup_method(self):
+    def setup_method(self, method):
         TestFourcBase.createDiffcalcAndScannables(self)
         self.hklverbose = Hkl('hkl', self.fourc, self.dc,
                               ('theta', '2theta', 'Bin', 'Bout', 'azimuth'))

@@ -18,7 +18,6 @@
 
 from math import pi
 import unittest
-from pytest import approx
 
 try:
     from numpy import matrix
@@ -49,7 +48,7 @@ class MockEquation(object):
 
 class TestSimulatedCrystalCounter(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.diff = MockScannable()
         self.wl = MockScannable()
         self.wl.pos = 1.
@@ -70,23 +69,28 @@ class TestSimulatedCrystalCounter(object):
     def testGetHkl(self):
         self.diff.pos = [60, 30, 0, 0]
         hkl = self.scc.getHkl()
-        assert hkl == approx((1, 0, 0))
+        assert (abs(hkl[0] - 1) < 1e-6) & (abs(hkl[1]) < 1e-6) \
+                    & (abs(hkl[2]) < 1e-6)
 
         self.diff.pos = [60, 31, 0, 0]
         hkl = self.scc.getHkl()
-        assert hkl == approx((0.999847695156391, 0.017452406437283574, 0))
+        assert (abs(hkl[0] - 0.999847695156391) < 1e-6) & \
+                (abs(hkl[1] - 0.017452406437283574) < 1e-6) & \
+                (abs(hkl[2]) < 1e-6)
 
     def testGetPosition(self):
         self.diff.pos = [60, 30, 0, 0]
         self.scc.asynchronousMoveTo(2)
         count = self.scc.getPosition()
-        assert self.eq.dHkl == approx((0, 0, 0))
+        assert (abs(self.eq.dHkl[0]) < 1e-6) & (abs(self.eq.dHkl[1]) < 1e-6) \
+                    & (abs(self.eq.dHkl[2]) < 1e-6)
         assert count == 2
 
         self.diff.pos = [60, 31, 0, 0]
         count = self.scc.getPosition()
         dHkl = (0.999847695156391 - 1, .017452406437283574, 0)
-        assert self.eq.dHkl == approx(dHkl)
+        assert (abs(self.eq.dHkl[0] - dHkl[0]) < 1e-6) & (abs(self.eq.dHkl[1] - dHkl[1]) < 1e-6) \
+                    & (abs(self.eq.dHkl[2] - dHkl[2]) < 1e-6)
         assert count == 2
 
     def test__repr__(self):
@@ -95,7 +99,7 @@ class TestSimulatedCrystalCounter(object):
 
 
 class TestGaussianEquation(object):
-    def setup_method(self):
+    def setup_method(self, method):
         self.eq = Gaussian(1.)
 
     def test__call__(self):

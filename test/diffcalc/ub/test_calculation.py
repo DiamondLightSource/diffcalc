@@ -52,7 +52,7 @@ class TestUBCalculationWithYouStrategy():
     """Testing the math only here.
     """
 
-    def setup_method(self):
+    def setup_method(self, method):
         
         self.tempdir = tempfile.mkdtemp()
 

@@ -16,6 +16,8 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+from __future__ import with_statement
+
 import unittest
 
 from mock import Mock
@@ -43,7 +45,7 @@ prepareRawInput([])
 
 class TestHklCommands(object):
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.geometry = SixCircleGammaOnArmGeometry()
         dummy = 'alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'
         self.hardware = DummyHardwareAdapter(dummy)

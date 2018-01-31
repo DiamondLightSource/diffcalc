@@ -47,7 +47,7 @@ TODEG = 180 / pi
 
 class _BaseTest():
 
-    def setup_method(self):
+    def setup_method(self, method):
         self.mock_ubcalc = createMockUbcalc(None)
         self.mock_geometry = createMockDiffractometerGeometry()
         self.mock_hardware = SimpleHardwareAdapter(
@@ -109,7 +109,7 @@ Si_5_5_12_U_DIFFCALC = matrix([[-0.7178876, 0.6643924, -0.2078944],
 
 class TestUBCalculationWithWillmotStrategy_Si_5_5_12():
 
-    def setup_method(self):
+    def setup_method(self, method):
         hardware = Mock()
         hardware.get_axes_names.return_value = ('d', 'g', 'oh', 'p')
         self.ubcalc = UBCalculation(hardware, WillmottHorizontalGeometry(),
@@ -133,8 +133,8 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12():
 
 class TestSurfaceNormalVertical_Si_5_5_12_PosGamma(_BaseTest):
 
-    def setup_method(self):
-        _BaseTest.setup_method(self)
+    def setup_method(self, method):
+        _BaseTest.setup_method(self, method)
         self.constraints.reference = {'betain': 2}
         self.wavelength = 0.6358
         B = CrystalUnderTest('xtal', 7.68, 53.48,
@@ -199,8 +199,8 @@ class TestSurfaceNormalVertical_Si_5_5_12_PosGamma(_BaseTest):
 class SkipTestSurfaceNormalVertical_Si_5_5_12_NegGamma(
     TestSurfaceNormalVertical_Si_5_5_12_PosGamma):
     """When choosing -ve gamma delta ends up being -ve too"""
-    def setup_method(self):
-        _BaseTest.setup_method(self)
+    def setup_method(self, method):
+        _BaseTest.setup_method(self, method)
         self.constraints.reference = {'betain': 2 * TORAD}
         self.wavelength = 0.6358
         B = CrystalUnderTest('xtal', 7.68, 53.48,
@@ -246,7 +246,7 @@ Pt531_U_DIFFCALC = matrix([[-0.0023763, -0.9999970, -0.0006416],
 
 class TestUBCalculationWithWillmotStrategy_Pt531():
 
-    def setup_method(self):
+    def setup_method(self, method):
         hardware = Mock()
         hardware.get_axes_names.return_value = ('d', 'g', 'oh', 'p')
         self.ubcalc = UBCalculation(hardware, WillmottHorizontalGeometry(),
@@ -270,8 +270,8 @@ class TestUBCalculationWithWillmotStrategy_Pt531():
 
 class TestSurfaceNormalVertical_Pt531_PosGamma(_BaseTest):
 
-    def setup_method(self):
-        _BaseTest.setup_method(self)
+    def setup_method(self, method):
+        _BaseTest.setup_method(self, method)
         self.constraints.reference = {'betain': 2}
         self.wavelength = Pt531_WAVELENGTH
 

@@ -14,7 +14,7 @@ install:
   - if [ "$JYTHON" == "false" ]; then pip install --upgrade pytest; pip install pytest-xdist; fi
  
 before_script:
-  - if [ "$JYTHON" == "true" ]; then export PYTEST=$HOME/jython/bin/pytest; else export PYTEST=pytest; fi
+  - if [ "$JYTHON" == "true" ]; then export PYTEST="$HOME/jython/bin/py.test-jython build/DiamondLightSource/diffcalc"; else export PYTEST=pytest; fi
   - echo PYTEST:- $PYTEST
 
 script: $PYTEST

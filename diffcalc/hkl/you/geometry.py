@@ -39,7 +39,7 @@ class YouGeometry(object):
         raise NotImplementedError()
 
     def create_position(self, *args):
-        return YouPosition(*args, unit='DEG')
+        return YouPosition(*args, **{'unit': 'DEG'})
 
 
 #==============================================================================
@@ -55,7 +55,7 @@ class SixCircle(YouGeometry):
 
     def physical_angles_to_internal_position(self, physical_angle_tuple):
         # mu, delta, nu, eta, chi, phi
-        return YouPosition(*physical_angle_tuple, unit='DEG')
+        return YouPosition(*physical_angle_tuple, **{'unit' :'DEG'})
 
     def internal_position_to_physical_angles(self, internal_position):
         return internal_position.totuple()
