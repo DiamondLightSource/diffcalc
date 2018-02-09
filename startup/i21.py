@@ -87,19 +87,22 @@ lastub()
  
 ### Set i21 specific limits
 print "INFO: diffcalc limits set in $diffcalc/startup/i21.py taken from http://confluence.diamond.ac.uk/pages/viewpage.action?pageId=51413586"
-setmin(delta, 0)
-setmax(delta, 150) #default to m5tth limits
-setmin(chi, 60)
-setmax(chi, 135)
-setmin(eta, 0)
-setmax(eta, 360)
-setmin(phi, -180)
-setmax(phi, 180)
-#http://jira.diamond.ac.uk/browse/I21-361
-setcut(eta, 0.0)
-setcut(phi, -180)
-print "Current hardware limits set to:"
-hardware()
+def setLimitsAndCuts():
+    setmin(delta, 0)
+    setmax(delta, 150) #default to m5tth limits
+    setmin(chi, 60)
+    setmax(chi, 135)
+    setmin(eta, 0)
+    setmax(eta, 360)
+    setmin(phi, -180)
+    setmax(phi, 180)
+    #http://jira.diamond.ac.uk/browse/I21-361
+    setcut(eta, 0.0)
+    setcut(phi, -180)
+    print "Current hardware limits set to:"
+    hardware()
+
+setLimitsAndCuts()
 
 ### Create i21 bespoke secondary hkl devices
 # Warning: this breaks the encapsulation provided by the diffcalc.dc.you public
@@ -260,6 +263,7 @@ if GDA:
         __main__.sapolar = __main__.sa.simsapolar  # @UndefinedVariable
         __main__.satilt = __main__.sa.simsatilt  # @UndefinedVariable
         __main__.saazimuth = __main__.sa.simsaazimuth  # @UndefinedVariable
+        setLimitsAndCuts()
         
     def realdc():
         ''' switch to use real motors in diffcalc
@@ -272,6 +276,7 @@ if GDA:
         __main__.sapolar = __main__.sa.sapolar  # @UndefinedVariable
         __main__.satilt = __main__.sa.satilt  # @UndefinedVariable
         __main__.saazimuth = __main__.sa.saazimuth  # @UndefinedVariable
+        setLimitsAndCuts()
      
     from gda.jython.commands.GeneralCommands import alias  # @UnresolvedImport
     alias("usediode")
