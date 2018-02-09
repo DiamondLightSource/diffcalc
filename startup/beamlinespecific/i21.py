@@ -239,7 +239,8 @@ class I21DiffractometerStage(ScannableMotionWithScannableFieldsBase):
         
         delta, eta, chi, phi = pos_quadruple              
         pol = eta
-        tilt = chi - self.chi_offset if (chi is not None) else None
+        #TODO revert to 'chi - self.chi_offset'once EPICS sign fixed
+        tilt = self.chi_offset - chi if (chi is not None) else None
         az = phi
         
         if delta is not None:
