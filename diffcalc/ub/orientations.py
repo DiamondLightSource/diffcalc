@@ -54,7 +54,7 @@ class OrientationList:
         self._orientlist += [_Orientation(h, k, l, x, y, z, tag,
                                      time.__repr__())]
 
-    def edit_reflection(self, num, h, k, l, x, y, z, tag, time):
+    def edit_orientation(self, num, h, k, l, x, y, z, tag, time):
         """num starts at 1"""
         try:
             self._orientlist[num - 1] = _Orientation(h, k, l, x, y, z, tag,
