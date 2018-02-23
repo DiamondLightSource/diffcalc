@@ -21,13 +21,14 @@ from mock import Mock, call
 from diffcalc import settings
 
 import diffcalc
+from test.diffcalc.test_hardware import SimpleHardwareAdapter
 diffcalc.util.DEBUG = True
 
 
 hkl = None
 def setup_module():
     global hkl
-    settings.hardware=Mock()
+    settings.hardware=SimpleHardwareAdapter([])
     settings.geometry=Mock()
     settings.angles_to_hkl_function=Mock()
     settings.ubcalc_strategy=Mock()
