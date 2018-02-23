@@ -460,7 +460,7 @@ class UBCalculation:
         edit_orientation(num, h, k, l, x, y, z, tag=None) -- edit a crystal reflection        """
         if self._state.orientlist is None:
             raise DiffcalcException("No UBCalculation loaded")
-        self._state.reflist.edit_orientation(num, h, k, l, x, y, z, tag, time)
+        self._state.orientlist.edit_orientation(num, h, k, l, x, y, z, tag, time)
 
         # If first or second orientation has been changed and there are
         # two orientations then recalculate  UB
