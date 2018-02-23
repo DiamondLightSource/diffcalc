@@ -217,7 +217,7 @@ def sigtau(sigma=None, tau=None):
 
 
 @command
-def setnphi(xyz = None):
+def setnphi(xyz=None):
     """setnphi {[x y z]} -- sets or displays n_phi reference"""
     if xyz is None:
         ubcalc.print_reference()
@@ -226,7 +226,7 @@ def setnphi(xyz = None):
         ubcalc.print_reference()
 
 @command
-def setnhkl(hkl):
+def setnhkl(hkl=None):
     """setnhkl {[h k l]} -- sets or displays n_hkl reference"""
     if hkl is None:
         ubcalc.print_reference()
