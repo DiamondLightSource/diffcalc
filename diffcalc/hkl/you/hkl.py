@@ -26,7 +26,8 @@ from diffcalc import settings
 
 
 import diffcalc.ub.ub
-from diffcalc.hkl.you.constraints import YouConstraintManager
+from diffcalc.hkl.you.constraints import YouConstraintManager,\
+    valueless_constraints
 
 __all__ = ['allhkl', 'con', 'uncon', 'hklcalc', 'constraint_manager']
 
@@ -95,6 +96,8 @@ def _handle_con(args):
             value = args.pop(0)
         else:
             value = None
+        if name not in valueless_constraints and value is None:
+            raise TypeError("Constraint %s must have a numerical value" % name)
         cons_value_pairs.append((name, value))
     
     if len(cons_value_pairs) == 1:
