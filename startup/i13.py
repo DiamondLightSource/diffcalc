@@ -1,6 +1,7 @@
 from diffcalc.util import x_rotation, y_rotation, z_rotation, TORAD, TODEG
-import startup._demo
 from startup._common_imports import *
+if not GDA:
+    import startup._demo
 
 
 if '_fivec' in globals() and 'en' in globals():

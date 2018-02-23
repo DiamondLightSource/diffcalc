@@ -1,7 +1,8 @@
 from startup._common_imports import *
 from diffcalc.hkl.you.geometry import YouPosition
 import diffcalc.hkl.you.geometry
-import startup._demo
+if not GDA:
+    import startup._demo
 
 LOCAL_MANUAL = 'http://confluence.diamond.ac.uk/display/I16/Diffcalc%20(i16)'
 
