@@ -1,26 +1,17 @@
-from math import pi
+from math import pi, acos
 
 try:
-    from numpy import matrix, hstack
+    from numpy import matrix
     from numpy.linalg import norm
 except ImportError:
-    from numjy import matrix, hstack
+    from numjy import matrix
     from numjy.linalg import norm
 
-
-from math import pi, sin, cos, tan, acos, atan2, asin, sqrt, atan
-
-from diffcalc.util import DiffcalcException, bound, angle_between_vectors
-from diffcalc.util import cross3, z_rotation, x_rotation, dot3
-
-
-
+from diffcalc.util import cross3, dot3
 
 
 SMALL = 1e-7
 TODEG = 180 / pi
-
-
 
 class YouReference(object):
     
