@@ -6,38 +6,37 @@ if not GDA:
     import startup._demo
 else:
 #     import __main__  # @UnresolvedImport
-    from __main__ import sax,say,saz,sapolar,satilt,saazimuth,diodetth,m5tth, energy, simsax,simsay,simsaz,simsapolar,simsatilt,simsaazimuth,simdiodetth,simm5tth # @UnresolvedImport
+    from __main__ import x,y,z,th,chi,phi,delta,m5tth, energy, simx,simy,simz,simth,simchi,simphi,simdelta,simm5tth # @UnresolvedImport
 
 LOCAL_MANUAL = "http://confluence.diamond.ac.uk/x/UoIQAw"
 # Diffcalc i21
 # ======== === 
-# delta    diodetth or m5tth
-# eta      sapolar
-# chi      satilt + 90deg
-# phi      saazimuth
+# delta    delta or m5tth
+# eta      th
+# chi      90deg-chi
+# phi      phi
 
 SIM_MODE=False
 
 ### Create dummy scannables ###
 if GDA:  
-    print "WARNING: saz may need to be reversed to agree with diffcalc"
-    xyz_eta = ScannableGroup('xyz_eta', [sax, say, saz])  # @UndefinedVariable
+    xyz_eta = ScannableGroup('xyz_eta', [x, y, z])  # @UndefinedVariable
 else:   
-    diodetth = Dummy('diodetth')
+    delta = Dummy('delta')
     m5tth = Dummy('m5tth')
-    sapolar = Dummy('sapolar')
-    satilt = Dummy('satilt')
-    saazimuth = Dummy('saazimuth')
-    sax = Dummy('sax')
-    say = Dummy('say')
-    saz = Dummy('saz')
-    xyz_eta = ScannableGroup('xyz_eta', [sax, say, saz])
+    th = Dummy('th')
+    chi = Dummy('chi')
+    phi = Dummy('phi')
+    x = Dummy('x')
+    y = Dummy('y')
+    z = Dummy('z')
+    xyz_eta = ScannableGroup('xyz_eta', [x, y, z])
 
 #support i21 non-concentric rotation motions
-sa = I21SampleStage('sa', sapolar, satilt, saazimuth, xyz_eta)
-sapolar = sa.sapolar
-satilt = sa.satilt
-saazimuth = sa.saazimuth
+sa = I21SampleStage('sa', th, chi, phi, xyz_eta)
+#th = sa.th
+#chi = sa.chi
+#phi = sa.phi
 
 tp_phi = sa.tp_phi_scannable
 
@@ -46,8 +45,8 @@ tp_labx = tp_lab.tp_labx
 tp_laby = tp_lab.tp_laby
 tp_labz = tp_lab.tp_labz
 
-### Wrap i21 names to get diffcalc names
-_fourc = I21DiffractometerStage('_fourc', diodetth, sa, chi_offset = 90)
+### Wrap i21 names to get diffcalc names - sample chamber
+_fourc = I21DiffractometerStage('_fourc', delta, sa, chi_offset = 90)
 delta = _fourc.delta
 eta = _fourc.eta
 chi = _fourc.chi
@@ -87,19 +86,24 @@ lastub()
  
 ### Set i21 specific limits
 print "INFO: diffcalc limits set in $diffcalc/startup/i21.py taken from http://confluence.diamond.ac.uk/pages/viewpage.action?pageId=51413586"
-setmin(delta, 0)
-setmax(delta, 150) #default to m5tth limits
-setmin(chi, 60)
-setmax(chi, 135)
-setmin(eta, 0)
-setmax(eta, 360)
-setmin(phi, -180)
-setmax(phi, 180)
-#http://jira.diamond.ac.uk/browse/I21-361
-setcut(eta, 0.0)
-setcut(phi, -180)
-print "Current hardware limits set to:"
-hardware()
+def setLimitsAndCuts():
+    ''' set motor limits for diffcalc, these are within the actual motor limits
+    '''
+    setmin(delta, 0.0)
+    setmax(delta, 180.0) #default to diode delta limits
+    setmin(chi, 60.0)
+    setmax(chi, 135.0)
+    setmin(eta, 0.0)
+    setmax(eta, 150.0)
+    setmin(phi, -100.0)
+    setmax(phi, 100.0)
+    #http://jira.diamond.ac.uk/browse/I21-361
+    setcut(eta, 0.0)
+    setcut(phi, -180.0)
+    print "Current hardware limits set to:"
+    hardware()
+
+setLimitsAndCuts()
 
 ### Create i21 bespoke secondary hkl devices
 # Warning: this breaks the encapsulation provided by the diffcalc.dc.you public
@@ -134,9 +138,9 @@ fourc_highq.hint_generator = _fourc_highq.get_hints
 hkl_highq = Hkl('hkl_highq', _fourc_highq, _dc)
 h_highq, k_highq, l_highq = hkl_highq.h, hkl_highq.k, hkl_highq.l
 
-# vessel
+# sample chamber
 print '- fourc_diode & hkl_diode'
-_fourc_diode = I21DiffractometerStage('_fourc_diode', diodetth, sa, chi_offset = 90)
+_fourc_diode = I21DiffractometerStage('_fourc_diode', delta, sa, chi_offset = 90)
 fourc_diode = DiffractometerScannableGroup('fourc_diode', _dc, _fourc_diode)
 fourc_diode.hint_generator = _fourc_diode.get_hints
 hkl_diode = Hkl('hkl_diode', _fourc_diode, _dc)
@@ -164,9 +168,9 @@ def usediode():
     '''Use photo diode in sample chamber
     '''
     if SIM_MODE:
-        _fourc.delta_scn=simdiodetth
+        _fourc.delta_scn=simdelta
     else:
-        _fourc.delta_scn = diodetth
+        _fourc.delta_scn = delta
     setmin(delta, 0)
     setmax(delta, 180)
     
@@ -183,11 +187,11 @@ def usevessel():
 print "Created i21 bespoke commands: usediode, usevessel, centresample, zerosample, toolpoint_on, toolpoint_off"
 
 if GDA:
-    def swithMotors(simsax, simsay, simsaz, simsapolar, simsatilt, simsaazimuth, simdiodetth, simm5tth):
+    def swithMotors(sax, say, saz, sath, sachi, saphi, diodedelta, specm5tth):
         import __main__
-        __main__.xyz_eta = ScannableGroup('xyz_eta', [simsax, simsay, simsaz])  # @UndefinedVariable
+        __main__.xyz_eta = ScannableGroup('xyz_eta', [sax, say, saz])  # @UndefinedVariable
         #update support for i21 non-concentric rotation motions
-        __main__.sa = I21SampleStage('sa', simsapolar, simsatilt, simsaazimuth,__main__.xyz_eta)  # @UndefinedVariable
+        __main__.sa = I21SampleStage('sa', sath, sachi, saphi,__main__.xyz_eta)  # @UndefinedVariable
         
         __main__.tp_phi = sa.tp_phi_scannable
         
@@ -197,7 +201,7 @@ if GDA:
         __main__.tp_labz = __main__.tp_lab.tp_labz  # @UndefinedVariable
         
         ### update Wrap i21 names to get diffcalc names
-        _fourc = I21DiffractometerStage('_fourc', simdiodetth, __main__.sa, chi_offset = 90)  # @UndefinedVariable
+        _fourc = I21DiffractometerStage('_fourc', diodedelta, __main__.sa, chi_offset = 90)  # @UndefinedVariable
         __main__.delta = _fourc.delta
         __main__.eta = _fourc.eta
         __main__.chi = _fourc.chi
@@ -210,7 +214,7 @@ if GDA:
         __main__.settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
         
         __main__.fourc=DiffractometerScannableGroup('fourc', _dc, _fourc)
-        __main__.fourc.hint_generator = _fourc.get_hints  # (the callablemethod) # @UndefinedVariable
+        __main__.fourc.hint_generator = _fourc.get_hints  # (the callabl emethod) # @UndefinedVariable
         __main__.hkl = Hkl('hkl', _fourc, _dc)
         __main__.h, __main__.k, __main__.l = hkl.h, hkl.k, hkl.l
 
@@ -221,57 +225,79 @@ if GDA:
         __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
         __main__.ct = SimulatedCrystalCounter('ct', _fourc, __main__.settings.geometry,__main__.wl)  # @UndefinedVariable
         #update scannales: fourc_vessel & hkl_vessel'
-        _fourc_vessel = I21DiffractometerStage('_fourc_vessel', simm5tth, __main__.sa, chi_offset = 90)  # @UndefinedVariable
+        _fourc_vessel = I21DiffractometerStage('_fourc_vessel', specm5tth, __main__.sa, chi_offset = 90)  # @UndefinedVariable
         __main__.fourc_vessel = DiffractometerScannableGroup('fourc_vessel', _dc, _fourc_vessel)
         __main__.fourc_vessel.hint_generator = _fourc_vessel.get_hints
         __main__.hkl_vessel = Hkl('hkl_vessel', _fourc_vessel, _dc)
         __main__.h_vessel, __main__.k_vessel, __main__.l_vessel = hkl_vessel.h, hkl_vessel.k, hkl_vessel.l
         
         #Update scannables: fourc_lowq & hkl_lowq'
-        _fourc_lowq = I21DiffractometerStage('_fourc_lowq', simm5tth, __main__.sa, chi_offset=90,delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)  # @UndefinedVariable
+        _fourc_lowq = I21DiffractometerStage('_fourc_lowq', specm5tth, __main__.sa, chi_offset=90,delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)  # @UndefinedVariable
         __main__.fourc_lowq = DiffractometerScannableGroup('fourc_lowq', _dc, _fourc_lowq)
         __main__.fourc_lowq.hint_generator = _fourc_lowq.get_hints
         __main__.hkl_lowq = Hkl('hkl_lowq', _fourc_lowq, _dc)
         __main__.h_lowq, __main__.k_lowq, __main__.l_lowq = hkl_lowq.h, hkl_lowq.k, hkl_lowq.l
         
         #Update scannables: fourc_highq & hkl_highq'
-        _fourc_highq = I21DiffractometerStage('_fourc_highq', simm5tth, __main__.sa, chi_offset=90,delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)  # @UndefinedVariable
+        _fourc_highq = I21DiffractometerStage('_fourc_highq', specm5tth, __main__.sa, chi_offset=90,delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)  # @UndefinedVariable
         __main__.fourc_highq = DiffractometerScannableGroup('fourc_highq', _dc, _fourc_highq)
         __main__.fourc_highq.hint_generator = _fourc_highq.get_hints
         __main__.hkl_highq = Hkl('hkl_highq', _fourc_highq, _dc)
         __main__.h_highq, __main__.k_highq, __main__.l_highq = hkl_highq.h, hkl_highq.k, hkl_highq.l
         
         #Update scannables: fourc_diode & hkl_diode'
-        _fourc_diode = I21DiffractometerStage('_fourc_diode', simdiodetth, __main__.sa, chi_offset = 90)  # @UndefinedVariable
+        _fourc_diode = I21DiffractometerStage('_fourc_diode', diodedelta, __main__.sa, chi_offset = 90)  # @UndefinedVariable
         __main__.fourc_diode = DiffractometerScannableGroup('fourc_diode', _dc, _fourc_diode)
         __main__.fourc_diode.hint_generator = _fourc_diode.get_hints
         __main__.hkl_diode = Hkl('hkl_diode', _fourc_diode, _dc)
         __main__.h_diode, __main__.k_diode, __main__.l_diode = hkl_diode.h, hkl_diode.k, hkl_diode.l
         
+    def stopMotors(sax, say, saz, sath, sachi, saphi, diodedelta, specm5tth):
+        sax.stop()
+        say.stop()
+        saz.stop()
+        sath.stop()
+        sachi.stop()
+        saphi.stop()
+        diodedelta.stop()
+        specm5tth.stop()
+        
     def simdc():
         ''' switch to use dummy motors in diffcalc
         '''
+        print "Stop real motors"
+        stopMotors(x, y, z, th, chi, phi, delta, m5tth)
+        
         global SIM_MODE
         SIM_MODE=True
         import __main__
         __main__.en=Dummy("en")
+        print "Set energy to 12398.425 eV in simulation mode!"
         __main__.en(12398.425) #1 Angstrom wavelength @UndefinedVariable
-        swithMotors(simsax,simsay,simsaz,simsapolar,simsatilt,simsaazimuth,simdiodetth,simm5tth)
-        __main__.sapolar = __main__.sa.simsapolar  # @UndefinedVariable
-        __main__.satilt = __main__.sa.simsatilt  # @UndefinedVariable
-        __main__.saazimuth = __main__.sa.simsaazimuth  # @UndefinedVariable
+        print "Switch to simulation motors"
+        swithMotors(simx,simy,simz,simth,simchi,simphi,simdelta,simm5tth)
+#         __main__.th = __main__.sa.simth  # @UndefinedVariable
+#         __main__.chi = __main__.sa.simchi  # @UndefinedVariable
+#         __main__.phi = __main__.sa.simphi  # @UndefinedVariable
+        setLimitsAndCuts()
         
     def realdc():
         ''' switch to use real motors in diffcalc
         '''
+        print "Stop simulation motors"
+        stopMotors(simx,simy,simz,simth,simchi,simphi,simdelta,simm5tth)
+        
         global SIM_MODE
         SIM_MODE=False
         import __main__
+        print "Set energy to current beamline energy in real mode!"
         __main__.en=energy
-        swithMotors(sax,say,saz,sapolar,satilt,saazimuth,diodetth,m5tth)
-        __main__.sapolar = __main__.sa.sapolar  # @UndefinedVariable
-        __main__.satilt = __main__.sa.satilt  # @UndefinedVariable
-        __main__.saazimuth = __main__.sa.saazimuth  # @UndefinedVariable
+        print "Switch to real motors"
+        swithMotors(x,y,z,th,chi,phi,delta,m5tth)
+#         __main__.th = __main__.sa.th  # @UndefinedVariable
+#         __main__.chi = __main__.sa.chi  # @UndefinedVariable
+#         __main__.phi = __main__.sa.phi  # @UndefinedVariable
+        setLimitsAndCuts()
      
     from gda.jython.commands.GeneralCommands import alias  # @UnresolvedImport
     alias("usediode")
@@ -313,9 +339,9 @@ if not GDA:
     
             self.echorun_magiccmd_list([
                 'sa',
-                'pos sapolar 1',
-                'pos satilt 2',
-                'pos saazimuth 3',
+                'pos th 1',
+                'pos chi 2',
+                'pos phi 3',
                 'pos m5tth 4',
                 'usevessel',
                 'fourc'])

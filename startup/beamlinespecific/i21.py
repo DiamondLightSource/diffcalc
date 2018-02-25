@@ -112,7 +112,7 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
             tp_offset_eta = calc_tp_eta(self.tp_phi, chi, phi)
             if DEBUG:
                 print ('{Correcting xyz_eta for '
-                       'tilt(chi-90)=%.2f & az(phi)=%.2f}' % (tilt, az)).rjust(79)
+                       'tilt(90-chi)=%.2f & az(phi)=%.2f}' % (tilt, az)).rjust(79)
             xyz = [-1 * e for e in tp_offset_eta]
             self.xyz_eta_scn.asynchronousMoveTo(xyz)
                
@@ -140,7 +140,7 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
         sa_col = []
         sa_col.append('%s:' % self.getName())
         sa_col.append('%s:   %s (eta)' % (self._scn_list[0].getName(),formatted_values[0]))
-        sa_col.append('%s:    %s (chi-90)' % (self._scn_list[1].getName(),formatted_values[1]))
+        sa_col.append('%s:    %s (90-chi)' % (self._scn_list[1].getName(),formatted_values[1]))
         sa_col.append('%s: %s (phi)' % (self._scn_list[2].getName(),formatted_values[2]))
         sa_col_width = len(sa_col[2])
         
@@ -239,7 +239,8 @@ class I21DiffractometerStage(ScannableMotionWithScannableFieldsBase):
         
         delta, eta, chi, phi = pos_quadruple              
         pol = eta
-        tilt = chi - self.chi_offset if (chi is not None) else None
+        #TODO revert to 'chi - self.chi_offset'once EPICS sign fixed
+        tilt = self.chi_offset - chi if (chi is not None) else None
         az = phi
         
         if delta is not None:
@@ -251,7 +252,7 @@ class I21DiffractometerStage(ScannableMotionWithScannableFieldsBase):
     def rawGetPosition(self):
         delta = self.delta_scn.getPosition()
         pol, tilt, az = self.sample_stage_scn.getPosition()
-        eta, chi, phi = pol, tilt + self.chi_offset, az
+        eta, chi, phi = pol, self.chi_offset - tilt, az
         return delta + self.delta_offset, eta, chi, phi
     
     def getFieldPosition(self, i):
@@ -281,7 +282,7 @@ class I21DiffractometerStage(ScannableMotionWithScannableFieldsBase):
         else:
             hints.append(' (%s)' % self.delta_scn.getName())                # delta
         hints.append(' (%s)' % sample_names[0])                         # eta
-        hints.append(' (%s + %s)' % (sample_names[1], self.chi_offset)) # chi
+        hints.append(' (%s - %s)' % (self.chi_offset, sample_names[1])) # chi
         hints.append(' (%s)' % sample_names[2])                         # phi
         return hints
  
