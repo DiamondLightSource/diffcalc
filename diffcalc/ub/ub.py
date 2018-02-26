@@ -599,15 +599,10 @@ def addmiscut(*args):
         angle = args.pop(0)
         rad_angle = float(angle) * TORAD
         if len(args) == 0:
-            xyz =  [0, 1, 0]
+            xyz = None
         else:
             xyz = args.pop(0)
-        rot_matrix = xyz_rotation(xyz, rad_angle)
-        if ubcalc.is_ub_calculated():
-            ubcalc.set_U_manually(rot_matrix * ubcalc.U)
-        else:
-            ubcalc.set_U_manually(rot_matrix)
-        ubcalc.print_reference()
+        ubcalc.set_miscut(xyz, rad_angle, True)
 
 @command
 def setmiscut(*args):
@@ -617,8 +612,14 @@ def setmiscut(*args):
         _handleInputError("Please specify a miscut angle in degrees "
                           "and, optionally, a rotation axis (default: [0 1 0])")
     else:
-        ubcalc.set_U_manually(matrix('1 0 0; 0 1 0; 0 0 1'))
-        addmiscut(*args)
+        args=list(args)
+        angle = args.pop(0)
+        rad_angle = float(angle) * TORAD
+        if len(args) == 0:
+            xyz = None
+        else:
+            xyz = args.pop(0)
+        ubcalc.set_miscut(xyz, rad_angle, False)
 
 commands_for_help = ['State',
                      newub,

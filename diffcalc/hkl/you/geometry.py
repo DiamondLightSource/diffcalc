@@ -28,9 +28,10 @@ from diffcalc.hkl.you.constraints import NUNAME
 
 class YouGeometry(object):
 
-    def __init__(self, name, fixed_constraints ):
+    def __init__(self, name, fixed_constraints, beamline_axes_transform=None):
         self.name = name
         self.fixed_constraints = fixed_constraints
+        self.beamline_axes_transform = beamline_axes_transform
 
     def physical_angles_to_internal_position(self, physicalAngles):
         raise NotImplementedError()
@@ -50,8 +51,8 @@ class YouGeometry(object):
 
 
 class SixCircle(YouGeometry):
-    def __init__(self):
-        YouGeometry.__init__(self, 'sixc', {})
+    def __init__(self, beamline_axes_transform=None):
+        YouGeometry.__init__(self, 'sixc', {}, beamline_axes_transform)
 
     def physical_angles_to_internal_position(self, physical_angle_tuple):
         # mu, delta, nu, eta, chi, phi
@@ -65,8 +66,8 @@ class FourCircle(YouGeometry):
     """For a diffractometer with angles:
           delta, eta, chi, phi
     """
-    def __init__(self):
-        YouGeometry.__init__(self, 'fourc', {'mu': 0, NUNAME: 0})
+    def __init__(self, beamline_axes_transform=None):
+        YouGeometry.__init__(self, 'fourc', {'mu': 0, NUNAME: 0}, beamline_axes_transform)
 
     def physical_angles_to_internal_position(self, physical_angle_tuple):
         # mu, delta, nu, eta, chi, phi
@@ -82,8 +83,8 @@ class FiveCircle(YouGeometry):
     """For a diffractometer with angles:
           delta, nu, eta, chi, phi
     """
-    def __init__(self):
-        YouGeometry.__init__(self, 'fivec', {'mu': 0})
+    def __init__(self, beamline_axes_transform=None):
+        YouGeometry.__init__(self, 'fivec', {'mu': 0}, beamline_axes_transform)
 
     def physical_angles_to_internal_position(self, physical_angle_tuple):
         # mu, delta, nu, eta, chi, phi

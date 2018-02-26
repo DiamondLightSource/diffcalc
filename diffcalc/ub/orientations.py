@@ -18,6 +18,12 @@
 
 from copy import deepcopy
 import datetime  # @UnusedImport for the eval below
+
+try:
+    from numpy import matrix
+except ImportError:
+    from numjy import matrix
+
 from diffcalc.util import DiffcalcException, bold
 
 
@@ -85,7 +91,7 @@ class OrientationList:
     def __str__(self):
         return '\n'.join(self.str_lines())
 
-    def str_lines(self):
+    def str_lines(self, R=None):
         if not self._orientlist:
             return ["   <<< none specified >>>"]
 
@@ -98,10 +104,15 @@ class OrientationList:
         for n in range(len(self._orientlist)):
             orient_tuple = self.getOrientation(n + 1)
             [h, k, l], [x, y, z], tag, _ = orient_tuple
+            try:
+                xyz_rot = R.I * matrix([[x],[y],[z]])
+                xr, yr, zr = xyz_rot.T.tolist()[0]
+            except AttributeError:
+                xr, yr, zr = x ,y ,z
             if tag is None:
                 tag = ""
             str_format = ("  %2d % 4.2f % 4.2f % 4.2f  " +
                       "% 4.2f % 4.2f % 4.2f  %s")
-            values = (n + 1, h, k, l, x, y, z, tag)
+            values = (n + 1, h, k, l, xr, yr, zr, tag)
             lines.append(str_format % values)
         return lines
