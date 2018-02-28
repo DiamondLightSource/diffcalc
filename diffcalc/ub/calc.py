@@ -21,7 +21,8 @@ from diffcalc.ub.calcstate import UBCalcState
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.reflections import ReflectionList
 from diffcalc.ub.persistence import UBCalculationJSONPersister, UBCalculationPersister
-from diffcalc.util import DiffcalcException, cross3, dot3, bold, xyz_rotation
+from diffcalc.util import DiffcalcException, cross3, dot3, bold, xyz_rotation,\
+    bound
 from math import acos, cos, sin, pi
 from diffcalc.ub.reference import YouReference
 from diffcalc.ub.orientations import OrientationList
@@ -815,3 +816,35 @@ class UBCalculation:
     def get_hkl_plane_distance(self, hkl):
         """Calculates and returns the distance between planes"""
         return self._state.crystal.get_hkl_plane_distance(hkl)
+
+    def rescale_unit_cell(self, h, k, l, pos):
+        """
+        Calculate unit cell scaling parameter that matches
+        given hkl position and diffractometer angles
+        """
+        q_vec = self._strategy.calculate_q_phi(pos)
+        q_hkl = norm(q_vec) / self._hardware.get_wavelength()
+        d_hkl = self._state.crystal.get_hkl_plane_distance([h, k, l])
+        sc = 1/ (q_hkl * d_hkl)
+        name, a1, a2, a3, alpha1, alpha2, alpha3 = self._state.crystal.getLattice()
+        if abs(sc - 1.) < SMALL:
+            return None, None
+        return sc, (name, sc * a1, sc* a2, sc * a3, alpha1, alpha2, alpha3)
+
+    def calc_miscut(self, h, k, l, pos):
+        """
+        Calculate miscut angle and axis that matches
+        given hkl position and diffractometer angles
+        """
+        q_vec = self._strategy.calculate_q_phi(pos)
+        hkl_nphi = self._UB * matrix([[h], [k], [l]])
+        axis = cross3(q_vec, hkl_nphi)
+        norm_axis = norm(axis)
+        if norm_axis < SMALL:
+            return None, None
+        axis = axis / norm(axis)
+        try:
+            miscut = acos(bound(dot3(q_vec, hkl_nphi) / (norm(q_vec) * norm(hkl_nphi)))) * TODEG
+        except AssertionError:
+            return None, None
+        return miscut, axis.T.tolist()[0]
