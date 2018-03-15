@@ -2,6 +2,11 @@ from startup._common_imports import *  # @UnusedWildImport
 from diffcalc.gdasupport.minigda.scannable import ScannableMotionWithScannableFieldsBase  # @UnusedImport
 from startup.beamlinespecific.i21 import I21SampleStage, I21DiffractometerStage, I21TPLab
 
+try:
+    from numpy import matrix
+except ImportError:
+    from numjy import matrix
+
 if not GDA:    
     import startup._demo
 else:
@@ -66,7 +71,8 @@ en.level = 3
 ### Configure and import diffcalc objects ###
 ESMTGKeV = 0.001
 settings.hardware = ScannableHardwareAdapter(_fourc, en, ESMTGKeV)
-settings.geometry = diffcalc.hkl.you.geometry.FourCircle()  # @UndefinedVariable
+beamline_axes_transform = matrix('0 0 1; 0 1 0; 1 0 0')
+settings.geometry = diffcalc.hkl.you.geometry.FourCircle(beamline_axes_transform=beamline_axes_transform)  # @UndefinedVariable
 settings.energy_scannable = en
 settings.axes_scannable_group= _fourc
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
@@ -208,7 +214,7 @@ if GDA:
         __main__.phi = _fourc.phi
             #update diffcalc objects
         __main__.settings.hardware = ScannableHardwareAdapter(_fourc, __main__.en, ESMTGKeV)  # @UndefinedVariable
-        __main__.settings.geometry = diffcalc.hkl.you.geometry.FourCircle()  # @UndefinedVariable
+        __main__.settings.geometry = diffcalc.hkl.you.geometry.FourCircle(beamline_axes_transform=beamline_axes_transform)  # @UndefinedVariable
         __main__.settings.energy_scannable = __main__.en  # @UndefinedVariable
         __main__.settings.axes_scannable_group= _fourc
         __main__.settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
