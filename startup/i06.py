@@ -21,6 +21,8 @@ if GDA:
     delta = dd2th
     eta = ddth
     en=denergy
+    if float(en.getPosition()) == 0: # no energy value - dummy mode
+        en(800)
     
 else:   
     delta = Dummy('delta')
