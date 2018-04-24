@@ -33,10 +33,10 @@ class YouGeometry(object):
         self.fixed_constraints = fixed_constraints
         self.beamline_axes_transform = beamline_axes_transform
 
-    def physical_angles_to_internal_position(self, physicalAngles):
+    def physical_angles_to_internal_position(self, physical_angle_tuple):
         raise NotImplementedError()
 
-    def internal_position_to_physical_angles(self, physicalAngles):
+    def internal_position_to_physical_angles(self, internal_position):
         raise NotImplementedError()
 
     def create_position(self, *args):
@@ -59,7 +59,9 @@ class SixCircle(YouGeometry):
         return YouPosition(*physical_angle_tuple, unit='DEG')
 
     def internal_position_to_physical_angles(self, internal_position):
-        return internal_position.totuple()
+        clone_position = internal_position.clone()
+        clone_position.changeToDegrees()
+        return clone_position.totuple()
 
 
 class FourCircle(YouGeometry):
@@ -75,7 +77,9 @@ class FourCircle(YouGeometry):
         return YouPosition(0, delta, 0, eta, chi, phi, 'DEG')
 
     def internal_position_to_physical_angles(self, internal_position):
-        _, delta, _, eta, chi, phi = internal_position.totuple()
+        clone_position = internal_position.clone()
+        clone_position.changeToDegrees()
+        _, delta, _, eta, chi, phi = clone_position.totuple()
         return delta, eta, chi, phi
 
 
@@ -92,7 +96,9 @@ class FiveCircle(YouGeometry):
         return YouPosition(0, delta, nu, eta, chi, phi, 'DEG')
 
     def internal_position_to_physical_angles(self, internal_position):
-        _, delta, nu, eta, chi, phi = internal_position.totuple()
+        clone_position = internal_position.clone()
+        clone_position.changeToDegrees()
+        _, delta, nu, eta, chi, phi = clone_position.totuple()
         return delta, nu, eta, chi, phi
 
 

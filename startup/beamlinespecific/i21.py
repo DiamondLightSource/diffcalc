@@ -97,7 +97,7 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
             raise ValueError(self.getName() + ' device expects three inputs')
         
         # Move pol, tilt & az (None if not to be moved)
-        pol, tilt, az = pos_triple         
+        pol, tilt, az = pos_triple
         if pol is not None:
             self._scn_list[0].asynchronousMoveTo(pol)
         if tilt is not None:
@@ -107,12 +107,12 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
         
         if self.centre_toolpoint:  
             _, tilt, az = self.completePosition(pos_triple)
-            chi = tilt + 90
+            chi = tilt
             phi = az
             tp_offset_eta = calc_tp_eta(self.tp_phi, chi, phi)
             if DEBUG:
                 print ('{Correcting xyz_eta for '
-                       'tilt(90-chi)=%.2f & az(phi)=%.2f}' % (tilt, az)).rjust(79)
+                       'tilt(chi)=%.2f & az(phi)=%.2f}' % (tilt, az)).rjust(79)
             xyz = [-1 * e for e in tp_offset_eta]
             self.xyz_eta_scn.asynchronousMoveTo(xyz)
                
@@ -140,7 +140,7 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
         sa_col = []
         sa_col.append('%s:' % self.getName())
         sa_col.append('%s:   %s (eta)' % (self._scn_list[0].getName(),formatted_values[0]))
-        sa_col.append('%s:    %s (90-chi)' % (self._scn_list[1].getName(),formatted_values[1]))
+        sa_col.append('%s:    %s (chi)' % (self._scn_list[1].getName(),formatted_values[1]))
         sa_col.append('%s: %s (phi)' % (self._scn_list[2].getName(),formatted_values[2]))
         sa_col_width = len(sa_col[2])
         
@@ -171,7 +171,7 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
     
     def getEulerPosition(self):
         pol, tilt, az = self.getPosition()
-        eta, chi, phi = pol,  tilt + 90, az
+        eta, chi, phi = pol,  tilt, az
         return eta, chi, phi
 
     class TpPhiScannable(ScannableBase):
@@ -213,8 +213,7 @@ class I21SampleStage(ScannableMotionWithScannableFieldsBase):
 
 class I21DiffractometerStage(ScannableMotionWithScannableFieldsBase):
     
-    def __init__(self, name, delta_scn, sample_stage_scn, chi_offset,
-                 delta_offset=0):
+    def __init__(self, name, delta_scn, sample_stage_scn, delta_offset=0):
         """Create diffractomter stage from 3circle sample axes and a
         delta/tth axis.
         
@@ -225,7 +224,6 @@ class I21DiffractometerStage(ScannableMotionWithScannableFieldsBase):
         
         self.sample_stage_scn = sample_stage_scn
         self.delta_scn = delta_scn
-        self.chi_offset = chi_offset
         self.delta_offset = delta_offset
         self.setName(name)
           
@@ -240,7 +238,7 @@ class I21DiffractometerStage(ScannableMotionWithScannableFieldsBase):
         delta, eta, chi, phi = pos_quadruple              
         pol = eta
         #TODO revert to 'chi - self.chi_offset'once EPICS sign fixed
-        tilt = self.chi_offset - chi if (chi is not None) else None
+        tilt = chi
         az = phi
         
         if delta is not None:
@@ -252,7 +250,7 @@ class I21DiffractometerStage(ScannableMotionWithScannableFieldsBase):
     def rawGetPosition(self):
         delta = self.delta_scn.getPosition()
         pol, tilt, az = self.sample_stage_scn.getPosition()
-        eta, chi, phi = pol, self.chi_offset - tilt, az
+        eta, chi, phi = pol, tilt, az
         return delta + self.delta_offset, eta, chi, phi
     
     def getFieldPosition(self, i):
@@ -282,7 +280,7 @@ class I21DiffractometerStage(ScannableMotionWithScannableFieldsBase):
         else:
             hints.append(' (%s)' % self.delta_scn.getName())                # delta
         hints.append(' (%s)' % sample_names[0])                         # eta
-        hints.append(' (%s - %s)' % (self.chi_offset, sample_names[1])) # chi
+        hints.append(' (%s)' % sample_names[1])                         # chi
         hints.append(' (%s)' % sample_names[2])                         # phi
         return hints
  

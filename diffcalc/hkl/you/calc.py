@@ -363,13 +363,6 @@ class YouHklCalculator(HklCalculatorBase):
             if len(samp_constraints) == 1:
                 for qaz, naz, delta, nu in self._calc_det_angles_given_det_or_naz_constraint(
                                                 det_constraint, naz_constraint, theta, tau, alpha):
-                    delta_nu_pairs = self._filter_angle_limits([(delta, nu),],
-                                                               ['delta', NUNAME],
-                                                               not return_all_solutions)
-                    if not delta_nu_pairs:
-                        continue
-
-        
                     for mu, eta, chi, phi in self._calc_sample_angles_from_one_sample_constraint(
                         h, k, l, wavelength, samp_constraints, h_phi, theta,
                         ref_constraint_name, ref_constraint_value, alpha, qaz, naz,
@@ -412,8 +405,7 @@ class YouHklCalculator(HklCalculatorBase):
         tidy_solutions = [_tidy_degenerate_solutions(YouPosition(*pos, unit='RAD'),
                                                      self.constraints).totuple() for pos in solution_tuples]
         merged_solution_tuples = set(self._filter_angle_limits(tidy_solutions,
-                                                      ['mu', 'delta', NUNAME, 'eta', 'chi', 'phi'],
-                                                      not return_all_solutions))
+                                                               not return_all_solutions))
         if not merged_solution_tuples:
             raise DiffcalcException('No solutions were found matching existing hardware limits. '
                 'Please consider using an alternative set of constraints.')
@@ -1019,6 +1011,7 @@ class YouHklCalculator(HklCalculatorBase):
         """Available combinations:
         chi, phi, detector
         mu, eta, detector
+        mu, phi, detector
         """
 
         N_phi = _calc_N(q_phi, n_phi)
@@ -1091,23 +1084,22 @@ class YouHklCalculator(HklCalculatorBase):
                 'No code yet to handle this combination of 2 sample '
                 'constraints and one detector!:' + str(samp_constraints))
 
-    def _filter_angle_limits(self, possible_solutions, angle_names,
-                                filter_out_of_limits=True):
+    def _filter_angle_limits(self, possible_solutions, filter_out_of_limits=True):
         res = []
+        angle_names = self._hardware.get_axes_names()
         for possible_solution in possible_solutions:
-            sol = []
-            for name, value in zip(angle_names, possible_solution):
-                if name in self._hardware.get_axes_names():
-                    sol.append(self._hardware.cut_angle(name, value * TODEG) * TORAD)
-                else:
-                    sol.append(value)
-            if not filter_out_of_limits:
-                res.append(tuple(sol))
+            hw_sol = []
+            hw_possible_solution = self._geometry.internal_position_to_physical_angles(YouPosition(*possible_solution, unit='RAD'))
+            for name, value in zip(angle_names, hw_possible_solution):
+                hw_sol.append(self._hardware.cut_angle(name, value))
+            if filter_out_of_limits:
+                is_in_limits = all([self._hardware.is_axis_value_within_limits(name, value) for name, value in zip(angle_names, hw_sol)])
             else:
-                is_in_limits = [self._hardware.is_axis_value_within_limits(name, value * TODEG) for name, value in zip(angle_names, sol)
-                                if name in self._hardware.get_axes_names()]
-                if not False in is_in_limits:
-                    res.append(tuple(sol))
+                is_in_limits = True
+            if is_in_limits:
+                sol = self._geometry.physical_angles_to_internal_position(tuple(hw_sol))
+                sol.changeToRadians()
+                res.append(sol.totuple())
         return res
 
 def _mu_and_qaz_from_eta_chi_phi(eta, chi, phi, theta, h_phi):
