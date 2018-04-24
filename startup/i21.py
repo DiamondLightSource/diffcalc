@@ -113,7 +113,7 @@ lastub()
  
 ### Set i21 specific limits
 print "INFO: diffcalc limits set in $diffcalc/startup/i21.py taken from http://confluence.diamond.ac.uk/pages/viewpage.action?pageId=51413586"
-def setLimitsAndCuts():
+def setLimitsAndCuts(delta,chi,eta,phi):
     ''' set motor limits for diffcalc, these are within the actual motor limits
     '''
     setmin(delta, 0.0)
@@ -196,20 +196,25 @@ def usediode():
     '''
     if SIM_MODE:
         _fourc.delta_scn=simdelta
+        setmin(simdelta, 0)
+        setmax(simdelta, 180)
+        
     else:
         _fourc.delta_scn = delta
-    setmin(delta, 0)
-    setmax(delta, 180)
+        setmin(delta, 0)
+        setmax(delta, 180)
     
 def usevessel():
     '''Use spectrometer
     '''
     if SIM_MODE:
         _fourc.delta_scn=simm5tth
+        setmin(simm5tth, 0)
+        setmax(simm5tth, 150)
     else:
         _fourc.delta_scn = m5tth  # note, if changed also update in _fourc_vessel constructor!
-    setmin(delta, 0)
-    setmax(delta, 150)
+        setmin(m5tth, 0)
+        setmax(m5tth, 150)
     
 print "Created i21 bespoke commands: usediode, usevessel, centresample, zerosample, toolpoint_on, toolpoint_off"
 
@@ -306,7 +311,7 @@ if GDA:
 #         __main__.th = __main__.sa.simth  # @UndefinedVariable
 #         __main__.chi = __main__.sa.simchi  # @UndefinedVariable
 #         __main__.phi = __main__.sa.simphi  # @UndefinedVariable
-        setLimitsAndCuts()
+        setLimitsAndCuts(simdelta,simchi,simth,simphi)
         
     def realdc():
         ''' switch to use real motors in diffcalc
@@ -324,7 +329,7 @@ if GDA:
 #         __main__.th = __main__.sa.th  # @UndefinedVariable
 #         __main__.chi = __main__.sa.chi  # @UndefinedVariable
 #         __main__.phi = __main__.sa.phi  # @UndefinedVariable
-        setLimitsAndCuts()
+        setLimitsAndCuts(delta,chi,th,phi)
      
     from gda.jython.commands.GeneralCommands import alias  # @UnresolvedImport
     alias("usediode")
