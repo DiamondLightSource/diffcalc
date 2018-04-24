@@ -838,7 +838,10 @@ class UBCalculation:
         """
         q_vec = self._strategy.calculate_q_phi(pos)
         hkl_nphi = self._UB * matrix([[h], [k], [l]])
-        axis = cross3(q_vec, hkl_nphi)
+        try:
+            axis = cross3(self._ROT * q_vec, self._ROT * hkl_nphi)
+        except TypeError:
+            axis = cross3(q_vec, hkl_nphi)
         norm_axis = norm(axis)
         if norm_axis < SMALL:
             return None, None
