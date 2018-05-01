@@ -364,16 +364,13 @@ class UBCalculation:
 ### Reference vector ###
 
     def _get_n_phi(self):
-        try:
-            return self._ROT.I * self._state.reference.n_phi
-        except AttributeError:
-            return self._state.reference.n_phi
+        return self._state.reference.n_phi
     
     n_phi = property(_get_n_phi)
     
     def set_n_phi_configured(self, n_phi):
         try:
-            self._state.reference.n_phi_configured = self._ROT * n_phi
+            self._state.reference.n_phi_configured = self._ROT.I * n_phi
         except TypeError:
             self._state.reference.n_phi_configured = n_phi
         self.save()
