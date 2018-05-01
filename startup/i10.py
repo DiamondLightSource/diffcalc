@@ -17,7 +17,7 @@ if GDA:
     eta=th
     chi=chi
     phi=Dummy("phi")
-    gam=alpha
+    mu=alpha
     en=pgm_energy
     if float(en.getPosition()) == 0: # no energy value - dummy mode
         en(800)
@@ -27,11 +27,11 @@ else:
     eta = Dummy('eta')
     chi = Dummy('chi')
     phi = Dummy('phi')
-    gam = Dummy('gam')
+    mu = Dummy('mu')
     en = Dummy('en')
     en(800)
 
-_fivec = ScannableGroup('_fivec', (delta, gam, eta, chi, phi))
+_fivec = ScannableGroup('_fivec', (delta, mu, eta, chi, phi))
 en.level = 3
 
 ### Configure and import diffcalc objects ###
@@ -52,13 +52,13 @@ if GDA:
 lastub()
  
 ### Set i10 specific limits
-def setLimitsAndCuts(delta,gam,eta,chi,phi):
+def setLimitsAndCuts(delta,mu,eta,chi,phi):
     ''' set motor limits for diffcalc, these are within the actual motor limits
     '''
     setmin(delta, -60.0)
     setmax(delta, 165.0) 
-    setmin(gam, -5.177)
-    setmax(gam, 4.822)
+    setmin(mu, -5.177)
+    setmax(mu, 4.822)
     setmin(eta, -94.408)
     setmax(eta, 190.591)
     setmin(chi, 85.5)
@@ -68,15 +68,15 @@ def setLimitsAndCuts(delta,gam,eta,chi,phi):
     print "Current hardware limits set to:"
     hardware()
 
-setLimitsAndCuts(delta,gam,eta,chi,phi)
-
+setLimitsAndCuts(delta,mu,eta,chi,phi)
+mu
 if GDA:
-    def swithMotors(delta, gam, eta, chi, phi):
+    def swithMotors(delta, mu, eta, chi, phi):
         import __main__
         from diffcalc.dc import dcyou as _dc
         
         ### update Wrap i21 names to get diffcalc names
-        _fivec = ScannableGroup('_fivec', (delta, gam, eta, chi, phi))
+        _fivec = ScannableGroup('_fivec', (delta, mu, eta, chi, phi))
         #update diffcalc objects
         __main__.settings.hardware = ScannableHardwareAdapter(_fivec, __main__.en, ESMTGKeV)  # @UndefinedVariable
         __main__.settings.geometry = diffcalc.hkl.you.geometry.FiveCircle()  # @UndefinedVariable
@@ -95,9 +95,9 @@ if GDA:
         __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
         __main__.ct = SimulatedCrystalCounter('ct', _fivec, __main__.settings.geometry,__main__.wl)  # @UndefinedVariable
         
-    def stopMotors(delta, gam, eta, chi, phi):
+    def stopMotors(delta, mu, eta, chi, phi):
         delta.stop()
-        gam.stop()
+        mu.stop()
         eta.stop()
         chi.stop()
         phi.stop()
