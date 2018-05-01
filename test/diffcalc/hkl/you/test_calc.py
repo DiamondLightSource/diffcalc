@@ -18,6 +18,7 @@
 
 from math import pi, cos, sin
 from nose.tools import raises
+from mock import Mock
 
 try:
     from numpy import matrix
@@ -31,10 +32,7 @@ from test.tools import assert_array_almost_equal, \
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.util import y_rotation, z_rotation, DiffcalcException
 from test.diffcalc.test_hardware import SimpleHardwareAdapter
-from test.diffcalc.hkl.vlieg.test_calc import \
-    createMockDiffractometerGeometry, createMockUbcalc
-from diffcalc.hkl.you.geometry import YouPosition as Pos, YouPosition as P,\
-    YouPosition
+from diffcalc.hkl.you.geometry import YouPosition as Pos, SixCircle
 from diffcalc.hkl.you.calc import youAnglesToHkl
 
 TORAD = pi / 180
@@ -52,15 +50,24 @@ class Pair:
         self.fails = fails
 
 
+def createMockUbcalc(UB):
+    ubcalc = Mock()
+    ubcalc.tau = 0
+    ubcalc.sigma = 0
+    ubcalc.UB = UB
+    ubcalc.n_phi = matrix([[0], [0], [1]])
+    return ubcalc
+
+
 class _BaseTest(object):
 
     def setup_method(self):
         self.mock_ubcalc = createMockUbcalc(None)
-        self.mock_geometry = createMockDiffractometerGeometry()
-        names = ['delta', NUNAME, 'mu', 'eta', 'chi', 'phi']
+        self.sixc_geometry = SixCircle()
+        names = ['mu', 'delta', NUNAME, 'eta', 'chi', 'phi']
         self.mock_hardware = SimpleHardwareAdapter(names)
         self.constraints = YouConstraintManager(self.mock_hardware)
-        self.calc = YouHklCalculator(self.mock_ubcalc, self.mock_geometry,
+        self.calc = YouHklCalculator(self.mock_ubcalc, self.sixc_geometry,
                                      self.mock_hardware, self.constraints)
 
         self.mock_hardware.set_lower_limit('delta', 0)
@@ -197,7 +204,7 @@ class _TestCubicVertical(_TestCubic):
     def testHklDeltaGreaterThan90(self):
         wavelength = 1            
         hkl = (0.1, 0, 1.5)
-        pos = P(mu=0, delta=97.46959231642, nu=0,
+        pos = Pos(mu=0, delta=97.46959231642, nu=0,
                       eta=97.46959231642/2, chi=86.18592516571,
                       phi=0, unit='DEG')
         self._check_hkl_to_angles('', 0, 0, hkl, pos, wavelength)
@@ -656,59 +663,59 @@ class TestFixedChiPhiPsiMode_DiamondI07SurfaceNormalHorizontal(_TestCubic):
 
     def testHkl001(self):
         self._check((0, 0, 1),  # betaout=30
-                    P(mu=30, delta=0, nu=60, eta=90, chi=0, phi=0, unit='DEG'), fails=True)
+                    Pos(mu=30, delta=0, nu=60, eta=90, chi=0, phi=0, unit='DEG'), fails=True)
 
     def testHkl010(self):
         self._check((0, 1, 0),  # betaout=0
-                    P(mu=0, delta=60, nu=0, eta=120, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=60, nu=0, eta=120, chi=0, phi=0, unit='DEG'))
 
     def testHkl011(self):
         self._check((0, 1, 1),  # betaout=30
-                    P(mu=30, delta=54.7356, nu=90, eta=125.2644, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=30, delta=54.7356, nu=90, eta=125.2644, chi=0, phi=0, unit='DEG'))
 
     def testHkl100(self):
         self._check((1, 0, 0),  # betaout=0
-                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
 
     def testHkl101(self):
         self._check((1, 0, 1),  # betaout=30
-                    P(mu=30, delta=54.7356, nu=90, eta=35.2644, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=30, delta=54.7356, nu=90, eta=35.2644, chi=0, phi=0, unit='DEG'))
 
     def testHkl110(self):
         self._check((1, 1, 0),  # betaout=0
-                    P(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0, unit='DEG'))
 
     def testHkl11nearly0(self):
         self.places = 3
         self._check((1, 1, .0001),  # betaout=0
-                    P(mu=0.0029, delta=89.9971, nu=90.0058, eta=90, chi=0,
+                    Pos(mu=0.0029, delta=89.9971, nu=90.0058, eta=90, chi=0,
                       phi=0, unit='DEG'))
 
     def testHkl111(self):
         self._check((1, 1, 1),  # betaout=30
-                    P(mu=30, delta=54.7356, nu=150, eta=99.7356, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=30, delta=54.7356, nu=150, eta=99.7356, chi=0, phi=0, unit='DEG'))
 
     def testHklover100(self):
         self._check((1.1, 0, 0),  # betaout=0
-                    P(mu=0, delta=66.7340, nu=0, eta=33.3670, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=66.7340, nu=0, eta=33.3670, chi=0, phi=0, unit='DEG'))
 
     def testHklunder100(self):
         self._check((.9, 0, 0),  # betaout=0
-                    P(mu=0, delta=53.4874, nu=0, eta=26.7437, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=53.4874, nu=0, eta=26.7437, chi=0, phi=0, unit='DEG'))
 
     def testHkl788(self):
         self._check((.7, .8, .8),  # betaout=23.5782
-                    P(mu=23.5782, delta=59.9980, nu=76.7037, eta=84.2591,
+                    Pos(mu=23.5782, delta=59.9980, nu=76.7037, eta=84.2591,
                       chi=0, phi=0, unit='DEG'))
 
     def testHkl789(self):
         self._check((.7, .8, .9),  # betaout=26.7437
-                    P(mu=26.74368, delta=58.6754, nu=86.6919, eta=85.3391,
+                    Pos(mu=26.74368, delta=58.6754, nu=86.6919, eta=85.3391,
                       chi=0, phi=0, unit='DEG'))
 
     def testHkl7810(self):
         self._check((.7, .8, 1),  # betaout=30
-                    P(mu=30, delta=57.0626, nu=96.86590, eta=86.6739, chi=0,
+                    Pos(mu=30, delta=57.0626, nu=96.86590, eta=86.6739, chi=0,
                       phi=0, unit='DEG'))
 
 
@@ -742,59 +749,59 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
 
     def testHkl001(self):
         self._check((0, 0, 1),  # betaout=30
-                    P(mu=30, delta=0, nu=60, eta=90, chi=0, phi=0, unit='DEG'), fails=True)
+                    Pos(mu=30, delta=0, nu=60, eta=90, chi=0, phi=0, unit='DEG'), fails=True)
 
     def testHkl010(self):
         self._check((0, 1, 0),  # betaout=0
-                    P(mu=120, delta=0, nu=60, eta=0, chi=90, phi=0, unit='DEG'))
+                    Pos(mu=120, delta=0, nu=60, eta=0, chi=90, phi=0, unit='DEG'))
 
     def testHkl011(self):
         self._check((0, 1, 1),  # betaout=30
-                    P(mu=30, delta=54.7356, nu=90, eta=125.2644, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=30, delta=54.7356, nu=90, eta=125.2644, chi=0, phi=0, unit='DEG'))
 
     def testHkl100(self):
         self._check((1, 0, 0),  # betaout=0
-                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
 
     def testHkl101(self):
         self._check((1, 0, 1),  # betaout=30
-                    P(mu=30, delta=54.7356, nu=90, eta=35.2644, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=30, delta=54.7356, nu=90, eta=35.2644, chi=0, phi=0, unit='DEG'))
 
     def testHkl110(self):
         self._check((1, 1, 0),  # betaout=0
-                    P(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0, unit='DEG'))
 
     def testHkl11nearly0(self):
         self.places = 3
         self._check((1, 1, .0001),  # betaout=0
-                    P(mu=0.0029, delta=89.9971, nu=90.0058, eta=90, chi=0,
+                    Pos(mu=0.0029, delta=89.9971, nu=90.0058, eta=90, chi=0,
                       phi=0, unit='DEG'))
 
     def testHkl111(self):
         self._check((1, 1, 1),  # betaout=30
-                    P(mu=30, delta=54.7356, nu=150, eta=99.7356, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=30, delta=54.7356, nu=150, eta=99.7356, chi=0, phi=0, unit='DEG'))
 
     def testHklover100(self):
         self._check((1.1, 0, 0),  # betaout=0
-                    P(mu=0, delta=66.7340, nu=0, eta=33.3670, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=66.7340, nu=0, eta=33.3670, chi=0, phi=0, unit='DEG'))
 
     def testHklunder100(self):
         self._check((.9, 0, 0),  # betaout=0
-                    P(mu=0, delta=53.4874, nu=0, eta=26.7437, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=53.4874, nu=0, eta=26.7437, chi=0, phi=0, unit='DEG'))
 
     def testHkl788(self):
         self._check((.7, .8, .8),  # betaout=23.5782
-                    P(mu=23.5782, delta=59.9980, nu=76.7037, eta=84.2591,
+                    Pos(mu=23.5782, delta=59.9980, nu=76.7037, eta=84.2591,
                       chi=0, phi=0, unit='DEG'))
 
     def testHkl789(self):
         self._check((.7, .8, .9),  # betaout=26.7437
-                    P(mu=26.74368, delta=58.6754, nu=86.6919, eta=85.3391,
+                    Pos(mu=26.74368, delta=58.6754, nu=86.6919, eta=85.3391,
                       chi=0, phi=0, unit='DEG'))
 
     def testHkl7810(self):
         self._check((.7, .8, 1),  # betaout=30
-                    P(mu=30, delta=57.0626, nu=96.86590, eta=86.6739, chi=0,
+                    Pos(mu=30, delta=57.0626, nu=96.86590, eta=86.6739, chi=0,
                       phi=0, unit='DEG'))
 
 class SkipTestFixedChiPhiPsiModeSurfaceNormalVerticalI16(_TestCubic):
@@ -828,21 +835,21 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVerticalI16(_TestCubic):
 
     def testHkl_1_1_0(self):
         self._check((1, 1, 0.001),  # betaout=0
-                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
         #(-89.9714,  89.9570,  90.0382,  90.0143,  90.0000,  0.0000)
 
     def testHkl_1_1_05(self):
         self._check((1, 1, 0.5),  # betaout=0
-                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
 
     def testHkl_1_1_1(self):
         self._check((1, 1, 1),  # betaout=0
-                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
         #    (-58.6003,  42.7342,  132.9004,  106.3249,  90.0000,  0.0000
 
     def testHkl_1_1_15(self):
         self._check((1, 1, 1.5),  # betaout=0
-                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
 
 
 class TestConstrain3Sample_ChiPhiEta(_TestCubic):
@@ -879,86 +886,86 @@ class TestConstrain3Sample_ChiPhiEta(_TestCubic):
     def testHkl_all0_001(self):
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0}
         self._check((0, 0, 1),
-                    P(mu=30, delta=0, nu=60, eta=0, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=30, delta=0, nu=60, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_all0_010(self):
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0}
         self._check((0, 1, 0),
-                    P(mu=120, delta=0, nu=60, eta=0, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=120, delta=0, nu=60, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_all0_011(self):
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0}
         self._check((0, 1, 1),
-                    P(mu=90, delta=0, nu=90, eta=0, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=90, delta=0, nu=90, eta=0, chi=0, phi=0, unit='DEG'))
         
     def testHkl_phi30_100(self):
         self.constraints._constrained = {'chi': 0, 'phi': 30 * TORAD, 'eta': 0}
         self._check((1, 0, 0),
-                    P(mu=0, delta=60, nu=0, eta=0, chi=0, phi=30, unit='DEG'))
+                    Pos(mu=0, delta=60, nu=0, eta=0, chi=0, phi=30, unit='DEG'))
         
     def testHkl_eta30_100(self):
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 30 * TORAD}
         self._check((1, 0, 0),
-                    P(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
         
     def testHkl_phi90_110(self):
         self.constraints._constrained = {'chi': 0, 'phi': 90 * TORAD, 'eta': 0}
         self._check((1, 1, 0),
-                    P(mu=0, delta=90, nu=0, eta=0, chi=0, phi=90, unit='DEG'))
+                    Pos(mu=0, delta=90, nu=0, eta=0, chi=0, phi=90, unit='DEG'))
         
     def testHkl_eta90_110(self):
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 90 * TORAD}
         self._check((1, 1, 0),
-                    P(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0, unit='DEG'))
 
     def testHkl_all0_1(self):
         self.mock_hardware.set_upper_limit('delta', 91)
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0 * TORAD}
         self._check((.01, .01, .1),
-                    P(mu=8.6194, delta=0.5730, nu=5.7607, eta=0, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=8.6194, delta=0.5730, nu=5.7607, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_all0_2(self):
         self.mock_hardware.set_upper_limit('delta', 91)
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0 * TORAD}
         self._check((0, 0, .1),
-                    P(mu=2.8660, delta=0, nu=5.7320, eta=0, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=2.8660, delta=0, nu=5.7320, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_all0_3(self):
         self.mock_hardware.set_upper_limit('delta', 91)
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0 * TORAD}
         self._check((.1, 0, .01),
-                    P(mu=30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_show_all_solutionsall0_3(self):
         self.mock_hardware.set_upper_limit('delta', 91)
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0 * TORAD}
         self._check((.1, 0, .01),
-                    P(mu=30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0, unit='DEG'))
         #print self.calc.hkl_to_all_angles(.1, 0, .01, 1)
 
     def testHkl_all0_010to001(self):
         self.constraints._constrained = {'chi': 0, 'phi': 0, 'eta': 0}
         self._check((0, cos(4 * TORAD), sin(4 * TORAD)),
-                    P(mu=120-4, delta=0, nu=60, eta=0, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=120-4, delta=0, nu=60, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_1(self):
         self.wavelength = .1
         self.constraints._constrained = {'chi': 0, 'phi': 0 * TORAD, 'eta': 0}
         self._check((0, 0, 1),
-                    P(mu=2.8660, delta=0, nu=5.7320, eta=0, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=2.8660, delta=0, nu=5.7320, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_2(self):
         self.wavelength = .1
         self.constraints._constrained = {'chi': 0, 'phi': 0 * TORAD, 'eta': 0}
         self._check((0, 0, 1),
-                    P(mu=2.8660, delta=0, nu=5.7320, eta=0, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=2.8660, delta=0, nu=5.7320, eta=0, chi=0, phi=0, unit='DEG'))
 
     def testHkl_3(self):
         self.mock_hardware.set_upper_limit('delta', 91)
         self.wavelength = .1
         self.constraints._constrained = {'chi': 0, 'phi': 0 * TORAD, 'eta': 0}
         self._check((1, 0, .1),
-                    P(mu= 30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0, unit='DEG'))
+                    Pos(mu= 30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0, unit='DEG'))
 
 
 
@@ -994,30 +1001,30 @@ class TestHorizontalDeltaNadeta0_JiraI16_32_failure(_BaseTest):
     def test_hkl_bisecting_works_okay_on_i16(self):
         self.constraints._constrained = {'delta': 0, 'a_eq_b': None, 'eta': 0}
         self._check([-1.1812112493619709, -0.71251524866987204, 5.1997083010199221],
-                    P(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360, unit='DEG'), fails=False)
+                    Pos(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360, unit='DEG'), fails=False)
 
     def test_hkl_psi90_works_okay_on_i16(self):
         # This is failing here but on the live one. Suggesting some extreme sensitivity?
         self.constraints._constrained = {'delta': 0, 'psi': -90 * TORAD, 'eta': 0}
         self._check([-1.1812112493619709, -0.71251524866987204, 5.1997083010199221],
-                    P(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360, unit='DEG'), fails=False)
+                    Pos(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360, unit='DEG'), fails=False)
         
     def test_hkl_alpha_17_9776_used_to_fail(self):
         # This is failing here but on the live one. Suggesting some extreme sensitivity?
         self.constraints._constrained = {'delta': 0, 'alpha': 17.9776 * TORAD, 'eta': 0}
         self._check([-1.1812112493619709, -0.71251524866987204, 5.1997083010199221],
-                    P(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360, unit='DEG'), fails=False)
+                    Pos(mu=26, delta=0, nu=52, eta=0, chi=45.2453, phi=186.6933-360, unit='DEG'), fails=False)
 
     def test_hkl_alpha_17_9776_failing_after_bigger_small(self):
         # This is failing here but on the live one. Suggesting some extreme sensitivity?
         self.constraints._constrained = {'delta': 0, 'alpha': 17.8776 * TORAD, 'eta': 0}
         self._check([-1.1812112493619709, -0.71251524866987204, 5.1997083010199221],
-                    P(mu=25.85, delta=0, nu=52, eta=0, chi=45.2453, phi=-173.518, unit='DEG'), fails=False)
+                    Pos(mu=25.85, delta=0, nu=52, eta=0, chi=45.2453, phi=-173.518, unit='DEG'), fails=False)
   
 #skip_test_pair_verification
 
 def posFromI16sEuler(phi, chi, eta, mu, delta, gamma):
-    return YouPosition(mu, delta, gamma, eta, chi, phi, unit='DEG')
+    return Pos(mu, delta, gamma, eta, chi, phi, unit='DEG')
 
 
 class TestAnglesToHkl_I16Examples():
