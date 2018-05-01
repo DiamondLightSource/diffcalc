@@ -4,7 +4,7 @@ if not GDA:
     import startup._demo
 else:
 #     import __main__  # @UnresolvedImport
-    from __main__ import tth,th,chi,alpha,pgm_energy, simtth,simth,simchi,simalpha # @UnresolvedImport
+    from __main__ import tth,th,chi,alpha_rasor,pgm_energy, simtth,simth,simchi,simalpha # @UnresolvedImport
 
 LOCAL_MANUAL = ""
 
@@ -17,7 +17,7 @@ if GDA:
     eta=th
     chi=chi
     phi=Dummy("phi")
-    mu=alpha
+    mu=alpha_rasor
     en=pgm_energy
     if float(en.getPosition()) == 0: # no energy value - dummy mode
         en(800)
@@ -106,7 +106,7 @@ if GDA:
         ''' switch to use dummy motors in diffcalc
         '''
         print "Stop real motors"
-        stopMotors(tth,alpha,th,chi,phi)
+        stopMotors(tth,alpha_rasor,th,chi,phi)
         
         global SIM_MODE
         SIM_MODE=True
@@ -130,8 +130,8 @@ if GDA:
         print "Set energy to current beamline energy in real mode!"
         __main__.en=pgm_energy
         print "Switch to real motors"
-        swithMotors(tth,alpha,th,chi,phi)
-        setLimitsAndCuts(tth,alpha,th,chi,phi)
+        swithMotors(tth,alpha_rasor,th,chi,phi)
+        setLimitsAndCuts(tth,alpha_rasor,th,chi,phi)
      
     from gda.jython.commands.GeneralCommands import alias  # @UnresolvedImport
     print "Created commands: 'simdc' and 'realdc' to switch between real and simulated motors."
