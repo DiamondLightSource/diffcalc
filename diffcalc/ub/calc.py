@@ -371,7 +371,7 @@ class UBCalculation:
     def set_n_phi_configured(self, n_phi):
         try:
             self._state.reference.n_phi_configured = self._ROT.I * n_phi
-        except TypeError:
+        except AttributeError:
             self._state.reference.n_phi_configured = n_phi
         self.save()
         
