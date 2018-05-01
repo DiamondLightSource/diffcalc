@@ -118,8 +118,8 @@ def setLimitsAndCuts(delta,chi,eta,phi):
     '''
     setmin(delta, 0.0)
     setmax(delta, 180.0) #default to diode delta limits
-    setmin(chi, -45.0)
-    setmax(chi, 30.0)
+    setmin(chi, -41.0)
+    setmax(chi, 36.0)
     setmin(eta, 0.0)
     setmax(eta, 150.0)
     setmin(phi, -100.0)
