@@ -113,24 +113,24 @@ lastub()
  
 ### Set i21 specific limits
 print "INFO: diffcalc limits set in $diffcalc/startup/i21.py taken from http://confluence.diamond.ac.uk/pages/viewpage.action?pageId=51413586"
-def setLimitsAndCuts(delta,chi,eta,phi):
+def setLimitsAndCuts(delta_angle, chi_angle, eta_angle, phi_angle):
     ''' set motor limits for diffcalc, these are within the actual motor limits
     '''
-    setmin(delta, 0.0)
-    setmax(delta, 180.0) #default to diode delta limits
-    setmin(chi, -41.0)
-    setmax(chi, 36.0)
-    setmin(eta, 0.0)
-    setmax(eta, 150.0)
-    setmin(phi, -100.0)
-    setmax(phi, 100.0)
+    setmin(delta_angle, 0.0)
+    setmax(delta_angle, 180.0) #default to diode delta limits
+    setmin(chi_angle, -41.0)
+    setmax(chi_angle, 36.0)
+    setmin(eta_angle, 0.0)
+    setmax(eta_angle, 150.0)
+    setmin(phi_angle, -100.0)
+    setmax(phi_angle, 100.0)
     #http://jira.diamond.ac.uk/browse/I21-361
-    setcut(eta, 0.0)
-    setcut(phi, -180.0)
+    setcut(eta_angle, 0.0)
+    setcut(phi_angle, -180.0)
     print "Current hardware limits set to:"
     hardware()
 
-setLimitsAndCuts()
+setLimitsAndCuts(delta, chi, eta, phi)
 
 ### Create i21 bespoke secondary hkl devices
 # Warning: this breaks the encapsulation provided by the diffcalc.dc.you public
@@ -329,7 +329,7 @@ if GDA:
 #         __main__.th = __main__.sa.th  # @UndefinedVariable
 #         __main__.chi = __main__.sa.chi  # @UndefinedVariable
 #         __main__.phi = __main__.sa.phi  # @UndefinedVariable
-        setLimitsAndCuts(delta,chi,th,phi)
+        setLimitsAndCuts(delta,chi,eta,phi)
      
     from gda.jython.commands.GeneralCommands import alias  # @UnresolvedImport
     alias("usediode")
