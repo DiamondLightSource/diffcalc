@@ -13,12 +13,14 @@ class SixCircleI16(diffcalc.hkl.you.geometry.YouGeometry):
     def physical_angles_to_internal_position(self, physical_angle_tuple):
         #    i16:   phi, chi, eta, mu, delta, gam
         # H. You:   mu, delta, nu, eta, chi, phi
-        phi, chi, eta, mu, delta, gam = physical_angle_tuple     
-        return YouPosition(mu, delta, gam, eta, chi, phi, unit='DEG')
+        phi_phys, chi_phys, eta_phys, mu_phys, delta_phys, gam_phys = physical_angle_tuple
+        return YouPosition(mu_phys, delta_phys, gam_phys, eta_phys, chi_phys, phi_phys, unit='DEG')
 
     def internal_position_to_physical_angles(self, internal_position):
-        mu, delta, nu, eta, chi, phi = internal_position.totuple()
-        return phi, chi, eta, mu, delta, nu
+        clone_position = internal_position.clone()
+        clone_position.changeToDegrees()
+        mu_phys, delta_phys, nu_phys, eta_phys, chi_phys, phi_phys = clone_position.totuple()
+        return phi_phys, chi_phys, eta_phys, mu_phys, delta_phys, nu_phys
 
 
 if GDA:
