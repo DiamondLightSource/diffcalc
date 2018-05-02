@@ -32,7 +32,7 @@ from test.tools import assert_array_almost_equal, \
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.util import y_rotation, z_rotation, DiffcalcException
 from test.diffcalc.test_hardware import SimpleHardwareAdapter
-from diffcalc.hkl.you.geometry import YouPosition as Pos, SixCircle
+from diffcalc.hkl.you.geometry import YouPosition as Pos, SixCircle, YouGeometry
 from diffcalc.hkl.you.calc import youAnglesToHkl
 
 TORAD = pi / 180
@@ -1093,14 +1093,41 @@ class TestAnglesToHkl_I16GaAsExample(_BaseTest):
                      posFromI16sEuler(81.2389, 35.4478, 19.2083, 0., 25.3375, 0.), fails=False)
 
 
+class FourCircleI21(YouGeometry):
+    """For a diffractometer with angles:
+          delta, eta, chi, phi
+    """
+    def __init__(self, beamline_axes_transform=None):
+        YouGeometry.__init__(self, 'fourc', {'mu': 0, NUNAME: 0}, beamline_axes_transform)
+
+    def physical_angles_to_internal_position(self, physical_angle_tuple):
+        # mu, delta, nu, eta, chi, phi
+        delta_phys, eta_phys, chi_phys, phi_phys = physical_angle_tuple
+        return Pos(0, delta_phys, 0, eta_phys, 90 - chi_phys, phi_phys, 'DEG')
+
+    def internal_position_to_physical_angles(self, internal_position):
+        clone_position = internal_position.clone()
+        clone_position.changeToDegrees()
+        _, delta_phys, _, eta_phys, chi_phys, phi_phys = clone_position.totuple()
+        return delta_phys, eta_phys, 90 - chi_phys, phi_phys
+
+
 class Test_I21ExamplesUB(_BaseTest):
     '''NOTE: copied from test.diffcalc.scenarios.session3'''
+
     def setup_method(self):
         _BaseTest.setup_method(self)
 
+        self.i21_geometry = FourCircleI21(beamline_axes_transform = matrix('0 0 1; 0 1 0; 1 0 0'))
+        names = ['delta', 'eta', 'chi', 'phi']
+        self.mock_hardware = SimpleHardwareAdapter(names)
+        self.constraints = YouConstraintManager(self.mock_hardware)
+        self.calc = YouHklCalculator(self.mock_ubcalc, self.i21_geometry,
+                                     self.mock_hardware, self.constraints)
+
         U = matrix(((1.0,  0., 0.),
-                    (0.0, 0.18479, -0.98275),
-                    (0.0, 0.98275,  0.18479)))
+                    (0.0, 0.18482, -0.98277),
+                    (0.0, 0.98277,  0.18482)))
 
         B = matrix(((1.66222,     0.0,     0.0),
                     (    0.0, 1.66222,     0.0),
@@ -1109,31 +1136,32 @@ class Test_I21ExamplesUB(_BaseTest):
         self.UB = U * B
 
         self.mock_hardware.set_lower_limit('delta', 0)
-        self.mock_hardware.set_upper_limit('delta', 150.0)
+        self.mock_hardware.set_upper_limit('delta', 180.0)
         self.mock_hardware.set_lower_limit('eta', 0)
-        self.mock_hardware.set_upper_limit('eta', 360)
-        self.mock_hardware.set_lower_limit('chi', 60)
-        self.mock_hardware.set_upper_limit('chi', 135)
-        self.mock_hardware.set_lower_limit('phi', -179)
-        self.mock_hardware.set_upper_limit('phi', 179)
+        self.mock_hardware.set_upper_limit('eta', 150)
+        self.mock_hardware.set_lower_limit('chi', -41)
+        self.mock_hardware.set_upper_limit('chi', 36)
+        self.mock_hardware.set_lower_limit('phi', -100)
+        self.mock_hardware.set_upper_limit('phi', 100)
         self.mock_hardware.set_cut('eta', 0)
-        self.constraints._constrained = {'a_eq_b': None, 'mu': 0, NUNAME: 0}
+        self.mock_hardware.set_cut('phi', -180)
+        self.constraints._constrained = {'psi': 10 * TORAD, 'mu': 0, NUNAME: 0}
         self.wavelength = 12.39842 / .650
         self.places = 5
 
     def _configure_ub(self):
         self.mock_ubcalc.UB = self.UB
-        self.mock_ubcalc.n_phi = matrix([[1.], [0.], [0.]])
+        self.mock_ubcalc.n_phi = matrix([[0], [0.], [1.]])
 
     def makes_cases(self, zrot, yrot):
         del zrot, yrot  # not used
         self.cases = (
-            Pair('0_0_0.25', (0.0, 0.25,  0.25),
-                 Pos(mu=0, delta=79.85393, nu=0, eta=39.92540,
-                     chi=90.0, phi=0.0, unit='DEG')),
-            #Pair('0.25_0.25_0', (0.25, 0.25, 0.0),
-            #     Pos(mu=0, delta=27.352179, nu=0, eta=13.676090,
-            #         chi=37.774500, phi=53.965500, unit='DEG')),
+            Pair('0_0.2_0.25', (0.0, 0.2, 0.25),
+                 Pos(mu=0, delta=62.44607, nu=0, eta=28.68407,
+                     chi=90.0 - 0.44753, phi=-9.99008, unit='DEG')),
+            Pair('0.25_0.2_0.1', (0.25, 0.2, 0.1),
+                 Pos(mu=0, delta=108.03033, nu=0, eta=3.03132,
+                     chi=90 - 7.80099, phi=87.95201, unit='DEG')),
             )
         self.case_dict = {}
         for case in self.cases:
