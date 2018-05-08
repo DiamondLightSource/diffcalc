@@ -39,7 +39,6 @@ from diffcalc.ub.calc import PaperSpecificUbCalcStrategy
 from diffcalc.hkl.you.constraints import NUNAME
 logger = logging.getLogger("diffcalc.hkl.you.calc")
 I = matrix('1 0 0; 0 1 0; 0 0 1')
-y = matrix('0; 1; 0')
 
 SMALL = 1e-6
 TORAD = pi / 180
@@ -78,8 +77,17 @@ def _calc_N(Q, n):
     Q = normalised(Q)
     n = normalised(n)
     if is_small(angle_between_vectors(Q, n)):
-        raise DiffcalcException('Q and n are parallel and cannot be used to create '
-                         'an orthonormal matrix')
+        # Replace the reference vector with an alternative vector from Eq.(78) 
+        idx_min, _ = min(enumerate([abs(Q[0, 0]), abs(Q[1, 0]), abs(Q[2, 0])]), key=lambda v: v[1])
+        idx_1, idx_2 = [idx for idx in range(3) if idx != idx_min]
+        qval = sqrt(Q[idx_1, 0] * Q[idx_1, 0] + Q[idx_2, 0] * Q[idx_2, 0])
+        n[idx_min, 0] = qval
+        n[idx_1, 0] = -Q[idx_min, 0] * Q[idx_1, 0] / qval
+        n[idx_2, 0] = -Q[idx_min, 0] * Q[idx_2, 0] / qval
+        if is_small(norm(n)):
+            n[idx_min, 0] = 0
+            n[idx_1, 0] =  Q[idx_2, 0] / qval
+            n[idx_2, 0] = -Q[idx_1, 0] / qval
     Qxn = cross3(Q, n)
     QxnxQ = cross3(Qxn, Q)
     QxnxQ = normalised(QxnxQ)
@@ -170,6 +178,7 @@ class YouUbCalcStrategy(PaperSpecificUbCalcStrategy):
 
         [MU, DELTA, NU, ETA, CHI, PHI] = create_you_matrices(*pos.totuple())
         # Equation 12: Compute the momentum transfer vector in the lab  frame
+        y = matrix('0; 1; 0')
         q_lab = (NU * DELTA - I) * y
         # Transform this into the phi frame.
         return PHI.I * CHI.I * ETA.I * MU.I * q_lab
@@ -349,6 +358,14 @@ class YouHklCalculator(HklCalculatorBase):
         h_phi = self._get_ubmatrix() * matrix([[h], [k], [l]])
         theta = self._calc_theta(h_phi, wavelength)
         tau = angle_between_vectors(h_phi, self._get_n_phi())
+        
+        if is_small(sin(tau)) and ref_constraint:
+            if ref_constraint_name == 'psi':
+                raise DiffcalcException("Azimuthal angle 'psi' is undefined as reference and scattering vectors parallel.\n"
+                                        "Please constrain one of the sample angles or choose different reference vector orientation.")
+            elif ref_constraint_name == 'a_eq_b':
+                raise DiffcalcException("Reference constraint 'a_eq_b' is redundant as reference and scattering vectors are parallel.\n"
+                                        "Please constrain one of the sample angles or choose different reference vector orientation.")
 
         ### Reference constraint column ###
 
@@ -364,9 +381,7 @@ class YouHklCalculator(HklCalculatorBase):
                 for qaz, naz, delta, nu in self._calc_det_angles_given_det_or_naz_constraint(
                                                 det_constraint, naz_constraint, theta, tau, alpha):
                     for mu, eta, chi, phi in self._calc_sample_angles_from_one_sample_constraint(
-                        h, k, l, wavelength, samp_constraints, h_phi, theta,
-                        ref_constraint_name, ref_constraint_value, alpha, qaz, naz,
-                        delta, nu):
+                                                samp_constraints, h_phi, theta, alpha, qaz, naz):
                         solution_tuples.append((mu, delta, nu, eta, chi, phi))
 
             elif len(samp_constraints) == 2:
@@ -388,8 +403,7 @@ class YouHklCalculator(HklCalculatorBase):
                 psi_vals = self._calc_psi(alpha, theta, tau)
             for psi in psi_vals:
                 angles = list(self._calc_sample_given_two_sample_and_reference(
-                    h, k, l, wavelength, samp_constraints, h_phi, theta,
-                    ref_constraint_name, ref_constraint_value, psi))
+                    samp_constraints, h_phi, theta, psi))
                 solution_tuples.extend(angles)
 
         elif len(samp_constraints) == 3:
@@ -464,14 +478,17 @@ class YouHklCalculator(HklCalculatorBase):
         """Calculate theta using Equation1
         """
         q_length = norm(h_phi)
-        if q_length == 0:
-            raise DiffcalcException('Reflection is unreachable as |Q| is 0')
+        if is_small(q_length):
+            raise DiffcalcException('Reflection is unreachable as |Q| is too small')
         wavevector = 2 * pi / wavelength
         try:
             theta = asin(bound(q_length / (2 * wavevector)))
         except AssertionError:
             raise DiffcalcException(
                 'Reflection is unreachable as |Q| is too long')
+        if is_small(cos(theta)):
+            raise DiffcalcException(
+                'Reflection is unreachable as theta angle is too close to 90 deg')
         return theta
 
     def _calc_psi(self, alpha, theta, tau, qaz=None, naz=None):
@@ -480,18 +497,7 @@ class YouHklCalculator(HklCalculatorBase):
         sin_tau = sin(tau)
         cos_theta = cos(theta)
         if is_small(sin_tau):
-            print ('WARNING: Diffcalc could not calculate a unique azimuth '
-                   '(psi) as the scattering vector (Q) and the reference '
-                   'vector (n) are parallel')
-            yield float('nan')
-        elif is_small(cos_theta):
-            print ('WARNING: Diffcalc could not calculate a unique azimuth '
-                   '(psi) because the scattering vector (Q) and x-ray beam are '
-                   "parallel and don't form a unique reference plane")
-            yield float('nan')
-        elif is_small(sin(theta)):
-            print ('WARNING: Diffcalc could not calculate a unique azimuth '
-                   '(psi) because the scattering vector (Q) is 0 ')
+            # The reference vector is parallel to the scattering vector
             yield float('nan')
         else:
             cos_psi = ((cos(tau) * sin(theta) - sin(alpha)) / cos_theta) # (28)
@@ -693,8 +699,7 @@ class YouHklCalculator(HklCalculatorBase):
 
 
     def _calc_sample_angles_from_one_sample_constraint(
-            self, h, k, l, wavelength, samp_constraints, h_phi, theta,
-            ref_constraint_name, ref_constraint_value, alpha, qaz, naz, delta, nu):
+            self, samp_constraints, h_phi, theta, alpha, qaz, naz):
         
         sample_constraint_name, sample_value = samp_constraints.items()[0]
         q_lab = matrix([[cos(theta) * sin(qaz)], 
@@ -709,8 +714,7 @@ class YouHklCalculator(HklCalculatorBase):
         return mu_eta_chi_phi_tuples
 
     def _calc_sample_given_two_sample_and_reference(
-            self, h, k, l, wavelength, samp_constraints, h_phi, theta,
-            ref_constraint_name, ref_constraint_value, psi):
+            self, samp_constraints, h_phi, theta, psi):
         
         for angles in self._calc_sample_angles_given_two_sample_and_reference(
                  samp_constraints, psi, theta, h_phi, self._get_n_phi()):
@@ -1027,10 +1031,18 @@ class YouHklCalculator(HklCalculatorBase):
 
             try:
                 bot = bound(-V[1, 0] / sqrt(N_phi[0, 0]**2 + N_phi[1, 0]**2))
+                eps = atan2(N_phi[1, 0], N_phi[0, 0])
+                phi_vals = [asin(bot) + eps, pi - asin(bot) + eps]              # (59)
             except AssertionError:
+                # For the case of (00l) reflection, where N_phi[0,0] = N_phi[1,0] = 0
+                chi = atan2(V[0, 0] * N_phi[2, 0], V[2, 0] * N_phi[2, 0])    # (57)
+                sgn_denom = sign(N_phi[1, 1] * N_phi[0, 2] - N_phi[1, 2] * N_phi[0, 1])
+                sin_phi = V[1, 1] * N_phi[1, 2] - V[1, 2] * N_phi[1, 1]
+                cos_phi = V[1, 1] * N_phi[0, 2] - V[1, 2] * N_phi[0, 1]
+                phi = atan2(sin_phi * sgn_denom, cos_phi * sgn_denom)
+                yield mu, eta, chi, phi
                 return
-            eps = atan2(N_phi[1, 0], N_phi[0, 0])
-            for phi in [asin(bot) + eps, pi - asin(bot) + eps]:                 # (59)
+            for phi in phi_vals:
                 a = N_phi[0, 0] * cos(phi) + N_phi[1, 0] * sin(phi)
                 chi = atan2(N_phi[2, 0] * V[0, 0] - a * V[2, 0],
                             N_phi[2, 0] * V[2, 0] + a * V[0, 0])                # (60)

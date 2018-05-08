@@ -119,7 +119,7 @@ class _BaseTest(object):
         self._check_hkl_to_angles(*args)
 
     def case_generator(self):
-        for case in self.cases:
+        for case in self.case_dict.values():
             yield (self._check_angles_to_hkl, case.name, self.zrot, self.yrot,
                    case.hkl, case.position, self.wavelength, {})
             test_method = (self._check_hkl_to_angles_fails if case.fails else
@@ -167,12 +167,6 @@ class _TestCubicVertical(_TestCubic):
         self.case_dict = {}
         for case in self.cases:
             self.case_dict[case.name] = case
-
-    def test_pairs_zrot0_yrot0(self):
-        self.makes_cases(0, 0)
-        self.case_dict['001'].fails = True  # q||n
-        for case_tuple in self.case_generator():
-            yield case_tuple
 
     def test_pairs_various_zrot_and_yrot0(self):
         for zrot in [0, 2, -2, 45, -45, 90, -90]:  # -180, 180 work if recut
@@ -223,6 +217,13 @@ class TestCubicVertical_psi_90(_TestCubicVertical):
     def setup_method(self):
         _TestCubicVertical.setup_method(self)
         self.constraints._constrained = {'psi': 90 * TORAD, 'mu': 0, NUNAME: 0}
+
+    def test_pairs_various_zrot_and_yrot0(self):
+        for zrot in [0, 2, -2, 45, -45, 90, -90]:  # -180, 180 work if recut
+            self.makes_cases(zrot, 0)
+            self.case_dict['001'].fails = True  # q||n psi is undefined
+            for case_tuple in self.case_generator():
+                yield case_tuple
 
     def test_hkl_to_angles_zrot1_yrotm2(self):
         self.constraints._constrained = {'psi': -90 * TORAD, 'mu': 0, NUNAME: 0}
@@ -280,7 +281,6 @@ class TestCubicVertical_ChiPhiMode(_TestCubic):
 
     def test_pairs_zrot0_yrot0(self):
         self.makes_cases(0, 0)
-        self.case_dict['001'].fails = True  # q||n
         for case_tuple in self.case_generator():
             yield case_tuple
 
@@ -323,11 +323,6 @@ class TestCubic_FixedPhiMode(_TestCubic):
     def test_pairs_various_zrot0_and_yrot(self):
         for yrot in [0, 2, -2, 45, -45, 90, -90]:  # -180, 180 work if recut
             self.makes_cases(0, yrot)
-            if yrot == 0:
-                self.case_dict['001'].fails = True  # q||n
-            if yrot == -90:
-                self.case_dict['100'].fails = True  # q||n
-            
             for case_tuple in self.case_generator():
                 yield case_tuple
 
@@ -369,8 +364,6 @@ class TestCubic_FixedPhi30Mode(_TestCubic):
 
     def test_pairs_zrot0_and_yrot0(self):
         self.makes_cases(0, 0)
-        self.case_dict['001'].fails = True  # q||n
-        
         for case_tuple in self.case_generator():
             yield case_tuple
 
@@ -436,7 +429,6 @@ class TestCubicVertical_MuEtaMode(_TestCubic):
 
     def test_pairs_zrot0_yrot0(self):
         self.makes_cases(0, 0)
-        self.case_dict['001'].fails = True  # q||n
         for case_tuple in self.case_generator():
             yield case_tuple
 
@@ -1057,6 +1049,44 @@ class TestAnglesToHkl_I16Examples():
                  [1.01174189, 0.02368622, 0.06627361])
 
 
+class TestAnglesToHkl_I16Numerical(_BaseTest):
+
+    def setup_method(self):
+        _BaseTest.setup_method(self)
+
+        self.UB = matrix((
+           (1.11143,       0,       0),
+           (      0, 1.11143,       0),
+           (      0,       0, 1.11143))
+            )
+
+        self.constraints._constrained = {'mu':0, NUNAME: 0, 'phi': 0}
+        self.wavelength = 1.
+        self.places = 6
+
+    def _configure_ub(self):
+        self.mock_ubcalc.UB = self.UB
+        self.mock_ubcalc.n_phi = matrix([[0], [0], [1]])
+
+
+    def _check(self, testname, hkl, pos, virtual_expected={}, fails=False, skip_test_pair_verification=False):
+        if not skip_test_pair_verification:
+            self._check_angles_to_hkl(
+                testname, 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        if fails:
+            self._check_hkl_to_angles_fails(
+                testname, 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        else:
+            self._check_hkl_to_angles(
+                testname, 999, 999, hkl, pos, self.wavelength, virtual_expected)
+
+    def test_hkl_to_angles_given_UB(self):
+        self._check('I16_numeric', [2, 0, 0.000001],
+                     posFromI16sEuler(0, 0.000029, 10.188639, 0, 20.377277, 0), fails=False)
+        self._check('I16_numeric', [2, 0.000001, 0],
+                     posFromI16sEuler(0, 0, 10.188667, 0, 20.377277, 0), fails=False)
+
+
 class TestAnglesToHkl_I16GaAsExample(_BaseTest):
 
     def setup_method(self):
@@ -1182,3 +1212,54 @@ class Test_I21ExamplesUB(_BaseTest):
         for case_tuple in self.case_generator():
             yield case_tuple
 
+class SkipTest_FixedAlphaMuChiSurfaceNormalHorizontal(_BaseTest):
+    '''NOTE: copied from test.diffcalc.scenarios.session3'''
+    def setup_method(self):
+        _BaseTest.setup_method(self)
+
+        U = matrix(((-0.71022,  0.70390, 0.01071),
+                    (-0.39941, -0.41543, 0.81725),
+                    (0.57971, 0.57615,  0.57618)))
+
+        B = matrix(((1.11143,     0.0,     0.0),
+                    (    0.0, 1.11143,     0.0),
+                    (    0.0,     0.0, 1.11143)))
+
+        self.UB = U * B
+
+        self.constraints._constrained = {'alpha': 12., 'mu': 0, 'chi': 0}
+        self.wavelength = 1.
+        self.places = 5
+
+    def _configure_ub(self):
+        self.mock_ubcalc.UB = self.UB
+        self.mock_ubcalc.n_phi = matrix([[0.], [0.], [1.]])
+
+    def makes_cases(self, zrot, yrot):
+        del zrot, yrot  # not used
+        self.cases = (
+            Pair('0_0_0.25', (2.0, 2.0,  0.),
+                 Pos(mu=0, delta=79.85393, nu=0, eta=39.92540,
+                     chi=90.0, phi=0.0, unit='DEG')),
+            #Pair('0.25_0.25_0', (0.25, 0.25, 0.0),
+            #     Pos(mu=0, delta=27.352179, nu=0, eta=13.676090,
+            #         chi=37.774500, phi=53.965500, unit='DEG')),
+            )
+        self.case_dict = {}
+        for case in self.cases:
+            self.case_dict[case.name] = case
+
+    def case_generator(self):
+        zrot, yrot = 999, 999
+        for case in self.cases:
+            yield (self._check_angles_to_hkl, case.name, zrot, yrot, case.hkl,
+                   case.position, self.wavelength, {})
+            test_method = (self._check_hkl_to_angles_fails if case.fails else
+                           self._check_hkl_to_angles)
+            yield (test_method, case.name, zrot, yrot, case.hkl, case.position,
+                   self.wavelength, {})
+
+    def test_hkl_to_angles_given_UB(self):
+        self.makes_cases(None, None)  # xrot, yrot unused
+        for case_tuple in self.case_generator():
+            yield case_tuple
