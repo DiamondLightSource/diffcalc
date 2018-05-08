@@ -1039,7 +1039,7 @@ class YouHklCalculator(HklCalculatorBase):
                 bot = bound(-V[1, 0] / sqrt(N_phi[0, 0]**2 + N_phi[1, 0]**2))
                 eps = atan2(N_phi[1, 0], N_phi[0, 0])
                 phi_vals = [asin(bot) + eps, pi - asin(bot) + eps]              # (59)
-            except AssertionError:
+            except (AssertionError, ZeroDivisionError):
                 # For the case of (00l) reflection, where N_phi[0,0] = N_phi[1,0] = 0
                 chi = atan2(V[0, 0] * N_phi[2, 0], V[2, 0] * N_phi[2, 0])    # (57)
                 sgn_denom = sign(N_phi[1, 1] * N_phi[0, 2] - N_phi[1, 2] * N_phi[0, 1])
