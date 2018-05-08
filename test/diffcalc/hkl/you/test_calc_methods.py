@@ -417,10 +417,9 @@ class Test_calc_remaining_sample_angles_given_one():
         if mu_e is not None:
             assert_array_almost_equal([v * TODEG for v in mu], mu_e)
 
-    @raises(DiffcalcException)
     def test_constrain_xx_degenerate(self):
         self.check('mu', 0, Q_lab=x, n_lab=x, Q_phi=x, n_phi=x,
-                    phi_e=0, chi_e=0, eta_e=0, mu_e=0)
+                    phi_e=[0,], chi_e=[0,], eta_e=[0,], mu_e=[0,])
 
     def test_constrain_mu_0(self):
         self.check('mu', 0, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,

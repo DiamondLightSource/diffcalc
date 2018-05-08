@@ -499,6 +499,12 @@ class YouHklCalculator(HklCalculatorBase):
         if is_small(sin_tau):
             # The reference vector is parallel to the scattering vector
             yield float('nan')
+        elif is_small(cos_theta):
+            # Reflection is unreachable as theta angle is too close to 90 deg
+            yield float('nan')
+        elif is_small(sin(theta)):
+            # Reflection is unreachable as |Q| is too small
+            yield float('nan')
         else:
             cos_psi = ((cos(tau) * sin(theta) - sin(alpha)) / cos_theta) # (28)
             if qaz is None or naz is None :
