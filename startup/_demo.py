@@ -13,7 +13,7 @@ except NameError:
     IPYTHON = False
     
 
-GEOMETRIES = ['sixc', 'fivec', 'fourc', 'i16']
+GEOMETRIES = ['sixc', 'fivec', 'fourc', 'i16', 'i21']
 
 
 def echo(cmd):
@@ -43,6 +43,7 @@ class Demo(object):
         pos_cmd_001 = {
             'sixc': 'pos sixc [0 60 0 30 90 0]', # mu, delta, gam, eta, chi, phi
             'i16': 'pos sixc [0 90 30 0 60 0]', #  phi, chi, eta, mu, delta, gam
+            'i21': 'pos fourc [60 30 0 0]',
             'fivec': 'pos fivec [60 0 30 90 0]',
             'fourc': 'pos fourc [60 30 90 0]'
             }[self.geometry]
@@ -50,6 +51,7 @@ class Demo(object):
         pos_cmd_011 = {
             'sixc': 'pos sixc [0 90 0 45 45 90]', # mu, delta, gam, eta, chi, phi
             'i16': 'pos sixc [90 45 45 0 90 0]', #  phi, chi, eta, mu, delta, gam
+            'i21': 'pos fourc [90 90 0 0]',
             'fivec': 'pos fivec [90 0 45 45 90]',
             'fourc': 'pos fourc [90 45 45 90]'
             }[self.geometry]
@@ -71,8 +73,11 @@ class Demo(object):
         
     def constrain(self):
         print_heading('Constraint demo')
-        con_qaz_cmd = '' if self.geometry == 'fourc' else 'con qaz 90'
+        con_qaz_cmd = '' if self.geometry in ('fourc', 'i21') else 'con qaz 90'
         con_mu_cmd = 'con mu 0' if self.geometry in ('sixc', 'i16') else ''
+        setmin_chi = 'setmin chi -180' if self.geometry == 'i21' else 'setmin chi 0'
+        setmin_phi = 'setmin phi -180' if self.geometry == 'i21' else ''
+        setmax_phi = 'setmax phi 180' if self.geometry == 'i21' else ''
         self.echorun_magiccmd_list([
             'help hkl',
             con_qaz_cmd,
@@ -80,13 +85,21 @@ class Demo(object):
             con_mu_cmd,
             'con',
             'setmin delta 0',
-            'setmin chi 0'])
+            setmin_chi,
+            setmin_phi,
+            setmax_phi])
             
     def scan(self):
         print_heading('Scanning demo')
-        diff_name = 'sixc' if self.geometry == 'i16' else self.geometry
+        if self.geometry == 'i16':
+            diff_name = 'sixc'
+        elif self.geometry == 'i21':
+            diff_name = 'fourc'
+        else:
+            diff_name = self.geometry
         self.echorun_magiccmd_list([
-            'pos hkl [1 0 0]',
+            'setnphi [0 0 1]' if self.geometry == 'i21' else '',
+            'pos hkl [0 0 1]' if self.geometry == 'i21' else 'pos hkl [1 0 0]',
             'scan delta 40 90 10 hkl ct 1',
             'pos hkl [0 1 0]',
             'scan h 0 1 .2 k l %s ct 1' % diff_name,

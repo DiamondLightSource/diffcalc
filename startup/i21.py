@@ -364,7 +364,7 @@ if not GDA:
     class I21Demo(startup._demo.Demo):
         
         def __init__(self, namespace):
-            startup._demo.Demo.__init__(self, namespace, 'fourc')
+            startup._demo.Demo.__init__(self, namespace, 'i21')
         
         def i21(self):
             startup._demo.print_heading('i21 scannables demo')
