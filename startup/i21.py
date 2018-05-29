@@ -416,16 +416,16 @@ else:
             self.remove_test_ubcalc()
             cmd_list=[
                 'help ub',
-                "from gda.jython.commands.ScannableCommands import pos; pos(wl,1)",
+                "from gda.jython.commands.ScannableCommands import pos; pos(wl, 10)",
                 "newub('test')",
                 "setlat('cubic', 1,1, 1, 90, 90, 90)",
                 'ub',
-                'c2th([0, 0, 1])',
+                'c2th([0, 0, .1])',
                 'from gda.jython.commands.ScannableCommands import pos; pos(fourc, [60, 30, 0, 0])',
-                'addref([0, 0, 1])',
-                'c2th([0, 1, 1])',
+                'addref([0, 0, .1])',
+                'c2th([0, .1, .1])',
                 'from gda.jython.commands.ScannableCommands import pos; pos(fourc, [90, 90, 0, 0])',
-                'addref([0, 1, 1])',
+                'addref([0, .1, .1])',
                 'ub',
                 'checkub']        
             self.executeCommand(cmd_list)
@@ -453,12 +453,12 @@ else:
             
             cmd_list=[
                 'setnphi([0, 0, 1])',
-                'pos hkl([0, 0, 1])',
+                'pos hkl([0, 0, .1])',
                 'scan(delta, 40, 90, 10, hkl, ct, 1)',
-                'pos(hkl, [0, 1, 0])',
-                'scan(h, 0, 1, .2, k, l, fourc, ct, 1)',
+                'pos(hkl, [0, .1, 0])',
+                'scan(h, 0, .1, .02, k, l, fourc, ct, 1)',
                 'con(psi)',
-                'scan(psi, 0, 90, 10, hkl, [1, 0, 1], eta, chi, phi, ct, .1)']
+                'scan(psi, 0, 90, 10, hkl, [.1, 0, .1], eta, chi, phi, ct, .1)']
             self.executeCommand(cmd_list)
 
 
