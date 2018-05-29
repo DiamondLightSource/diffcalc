@@ -377,6 +377,89 @@ if not GDA:
                 'pos m5tth 4',
                 'usevessel',
                 'fourc'])
-
-if not GDA:
+        
     demo = I21Demo(globals())
+else: 
+    print "DIFFCALC demo:"
+    class I21Demo(object):
+        
+        def __init__(self, namespace):
+            self.namespace = namespace
+
+        def all(self):
+            self.orient()
+            self.constrain()
+            self.scan()
+            
+        def remove_test_ubcalc(self):
+            try:
+                eval("rmub('test')", self.namespace)
+            except (OSError, KeyError):
+                pass
+        
+        def executeCommand(self, cmd_list):
+            for cmd in cmd_list:
+                if cmd == 'help ub':
+                    print("help ub")
+                    exec("print ub.__doc__", self.namespace)
+                elif cmd == 'help hkl':
+                    print("help(hkl)")
+                    exec("print hkl.__doc__", self.namespace)
+                else:    
+                    exec(cmd, self.namespace) 
+    
+        def orient(self):
+            print
+            print "-"*100
+            print 'Orientation demo'
+            print
+            self.remove_test_ubcalc()
+            cmd_list=[
+                'help ub',
+                "from gda.jython.commands.ScannableCommands import pos; pos(wl,1)",
+                "newub('test')",
+                "setlat('cubic', 1,1, 1, 90, 90, 90)",
+                'ub',
+                'c2th([0, 0, 1])',
+                'from gda.jython.commands.ScannableCommands import pos; pos(fourc, [60, 30, 0, 0])',
+                'addref([0, 0, 1])',
+                'c2th([0, 1, 1])',
+                'from gda.jython.commands.ScannableCommands import pos; pos(fourc, [90, 90, 0, 0])',
+                'addref([0, 1, 1])',
+                'ub',
+                'checkub']        
+            self.executeCommand(cmd_list)
+            
+        def constrain(self):
+            print
+            print "-"*100
+            print 'Constraint demo'
+            print
+            cmd_list=[
+                'help hkl',
+                'con(a_eq_b)',
+                'con',
+                'setmin(delta, 0)',
+                'setmin(chi, -180)',
+                'setmin(phi, -180)',
+                'setmax(phi, 180)']
+            self.executeCommand(cmd_list)
+    
+        def scan(self):
+            print
+            print "-"*100
+            print 'Scanning demo'
+            print
+            
+            cmd_list=[
+                'setnphi([0, 0, 1])',
+                'pos hkl([0, 0, 1])',
+                'scan(delta, 40, 90, 10, hkl, ct, 1)',
+                'pos(hkl, [0, 1, 0])',
+                'scan(h, 0, 1, .2, k, l, fourc, ct, 1)',
+                'con(psi)',
+                'scan(psi, 0, 90, 10, hkl, [1, 0, 1], eta, chi, phi, ct, .1)']
+            self.executeCommand(cmd_list)
+
+
+
