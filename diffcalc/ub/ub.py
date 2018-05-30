@@ -39,7 +39,7 @@ TODEG = 180 / pi
 # When using ipython magic, these functions must not be imported to the top
 # level namespace. Doing so will stop them from being called with magic.
 
-__all__ = ['addorient', 'addref', 'c2th', 'calcub', 'delorient', 'delref', 'editorient',
+__all__ = ['addorient', 'addref', 'c2th', 'hklangle', 'calcub', 'delorient', 'delref', 'editorient',
            'editref', 'listub', 'loadub', 'newub', 'orientub', 'saveubas', 'setlat',
            'addmiscut', 'setmiscut', 'setu', 'setub', 'showorient', 'showref', 'swaporient',
            'swapref', 'trialub', 'checkub', 'ub', 'ubcalc', 'rmub', 'clearorient',
@@ -262,6 +262,13 @@ def c2th(hkl, en=None):
     except ValueError as e:
         raise ValueError('asin(wl / (d * 2) with wl=%f and d=%f: ' %(wl, d) + e.args[0])
     
+
+@command
+def hklangle(hkl1, hkl2):
+    """
+    hklangle [h1 k1 l1] [h2 k2 l2]  -- calculate angle between [h1 k1 l1] and [h2 k2 l2] planes
+    """
+    return ubcalc.get_hkl_plane_angle(hkl1, hkl2) * TODEG
 
 ### Surface and reference vector stuff ###
 
@@ -698,7 +705,8 @@ commands_for_help = ['State',
                      ub,
                      'Lattice',
                      setlat,
-                     c2th]
+                     c2th,
+                     hklangle]
 
 if ubcalc.include_reference:
     commands_for_help.extend([

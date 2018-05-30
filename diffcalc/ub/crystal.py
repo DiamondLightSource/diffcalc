@@ -17,6 +17,7 @@
 ###
 
 from math import pi, cos, sin, acos, sqrt
+from diffcalc.util import angle_between_vectors
 
 
 try:
@@ -104,6 +105,15 @@ class CrystalUnderTest(object):
         bReduced = self._bMatrix / (2 * pi)
         bMT = bReduced.I * bReduced.T.I
         return 1.0 / sqrt((hkl * bMT.I * hkl.T)[0,0])
+
+    def get_hkl_plane_angle(self, hkl1, hkl2):
+        '''Calculates and returns the angle between [hkl1] and [hkl2] planes'''
+        hkl1 = matrix([hkl1]).T
+        hkl2 = matrix([hkl2]).T
+        nphi1 = self._bMatrix * hkl1
+        nphi2 = self._bMatrix * hkl2
+        angle = angle_between_vectors(nphi1, nphi2)
+        return angle
 
     def __str__(self):
         '''    Returns lattice name and all set and calculated parameters'''

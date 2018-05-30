@@ -814,6 +814,10 @@ class UBCalculation:
         """Calculates and returns the distance between planes"""
         return self._state.crystal.get_hkl_plane_distance(hkl)
 
+    def get_hkl_plane_angle(self, hkl1, hkl2):
+        """Calculates and returns the angle between planes"""
+        return self._state.crystal.get_hkl_plane_angle(hkl1, hkl2)
+
     def rescale_unit_cell(self, h, k, l, pos):
         """
         Calculate unit cell scaling parameter that matches
