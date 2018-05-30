@@ -323,6 +323,66 @@ class Test_Fixed_Mu_Chi(TestFixedMuEta):
         return  willmott_to_you_fixed_mu_chi(willmott_pos)
 
 
+def willmott_to_you_fixed_eta_chi(pos):
+    pos = YouPos(mu=pos.omegah,
+                       delta=-pos.gamma,
+                       nu=pos.delta,
+                       eta=0,
+                       chi=0,
+                       phi=-pos.phi,
+                       unit='DEG')
+    if pos.phi > 180:
+        pos.phi -= 360
+    elif pos.phi < -180:
+        pos.phi += 360
+    return pos
+
+
+class Test_Fixed_Eta_Chi(TestFixedMuEta):
+
+    def _configure_constraints(self):
+        self.constraints._constrained = {'alpha': 2 * TORAD, 'eta': 0,
+                                         'chi': 0}
+
+    def _convert_willmott_pos(self, willmott_pos):
+        return  willmott_to_you_fixed_eta_chi(willmott_pos)
+
+    def testHkl_2_19_32_found_orientation_setting(self):
+        SkipTest()
+
+    def testHkl_0_7_22_found_orientation_setting(self):
+        SkipTest()
+
+    def testHkl_2_19_32_calculated_from_DDIF(self):
+        SkipTest()
+
+    def testHkl_0_7_22_calculated_from_DDIF(self):
+        SkipTest()
+
+    def testHkl_2_m5_12_calculated_from_DDIF(self):
+        SkipTest()
+
+    def testHkl_2_19_32_calculated_predicted_with_diffcalc_and_found(self):
+        willpos = WillPos(delta=22.0332862, gamma=-4.0973643,
+                          omegah=2, phi=--64.0273584)
+        self._check((2, 19, 32),
+                    self._convert_willmott_pos(willpos),
+                    {'alpha': 2})
+
+    def testHkl_0_7_22_calculated_predicted_with_diffcalc_and_found(self):
+        willpos = WillPos(delta=11.2572236, gamma=-2.9800571,
+                          omegah=2, phi=-86.5634425)
+        self._check((0, 7, 22),
+                    self._convert_willmott_pos(willpos),
+                    {'alpha': 2})
+
+    def testHkl_2_m5_12_calculated_predicted_with_diffcalc_and_found(self):
+        willpos = WillPos(delta=5.3109941, gamma=-10.3716944,
+                          omegah=2, phi=167.0041454)
+        self._check((2, -5, 12),
+                    self._convert_willmott_pos(willpos),
+                    {'alpha': 2})
+
 # Primary and secondary reflections found with the help of DDIF on Diamond's
 # i07 on Jan 28/29 2010
 
