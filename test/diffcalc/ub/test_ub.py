@@ -20,6 +20,7 @@ from nose.tools import eq_  # @UnresolvedImport
 import tempfile
 import os.path
 import pytest
+from math import atan, sqrt
 
 try:
     from numpy import matrix
@@ -32,7 +33,7 @@ from diffcalc.hardware import DummyHardwareAdapter
 from test.tools import assert_iterable_almost_equal, mneq_, arrayeq_
 from diffcalc.ub.persistence import UbCalculationNonPersister,\
     UBCalculationJSONPersister
-from diffcalc.util import DiffcalcException, MockRawInput
+from diffcalc.util import DiffcalcException, MockRawInput, TODEG
 from diffcalc.ub.calc import UBCalculation
 from diffcalc.hkl.vlieg.calc import VliegUbCalcStrategy
 from test.diffcalc import scenarios
@@ -156,7 +157,7 @@ class TestUbCommands(TestUBCommandsBase):
         with pytest.raises(TypeError):
             self.ub.showref((1))
         eq_(self.ub.showref(), None)  # No UBCalculation loaded
-        # will be tested, for exceptions at least, implicitely below
+        # will be tested, for exceptions at least, implicitly below
         self.ub.newub('testing_showref')
         eq_(self.ub.showref(), None)  # No UBCalculation loaded"
 
@@ -169,7 +170,7 @@ class TestUbCommands(TestUBCommandsBase):
             self.ub.addref(1, 2, 'blarghh')
         # start new ubcalc
         self.ub.newub('testing_addref')
-        reflist = self.ub.ubcalc._state.reflist  # for conveniance
+        reflist = self.ub.ubcalc._state.reflist  # for convenience
 
         pos1 = (1.1, 1.2, 1.3, 1.4, 1.5, 1.6)
         pos2 = (2.1, 2.2, 2.3, 2.4, 2.5, 2.6)
@@ -200,7 +201,7 @@ class TestUbCommands(TestUBCommandsBase):
         prepareRawInput([])
         # start new ubcalc
         self.ub.newub('testing_addref')
-        reflist = self.ub.ubcalc._state.reflist  # for conveniance
+        reflist = self.ub.ubcalc._state.reflist  # for convenience
 
         pos1 = (1.1, 1.2, 1.3, 1.4, 1.5, 1.6)
         pos2 = (2.1, 2.2, 2.3, 2.4, 2.5, 2.6)
@@ -243,7 +244,7 @@ class TestUbCommands(TestUBCommandsBase):
         prepareRawInput(['1.1', '', '3.1', 'y', ''])
         self.ub.editref(1)
 
-        reflist = self.ub.ubcalc._state.reflist  # for conveniance
+        reflist = self.ub.ubcalc._state.reflist  # for convenience
         result = reflist.get_reflection_in_external_angles(1)
         eq_(result[:-1], ([1.1, 2, 3.1], pos2, 11, 'tag1'))
 
@@ -297,6 +298,114 @@ class TestUbCommands(TestUBCommandsBase):
         self.ub.delref(1)
         with pytest.raises(IndexError):
             reflist.get_reflection_in_external_angles(1)
+
+    def testShoworient(self):
+        with pytest.raises(TypeError):
+            self.ub.showorient((1))
+        eq_(self.ub.showorient(), None)  # No UBCalculation loaded
+        # will be tested, for exceptions at least, implicitly below
+        self.ub.newub('testing_showorient')
+        eq_(self.ub.showorient(), None)  # No UBCalculation loaded"
+
+    def testAddorient(self):
+        with pytest.raises(TypeError):
+            self.ub.addorient(1)
+        with pytest.raises(TypeError):
+            self.ub.addorient(1, 2)
+        with pytest.raises(TypeError):
+            self.ub.addorient(1, 2, 'blarghh')
+        # start new ubcalc
+        self.ub.newub('testing_addorient')
+        orientlist = self.ub.ubcalc._state.orientlist  # for convenience
+
+        hkl1 = [1.1, 1.2, 1.3]
+        hkl2 = [2.1, 2.2, 2.3]
+        orient1 = [1.4, 1.5, 1.6]
+        orient2 = [2.4, 2.5, 2.6]
+        #
+        self.ub.addorient(hkl1, orient1)
+        result = orientlist.getOrientation(1)
+        eq_(result[:-1], (hkl1, orient1, None))
+
+        self.ub.addorient(hkl2, orient2, 'atag')
+        result = orientlist.getOrientation(2)
+        eq_(result[:-1], (hkl2, orient2, 'atag'))
+
+    def testAddorientInteractively(self):
+        prepareRawInput([])
+        # start new ubcalc
+        self.ub.newub('testing_addorient')
+        orientlist = self.ub.ubcalc._state.orientlist  # for convenience
+
+        hkl1 = [1.1, 1.2, 1.3]
+        hkl2 = [2.1, 2.2, 2.3]
+        orient1 = [1.4, 1.5, 1.6]
+        orient2 = [2.4, 2.5, 2.6]
+        #
+        prepareRawInput(['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', ''])
+        self.ub.addorient()
+        result = orientlist.getOrientation(1)
+        eq_(result[:-1], (hkl1, orient1, None))
+
+        prepareRawInput(['2.1', '2.2', '2.3', '2.4', '2.5', '2.6', 'atag'])
+        self.ub.addorient()
+        result = orientlist.getOrientation(2)
+        eq_(result[:-1], (hkl2, orient2, 'atag'))
+
+    def testEditOrientInteractively(self):
+        hkl1 = [1.1, 1.2, 1.3]
+        hkl2 = [1.1, 1.2, 3.1]
+        orient1 = [1.4, 1.5, 1.6]
+        orient2 = [2.4, 1.5, 2.6]
+        orient2s = ['2.4', '', '2.6']
+        self.ub.newub('testing_editorient')
+        self.ub.addorient(hkl1, orient1, 'tag1')
+        prepareRawInput(['1.1', '', '3.1'] + orient2s + ['newtag',])
+        self.ub.editorient(1)
+
+        orientlist = self.ub.ubcalc._state.orientlist
+        result = orientlist.getOrientation(1)
+        eq_(result[:-1], (hkl2, orient2, 'newtag'))
+
+    def testSwaporient(self):
+        with pytest.raises(TypeError):
+            self.ub.swaporient(1)
+        with pytest.raises(TypeError):
+            self.ub.swaporient(1, 2, 3)
+        with pytest.raises(TypeError):
+            self.ub.swaporient(1, 1.1)
+        self.ub.newub('testing_swaporient')
+        hkl = [1.1, 1.2, 1.3]
+        orient = [1.4, 1.5, 1.6]
+        self.ub.addorient(hkl, orient, 'tag1')
+        self.ub.addorient(hkl, orient, 'tag2')
+        self.ub.addorient(hkl, orient, 'tag3')
+        self.ub.swaporient(1, 3)
+        self.ub.swaporient(1, 3)
+        self.ub.swaporient(3, 1)  # end flipped
+        orientlist = self.ub.ubcalc._state.orientlist
+        tag1 = orientlist.getOrientation(1)[2]
+        tag2 = orientlist.getOrientation(2)[2]
+        tag3 = orientlist.getOrientation(3)[2]
+        eq_(tag1, 'tag3')
+        eq_(tag2, 'tag2')
+        eq_(tag3, 'tag1')
+        self.ub.swaporient()
+        tag1 = orientlist.getOrientation(1)[2]
+        tag2 = orientlist.getOrientation(2)[2]
+        eq_(tag1, 'tag2')
+        eq_(tag2, 'tag3')
+
+    def testDelorient(self):
+        self.ub.newub('testing_delorient')
+        hkl = [1.1, 1.2, 1.3]
+        pos = [1.4, 1.5, 1.6]
+        self.ub.addorient(hkl, pos, 'tag1')
+        orientlist = self.ub.ubcalc._state.orientlist
+        orientlist.getOrientation(1)
+        self.ub.delorient(1)
+        with pytest.raises(IndexError):
+            orientlist.getOrientation(1)
 
     def testSetu(self):
         # just test calling this method
@@ -393,10 +502,90 @@ class TestUbCommands(TestUBCommandsBase):
         mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
               4, note="wrong UB matrix after calculating U")
 
+    def testOrientub(self):
+        with pytest.raises(TypeError):
+            self.ub.orientub(1)  # wrong input
+        # no ubcalc started:
+        with pytest.raises(DiffcalcException):
+            self.ub.orientub()
+        self.ub.newub('testorientub')
+        # not enough orientations:
+        with pytest.raises(DiffcalcException):
+            self.ub.orientub()
+
+        s = scenarios.sessions()[1]
+        self.ub.setlat(s.name, *s.lattice)
+        r = s.ref1
+        self.ub.addorient(
+            (r.h, r.k, r.l), (1, 0, 0), r.tag)
+        r = s.ref2
+        self.ub.addorient(
+            (r.h, r.k, r.l), (0, -1, 0), r.tag)
+        self.ub.orientub()
+        mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
+              4, note="wrong UB matrix after calculating U")
+
+    def testRefineubInteractively(self):
+        self.ub.newub('testing_refineubinteractive')
+        self.ub.setlat('xtal', 1, 1, 1, 90, 90, 90)
+        self.ub.setmiscut(0)
+        prepareRawInput(['1', '1', '', 'n', '0', '60', '0', '30', '0', '0', 'y', 'y'])
+        self.ub.refineub()
+        getLattice = self.ub.ubcalc._state.crystal.getLattice
+        eq_(('xtal', sqrt(2.), sqrt(2.), sqrt(2.), 90, 90, 90), getLattice())
+        mneq_(self.ub.ubcalc.U, matrix('0.70711   0.70711   0.00000; -0.70711   0.70711   0.00000; 0.00000   0.00000   1.00000'),
+              4, note="wrong U matrix after refinement")
+
+    def testRefineubInteractivelyWithPosition(self):
+        self.ub.newub('testing_refineubinteractivepos')
+        self.ub.setlat('xtal', 1, 1, 1, 90, 90, 90)
+        self.ub.setmiscut(0)
+        self.hardware.position = [0, 60, 0, 30, 0, 0]
+        prepareRawInput(['1', '1', '', 'y', 'y', 'y'])
+        self.ub.refineub()
+        getLattice = self.ub.ubcalc._state.crystal.getLattice
+        eq_(('xtal', sqrt(2.), sqrt(2.), sqrt(2.), 90, 90, 90), getLattice())
+        mneq_(self.ub.ubcalc.U, matrix('0.70711   0.70711   0.00000; -0.70711   0.70711   0.00000; 0.00000   0.00000   1.00000'),
+              4, note="wrong U matrix after refinement")
+
+    def testRefineubInteractivelyWithHKL(self):
+        self.ub.newub('testing_refineubinteractivehkl')
+        self.ub.setlat('xtal', 1, 1, 1, 90, 90, 90)
+        self.ub.setmiscut(0)
+        self.hardware.position = [0, 60, 0, 30, 0, 0]
+        prepareRawInput(['y', 'y', 'y'])
+        self.ub.refineub([1, 1, 0])
+        getLattice = self.ub.ubcalc._state.crystal.getLattice
+        eq_(('xtal', sqrt(2.), sqrt(2.), sqrt(2.), 90, 90, 90), getLattice())
+        mneq_(self.ub.ubcalc.U, matrix('0.70711   0.70711   0.00000; -0.70711   0.70711   0.00000; 0.00000   0.00000   1.00000'),
+              4, note="wrong U matrix after refinement")
+
+    def testRefineub(self):
+        self.ub.newub('testing_refineub')
+        self.ub.setlat('xtal', 1, 1, 1, 90, 90, 90)
+        self.ub.setmiscut(0)
+        prepareRawInput(['y', 'y'])
+        self.ub.refineub([1, 1, 0], [0, 60, 0, 30, 0, 0])
+        getLattice = self.ub.ubcalc._state.crystal.getLattice
+        eq_(('xtal', sqrt(2.), sqrt(2.), sqrt(2.), 90, 90, 90), getLattice())
+        mneq_(self.ub.ubcalc.U, matrix('0.70711   0.70711   0.00000; -0.70711   0.70711   0.00000; 0.00000   0.00000   1.00000'),
+              4, note="wrong U matrix after refinement")
+
     def testC2th(self):
-        self.ub.newub('testcalcub')
+        self.ub.newub('testc2th')
         self.ub.setlat('cube', 1, 1, 1, 90, 90, 90)
         assert self.ub.c2th((0, 0, 1)) == pytest.approx(60)
+
+    def testHKLangle(self):
+        self.ub.newub('testhklangle')
+        self.ub.setlat('cube', 1, 1, 1, 90, 90, 90)
+        assert self.ub.hklangle((0, 0, 1), (0, 0, 2)) == pytest.approx(0)
+        assert self.ub.hklangle((0, 1, 0), (0, 0, 2)) == pytest.approx(90)
+        assert self.ub.hklangle((1, 0, 0), (0, 0, 2)) == pytest.approx(90)
+        assert self.ub.hklangle((1, 1, 0), (0, 0, 2)) == pytest.approx(90)
+        assert self.ub.hklangle((0, 1, 1), (0, 0, 2)) == pytest.approx(45)
+        assert self.ub.hklangle((1, 0, 1), (0, 0, 2)) == pytest.approx(45)
+        assert self.ub.hklangle((1, 1, 1), (0, 0, 2)) == pytest.approx(atan(sqrt(2))*TODEG)
 
     def testSigtau(self):
         # sigtau [sig tau]
@@ -426,7 +615,7 @@ class TestUbCommands(TestUBCommandsBase):
             self.ub.setlat('alpha', 'a')
         with pytest.raises(TypeError):
             self.ub.setlat('alpha', 1, 'a')   
-        
+
     def test_setnphihkl_at_various_phases(self):
         self.ub.setnphi([1, 0, 1])
         self.ub.setnhkl([1, 0, 1])
@@ -440,7 +629,16 @@ class TestUbCommands(TestUBCommandsBase):
         self.ub.setnphi([1, 0, 1])
         self.ub.setnhkl([1, 0, 1])
 
-        
+    def testMiscut(self):
+        self.ub.newub('testsetmiscut')
+        self.ub.setlat('cube', 1, 1, 1, 90, 90, 90)
+        self.ub.setmiscut(30)
+        mneq_(self.ub.ubcalc._state.reference.n_hkl, matrix('-0.5000000; 0.00000; 0.8660254'))
+        self.ub.addmiscut(15)
+        mneq_(self.ub.ubcalc._state.reference.n_hkl, matrix('-0.7071068; 0.00000; 0.7071068'))
+        self.ub.addmiscut(45, [0, -1, 0])
+        mneq_(self.ub.ubcalc._state.reference.n_hkl, matrix('0.0; 0.0; 1.0'))
+
 class TestUbCommandsJsonPersistence(TestUBCommandsBase):
     
     def _createPersister(self):
