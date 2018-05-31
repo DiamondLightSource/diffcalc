@@ -246,8 +246,8 @@ class UBCalculation:
         fmt = "% 9.5f % 9.5f % 9.5f"
         y = matrix('0; 0; 1')
         try:
-            rotation_axis = self._ROT.I * cross3(y, self.U * y)
-        except AttributeError:
+            rotation_axis = cross3(self._ROT * y, self._ROT * self.U * y)
+        except TypeError:
             rotation_axis = cross3(y, self.U * y)
         if abs(norm(rotation_axis)) < SMALL:
             lines.append("   miscut angle:".ljust(WIDTH) + "  0")
