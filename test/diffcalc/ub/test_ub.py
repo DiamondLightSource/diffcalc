@@ -28,16 +28,18 @@ except ImportError:
     from numjy import matrix
 
 import diffcalc.util  # @UnusedImport
-from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
+from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry,\
+    VliegPosition
+from diffcalc.hkl.you.geometry import SixCircle
 from diffcalc.hardware import DummyHardwareAdapter
 from test.tools import assert_iterable_almost_equal, mneq_, arrayeq_
 from diffcalc.ub.persistence import UbCalculationNonPersister,\
     UBCalculationJSONPersister
 from diffcalc.util import DiffcalcException, MockRawInput, TODEG
-from diffcalc.ub.calc import UBCalculation
-from diffcalc.hkl.vlieg.calc import VliegUbCalcStrategy
+from diffcalc.hkl.vlieg.calc import VliegUbCalcStrategy, vliegAnglesToHkl
+from diffcalc.hkl.you.calc import youAnglesToHkl, YouUbCalcStrategy
 from test.diffcalc import scenarios
-import diffcalc.hkl.vlieg.calc
+from test.diffcalc.scenarios import YouPositionScenario
 
 
 diffcalc.util.DEBUG = True
@@ -49,38 +51,24 @@ def prepareRawInput(listOfStrings):
 prepareRawInput([])
 
 from diffcalc import settings
-from diffcalc.hkl.you.geometry import SixCircle
-from mock import Mock
-from diffcalc.ub.persistence import UbCalculationNonPersister
 
 
 
-class TestUBCommandsBase():
+class _UBCommandsBase():
 
     def setup_method(self):
         names = 'alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'
         self.hardware = DummyHardwareAdapter(names)
-        _geometry = SixCircleGammaOnArmGeometry()
-        _ubcalc_persister = self._createPersister()
         settings.hardware = self.hardware
-        settings.geometry = _geometry
-        settings.ubcalc_persister = _ubcalc_persister
-        #settings.set_engine_name('vlieg')
-        settings.ubcalc_strategy = diffcalc.hkl.vlieg.calc.VliegUbCalcStrategy()
-        settings.angles_to_hkl_function = diffcalc.hkl.vlieg.calc.vliegAnglesToHkl
-     
+        settings.ubcalc_persister = UbCalculationNonPersister()
+        settings.Pos = None
+
         from diffcalc.ub import ub
         reload(ub)
         self.ub = ub
         #self.ub.ubcalc = ub.ubcalc
         prepareRawInput([])
         diffcalc.util.RAISE_EXCEPTIONS_FOR_ALL_ERRORS = True
-
-
-class TestUbCommands(TestUBCommandsBase):
-    
-    def _createPersister(self):
-        return UbCalculationNonPersister()
 
     def testNewUb(self):
         self.ub.newub('test1')
@@ -486,11 +474,11 @@ class TestUbCommands(TestUBCommandsBase):
         with pytest.raises(DiffcalcException):
             self.ub.calcub()
         self.ub.newub('testcalcub')
-        # not enougth reflections:
+        # not enough reflections:
         with pytest.raises(DiffcalcException):
             self.ub.calcub()
 
-        s = scenarios.sessions()[0]
+        s = scenarios.sessions(settings.Pos)[0]
         self.ub.setlat(s.name, *s.lattice)
         r = s.ref1
         self.ub.addref(
@@ -513,7 +501,7 @@ class TestUbCommands(TestUBCommandsBase):
         with pytest.raises(DiffcalcException):
             self.ub.orientub()
 
-        s = scenarios.sessions()[1]
+        s = scenarios.sessions(settings.Pos)[1]
         self.ub.setlat(s.name, *s.lattice)
         r = s.ref1
         self.ub.addorient(
@@ -639,8 +627,33 @@ class TestUbCommands(TestUBCommandsBase):
         self.ub.addmiscut(45, [0, -1, 0])
         mneq_(self.ub.ubcalc._state.reference.n_hkl, matrix('0.0; 0.0; 1.0'))
 
-class TestUbCommandsJsonPersistence(TestUBCommandsBase):
+
+class TestUbCommandsVlieg(_UBCommandsBase):
     
+    def setup_method(self):
+        _UBCommandsBase.setup_method(self)
+        settings.geometry = SixCircleGammaOnArmGeometry()
+        settings.ubcalc_strategy = VliegUbCalcStrategy()
+        settings.angles_to_hkl_function = vliegAnglesToHkl
+        settings.Pos = VliegPosition
+
+
+class TestUBCommandsYou(_UBCommandsBase):
+
+    def setup_method(self):
+        _UBCommandsBase.setup_method(self)
+        settings.geometry = SixCircle()
+        settings.ubcalc_strategy = YouUbCalcStrategy()
+        settings.angles_to_hkl_function = youAnglesToHkl
+        settings.Pos = YouPositionScenario
+
+
+class TestUbCommandsJsonPersistence(TestUBCommandsYou):
+
+    def setup_method(self):
+        TestUBCommandsYou.setup_method(self)
+        settings.ubcalc_persister = self._createPersister()
+
     def _createPersister(self):
         self.tmpdir = tempfile.mkdtemp()
         print self.tmpdir
@@ -659,5 +672,5 @@ class TestUbCommandsJsonPersistence(TestUBCommandsBase):
         self.ub.setnphi([0, 1, 0])
         arrayeq_(self.ub.ubcalc.n_phi.T.tolist()[0], [0, 1, 0])
         self.ub.loadub('test1')
-        arrayeq_(self.ub.ubcalc.n_phi.T.tolist()[0], [0, 1, 0])        
-        
+        arrayeq_(self.ub.ubcalc.n_phi.T.tolist()[0], [0, 1, 0])
+

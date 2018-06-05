@@ -236,18 +236,18 @@ class BaseTestHklCalculator():
 
 class TestVliegHklCalculatorSess1NoCalc(BaseTestHklCalculator):
     def setSessionAndCalculation(self):
-        self.sess = scenarios.session1
+        self.sess = scenarios.sessions()[0]
         self.calc = None
 
 
 class TestVliegHklCalculatorSess2Calc0(BaseTestHklCalculator):
     def setSessionAndCalculation(self):
-        self.sess = scenarios.session2
-        self.calc = scenarios.session2.calculations[0]
+        self.sess = scenarios.sessions()[1]
+        self.calc = self.sess.calculations[0]
 
 
 class TestVliegHklCalculatorSess3Calc0(
     BaseTestHklCalculator):
     def setSessionAndCalculation(self):
-        self.sess = scenarios.session3
-        self.calc = scenarios.session3.calculations[0]
+        self.sess = scenarios.sessions()[2]
+        self.calc = self.sess.calculations[0]
