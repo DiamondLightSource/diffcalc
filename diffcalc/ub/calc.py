@@ -584,8 +584,7 @@ class UBCalculation:
             raise  ValueError("Expects 3*3 matrix")
 
         if self._ROT is not None:
-            B = self._state.crystal.B
-            self._UB = self._ROT * m * B.I * self._ROT.I * B
+            self._UB = self._ROT * m
         else:
             self._UB = m
         self._state.configure_calc_type(manual_UB=self._UB)
@@ -840,8 +839,8 @@ class UBCalculation:
         q_vec = self._strategy.calculate_q_phi(pos)
         hkl_nphi = self._UB * matrix([[h], [k], [l]])
         try:
-            axis = cross3(self._ROT * q_vec, self._ROT * hkl_nphi)
-        except TypeError:
+            axis = cross3(self._ROT.I * q_vec, self._ROT.I * hkl_nphi)
+        except AttributeError:
             axis = cross3(q_vec, hkl_nphi)
         norm_axis = norm(axis)
         if norm_axis < SMALL:

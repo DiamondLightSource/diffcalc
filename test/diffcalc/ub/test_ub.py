@@ -21,6 +21,7 @@ import tempfile
 import os.path
 import pytest
 from math import atan, sqrt
+from nose import SkipTest
 
 try:
     from numpy import matrix
@@ -35,7 +36,8 @@ from diffcalc.hardware import DummyHardwareAdapter
 from test.tools import assert_iterable_almost_equal, mneq_, arrayeq_
 from diffcalc.ub.persistence import UbCalculationNonPersister,\
     UBCalculationJSONPersister
-from diffcalc.util import DiffcalcException, MockRawInput, TODEG
+from diffcalc.util import DiffcalcException, MockRawInput, xyz_rotation,\
+    TODEG, TORAD
 from diffcalc.hkl.vlieg.calc import VliegUbCalcStrategy, vliegAnglesToHkl
 from diffcalc.hkl.you.calc import youAnglesToHkl, YouUbCalcStrategy
 from test.diffcalc import scenarios
@@ -62,6 +64,8 @@ class _UBCommandsBase():
         settings.hardware = self.hardware
         settings.ubcalc_persister = UbCalculationNonPersister()
         settings.Pos = None
+        self.t_matrix = matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        self.t_hand = 1
 
         from diffcalc.ub import ub
         reload(ub)
@@ -313,11 +317,17 @@ class _UBCommandsBase():
         #
         self.ub.addorient(hkl1, orient1)
         result = orientlist.getOrientation(1)
-        eq_(result[:-1], (hkl1, orient1, None))
+        trans_orient1 = self.t_matrix.I * matrix([orient1]).T
+        eq_(result[0], hkl1)
+        mneq_(matrix([result[1]]), trans_orient1.T)
+        eq_(result[2], None)
 
         self.ub.addorient(hkl2, orient2, 'atag')
         result = orientlist.getOrientation(2)
-        eq_(result[:-1], (hkl2, orient2, 'atag'))
+        trans_orient2 = self.t_matrix.I * matrix([orient2]).T
+        eq_(result[0], hkl2)
+        mneq_(matrix([result[1]]), trans_orient2.T)
+        eq_(result[2], 'atag')
 
     def testAddorientInteractively(self):
         prepareRawInput([])
@@ -333,12 +343,18 @@ class _UBCommandsBase():
         prepareRawInput(['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', ''])
         self.ub.addorient()
         result = orientlist.getOrientation(1)
-        eq_(result[:-1], (hkl1, orient1, None))
+        trans_orient1 = self.t_matrix.I * matrix([orient1]).T
+        eq_(result[0], hkl1)
+        mneq_(matrix([result[1]]), trans_orient1.T)
+        eq_(result[2], None)
 
         prepareRawInput(['2.1', '2.2', '2.3', '2.4', '2.5', '2.6', 'atag'])
         self.ub.addorient()
         result = orientlist.getOrientation(2)
-        eq_(result[:-1], (hkl2, orient2, 'atag'))
+        trans_orient2 = self.t_matrix.I * matrix([orient2]).T
+        eq_(result[0], hkl2)
+        mneq_(matrix([result[1]]), trans_orient2.T)
+        eq_(result[2], 'atag')
 
     def testEditOrientInteractively(self):
         hkl1 = [1.1, 1.2, 1.3]
@@ -353,7 +369,10 @@ class _UBCommandsBase():
 
         orientlist = self.ub.ubcalc._state.orientlist
         result = orientlist.getOrientation(1)
-        eq_(result[:-1], (hkl2, orient2, 'newtag'))
+        trans_orient2 = self.t_matrix.I * matrix([orient2]).T
+        eq_(result[0], hkl2)
+        mneq_(matrix([result[1]]), trans_orient2.T)
+        eq_(result[2], 'newtag')
 
     def testSwaporient(self):
         with pytest.raises(TypeError):
@@ -501,14 +520,17 @@ class _UBCommandsBase():
         with pytest.raises(DiffcalcException):
             self.ub.orientub()
 
+        self.ub.newub('testorientub')
         s = scenarios.sessions(settings.Pos)[1]
         self.ub.setlat(s.name, *s.lattice)
-        r = s.ref1
+        r1 = s.ref1
+        orient1 = self.t_matrix * matrix('1; 0; 0')
         self.ub.addorient(
-            (r.h, r.k, r.l), (1, 0, 0), r.tag)
-        r = s.ref2
+            (r1.h, r1.k, r1.l), orient1.T.tolist()[0], r1.tag)
+        r2 = s.ref2
+        orient2 = self.t_matrix * matrix('0; -1; 0')
         self.ub.addorient(
-            (r.h, r.k, r.l), (0, -1, 0), r.tag)
+            (r2.h, r2.k, r2.l), orient2.T.tolist()[0], r2.tag)
         self.ub.orientub()
         mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
               4, note="wrong UB matrix after calculating U")
@@ -620,11 +642,13 @@ class _UBCommandsBase():
     def testMiscut(self):
         self.ub.newub('testsetmiscut')
         self.ub.setlat('cube', 1, 1, 1, 90, 90, 90)
-        self.ub.setmiscut(30)
+        beam_axis = (self.t_matrix * matrix('0; 1; 0')).T.tolist()[0]
+        beam_maxis = (self.t_matrix * matrix('0; -1; 0')).T.tolist()[0]
+        self.ub.setmiscut(self.t_hand * 30, beam_axis)
         mneq_(self.ub.ubcalc._state.reference.n_hkl, matrix('-0.5000000; 0.00000; 0.8660254'))
-        self.ub.addmiscut(15)
+        self.ub.addmiscut(self.t_hand * 15, beam_axis)
         mneq_(self.ub.ubcalc._state.reference.n_hkl, matrix('-0.7071068; 0.00000; 0.7071068'))
-        self.ub.addmiscut(45, [0, -1, 0])
+        self.ub.addmiscut(self.t_hand * 45, beam_maxis)
         mneq_(self.ub.ubcalc._state.reference.n_hkl, matrix('0.0; 0.0; 1.0'))
 
 
@@ -647,6 +671,40 @@ class TestUBCommandsYou(_UBCommandsBase):
         settings.angles_to_hkl_function = youAnglesToHkl
         settings.Pos = YouPositionScenario
 
+
+class TestUBCommandsCustomGeom(TestUBCommandsYou):
+
+    def setup_method(self):
+        TestUBCommandsYou.setup_method(self)
+        inv = matrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
+        self.xrot = xyz_rotation([1, 0 ,0], 30. * TORAD)
+        self.t_matrix = inv * self.xrot
+        self.t_hand = -1
+        settings.geometry = SixCircle(beamline_axes_transform=self.t_matrix.I)
+
+    def testSetu(self):
+        self.ub.newub('testsetu_custom')
+        self.ub.setlat('NaCl', 1.1)
+        zrot = xyz_rotation([0, 0 , 1], self.t_hand * 30. * TORAD)
+        self.ub.setu(zrot.tolist())
+
+        mneq_(self.ub.ubcalc.U, self.xrot)
+
+    def testSetuInteractive(self):
+        # Interactive functionality already tested
+        raise SkipTest()
+
+    def testSetub(self):
+        self.ub.newub('testsetub_custom')
+        self.ub.setlat('NaCl', 1.1)
+        zrot = xyz_rotation([0, 0 , 1], self.t_hand * 30. * TORAD)
+        self.ub.setu(zrot.tolist())
+
+        mneq_(self.ub.ubcalc.UB, self.xrot * self.ub.ubcalc._state.crystal.B)
+
+    def testSetUbInteractive(self):
+        # Interactive functionality already tested
+        raise SkipTest()
 
 class TestUbCommandsJsonPersistence(TestUBCommandsYou):
 
