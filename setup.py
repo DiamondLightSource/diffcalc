@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='diffcalc',
-    version='2.1.dev',
+    version='2.1',
     
     description='A diffraction condition calculator for X-ray or neutron diffractometer control.',
     long_description=open('README.rst').read(),

@@ -328,7 +328,8 @@ class UBCalculation:
         # Clear U and UB if these exist
         if self._U is not None:  # (UB will also exist)
             print "Warning: the old UB calculation has been cleared."
-            print "         Use 'calcub' to recalculate with old reflections."
+            print "         Use 'calcub' to recalculate with old reflections or"
+            print "         'orientub' to recalculate with old orientations."
 
 ### Surface normal stuff ###
 
@@ -336,7 +337,7 @@ class UBCalculation:
         """
         Returns tau (in degrees): the (minus) ammount of phi axis rotation ,
         that together with some chi axis rotation (minus sigma) brings the
-        optical surface normal parallelto the omega axis.
+        optical surface normal parallel to the omega axis.
         """
         return self._state.tau
 
@@ -532,7 +533,7 @@ class UBCalculation:
                    "been specified.")
         elif not self._state.is_okay_to_autocalculate_ub:
             print ("Not calculating UB matrix as it has been manually set. "
-                   "Use 'calcub' to explicitly recalculate it.")
+                   "Use 'orientub' to explicitly recalculate it.")
         else:  # okay to autocalculate
             if self._UB is None:
                 print "Calculating UB matrix."
@@ -584,8 +585,7 @@ class UBCalculation:
             raise  ValueError("Expects 3*3 matrix")
 
         if self._ROT is not None:
-            B = self._state.crystal.B
-            self._UB = self._ROT * m * B.I * self._ROT.I * B
+            self._UB = self._ROT * m
         else:
             self._UB = m
         self._state.configure_calc_type(manual_UB=self._UB)
@@ -840,8 +840,8 @@ class UBCalculation:
         q_vec = self._strategy.calculate_q_phi(pos)
         hkl_nphi = self._UB * matrix([[h], [k], [l]])
         try:
-            axis = cross3(self._ROT * q_vec, self._ROT * hkl_nphi)
-        except TypeError:
+            axis = cross3(self._ROT.I * q_vec, self._ROT.I * hkl_nphi)
+        except AttributeError:
             axis = cross3(q_vec, hkl_nphi)
         norm_axis = norm(axis)
         if norm_axis < SMALL:

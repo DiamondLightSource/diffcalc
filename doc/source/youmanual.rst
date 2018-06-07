@@ -228,6 +228,10 @@ The ``ub`` command will show the state of the current UB-calculation
    REFLECTIONS
    
       <<< none specified >>>
+   
+   CRYSTAL ORIENTATIONS
+   
+   <<< none specified >>>
 
 Load a UB calculation
 ---------------------
@@ -289,15 +293,6 @@ To estimate based on first reflection only::
    Recalculating UB matrix from the first reflection only.
    NOTE: A new UB matrix will not be automatically calculated when the orientation reflections are modified.
 
-Manually specify U matrix
--------------------------
-
-Set U matrix manually (pretending sample is squarely mounted)::
-
-   >>> setu [[1 0 0] [0 1 0] [0 0 1]]
-   Recalculating UB matrix.
-   NOTE: A new UB matrix will not be automatically calculated when the orientation reflections are modified.
-
 Edit reflection list
 --------------------
 
@@ -318,6 +313,23 @@ Use ``delref`` to delete a reflection::
 
     >>> delref 1
 
+Generate a U matrix from two lattice directions
+-----------------------------------------------
+
+Another approach to calculate a U matrix is to provide orientation of **two** crystal lattice
+directions in laboratory frame of reference using ``addorient`` command. The first lattice
+direction will be aligned along the specified in the laboratory frame. The second lattice
+direction will be used to set azimuthal orientation of the crystal in the plane perpendicular
+to the first lattice orientation. Diffcalc allows many lattice directions to be recorded but
+currently uses only the first two when calculating a UB matrix.
+
+Find U matrix from two lattice directions::
+
+   >>> addorient [0 0 1] [0 0 1]
+
+   >>> addorient [1 0 0] [1 1 0]
+   Calculating UB matrix.
+
 Calculate a UB matrix
 ---------------------
 
@@ -326,17 +338,72 @@ calculated after the second reflection has been found, or whenever one of the
 first two reflections is changed.
 
 Use the command ``calcub`` to force the UB matrix to be calculated from the
-first two reflections.
+first two reflections. In case of using lattice orientations instead of reflections,
+use command ``orientub`` to force the UB matrix to be calculated from the first two orientations.
 
 If you have misidentified a reflection used for the orientation the
-resulting UB matrix will be incorrect. Always use the ``checkub``
-command to check that the computed values agree with the estimated values::
+resulting UB matrix will be incorrect. Always use the ``checkub``command
+to check that the computed reflection indices agree with the estimated values::
 
-    >>> checkub
-    
-         ENERGY     H     K     L    H_COMP   K_COMP   L_COMP     TAG
-     1  12.3984  0.00  1.00  1.00    0.0000   1.0000   1.0000        
-     2  12.3984  0.00  0.00  1.00    0.0000   0.0000   1.0000        
+   >>> checkub
+   
+        ENERGY     H     K     L    H_COMP   K_COMP   L_COMP     TAG
+    1  12.3984  0.00  1.00  1.00    0.0000   1.0000   1.0000        
+    2  12.3984  0.00  0.00  1.00    0.0000   0.0000   1.0000        
+
+Calculate a U matrix from crystal mismount
+-------------------------------------------
+
+U matrix can be defined from crystal mismount by using a rotation matrix calculated from a provided
+mismount angle and axis. ``setmiscut`` command defines new U matrix by setting it to a rotation matrix
+calculated from the specified angle and axis parameters. ``addmiscut`` command applies the calculated
+rotation matrix to the existing U matrix, i.e. adds extra mismount to the already existing one::
+
+   >>> setmiscut 5 [1 0 0]
+   n_phi: -0.00000  -0.08716   0.99619
+   n_hkl:  0.00000   0.00000   1.00000 <- set
+   normal:
+      angle:  5.00000
+      axis:  1.00000  -0.00000   0.00000
+
+
+Manually specify U matrix
+-------------------------
+
+Set U matrix manually (pretending sample is squarely mounted)::
+
+   >>> setu [[1 0 0] [0 1 0] [0 0 1]]
+   Recalculating UB matrix.
+   NOTE: A new UB matrix will not be automatically calculated when the orientation reflections are modified.
+
+Refining UB matrix from reflection
+----------------------------------
+
+UB matrix elements can be refined to match diffractometer settings and crystal orientation experimentally
+found for a given reflection with the corresponding reflection indices. ``refineub`` command rescales
+crystal unit cell dimensions to match with the found scattering angle value and recalculates mismount
+parameters to update U matrix::
+
+   >>> refineub [1 0 0]
+   current pos[y]: y
+   Unit cell scaling factor:  0.99699
+   Refined crystal lattice:
+      a, b, c:  0.99699   0.99699   0.99699
+                90.00000  90.00000  90.00000
+   
+   Update crystal settings?[y]: y
+   Warning: the old UB calculation has been cleared.
+            Use 'calcub' to recalculate with old reflections or
+            'orientub' to recalculate with old orientations.
+   Miscut parameters:
+         angle:  2.90000
+          axis: -0.00000   1.00000  -0.00000
+   Apply miscut parameters?[y]: y
+      n_phi:  0.67043  -0.00000   0.74198
+      n_hkl:  0.00000   0.00000   1.00000 <- set
+      normal:
+         angle: 42.10000
+         axis:  0.00000   1.00000   0.00000
 
 Set the reference vector
 -------------------------
@@ -348,19 +415,19 @@ with which we want to orient the incident or diffracted beam.
 By default the reference vector is set parallel to the phi axis. That is,
 along the z-axis of the phi coordinate frame.
 
-The `ub` command shows the current reference vector, along with any inferred
-miscut, at the top its report (or it can be shown by calling ``setnphi`` or
+The `ub` command shows the current reference vector along with the orientation relative to
+the z-axis, at the top its report (or it can be shown by calling ``setnphi`` or
 ``setnhkl'`` with no args)::
 
  >>> ub
  ...
  n_phi:      0.00000   0.00000   1.00000 <- set
  n_hkl:     -0.00000   0.00000   1.00000
- miscut:     None
+ normal:     None
  ...
 
 The ``<- set`` label here indicates that the reference vector is set in the phi
-coordinate frame. In this case, therefor, its direction in the crystal's
+coordinate frame. In this case, therefore, its direction in the crystal's
 reciprocal lattice space is inferred from the UB matrix.
 
 To set the reference vector in the phi coordinate frame use::
@@ -377,7 +444,8 @@ To set the reference vector in the crystal's reciprocal lattice space use (this
 is a quick way to determine the surface orientation if the surface is known to
 be cleaved cleanly along a known axis)::
 
-   >>> setnhkl [0 0 1] ...
+   >>> setnhkl [0 0 1]
+   ...
 
 Motion
 ======
@@ -675,6 +743,9 @@ Orientation Commands
 +-----------------------------+---------------------------------------------------+
 | **-- c2th** [h k l]         | calculate two-theta angle for reflection          |
 +-----------------------------+---------------------------------------------------+
+| **-- hklangle** [h1 k1 l1]  | calculate angle between [h1 k1 l1] and [h2 k2 l2] |
+| [h2 k2 l2]                  | crystal planes                                    |
++-----------------------------+---------------------------------------------------+
 | **REFERENCE (SURFACE)**                                                         |
 +-----------------------------+---------------------------------------------------+
 | **-- setnphi** {[x y z]}    | sets or displays n_phi reference                  |
@@ -699,10 +770,30 @@ Orientation Commands
 +-----------------------------+---------------------------------------------------+
 | **-- clearref**             | deletes all the reflections                       |
 +-----------------------------+---------------------------------------------------+
-| **-- swapref**              | swaps first two reflections used for calulating U |
-|                             | matrix                                            |
+| **-- swapref**              | swaps first two reflections used for calculating  |
+|                             | U matrix                                          |
 +-----------------------------+---------------------------------------------------+
 | **-- swapref** num1 num2    | swaps two reflections (numbered from 1)           |
++-----------------------------+---------------------------------------------------+
+| **CRYSTAL ORIENTATIONS**                                                        |
++-----------------------------+---------------------------------------------------+
+| **-- showorient**           | shows full list of crystal orientations           |
++-----------------------------+---------------------------------------------------+
+| **-- addorient**            | add crystal orientation interactively             |
++-----------------------------+---------------------------------------------------+
+| **-- addorient** [h k l]    | add crystal orientation in laboratory frame       |
+| [x y z] {'tag'}             |                                                   |
++-----------------------------+---------------------------------------------------+
+| **-- editorient** num       | interactively edit a crystal orientation          |
++-----------------------------+---------------------------------------------------+
+| **-- delorient** num        | deletes a crystal orientation (numbered from 1)   |
++-----------------------------+---------------------------------------------------+
+| **-- clearorient**          | deletes all the crystal orientations              |
++-----------------------------+---------------------------------------------------+
+| **-- swaporient**           | swaps first two crystal orientations used for     |
+|                             | calculating U matrix                              |
++-----------------------------+---------------------------------------------------+
+| **-- swaporient** num1 num2 | swaps two crystal orientations (numbered from 1)  |
 +-----------------------------+---------------------------------------------------+
 | **UB MATRIX**                                                                   |
 +-----------------------------+---------------------------------------------------+
@@ -719,6 +810,17 @@ Orientation Commands
 +-----------------------------+---------------------------------------------------+
 | **-- trialub**              | (re)calculate u matrix from ref1 only (check      |
 |                             | carefully)                                        |
++-----------------------------+---------------------------------------------------+
+| **-- refineub** {[h k l]}   | refine unit cell dimensions and U matrix to match |
+| {pos}                       | diffractometer angles for a given hkl value       |
++-----------------------------+---------------------------------------------------+
+| **-- addmiscut** angle      | apply miscut to U matrix using a specified miscut |
+| {[x y z]}                   | angle in degrees and a rotation axis              |
+|                             | (default: [0 1 0])                                |
++-----------------------------+---------------------------------------------------+
+| **-- setmiscut** angle      | manually set U matrix using a specified miscut    |
+| {[x y z]}                   | angle in degrees and a rotation axis              |
+|                             | (default: [0 1 0])                                |
 +-----------------------------+---------------------------------------------------+
 
 Motion commands

@@ -12,11 +12,11 @@ See also the `quickstart guide at github <https://github.com/DiamondLightSource/
 
 .. toctree::
    :maxdepth: 2
-   :numbered:
    
    youmanual
    vliegmanual/contents
    developer/contents
+   ACKS
 
 Indices and tables
 ==================

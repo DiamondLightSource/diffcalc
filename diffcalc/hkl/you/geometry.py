@@ -31,6 +31,9 @@ class YouGeometry(object):
     def __init__(self, name, fixed_constraints, beamline_axes_transform=None):
         self.name = name
         self.fixed_constraints = fixed_constraints
+        # beamline_axes_transform matrix is composed of the diffcalc basis vector coordinates
+        # in the beamline coordinate system, i.e. it transforms the beamline coordinate system
+        # into the reference diffcalc one.
         self.beamline_axes_transform = beamline_axes_transform
 
     def physical_angles_to_internal_position(self, physical_angle_tuple):
