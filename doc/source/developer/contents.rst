@@ -16,7 +16,6 @@ Diffcalc Developer Guide
    package
    quickstart_api
    development
-   ACKS
 
 Indices and tables
 ==================

@@ -355,6 +355,9 @@ Orientation Commands
 +-----------------------------+---------------------------------------------------+
 | **-- c2th** [h k l]         | calculate two-theta angle for reflection          |
 +-----------------------------+---------------------------------------------------+
+| **-- hklangle** [h1 k1 l1]  | calculate angle between [h1 k1 l1] and [h2 k2 l2] |
+| [h2 k2 l2]                  | crystal planes                                    |
++-----------------------------+---------------------------------------------------+
 | **REFERENCE (SURFACE)**                                                         |
 +-----------------------------+---------------------------------------------------+
 | **-- setnphi** {[x y z]}    | sets or displays n_phi reference                  |
@@ -379,10 +382,30 @@ Orientation Commands
 +-----------------------------+---------------------------------------------------+
 | **-- clearref**             | deletes all the reflections                       |
 +-----------------------------+---------------------------------------------------+
-| **-- swapref**              | swaps first two reflections used for calulating U |
-|                             | matrix                                            |
+| **-- swapref**              | swaps first two reflections used for calculating  |
+|                             | U matrix                                          |
 +-----------------------------+---------------------------------------------------+
 | **-- swapref** num1 num2    | swaps two reflections (numbered from 1)           |
++-----------------------------+---------------------------------------------------+
+| **CRYSTAL ORIENTATIONS**                                                        |
++-----------------------------+---------------------------------------------------+
+| **-- showorient**           | shows full list of crystal orientations           |
++-----------------------------+---------------------------------------------------+
+| **-- addorient**            | add crystal orientation interactively             |
++-----------------------------+---------------------------------------------------+
+| **-- addorient** [h k l]    | add crystal orientation in laboratory frame       |
+| [x y z] {'tag'}             |                                                   |
++-----------------------------+---------------------------------------------------+
+| **-- editorient** num       | interactively edit a crystal orientation          |
++-----------------------------+---------------------------------------------------+
+| **-- delorient** num        | deletes a crystal orientation (numbered from 1)   |
++-----------------------------+---------------------------------------------------+
+| **-- clearorient**          | deletes all the crystal orientations              |
++-----------------------------+---------------------------------------------------+
+| **-- swaporient**           | swaps first two crystal orientations used for     |
+|                             | calculating U matrix                              |
++-----------------------------+---------------------------------------------------+
+| **-- swaporient** num1 num2 | swaps two crystal orientations (numbered from 1)  |
 +-----------------------------+---------------------------------------------------+
 | **UB MATRIX**                                                                   |
 +-----------------------------+---------------------------------------------------+
@@ -399,6 +422,17 @@ Orientation Commands
 +-----------------------------+---------------------------------------------------+
 | **-- trialub**              | (re)calculate u matrix from ref1 only (check      |
 |                             | carefully)                                        |
++-----------------------------+---------------------------------------------------+
+| **-- refineub** {[h k l]}   | refine unit cell dimensions and U matrix to match |
+| {pos}                       | diffractometer angles for a given hkl value       |
++-----------------------------+---------------------------------------------------+
+| **-- addmiscut** angle      | apply miscut to U matrix using a specified miscut |
+| {[x y z]}                   | angle in degrees and a rotation axis              |
+|                             | (default: [0 1 0])                                |
++-----------------------------+---------------------------------------------------+
+| **-- setmiscut** angle      | manually set U matrix using a specified miscut    |
+| {[x y z]}                   | angle in degrees and a rotation axis              |
+|                             | (default: [0 1 0])                                |
 +-----------------------------+---------------------------------------------------+
 
 Motion Commands
