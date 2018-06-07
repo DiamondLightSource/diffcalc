@@ -13,10 +13,12 @@ SIM_MODE=False
 ### Create dummy scannables ###
 if GDA:  
     ###map GDA scannable to diffcalc axis name###
-    delta=tth
-    eta=th
-    chi=chi
-    phi=Dummy("phi")
+    phi = Dummy('phi')
+    _fourc = ScannableGroup('_fourc', (tth, th, chi, phi))
+    delta=_fourc.tth
+    eta=_fourc.th
+    chi=_fourc.chi
+    phi=_fourc.phi
     en=pgm_energy
     if float(en.getPosition()) == 0: # no energy value - dummy mode
         en(800)
@@ -26,10 +28,10 @@ else:
     eta = Dummy('eta')
     chi = Dummy('chi')
     phi = Dummy('phi')
+    _fourc = ScannableGroup('_fourc', (delta, eta, chi, phi))
     en = Dummy('en')
     en(800)
 
-_fourc = ScannableGroup('_fourc', (delta, eta, chi, phi))
 en.level = 3
 
 ### Configure and import diffcalc objects ###
