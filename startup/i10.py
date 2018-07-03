@@ -15,10 +15,6 @@ if GDA:
     ###map GDA scannable to diffcalc axis name###
     phi = Dummy('phi')
     _fourc = ScannableGroup('_fourc', (tth, th, chi, phi))
-    delta=_fourc.tth
-    eta=_fourc.th
-    chi=_fourc.chi
-    phi=_fourc.phi
     en=pgm_energy
     if float(en.getPosition()) == 0: # no energy value - dummy mode
         en(800)
@@ -66,7 +62,10 @@ def setLimitsAndCuts(delta,eta,chi,phi):
     print "Current hardware limits set to:"
     hardware()
 
-setLimitsAndCuts(delta,eta,chi,phi)
+if GDA:
+    setLimitsAndCuts(tth,th,chi,phi)
+else:
+    setLimitsAndCuts(delta,eta,chi,phi)
 
 if GDA:
     def swithMotors(delta, mu, eta, chi, phi):
