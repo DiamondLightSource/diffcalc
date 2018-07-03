@@ -1,6 +1,6 @@
 from startup._common_imports import *  # @UnusedWildImport
 from diffcalc.gdasupport.minigda.scannable import ScannableMotionWithScannableFieldsBase  # @UnusedImport
-from startup.beamlinespecific.i21 import I21SampleStage, I21DiffractometerStage, I21TPLab
+from startup.beamlinespecific.i21 import I21SampleStage, I21TPLab
 from diffcalc.hkl.you.geometry import YouGeometry, YouPosition
 from diffcalc.hkl.you.constraints import NUNAME
 
@@ -72,11 +72,7 @@ tp_laby = tp_lab.tp_laby
 tp_labz = tp_lab.tp_labz
 
 ### Wrap i21 names to get diffcalc names - sample chamber
-_fourc = I21DiffractometerStage('_fourc', delta, sa)
-delta = _fourc.delta
-eta = _fourc.eta
-chi = _fourc.chi
-phi = _fourc.phi
+_fourc = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc', diodetth, sa)
 
 if GDA:
     en=energy
@@ -99,9 +95,6 @@ settings.axes_scannable_group= _fourc
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
  
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
-
-# fourc is created in diffcalc.gdasupport.you. Add some I21 hints into it
-fourc.hint_generator = _fourc.get_hints  # (the callablemethod) # @UndefinedVariable
 
 if GDA:
     print "Running in GDA --- aliasing commands"
@@ -130,7 +123,7 @@ def setLimitsAndCuts(delta_angle, chi_angle, eta_angle, phi_angle):
     print "Current hardware limits set to:"
     hardware()
 
-setLimitsAndCuts(delta, chi, eta, phi)
+setLimitsAndCuts(delta, chi, th, phi)
 
 ### Create i21 bespoke secondary hkl devices
 # Warning: this breaks the encapsulation provided by the diffcalc.dc.you public
@@ -143,33 +136,29 @@ from diffcalc.gdasupport.scannable.diffractometer import DiffractometerScannable
 from diffcalc.gdasupport.scannable.hkl import Hkl
 
 print '- fourc_vessel & hkl_vessel'
-_fourc_vessel = I21DiffractometerStage('_fourc_vessel', m5tth, sa)
+_fourc_vessel = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_vessel', m5tth, sa)
 fourc_vessel = DiffractometerScannableGroup('fourc_vessel', _dc, _fourc_vessel)
-fourc_vessel.hint_generator = _fourc_vessel.get_hints
 hkl_vessel = Hkl('hkl_vessel', _fourc_vessel, _dc)
 h_vessel, k_vessel, l_vessel = hkl_vessel.h, hkl_vessel.k, hkl_vessel.l
 
 print '- fourc_lowq & hkl_lowq'
 LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING = -8
-_fourc_lowq = I21DiffractometerStage('_fourc_lowq', m5tth, sa,delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)
+_fourc_lowq = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_lowq', m5tth, sa,delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)
 fourc_lowq = DiffractometerScannableGroup('fourc_lowq', _dc, _fourc_lowq)
-fourc_lowq.hint_generator = _fourc_lowq.get_hints
 hkl_lowq = Hkl('hkl_lowq', _fourc_lowq, _dc)
 h_lowq, k_lowq, l_lowq = hkl_lowq.h, hkl_lowq.k, hkl_lowq.l
 
 print '- fourc_highq & hkl_highq'
 highq_OFFSET_ADDED_TO_DELTA_WHEN_READING = 0
-_fourc_highq = I21DiffractometerStage('_fourc_highq', m5tth, sa,delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)
+_fourc_highq = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_highq', m5tth, sa,delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)
 fourc_highq = DiffractometerScannableGroup('fourc_highq', _dc, _fourc_highq)
-fourc_highq.hint_generator = _fourc_highq.get_hints
 hkl_highq = Hkl('hkl_highq', _fourc_highq, _dc)
 h_highq, k_highq, l_highq = hkl_highq.h, hkl_highq.k, hkl_highq.l
 
 # sample chamber
 print '- fourc_diode & hkl_diode'
-_fourc_diode = I21DiffractometerStage('_fourc_diode', delta, sa)
+_fourc_diode = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_diode', delta, sa)
 fourc_diode = DiffractometerScannableGroup('fourc_diode', _dc, _fourc_diode)
-fourc_diode.hint_generator = _fourc_diode.get_hints
 hkl_diode = Hkl('hkl_diode', _fourc_diode, _dc)
 h_diode, k_diode, l_diode = hkl_diode.h, hkl_diode.k, hkl_diode.l
 
@@ -246,7 +235,6 @@ if GDA:
         __main__.settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
         
         __main__.fourc=DiffractometerScannableGroup('fourc', _dc, _fourc)
-        __main__.fourc.hint_generator = _fourc.get_hints  # (the callabl emethod) # @UndefinedVariable
         __main__.hkl = Hkl('hkl', _fourc, _dc)
         __main__.h, __main__.k, __main__.l = hkl.h, hkl.k, hkl.l
 
@@ -257,30 +245,26 @@ if GDA:
         __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
         __main__.ct = SimulatedCrystalCounter('ct', _fourc, __main__.settings.geometry,__main__.wl)  # @UndefinedVariable
         #update scannales: fourc_vessel & hkl_vessel'
-        _fourc_vessel = I21DiffractometerStage('_fourc_vessel', specm5tth, __main__.sa)  # @UndefinedVariable
+        _fourc_vessel = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_vessel', m5tth, sa)
         __main__.fourc_vessel = DiffractometerScannableGroup('fourc_vessel', _dc, _fourc_vessel)
-        __main__.fourc_vessel.hint_generator = _fourc_vessel.get_hints
         __main__.hkl_vessel = Hkl('hkl_vessel', _fourc_vessel, _dc)
         __main__.h_vessel, __main__.k_vessel, __main__.l_vessel = hkl_vessel.h, hkl_vessel.k, hkl_vessel.l
         
         #Update scannables: fourc_lowq & hkl_lowq'
-        _fourc_lowq = I21DiffractometerStage('_fourc_lowq', specm5tth, __main__.sa,delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)  # @UndefinedVariable
+        _fourc_lowq = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_lowq', m5tth, sa,delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)
         __main__.fourc_lowq = DiffractometerScannableGroup('fourc_lowq', _dc, _fourc_lowq)
-        __main__.fourc_lowq.hint_generator = _fourc_lowq.get_hints
         __main__.hkl_lowq = Hkl('hkl_lowq', _fourc_lowq, _dc)
         __main__.h_lowq, __main__.k_lowq, __main__.l_lowq = hkl_lowq.h, hkl_lowq.k, hkl_lowq.l
         
         #Update scannables: fourc_highq & hkl_highq'
-        _fourc_highq = I21DiffractometerStage('_fourc_highq', specm5tth, __main__.sa,delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)  # @UndefinedVariable
+        _fourc_highq = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_highq', m5tth, sa,delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)
         __main__.fourc_highq = DiffractometerScannableGroup('fourc_highq', _dc, _fourc_highq)
-        __main__.fourc_highq.hint_generator = _fourc_highq.get_hints
         __main__.hkl_highq = Hkl('hkl_highq', _fourc_highq, _dc)
         __main__.h_highq, __main__.k_highq, __main__.l_highq = hkl_highq.h, hkl_highq.k, hkl_highq.l
         
         #Update scannables: fourc_diode & hkl_diode'
-        _fourc_diode = I21DiffractometerStage('_fourc_diode', diodedelta, __main__.sa)  # @UndefinedVariable
+        _fourc_diode = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_diode', delta, sa)
         __main__.fourc_diode = DiffractometerScannableGroup('fourc_diode', _dc, _fourc_diode)
-        __main__.fourc_diode.hint_generator = _fourc_diode.get_hints
         __main__.hkl_diode = Hkl('hkl_diode', _fourc_diode, _dc)
         __main__.h_diode, __main__.k_diode, __main__.l_diode = hkl_diode.h, hkl_diode.k, hkl_diode.l
         
@@ -329,7 +313,7 @@ if GDA:
 #         __main__.th = __main__.sa.th  # @UndefinedVariable
 #         __main__.chi = __main__.sa.chi  # @UndefinedVariable
 #         __main__.phi = __main__.sa.phi  # @UndefinedVariable
-        setLimitsAndCuts(delta,chi,eta,phi)
+        setLimitsAndCuts(delta,chi,th,phi)
      
     from gda.jython.commands.GeneralCommands import alias  # @UnresolvedImport
     alias("usediode")
@@ -458,7 +442,7 @@ else:
                 'pos(hkl, [0, .1, 0])',
                 'scan(h, 0, .1, .02, k, l, fourc, ct, 1)',
                 'con(psi)',
-                'scan(psi, 0, 90, 10, hkl, [.1, 0, .1], eta, chi, phi, ct, .1)']
+                'scan(psi, 0, 90, 10, hkl, [.1, 0, .1], th, chi, phi, ct, .1)']
             self.executeCommand(cmd_list)
 
 

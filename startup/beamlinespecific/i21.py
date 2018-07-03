@@ -3,8 +3,12 @@ Created on 19 Feb 2017
 
 @author: zrb13439
 '''
-from diffcalc.gdasupport.minigda.scannable import ScannableMotionWithScannableFieldsBase,\
-    ScannableBase
+try:
+    from gda.device.scannable.scannablegroup import \
+        ScannableMotionWithScannableFieldsBase, ScannableBase
+except ImportError:
+    from diffcalc.gdasupport.minigda.scannable import \
+        ScannableMotionWithScannableFieldsBase, ScannableBase
 from math import pi
 
 # TP_HELP="""
