@@ -542,7 +542,7 @@ class _UBCommandsBase():
         prepareRawInput(['1', '1', '', 'n', '0', '60', '0', '30', '0', '0', 'y', 'y'])
         self.ub.refineub()
         getLattice = self.ub.ubcalc._state.crystal.getLattice
-        eq_(('xtal', sqrt(2.), sqrt(2.), sqrt(2.), 90, 90, 90), getLattice())
+        eq_(('xtal', sqrt(2.), sqrt(2.), 1, 90, 90, 90), getLattice())
         mneq_(self.ub.ubcalc.U, matrix('0.70711   0.70711   0.00000; -0.70711   0.70711   0.00000; 0.00000   0.00000   1.00000'),
               4, note="wrong U matrix after refinement")
 
@@ -554,7 +554,7 @@ class _UBCommandsBase():
         prepareRawInput(['1', '1', '', 'y', 'y', 'y'])
         self.ub.refineub()
         getLattice = self.ub.ubcalc._state.crystal.getLattice
-        eq_(('xtal', sqrt(2.), sqrt(2.), sqrt(2.), 90, 90, 90), getLattice())
+        eq_(('xtal', sqrt(2.), sqrt(2.), 1, 90, 90, 90), getLattice())
         mneq_(self.ub.ubcalc.U, matrix('0.70711   0.70711   0.00000; -0.70711   0.70711   0.00000; 0.00000   0.00000   1.00000'),
               4, note="wrong U matrix after refinement")
 
@@ -566,7 +566,7 @@ class _UBCommandsBase():
         prepareRawInput(['y', 'y', 'y'])
         self.ub.refineub([1, 1, 0])
         getLattice = self.ub.ubcalc._state.crystal.getLattice
-        eq_(('xtal', sqrt(2.), sqrt(2.), sqrt(2.), 90, 90, 90), getLattice())
+        eq_(('xtal', sqrt(2.), sqrt(2.), 1, 90, 90, 90), getLattice())
         mneq_(self.ub.ubcalc.U, matrix('0.70711   0.70711   0.00000; -0.70711   0.70711   0.00000; 0.00000   0.00000   1.00000'),
               4, note="wrong U matrix after refinement")
 
@@ -577,7 +577,7 @@ class _UBCommandsBase():
         prepareRawInput(['y', 'y'])
         self.ub.refineub([1, 1, 0], [0, 60, 0, 30, 0, 0])
         getLattice = self.ub.ubcalc._state.crystal.getLattice
-        eq_(('xtal', sqrt(2.), sqrt(2.), sqrt(2.), 90, 90, 90), getLattice())
+        eq_(('xtal', sqrt(2.), sqrt(2.), 1, 90, 90, 90), getLattice())
         mneq_(self.ub.ubcalc.U, matrix('0.70711   0.70711   0.00000; -0.70711   0.70711   0.00000; 0.00000   0.00000   1.00000'),
               4, note="wrong U matrix after refinement")
 
