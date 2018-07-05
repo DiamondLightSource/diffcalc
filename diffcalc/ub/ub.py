@@ -211,6 +211,7 @@ def refineub(*args):
             ubcalc.set_miscut(mc_axis, -mc_angle * TORAD, True)
     else:
         print "No miscut detected for the given settings"
+        ubcalc.set_miscut(None, 0, True)
 
 ### UB lattice ###
 
