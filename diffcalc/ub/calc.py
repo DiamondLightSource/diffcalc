@@ -830,7 +830,10 @@ class UBCalculation:
         name, a1, a2, a3, alpha1, alpha2, alpha3 = self._state.crystal.getLattice()
         if abs(sc - 1.) < SMALL:
             return None, None
-        return sc, (name, sc * a1, sc* a2, sc * a3, alpha1, alpha2, alpha3)
+        ref_a1 = sc * a1 if abs(h) > SMALL else a1
+        ref_a2 = sc * a2 if abs(k) > SMALL else a2
+        ref_a3 = sc * a3 if abs(l) > SMALL else a3
+        return sc, (name, ref_a1, ref_a2, ref_a3, alpha1, alpha2, alpha3)
 
     def calc_miscut(self, h, k, l, pos):
         """
