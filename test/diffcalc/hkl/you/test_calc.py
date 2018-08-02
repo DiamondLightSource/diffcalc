@@ -517,6 +517,81 @@ class TestCubicHorizontal_delta0_aeqb(_TestCubicHorizontal):
         self.constraints._constrained = {'a_eq_b': None, 'delta': 0, 'eta': 0}
 
 
+class TestCubic_FixedDeltaEtaPhi0Mode(_TestCubic):
+
+    def setup_method(self):
+        _TestCubic.setup_method(self)
+        self.constraints._constrained = {'eta': 0, 'delta': 0, 'phi': 0}
+        self.mock_hardware.set_lower_limit('chi', -180.)
+
+    def makes_cases(self, yrot, zrot):
+        self.zrot = zrot
+        self.yrot = yrot
+        self.wavelength = 1
+        self.cases = (
+             Pair('100', (1, 0, 0),
+                  Pos(mu=30, delta=0, nu=60, eta=0, chi=-90 - self.yrot,
+                      phi=0, unit='DEG')),
+             Pair('100-->001', (cos(4 * TORAD), 0, sin(4 * TORAD)),
+                  Pos(mu=30, delta=0, nu=60, eta=0, chi= -90 + 4 - self.yrot,
+                      phi=0, unit='DEG')),
+             Pair('010', (0, 1, 0),
+                  Pos(mu=120, delta=0, nu=60, eta=0, chi=0,
+                      phi=0, unit='DEG'), fails=True),  # degenerate case chi||q
+             Pair('001', (0, 0, 1),
+                  Pos(mu=30, delta=0, nu=60, eta=0, chi=0 - self.yrot,
+                      phi=0, unit='DEG')),
+             Pair('001-->100', (cos(86 * TORAD), 0, sin(86 * TORAD)),
+                  Pos(mu=30, delta=0, nu=60, eta=0, chi=0 - 4 - self.yrot,
+                      phi=0, unit='DEG')),
+            )
+        self.case_dict = {}
+        for case in self.cases:
+            self.case_dict[case.name] = case
+
+    def test_pairs_zrot0_yrot0(self):
+        self.makes_cases(0, 0)
+        for case_tuple in self.case_generator():
+            yield case_tuple
+
+    def test_pairs_various_zrot0_and_yrot(self):
+        for yrot in [0, 2, -2, 45, -45, 90, -90]:
+            self.makes_cases(yrot, 0)
+            for case_tuple in self.case_generator():
+                yield case_tuple
+    
+class TestCubic_FixedDeltaEtaPhi30Mode(_TestCubic):
+
+    def setup_method(self):
+        _TestCubic.setup_method(self)
+        self.constraints._constrained = {'eta': 0, 'delta': 0, 'phi': 30 * TORAD}
+        self.mock_hardware.set_lower_limit('chi', -180.)
+
+    def makes_cases(self, yrot, zrot):
+        self.zrot = zrot
+        self.yrot = yrot
+        self.wavelength = 1
+        self.cases = (
+             Pair('100', (1, 0, 0),
+                  Pos(mu=0, delta=0, nu=60, eta=0, chi=-90 - self.yrot,
+                      phi=30, unit='DEG')),
+             Pair('010', (0, 1, 0),
+                  Pos(mu=90, delta=0, nu=60, eta=0, chi=-90 - self.yrot,
+                      phi=30, unit='DEG')),
+             Pair('001', (0, 0, 1),
+                  Pos(mu=30, delta=0, nu=60, eta=0, chi=0 - self.yrot,
+                      phi=30, unit='DEG')),
+            )
+        self.case_dict = {}
+        for case in self.cases:
+            self.case_dict[case.name] = case
+
+    def test_pairs_zrot0_yrot0(self):
+        self.makes_cases(0, 0)
+        for case_tuple in self.case_generator():
+            yield case_tuple
+
+
 class TestAgainstSpecSixcB16_270608(_BaseTest):
     '''NOTE: copied from test.diffcalc.scenarios.session3'''
     def setup_method(self):

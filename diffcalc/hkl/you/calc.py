@@ -16,7 +16,7 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-from math import pi, sin, cos, acos, asin, atan2, sqrt
+from math import pi, sin, cos, tan, acos, asin, atan2, sqrt
 from itertools import product
 
 try:
@@ -1022,6 +1022,7 @@ class YouHklCalculator(HklCalculatorBase):
         chi, phi, detector
         mu, eta, detector
         mu, phi, detector
+        eta, phi, detector
         """
 
         N_phi = _calc_N(q_phi, n_phi)
@@ -1097,6 +1098,39 @@ class YouHklCalculator(HklCalculatorBase):
                 a = E[0, 0] * cos(chi) + E[2, 0] * sin(chi)
                 eta = atan2(V[0, 0] * E[1, 0] - V[1, 0] * a, V[0, 0] * a + V[1, 0] * E[1, 0])
                 yield mu, eta, chi, phi
+
+        elif 'eta' in samp_constraints and 'phi' in samp_constraints:
+
+            eta = samp_constraints['eta']
+            phi = samp_constraints['phi']
+
+            X = N_phi[2,0]
+            Y = (N_phi[0,0]*cos(phi)+N_phi[1,0]*sin(phi))
+            if is_small(X) and is_small(Y):
+                raise DiffcalcException(
+                        'Chi cannot be chosen uniquely as q || chi and no reference '
+                        'vector and chi constraints have been set.\nPlease choose a different '
+                        'set of constraints.')
+
+            V = (N_phi[1,0]*cos(phi)-N_phi[0,0]*sin(phi)) * tan(eta)
+            sgn = sign(cos(eta))
+            eps = atan2(X*sgn, Y*sgn)
+            try:
+                acos_rhs = acos(bound((sin(qaz)*cos(theta)/cos(eta) - V) / sqrt(X**2 + Y**2)))
+            except AssertionError:
+                return
+            if is_small(acos_rhs):
+                acos_list = [eps,]
+            else:
+                acos_list = [eps + acos_rhs, eps - acos_rhs]
+            for chi in acos_list:
+                A = (N_phi[0,0]*cos(phi) + N_phi[1,0]*sin(phi))*sin(chi) - N_phi[2,0]*cos(chi)
+                B = -N_phi[2,0]*sin(chi)*sin(eta) - cos(chi)*sin(eta)*(N_phi[0,0]*cos(phi)+N_phi[1,0]*sin(phi)) \
+                                                           - cos(eta)*(N_phi[0,0]*sin(phi)-N_phi[1,0]*cos(phi))
+                ks = atan2(A, B)
+                mu = atan2(cos(theta)*cos(qaz), -sin(theta)) + ks
+                yield mu, eta, chi, phi
+
         else:
             raise DiffcalcException(
                 'No code yet to handle this combination of 2 sample '

@@ -64,7 +64,8 @@ def con(*args):
 
         2 x samp and 1 x det:  chi & phi
                                mu & eta
-                               mu & phi (3 of 6)
+                               mu & phi
+                               eta & phi (4 of 6)
 
         3 x samp:              eta, chi & phi (1 of 4)
 
