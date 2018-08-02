@@ -464,7 +464,7 @@ class _TestCubicHorizontal(_TestCubic):
                       phi=-180 + self.zrot, unit='DEG')),
              Pair('010', (0, 1, 0),
                   Pos(mu=30, delta=0, nu=60, eta=0, chi=90,
-                      phi=-90 + self.zrot, unit='DEG')),  # no yrot as chi||q
+                      phi=-90 + self.zrot, unit='DEG'), fails=True),  # degenrate case mu||phi
              Pair('001', (0, 0, 1),
                   Pos(mu=30, delta=0, nu=60, eta=0, chi=0 - self.yrot,
                       phi=0 + self.zrot, unit='DEG')),
@@ -479,7 +479,7 @@ class _TestCubicHorizontal(_TestCubic):
     def test_pairs_zrot0_yrot0(self):
         self.makes_cases(0, 0)
         self.case_dict['001'].fails = True  # q||n
-        self.case_dict['100'].position.phi = 180  # not -180
+        self.case_dict['100'].fails = True  # mu||phi
         self.case_dict['100-->001'].position.phi = 180  # not -180
         for case_tuple in self.case_generator():
             yield case_tuple

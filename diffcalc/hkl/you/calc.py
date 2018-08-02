@@ -843,22 +843,21 @@ class YouHklCalculator(HklCalculatorBase):
                     # here if the one found was incorrect.
 
                     # tan(phi+eta)=v12/v11 from extensions_to_yous_paper.wxm
-                    phi_minus_mu = -atan2(Z[2, 0], Z[1, 1])
-                    logger.debug(
-                        'Mu and phi cannot be chosen uniquely with chi so close '
-                        'to +/-90 and eta so close 0 or 180.\n After the final '
-                        'solution has been chose phi-mu should equal: %.3f',
-                        phi_minus_mu * TODEG)
+                    #phi_minus_mu = -atan2(Z[2, 0], Z[1, 1])
+                    raise DiffcalcException(
+                        'Mu cannot be chosen uniquely as mu || phi with chi so close '
+                        'to +/-90 and eta so close 0 or 180.\nPlease choose '
+                        'a different set of constraints.')
                 mu = atan2(-top_for_mu, -bot_for_mu)                         # (41)
 
                 top_for_phi = Z[0, 1] * cos(eta) * cos(chi) - Z[0, 0] * sin(eta)
                 bot_for_phi = Z[0, 1] * sin(eta) + Z[0, 0] * cos(eta) * cos(chi)
+                if is_small(bot_for_phi) and is_small(top_for_phi):
+                    DiffcalcException(
+                        'Phi cannot be chosen uniquely as mu || phi with chi so close '
+                        'to +/-90 and eta so close 0 or 180.\nPlease choose a '
+                        'different set of constraints.')
                 phi = atan2(top_for_phi, bot_for_phi)                        # (42)
-    #            if is_small(bot_for_phi) and is_small(top_for_phi):
-    #                raise DiffcalcException(
-    #                    'phi=%.3f cannot be known with confidence as top and '
-    #                    'bottom are both close to zero. chi=%.3f, eta=%.3f'
-    #                    % (mu * TODEG, chi * TODEG, eta * TODEG))
                 yield mu, eta, chi, phi
 
         else:

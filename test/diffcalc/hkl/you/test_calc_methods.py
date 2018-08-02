@@ -457,6 +457,7 @@ class Test_calc_remaining_sample_angles_given_one():
         self.check('chi', 10, Q_lab=x, n_lab=z, Q_phi=x, n_phi=z,
                     phi_e=[-90, 90], chi_e=[10, 10], eta_e=[90, -90], mu_e=[-10, 10])
 
+    @raises(DiffcalcException)
     def test_constrain_chi_90(self):
         self.check('chi', 90, Q_lab=z * (-1), n_lab=x, Q_phi=x, n_phi=z,
                     phi_e=[0, 0], chi_e=[90, 90], eta_e=[0, 0], mu_e=[-180, 0])
