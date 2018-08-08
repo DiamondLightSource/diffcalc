@@ -1041,13 +1041,10 @@ class YouHklCalculator(HklCalculatorBase):
                 phi_vals = [asin(bot) + eps, pi - asin(bot) + eps]              # (59)
             except (AssertionError, ZeroDivisionError):
                 # For the case of (00l) reflection, where N_phi[0,0] = N_phi[1,0] = 0
-                chi = atan2(V[0, 0] * N_phi[2, 0], V[2, 0] * N_phi[2, 0])    # (57)
-                sgn_denom = sign(N_phi[1, 1] * N_phi[0, 2] - N_phi[1, 2] * N_phi[0, 1])
-                sin_phi = V[1, 1] * N_phi[1, 2] - V[1, 2] * N_phi[1, 1]
-                cos_phi = V[1, 1] * N_phi[0, 2] - V[1, 2] * N_phi[0, 1]
-                phi = atan2(sin_phi * sgn_denom, cos_phi * sgn_denom)
-                yield mu, eta, chi, phi
-                return
+                raise DiffcalcException(
+                        'Phi cannot be chosen uniquely as q || phi and no reference '
+                        'vector or phi constraints have been set.\nPlease choose a different '
+                        'set of constraints.')
             for phi in phi_vals:
                 a = N_phi[0, 0] * cos(phi) + N_phi[1, 0] * sin(phi)
                 chi = atan2(N_phi[2, 0] * V[0, 0] - a * V[2, 0],
@@ -1076,7 +1073,7 @@ class YouHklCalculator(HklCalculatorBase):
                 if is_small(X) and is_small(Y):
                     raise DiffcalcException(
                             'Eta cannot be chosen uniquely as q || eta and no reference '
-                            'vector and eta constraints have been set.\nPlease choose a different '
+                            'vector or eta constraints have been set.\nPlease choose a different '
                             'set of constraints.')
                 eta = atan2(X, Y)
                 
@@ -1115,7 +1112,7 @@ class YouHklCalculator(HklCalculatorBase):
             if is_small(X) and is_small(Y):
                 raise DiffcalcException(
                         'Chi cannot be chosen uniquely as q || chi and no reference '
-                        'vector and chi constraints have been set.\nPlease choose a different '
+                        'vector or chi constraints have been set.\nPlease choose a different '
                         'set of constraints.')
 
             V = (N_phi[1,0]*cos(phi)-N_phi[0,0]*sin(phi)) * tan(eta)

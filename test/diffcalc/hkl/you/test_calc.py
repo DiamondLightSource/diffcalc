@@ -414,7 +414,7 @@ class TestCubicVertical_MuEtaMode(_TestCubic):
                  Pos(mu=90, delta=60, nu=0, eta=0, chi=-30, phi=90, unit='DEG')),
             Pair('001', (0, 0, 1),
                  Pos(mu=90, delta=60, nu=0, eta=0, chi=60,
-                     phi=0, unit='DEG')),
+                     phi=0, unit='DEG'), fails=True),
             Pair('0.1 0 1.5', (0.1, 0, 1.5),  # cover case where delta > 90 !
                   Pos(mu=90, delta=97.46959231642, nu=0,
                       eta=0, chi=37.45112900750 - self.yrot,
