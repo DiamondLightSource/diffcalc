@@ -1071,7 +1071,14 @@ class YouHklCalculator(HklCalculatorBase):
             for mu in [asin(bot) + eps, pi - asin(bot) + eps]:
                 a = cos(theta) * sin(qaz)
                 b = -cos(theta) * sin(mu) * cos(qaz) + cos(mu) * sin(theta)
-                eta = atan2(V[1, 0] * a + V[0, 0] * b, V[0, 0] * a - V[1, 0]* b)
+                X = V[1, 0] * a + V[0, 0] * b
+                Y = V[0, 0] * a - V[1, 0]* b
+                if is_small(X) and is_small(Y):
+                    raise DiffcalcException(
+                            'Eta cannot be chosen uniquely as q || eta and no reference '
+                            'vector and eta constraints have been set.\nPlease choose a different '
+                            'set of constraints.')
+                eta = atan2(X, Y)
                 
                 #a = -cos(mu) * cos(qaz) * sin(theta) + sin(mu) * cos(theta)
                 #b = cos(mu) * sin(qaz)

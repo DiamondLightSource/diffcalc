@@ -649,7 +649,7 @@ class TestAgainstSpecSixcB16_270608(_BaseTest):
             yield case_tuple
 
 
-class SkipTestThreeTwoCircleForDiamondI06andI10(_BaseTest):
+class TestThreeTwoCircleForDiamondI06andI10(_BaseTest):
     """
     This is a three circle diffractometer with only delta and omega axes
     and a chi axis with limited range around 90. It is operated with phi
@@ -681,7 +681,7 @@ class SkipTestThreeTwoCircleForDiamondI06andI10(_BaseTest):
     def testHkl100(self):
         hkl = (1, 0, 0)
         pos = Pos(mu=0, delta=89.42926563609406, nu=0, eta=134.71463281804702,
-                  chi=90, phi=-90, unit='DEG')
+                  chi=0, phi=-90, unit='DEG')
         self._check_angles_to_hkl(
             '100', 999, 999, hkl, pos, self.wavelength, {})
         self._check_hkl_to_angles(
@@ -696,6 +696,73 @@ class SkipTestThreeTwoCircleForDiamondI06andI10(_BaseTest):
         self._check_hkl_to_angles(
             '101', 999, 999, hkl, pos, self.wavelength, {})
 
+
+class TestThreeTwoCircleForDiamondI06andI10Horizontal(_BaseTest):
+
+    def setup_method(self):
+        _BaseTest.setup_method(self)
+        self.constraints._constrained = {'phi': -pi / 2, 'delta': 0, 'eta': 0}
+        self.wavelength = 12.39842 / 1.650
+
+    def _configure_ub(self):
+        U = matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        B = CrystalUnderTest('xtal', 5.34, 5.34, 13.2, 90, 90, 90).B
+        self.mock_ubcalc.UB = U * B
+
+    def testHkl001(self):
+        hkl = (0, 0, 1)
+        pos = Pos(mu=16.536647016477247, delta=0, nu=33.07329403295449, eta=0,
+                  chi=0, phi=-90, unit='DEG')
+        self._check_angles_to_hkl(
+            '001', 999, 999, hkl, pos, self.wavelength, {})
+        self._check_hkl_to_angles(
+            '001', 999, 999, hkl, pos, self.wavelength, {})
+
+    @raises(DiffcalcException)  # q || chi
+    def testHkl100(self):
+        hkl = (1, 0, 0)
+        pos = Pos(mu=134.71463281804702, delta=0, nu=89.42926563609406, eta=0,
+                  chi=0, phi=-90, unit='DEG')
+        self._check_angles_to_hkl(
+            '100', 999, 999, hkl, pos, self.wavelength, {})
+        self._check_hkl_to_angles(
+            '100', 999, 999, hkl, pos, self.wavelength, {})
+
+    def testHkl101(self):
+        hkl = (1, 0, 1)
+        pos = Pos(mu=117.347760720783, delta=0, nu=98.74666191021282, eta=0,
+                  chi=0, phi=-90, unit='DEG')
+        self._check_angles_to_hkl(
+            '101', 999, 999, hkl, pos, self.wavelength, {})
+        self._check_hkl_to_angles(
+            '101', 999, 999, hkl, pos, self.wavelength, {})
+
+
+class TestThreeTwoCircleForDiamondI06andI10ChiDeltaEta(TestThreeTwoCircleForDiamondI06andI10Horizontal):
+
+    def setup_method(self):
+        _BaseTest.setup_method(self)
+        self.constraints._constrained = {'phi': -pi / 2, 'chi': 0, 'delta': 0}
+        self.wavelength = 12.39842 / 1.650
+
+    @raises(DiffcalcException)  # q || eta
+    def testHkl001(self):
+        hkl = (0, 0, 1)
+        pos = Pos(mu=16.536647016477247, delta=0, nu=33.07329403295449, eta=0,
+                  chi=0, phi=-90, unit='DEG')
+        self._check_angles_to_hkl(
+            '001', 999, 999, hkl, pos, self.wavelength, {})
+        self._check_hkl_to_angles(
+            '001', 999, 999, hkl, pos, self.wavelength, {})
+
+    def testHkl100(self):
+        hkl = (1, 0, 0)
+        pos = Pos(mu=134.71463281804702, delta=0, nu=89.42926563609406, eta=0,
+                  chi=0, phi=-90, unit='DEG')
+        self._check_angles_to_hkl(
+            '100', 999, 999, hkl, pos, self.wavelength, {})
+        self._check_hkl_to_angles(
+            '100', 999, 999, hkl, pos, self.wavelength, {})
 
 class TestFixedChiPhiPsiMode_DiamondI07SurfaceNormalHorizontal(_TestCubic):
     """
