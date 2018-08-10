@@ -65,7 +65,8 @@ def con(*args):
         2 x samp and 1 x det:  chi & phi
                                mu & eta
                                mu & phi
-                               eta & phi (4 of 6)
+                               eta & phi
+                               bisect & omega (5 of 7)
 
         3 x samp:              eta, chi & phi (1 of 4)
 
@@ -75,7 +76,7 @@ def con(*args):
     msg = _handle_con(args)
     if (hklcalc.constraints.is_fully_constrained() and 
         not hklcalc.constraints.is_current_mode_implemented()):
-        msg += ("\n\nWARNING:. The selected constraint combination is valid but "
+        msg += ("\n\nWARNING: The selected constraint combination "
             "is not implemented.\n\nType 'help con' to see implemented combinations")
 
     if msg:

@@ -16,7 +16,7 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-from math import pi, sin, cos, tan, acos, asin, atan2, sqrt
+from math import pi, sin, cos, tan, acos, asin, atan, atan2, sqrt
 from itertools import product
 
 try:
@@ -1026,30 +1026,45 @@ class YouHklCalculator(HklCalculatorBase):
 
         N_phi = _calc_N(q_phi, n_phi)
 
-        if 'mu' in samp_constraints and 'eta' in samp_constraints:
+        if (('mu' in samp_constraints and 'eta' in samp_constraints) or 
+            ('omega' in samp_constraints and 'bisect' in samp_constraints)):
 
-            mu = samp_constraints['mu']
-            eta = samp_constraints['eta']
-            
-            F = y_rotation(qaz - pi/2.)
-            THETA = z_rotation(-theta)
-            V = calcETA(eta).T * calcMU(mu).T * F * THETA                       # (56)
+            if 'mu' in samp_constraints and 'eta' in samp_constraints:
+                mu_vals = [samp_constraints['mu'],]
+                eta_vals = [samp_constraints['eta'],]
+            else:
+                omega = samp_constraints['omega']
+                atan_mu = atan(tan(theta + omega) * cos(qaz))
+                asin_eta = asin(sin(theta + omega) * sin(qaz))
+                mu_vals = [atan_mu, atan_mu + pi]
+                if is_small(abs(asin_eta) - pi/2):
+                    eta_vals = [sign(asin_eta) * pi / 2, ]
+                else:
+                    eta_vals = [asin_eta, pi - asin_eta]
 
-            try:
-                bot = bound(-V[1, 0] / sqrt(N_phi[0, 0]**2 + N_phi[1, 0]**2))
-                eps = atan2(N_phi[1, 0], N_phi[0, 0])
-                phi_vals = [asin(bot) + eps, pi - asin(bot) + eps]              # (59)
-            except (AssertionError, ZeroDivisionError):
-                # For the case of (00l) reflection, where N_phi[0,0] = N_phi[1,0] = 0
-                raise DiffcalcException(
-                        'Phi cannot be chosen uniquely as q || phi and no reference '
-                        'vector or phi constraints have been set.\nPlease choose a different '
-                        'set of constraints.')
-            for phi in phi_vals:
-                a = N_phi[0, 0] * cos(phi) + N_phi[1, 0] * sin(phi)
-                chi = atan2(N_phi[2, 0] * V[0, 0] - a * V[2, 0],
-                            N_phi[2, 0] * V[2, 0] + a * V[0, 0])                # (60)
-                yield mu, eta, chi, phi
+            for mu, eta in product(mu_vals, eta_vals):
+                F = y_rotation(qaz - pi/2.)
+                THETA = z_rotation(-theta)
+                V = calcETA(eta).T * calcMU(mu).T * F * THETA                       # (56)
+
+                phi_vals = []
+                try:
+                    # For the case of (00l) reflection, where N_phi[0,0] = N_phi[1,0] = 0
+                    if is_small(N_phi[0, 0]) and is_small(N_phi[1, 0]):
+                        raise DiffcalcException(
+                                'Phi cannot be chosen uniquely as q || phi and no reference '
+                                'vector or phi constraints have been set.\nPlease choose a different '
+                                'set of constraints.')
+                    bot = bound(-V[1, 0] / sqrt(N_phi[0, 0]**2 + N_phi[1, 0]**2))
+                    eps = atan2(N_phi[1, 0], N_phi[0, 0])
+                    phi_vals = [asin(bot) + eps, pi - asin(bot) + eps]              # (59)
+                except AssertionError:
+                    continue
+                for phi in phi_vals:
+                    a = N_phi[0, 0] * cos(phi) + N_phi[1, 0] * sin(phi)
+                    chi = atan2(N_phi[2, 0] * V[0, 0] - a * V[2, 0],
+                                N_phi[2, 0] * V[2, 0] + a * V[0, 0])                # (60)
+                    yield mu, eta, chi, phi
 
         elif 'chi' in samp_constraints and 'phi' in samp_constraints:
 

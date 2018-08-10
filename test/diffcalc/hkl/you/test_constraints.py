@@ -64,7 +64,9 @@ class TestConstraintManager:
              '    %s o-> alpha  --> eta' % NUNAME.ljust(6),
              '--> qaz        beta       chi',
              '    naz        psi        phi',
-             '                          mu_is_%s' % NUNAME])
+             '                          mu_is_%s' % NUNAME,
+             '                          bisect',
+             '                          omega'])
 
 
 #"""
@@ -520,7 +522,9 @@ class TestConstraintManagerWithFourCircles:
              '    a_eq_b     mu',
              '    alpha      eta',
              '    beta       chi',
-             '    psi        phi'])
+             '    psi        phi',
+             '               bisect',
+             '               omega'])
         
     def test_build_initial_display_table_with_fixed_sample(self):
         self.cm = YouConstraintManager(None, {'mu': 0})
@@ -531,7 +535,8 @@ class TestConstraintManagerWithFourCircles:
              '    delta      a_eq_b     eta',
              '    %s     alpha      chi' % NUNAME.ljust(6),
              '    qaz        beta       phi',
-             '    naz        psi'])
+             '    naz        psi        bisect',
+             '                          omega'])
         
     def test_build_initial_display_table_for_four_circle(self):
         self.cm = YouConstraintManager(None, {'mu': 0, NUNAME: 0})
@@ -542,7 +547,8 @@ class TestConstraintManagerWithFourCircles:
              '    a_eq_b     eta',
              '    alpha      chi',
              '    beta       phi',
-             '    psi'])
+             '    psi        bisect',
+             '               omega'])
         
     def test_constrain_fixed_detector_angle(self):
         assert_raises(DiffcalcException, self.cm.constrain, 'delta')

@@ -38,9 +38,9 @@ def filter_dict(d, keys):
 
 det_constraints = ('delta', NUNAME, 'qaz', 'naz')
 ref_constraints = ('a_eq_b', 'alpha', 'beta', 'psi')
-samp_constraints = ('mu', 'eta', 'chi', 'phi', 'mu_is_' + NUNAME)
+samp_constraints = ('mu', 'eta', 'chi', 'phi', 'mu_is_' + NUNAME, 'bisect', 'omega')
 
-valueless_constraints = ('a_eq_b', 'mu_is_' + NUNAME)
+valueless_constraints = ('a_eq_b', 'mu_is_' + NUNAME, 'bisect')
 all_constraints = det_constraints + ref_constraints + samp_constraints
 
 
@@ -235,20 +235,21 @@ class YouConstraintManager(object):
             return False
 
         if len(self.sample) == 1:
-            return True
+            return ('omega' not in set(self.sample.keys()) or
+                    'bisect' not in set(self.sample.keys()))
 
         if len(self.reference) == 1:
             return (set(self.sample.keys()) == set(['chi', 'phi']) or
                     set(self.sample.keys()) == set(['chi', 'eta']) or
                     set(self.sample.keys()) == set(['chi', 'mu']) or
                     set(self.sample.keys()) == set(['mu', 'eta']))
-        
+
         if len(self.detector) == 1:
             return (set(self.sample.keys()) == set(['chi', 'phi']) or
                     set(self.sample.keys()) == set(['mu', 'eta']) or
                     set(self.sample.keys()) == set(['mu', 'phi']) or
-                    set(self.sample.keys()) == set(['eta', 'phi'])
-                    )
+                    set(self.sample.keys()) == set(['eta', 'phi']) or
+                    set(self.sample.keys()) == set(['omega', 'bisect']))
         
         return False
         
