@@ -7,7 +7,7 @@ if GDA:
 from diffcalc.hkl.you.geometry import YouGeometry, YouPosition
 
 
-class FourCircleI07h(YouGeometry):
+class FourCircleI07EH1h(YouGeometry):
     """For a diffractometer with angles:
           delta, gam, eta, phi
     """
@@ -50,7 +50,7 @@ en.level = 3
 ### Configure and import diffcalc objects ###
 ESMTGKeV = 1
 settings.hardware = ScannableHardwareAdapter(_fourc, en, ESMTGKeV)
-settings.geometry = FourCircleI07h()  # @UndefinedVariable
+settings.geometry = FourCircleI07EH1h()  # @UndefinedVariable
 settings.energy_scannable = en
 settings.axes_scannable_group= _fourc
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
