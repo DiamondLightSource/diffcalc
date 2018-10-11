@@ -80,7 +80,8 @@ def setLimitsAndCuts():
     print "Current hardware limits set to:"
     hardware()
 
-setLimitsAndCuts()
+if not GDA:
+    setLimitsAndCuts()
 
 # TODO: make demo code for (2+2) diffractometer geometry
 #if not GDA:
