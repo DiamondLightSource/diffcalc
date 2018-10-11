@@ -17,15 +17,16 @@
 ###
 
 import time
+from diffcalc.util import DiffcalcException
 
 try:
     from gda.device.scannable import ScannableBase
 except ImportError:
     class Scannable(object):
         pass
-    
+
     class ScannableBase(Scannable):
-        """Implemtation of a subset of OpenGDA's Scannable interface
+        """Implementation of a subset of OpenGDA's Scannable interface
         """
     
         level = 5
@@ -48,6 +49,9 @@ except ImportError:
     
         def getPosition(self):
             return self.rawGetPosition()
+    
+        def checkPositionValid(self, externalPosition):
+            raise NotImplementedError()
     
         def asynchronousMoveTo(self, newpos):
             self.rawAsynchronousMoveTo(newpos)
@@ -90,11 +94,11 @@ except ImportError:
                     "number format strings specified" % self.getName())
     
             result = []
-            for field, format in zip(pos, self.getOutputFormat()):
+            for field, frmt in zip(pos, self.getOutputFormat()):
                 if field is None:
                     result.append('???')
                 else:
-                    s = (format % field)
+                    s = (frmt % field)
     ##                if width!=None:
     ##                s = s.ljust(width)
                     result.append(s)
@@ -139,7 +143,113 @@ except ImportError:
             if newpos is None:
                 return self.getPosition()
             self.asynchronousMoveTo(newpos)
-    
+
+
+    class ScannableLimitsComponent(object):
+
+        def __init__(self):
+            # Array of lower limits (one for each input name). Null if no limits set. Any value within array may be null if
+            # that input has no corresponding limit.
+            self.internalLowerLim = None
+
+            # Array of upper limits (one for each input name). Null if no limits set. Any value within array may be null if
+            # that input has no corresponding limit.
+            self.internalUpperLim = None
+
+            self.hostScannable = None
+            self.limitType = "Scannable"
+
+        def getInternalLower(self):
+            return self.internalLowerLim
+
+        def getInternalUpper(self):
+            return self.internalUpperLim
+
+        def checkInternalPosition(self, internalPosition):
+
+            # If neither limits are set, return null indicating okay.
+            if self.internalLowerLim is None and self.internalUpperLim is None:
+                return None
+
+            # Check lower limits if set
+            if self.internalLowerLim:
+                for i, (lim, pos) in enumerate(zip(self.internalLowerLim, internalPosition)):
+                    if lim and pos:
+                        if pos < lim:
+                            fieldName = "{}.{}".format(self.getHostScannable().getName(), self.getHostScannable().getInputNames()[i])
+                            return "{} limit violation on {}: {} < {} (internal/hardware/dial values).".format(
+                                                                self.limitType, fieldName, pos, lim)
+
+            # Check upper limits if set
+            if self.internalUpperLim:
+                for i, (lim, pos) in enumerate(zip(self.internalUpperLim, internalPosition)):
+                    if lim and pos:
+                        if pos > lim:
+                            fieldName = "{}.{}".format(self.getHostScannable().getName(), self.getHostScannable().getInputNames()[i])
+                            return "{} limit violation on {}: {} > {} (internal/hardware/dial values).".format(
+                                                                self.limitType, fieldName, pos, lim)
+            return None
+
+        def checkPositionLength(self, positionArray):
+            if len(positionArray) != len(self.getHostScannable().getInputNames()):
+                raise DiffcalcException(
+                    "Expected position of length {} but got position of length {}".format(len(self.getHostScannable().getInputNames().length),
+                                                                                          len(positionArray)))
+
+        def setInternalUpper(self, internalUpperLim, index=None, length=None):
+            if index is not None:
+                if not self.internalUpperLim:
+                    self.internalUpperLim = [None] * length
+                self.internalUpperLim[index] = internalUpperLim
+            else:
+                if internalUpperLim:
+                    self.checkPositionLength(internalUpperLim)
+                self.internalUpperLim = internalUpperLim
+
+        def setInternalLower(self, internalLowerLim, index=None, length=None):
+            if index is not None:
+                if not self.internalLowerLim:
+                    self.internalLowerLim = [None] * length
+                self.internalLowerLim[index] = internalLowerLim
+            else:
+                if internalLowerLim:
+                    self.checkPositionLength(internalLowerLim)
+                self.internalLowerLim = internalLowerLim
+
+        def setHostScannable(self, hostScannable):
+            self.hostScannable = hostScannable
+
+        def getHostScannable(self):
+            return self.hostScannable
+
+
+    class ScannableMotionBase(ScannableBase):
+        """Implementation of a subset of OpenGDA's ScannableMotion interface
+        """
+
+        def __init__(self):
+            self.limitsComponent = ScannableLimitsComponent()
+            self.limitsComponent.setHostScannable(self)
+
+        def asynchronousMoveTo(self, newpos):
+            report = self.checkPositionValid([newpos,])
+            if report:
+                raise DiffcalcException(report)
+            ScannableBase.asynchronousMoveTo(self, newpos)
+
+        def checkPositionValid(self, externalPosition):
+            limitsComponentMsg = self.limitsComponent.checkInternalPosition(externalPosition)
+            if limitsComponentMsg:
+                return limitsComponentMsg
+            return None
+
+        def getLowerGdaLimits(self):
+            return self.limitsComponent.getInternalLower()
+
+        def getUpperGdaLimits(self):
+            return self.limitsComponent.getInternalUpper()
+
+
     class ScannableAdapter(Scannable):
         '''Wrap up a Scannable and give it a new name and optionally an offset
         (added to the delegate when reading up and subtracting when setting down
@@ -185,12 +295,14 @@ except ImportError:
                 return self.getPosition()
             self.asynchronousMoveTo(newpos)
 
-class SingleFieldDummyScannable(ScannableBase):
+
+class SingleFieldDummyScannable(ScannableMotionBase):
 
     def __init__(self, name, initial_position=0.):
+        ScannableMotionBase.__init__(self)
         self.name = name
-        self.inputNames = [name]
-        self.outputFormat = ['% 6.4f']
+        self.inputNames = [name,]
+        self.outputFormat = ['% 6.4f',]
         self.level = 3
         self._current_position = float(initial_position)
 
@@ -201,10 +313,19 @@ class SingleFieldDummyScannable(ScannableBase):
         return
 
     def asynchronousMoveTo(self, new_position):
+        report = self.checkPositionValid([new_position,])
+        if report:
+            raise DiffcalcException(report)
         self._current_position = float(new_position)
 
     def getPosition(self):
         return self._current_position
+
+    def setLowerDummyLimit(self, lowLimit):
+        self.limitsComponent.setInternalLower(lowLimit, 0, len(self.getInputNames()))
+        
+    def setUpperDummyLimit(self, upperLimit):
+        self.limitsComponent.setInternalUpper(upperLimit, 0, len(self.getInputNames()))
 
 
 class DummyPD(SingleFieldDummyScannable):
@@ -212,9 +333,10 @@ class DummyPD(SingleFieldDummyScannable):
     pass
 
 
-class MultiInputExtraFieldsDummyScannable(ScannableBase):
+class MultiInputExtraFieldsDummyScannable(ScannableMotionBase):
     '''Multi input Dummy PD Class supporting input and extra fields'''
     def __init__(self, name, inputNames, extraNames):
+        ScannableMotionBase.__init__(self)
         self.setName(name)
         self.setInputNames(inputNames)
         self.setExtraNames(extraNames)
@@ -239,10 +361,11 @@ class MultiInputExtraFieldsDummyScannable(ScannableBase):
         return self.currentposition + map(float, extraValues)
 
 
-class ZeroInputExtraFieldsDummyScannable(ScannableBase):
+class ZeroInputExtraFieldsDummyScannable(ScannableMotionBase):
     '''Zero input/extra field dummy pd
     '''
     def __init__(self, name):
+        ScannableMotionBase.__init__(self)
         self.setName(name)
         self.setInputNames([])
         self.setOutputFormat([])
@@ -269,10 +392,10 @@ class ScannableGroup(ScannableBase):
             motorNames.append(scn.getName())
         self.setInputNames(motorNames)
         # Set output format
-        format = []
+        frmt = []
         for motor in motorList:
-            format.append(motor.getOutputFormat()[0])
-        self.setOutputFormat(format)
+            frmt.append(motor.getOutputFormat()[0])
+        self.setOutputFormat(frmt)
         self.__motors = motorList
 
     def asynchronousMoveTo(self, position):
@@ -290,6 +413,15 @@ class ScannableGroup(ScannableBase):
     def getPosition(self):
         return [scn.getPosition() for scn in self.__motors]
 
+    def getGroupMembers(self):
+        return self.__motors
+
+    def getGroupMember(self, name):
+        for scn in self.__motors:
+            if scn.getName() == name:
+                return scn
+        return None
+
     def isBusy(self):
         for scn in self.__motors:
             if scn.isBusy():
@@ -300,7 +432,7 @@ class ScannableGroup(ScannableBase):
         pass
 
 
-class ScannableMotionWithScannableFieldsBase(ScannableBase):
+class ScannableMotionWithScannableFieldsBase(ScannableMotionBase):
     '''
     This extended version of ScannableMotionBase contains a
     completeInstantiation() method which adds a dictionary of
@@ -387,11 +519,11 @@ class ScannableMotionWithScannableFieldsBase(ScannableBase):
                 "number format strings specified" % self.getName())
 
         result = []
-        for field, format in zip(pos, self.getOutputFormat()):
+        for field, frmt in zip(pos, self.getOutputFormat()):
             if field is None:
                 result.append('???')
             else:
-                s = (format % field)
+                s = (frmt % field)
 ##                if width!=None:
 ##                s = s.ljust(width)
                 result.append(s)
@@ -455,13 +587,14 @@ class ScannableMotionWithScannableFieldsBase(ScannableBase):
         '''Returns the a compnent scannable'''
         return self.childrenDict[name]
 
-    class MotionScannablePart(ScannableBase):
+    class MotionScannablePart(ScannableMotionBase):
         '''
         A scannable to be placed in the parent's childrenDict that allows
         access to the parent's individual fields.'''
 
         def __init__(self, scannableName, index, parentScannable,
                      isInputField):
+            ScannableMotionBase.__init__(self)
             self.setName(scannableName)
             if isInputField:
                 self.setInputNames([scannableName])
@@ -493,6 +626,42 @@ class ScannableMotionWithScannableFieldsBase(ScannableBase):
         def getPosition(self):
             return self.parentScannable.getPosition()[self.index]
 
+        def getLowerGdaLimits(self):
+            limit = self.parentScannable.getLowerGdaLimits()
+            return None if limit is None else [limit[self.index]]
+
+        def getUpperGdaLimits(self):
+            limit = self.parentScannable.getUpperGdaLimits()
+            return None if limit is None else [limit[self.index]]
+
+        def setLowerGdaLimits(self, lowerLim):
+            try:
+                if len(lowerLim) != 1:
+                    raise DiffcalcException("Could not setLowerGdaLmits() on scannable {} to {}. This scannable has only one field.".format(
+                        self.getName(), str(lowerLim)))
+                lowerLimValue = lowerLim[0]
+            except TypeError:
+                lowerLimValue = lowerLim
+            limit = self.parentScannable.getLowerGdaLimits()
+            if not limit:
+                limit = [None] * len(self.parentScannable.getInputNames())
+            limit[self.index] = lowerLimValue
+            self.parentScannable.setLowerGdaLimits(limit)
+
+        def setUpperGdaLimits(self, upperLim):
+            try:
+                if len(upperLim) != 1:
+                    raise DiffcalcException("Could not setUpperGdaLmits() on scannable {} to {}. This scannable has only one field.".format(
+                        self.getName(), str(upperLim)))
+                upperLimValue = upperLim[0]
+            except TypeError:
+                upperLimValue = upperLim
+            limit = self.parentScannable.getUpperGdaLimits()
+            if not limit:
+                limit = [None] * len(self.parentScannable.getInputNames())
+            limit[self.index] = upperLimValue
+            self.parentScannable.setUpperGdaLimits(limit)
+
         def __str__(self):
             return self.__repr__()
 
@@ -505,7 +674,3 @@ class ScannableMotionWithScannableFieldsBase(ScannableBase):
                 name = self.getExtraNames()[0]
             parentName = self.parentScannable.getName()
             return parentName + "." + name + " : " + str(self.getPosition())
-
-
-    
-        
