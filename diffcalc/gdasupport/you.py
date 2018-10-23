@@ -65,7 +65,7 @@ az_offset = hkloffset.azimuthal
 Hkl.dynamic_docstring = format_command_help(hkl_commands_for_help)  # must be on the class
 ub.__doc__ = format_command_help(ub_commands_for_help)
 
-_virtual_angles = ('theta', 'qaz', 'alpha', 'naz', 'tau', 'psi', 'beta')
+_virtual_angles = ('theta', 'qaz', 'alpha', 'naz', 'tau', 'psi', 'beta', 'bin', 'bout')
 hklverbose = Hkl('hklverbose', _scn_group, _dc, _virtual_angles)
 
 

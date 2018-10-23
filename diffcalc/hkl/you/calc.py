@@ -228,9 +228,10 @@ class YouHklCalculator(HklCalculatorBase):
 
         theta, qaz = _theta_and_qaz_from_detector_angles(delta, nu)      # (19)
 
-        [MU, _, _, ETA, CHI, PHI] = create_you_matrices(mu,
+        [MU, DELTA, NU, ETA, CHI, PHI] = create_you_matrices(mu,
                                            delta, nu, eta, chi, phi)
         Z = MU * ETA * CHI * PHI
+        D = NU * DELTA 
         n_lab = Z * self._get_n_phi()
         alpha = asin(bound((-n_lab[1, 0])))
         naz = atan2(n_lab[0, 0], n_lab[2, 0])                            # (20)
@@ -250,8 +251,17 @@ class YouHklCalculator(HklCalculatorBase):
 
         psi = next(self._calc_psi(alpha, theta, tau, qaz, naz))
 
+        # Compute incidence and outgoing angles bin and bout
+        surfin = Z * matrix([[0],[0],[-1]])
+        surfout = Z * matrix([[0],[0],[1]])
+        kin = matrix([[0],[1],[0]])
+        kout = D * matrix([[0],[1],[0]])
+        bin = pi / 2. - angle_between_vectors(kin, surfin)
+        bout = pi / 2. - angle_between_vectors(kout, surfout)
+
         return {'theta': theta, 'qaz': qaz, 'alpha': alpha,
-                'naz': naz, 'tau': tau, 'psi': psi, 'beta': beta}
+                'naz': naz, 'tau': tau, 'psi': psi, 'beta': beta,
+                'bin': bin, 'bout': bout}
 
 
     def _choose_single_solution(self, pos_virtual_angles_pairs_in_degrees):

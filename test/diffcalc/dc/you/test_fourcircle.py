@@ -18,7 +18,7 @@ wl = 1
 en = 12.39842 / wl
 
 angles = [60, 30, 0, 0]
-param = {'tau': 90, 'psi': 90, 'beta': 0, 'alpha': 0, 'naz': 0, 'qaz': 90, 'theta': 30}
+param = {'tau': 90, 'psi': 90, 'beta': 0, 'alpha': 0, 'naz': 0, 'qaz': 90, 'theta': 30, 'bin': 0, 'bout': 0}
 
 
 dc = None
