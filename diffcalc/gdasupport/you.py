@@ -1,5 +1,6 @@
 from diffcalc.gdasupport.scannable.diffractometer import DiffractometerScannableGroup
 from diffcalc.gdasupport.scannable.hkl import Hkl
+from diffcalc.gdasupport.scannable.hkloffset import HklOffset
 from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter
 from diffcalc.gdasupport.scannable.wavelength import Wavelength
 from diffcalc.gdasupport.scannable.parameter import DiffractionCalculatorParameter
@@ -53,6 +54,13 @@ hkl = Hkl('hkl', _scn_group, _dc)
 h = hkl.h
 k = hkl.k
 l = hkl.l
+
+hkloffset = HklOffset('hkloffset', _scn_group, _dc)
+h_offset = hkloffset.h
+k_offset = hkloffset.k
+l_offset = hkloffset.l
+pol_offset = hkloffset.polar
+az_offset = hkloffset.azimuthal
 
 Hkl.dynamic_docstring = format_command_help(hkl_commands_for_help)  # must be on the class
 ub.__doc__ = format_command_help(ub_commands_for_help)

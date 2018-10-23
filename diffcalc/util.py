@@ -134,6 +134,11 @@ def dot3(x, y):
     return x[0, 0] * y[0, 0] + x[1, 0] * y[1, 0] + x[2, 0] * y[2, 0]
 
 
+def norm3(x):
+    """z = norm3(x) -- where x is 3*1 Jama matrix"""
+    return norm(x)
+
+
 def angle_between_vectors(a, b):
     costheta = dot3(a * (1 / norm(a)), b * (1 / norm(b)))
     return acos(bound(costheta))

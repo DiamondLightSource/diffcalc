@@ -22,8 +22,8 @@ from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.reflections import ReflectionList
 from diffcalc.ub.persistence import UBCalculationJSONPersister, UBCalculationPersister
 from diffcalc.util import DiffcalcException, cross3, dot3, bold, xyz_rotation,\
-    bound
-from math import acos, cos, sin, pi
+    bound, angle_between_vectors, norm3
+from math import acos, cos, sin, pi, atan2
 from diffcalc.ub.reference import YouReference
 from diffcalc.ub.orientations import OrientationList
 
@@ -150,7 +150,10 @@ class UBCalculation:
             pass
     
     def save(self):
-        self.saveas(self._state.name)
+        if self._state.name:
+            self.saveas(self._state.name)
+        else:
+            print "Warning: No UB calculation defined."
 
     def saveas(self, name):
         self._state.name = name
@@ -855,3 +858,42 @@ class UBCalculation:
         except AssertionError:
             return None, None
         return miscut, axis.T.tolist()[0]
+
+    def calc_hkl_offset(self, h, k, l, pol, az):
+        """
+        Calculate hkl orientation values that are related to
+        the input hkl values by rotation with a given polar
+        and azimuthal angles
+        """
+        hkl_nphi = self._UB * matrix([[h], [k], [l]])
+        y_axis = cross3(hkl_nphi, matrix('0; 1; 0'))
+        if norm3(y_axis) < SMALL:
+            y_axis = cross3(hkl_nphi, matrix('0; 0; 1'))
+        rot_polar = xyz_rotation(y_axis.T.tolist()[0], pol)
+        rot_azimuthal = xyz_rotation(hkl_nphi.T.tolist()[0], az)
+        hklrot_nphi = rot_azimuthal * rot_polar * hkl_nphi
+        hklrot = self._UB.I * hklrot_nphi
+        hkl_list = hklrot.T.tolist()[0]
+        return hkl_list
+
+    def calc_offset_for_hkl(self, hkl_offset, hkl_ref):
+        """
+        Calculate hkl orientation values that are related to
+        the input hkl values by rotation with a given polar
+        and azimuthal angles
+        """
+        hklref_nphi = self._UB * matrix([[hkl_ref[0]], [hkl_ref[1]], [hkl_ref[2]]])
+        hkloff_nphi = self._UB * matrix([[hkl_offset[0]], [hkl_offset[1]], [hkl_offset[2]]])
+        y_axis = cross3(hklref_nphi, matrix('0; 1; 0'))
+        if norm3(y_axis) < SMALL:
+            y_axis = cross3(hklref_nphi, matrix('0; 0; 1'))
+        x_axis = cross3(y_axis, hklref_nphi)
+        x_coord = cos(angle_between_vectors(hkloff_nphi, x_axis))
+        y_coord = cos(angle_between_vectors(hkloff_nphi, y_axis))
+        pol = angle_between_vectors(hklref_nphi, hkloff_nphi)
+        if abs(y_coord) < SMALL and abs(x_coord) < SMALL:
+            # Set azimuthal rotation matrix to identity
+            az = 0
+        else:
+            az = atan2(y_coord, x_coord)
+        return pol, az

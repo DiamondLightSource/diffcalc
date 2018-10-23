@@ -20,12 +20,13 @@ from diffcalc.hkl.you.calc import YouUbCalcStrategy
 from diffcalc.hkl.you.geometry import SixCircle, YouPosition
 from diffcalc.ub.calc import UBCalculation
 from diffcalc.ub.persistence import UBCalculationJSONPersister
-from math import pi
+from math import pi, sqrt, atan2
 from mock import Mock
 from nose.tools import eq_
 from test.tools import matrixeq_
 import tempfile
 import datetime
+from diffcalc.util import TORAD, x_rotation
 
 try:
     from numpy import matrix
@@ -171,4 +172,27 @@ class TestUBCalculationWithYouStrategy():
         
         matrixeq_(self.ubcalc.UB, U * 2 * pi)
 
+    def test_calc_hkl_offset(self):
+        NAME = 'test_calc_hkl_offset'
+        self.ubcalc.start_new(NAME)
+        self.ubcalc.set_lattice('latt', 1, 1, 1, 90, 90, 90)
+        self.ubcalc.set_U_manually(x_rotation(0))
+        hkloff_110 = self.ubcalc.calc_hkl_offset(0, 0, sqrt(2), 90. * TORAD, -45 * TORAD)
+        hkloff_m101 = self.ubcalc.calc_hkl_offset(0, 0, sqrt(2), 45. * TORAD, 90 * TORAD)
+        alpha = atan2(2,1)
+        hkloff_102 = self.ubcalc.calc_hkl_offset(sqrt(5), 0, 0, alpha, 90 * TORAD)
+        matrixeq_(matrix('1 1 0'), matrix(hkloff_110))
+        matrixeq_(matrix('-1 0 1'), matrix(hkloff_m101))
+        matrixeq_(matrix('1 0 2'), matrix(hkloff_102))
+
+    def test_calc_offset_for_hkl(self):
+        NAME = 'test_calc_offset_for_hkl'
+        self.ubcalc.start_new(NAME)
+        self.ubcalc.set_lattice('latt', 1, 1, 1, 90, 90, 90)
+        self.ubcalc.set_U_manually(x_rotation(0))
+        for hklref, hkloff, pol, az in [([0, 0, sqrt(2)], [1, 1, 0], 90 * TORAD, -45 * TORAD),
+                                        ([0, 0, sqrt(2)], [-1, 0, 1], 45 * TORAD, 90 * TORAD),
+                                        ([sqrt(5), 0, 0], [1, 0, 2], atan2(2,1), 90 * TORAD),]:
+            matrixeq_(matrix([[pol, az]]),
+                      matrix([list(self.ubcalc.calc_offset_for_hkl(hkloff, hklref))]))
 
