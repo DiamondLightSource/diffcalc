@@ -140,7 +140,7 @@ def allhkl(hkl, wavelength=None):
     cells = []
     # virtual_angle_names = list(pos_virtual_angles_pairs[0][1].keys())
     # virtual_angle_names.sort()
-    virtual_angle_names = ['qaz', 'psi', 'naz', 'tau', 'theta', 'alpha', 'beta']
+    virtual_angle_names = ['qaz', 'psi', 'naz', 'tau', 'theta', 'alpha', 'beta', 'bin', 'bout']
     header_cells = list(hardware.get_axes_names()) + [' '] + virtual_angle_names
     cells.append(['%9s' % s for s in header_cells])
     cells.append([''] * len(header_cells))
