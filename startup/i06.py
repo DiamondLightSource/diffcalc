@@ -5,7 +5,7 @@ if not GDA:
     import startup._demo
 else:
 #     import __main__  # @UnresolvedImport
-    from __main__ import dd2th,ddth,denergy  # @UnresolvedImport
+    from __main__ import dd2th,ddth,energy  # @UnresolvedImport
 LOCAL_MANUAL = "http://confluence.diamond.ac.uk/pages/viewpage.action?pageId=31853413"
 # Diffcalc i06-1
 # ======== === 
@@ -23,7 +23,7 @@ if GDA:
     _fourc = ScannableGroup('_fourc', (dd2th, ddth, chi, phi))
     delta = _fourc.dd2th
     eta = _fourc.ddth
-    en=denergy
+    en=energy
     if float(en.getPosition()) == 0: # no energy value - dummy mode
         en(800)
     
@@ -32,12 +32,12 @@ else:
     eta = Dummy('eta')
     _fourc = ScannableGroup('_fourc', (delta, eta, chi, phi))
     en = Dummy('en')
-    en(1500)
+    en(800)
     
 en.level = 3
  
 ### Configure and import diffcalc objects ###
-ESMTGKeV = 1
+ESMTGKeV = 0.001
 settings.hardware = ScannableHardwareAdapter(_fourc, en, ESMTGKeV)
 settings.geometry = diffcalc.hkl.you.geometry.FourCircle()  # @UndefinedVariable
 settings.energy_scannable = en
