@@ -74,8 +74,23 @@ def newub(name=None):
         ubcalc.start_new(name)
         setlat()
     elif isinstance(name, str):
-        # just trying might cause confusion here
-        ubcalc.start_new(name)
+        if name in ubcalc._persister.list():
+            print ("No UB calculation started: There is already a calculation "
+                    "called: " + name)
+            reply = promptForInput("Load the existing UB calculation '%s'? " % name, 'y')
+            if reply in ('y', 'Y', 'yes'):
+                loadub(name)
+                return
+            else:
+                reply = promptForInput("Overwrite the existing UB calculation '%s'? " % name, 'y')
+                if reply in ('y', 'Y', 'yes'):
+                    ubcalc.start_new(name)
+                    setlat()
+                else:
+                    print ("Aborting")
+        else:
+            # just trying might cause confusion here
+            ubcalc.start_new(name)
     else:
         raise TypeError()
 

@@ -112,11 +112,6 @@ class UBCalculation:
     def start_new(self, name):
         """start_new(name) --- creates a new blank ub calculation"""
         # Create storage object if name does not exist (TODO)
-        if name in self._persister.list():
-            print ("No UBCalculation started: There is already a calculation "
-                   "called: " + name)
-            print "Saved calculations: " + repr(self._persister.list())
-            return
         self._clear(name)
         self.save()
 
@@ -167,8 +162,8 @@ class UBCalculation:
 
     def remove(self, name):
         self._persister.remove(name)
-        if self._state == name:
-            self._clear(name)
+        if self._state.name == name:
+            self._clear()
 
     def getState(self):
         return self._state.getState()

@@ -520,7 +520,6 @@ class _UBCommandsBase():
         with pytest.raises(DiffcalcException):
             self.ub.orientub()
 
-        self.ub.newub('testorientub')
         s = scenarios.sessions(settings.Pos)[1]
         self.ub.setlat(s.name, *s.lattice)
         r1 = s.ref1
