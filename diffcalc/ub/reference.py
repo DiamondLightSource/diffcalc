@@ -87,7 +87,7 @@ class YouReference(object):
             else:
                 rotation_axis = rotation_axis * (1 / norm(rotation_axis))
                 dot_rotation_angle = dot3(matrix('0; 0; 1'), self.n_phi)
-                rotation_angle = acos(dot_rotation_angle / norm(dot_rotation_angle))
+                rotation_angle = acos(dot_rotation_angle / norm(self.n_phi))
                 lines.append("   normal:")
                 lines.append("      angle:".ljust(WIDTH) + "% 9.5f" % (rotation_angle * TODEG))
                 lines.append("      axis:".ljust(WIDTH) + self._pretty_vector(rotation_axis))
