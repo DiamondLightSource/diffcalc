@@ -362,9 +362,13 @@ class UBCalculation:
 
 ### Reference vector ###
 
+    def _get_n_hkl(self):
+        return self._state.reference.n_hkl
+    
     def _get_n_phi(self):
         return self._state.reference.n_phi
     
+    n_hkl = property(_get_n_hkl)
     n_phi = property(_get_n_phi)
     
     def set_n_phi_configured(self, n_phi):

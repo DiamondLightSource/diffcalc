@@ -41,15 +41,21 @@ class YouReference(object):
     
     @property
     def n_phi(self):
-        n_phi = (self.get_UB() * self._n_hkl_configured if self._n_phi_configured is None 
-                 else self._n_phi_configured)
-        return n_phi / norm(n_phi)
+        if self._n_phi_configured is None:
+            n_phi = self.get_UB() * self._n_hkl_configured
+            n_phi = n_phi / norm(n_phi)
+        else:
+            n_phi = self._n_phi_configured
+        return n_phi
         
     @property
     def n_hkl(self):
-        n_hkl = (self.get_UB().I * self._n_phi_configured if self._n_hkl_configured is None
-                  else self._n_hkl_configured) 
-        return n_hkl / norm(n_hkl)
+        if self._n_hkl_configured is None:
+            n_hkl = self.get_UB().I * self._n_phi_configured
+            n_hkl = n_hkl / norm(n_hkl)
+        else:
+            n_hkl = self._n_hkl_configured
+        return n_hkl
     
     def _pretty_vector(self, m):
         return ' '.join([('% 9.5f' % e).rjust(9) for e in m.T.tolist()[0]])
@@ -80,8 +86,8 @@ class YouReference(object):
                 lines.append("   normal:".ljust(WIDTH) + "  None")
             else:
                 rotation_axis = rotation_axis * (1 / norm(rotation_axis))
-                cos_rotation_angle = dot3(matrix('0; 0; 1'), self.n_phi)
-                rotation_angle = acos(cos_rotation_angle)
+                dot_rotation_angle = dot3(matrix('0; 0; 1'), self.n_phi)
+                rotation_angle = acos(dot_rotation_angle / norm(dot_rotation_angle))
                 lines.append("   normal:")
                 lines.append("      angle:".ljust(WIDTH) + "% 9.5f" % (rotation_angle * TODEG))
                 lines.append("      axis:".ljust(WIDTH) + self._pretty_vector(rotation_axis))
