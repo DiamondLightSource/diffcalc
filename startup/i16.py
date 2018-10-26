@@ -60,6 +60,10 @@ if GDA:
     
 lastub()  # Load the last ub calculation used
 
+from startup.beamlinespecific.azihkl import AzihklClass
+azihkl=AzihklClass('aziref')
+azihkl()
+
 # iPython removes the actual command from namespace
 diffcalc.hardware.setrange(chi, -2, 100)
 diffcalc.hardware.setrange(eta, -2, 92)
