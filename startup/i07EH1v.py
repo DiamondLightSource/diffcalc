@@ -64,6 +64,9 @@ if GDA:
  
 # Load the last ub calculation used
 lastub()
+# Set reference vector direction returning betain and betaout angles as alpha and beta
+if ubcalc.name:
+    setnphi('0; 0; 1')
 
 ### Set i07 specific limits
 def setLimitsAndCuts():
