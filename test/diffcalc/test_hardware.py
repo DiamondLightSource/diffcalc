@@ -68,61 +68,6 @@ class TestHardwareAdapterBase(object):
         with pytest.raises(ValueError):
             self.hardware.get_position_by_name('not an angle name')
 
-    def testLowerLimitSetAndGet(self):
-        self.hardware.set_lower_limit('a', -1)
-        self.hardware.set_lower_limit('b', -2)
-        self.hardware.set_lower_limit('c', -3)
-        with pytest.raises(ValueError):
-            self.hardware.set_lower_limit('not an angle', 1)
-        self.hardware.set_lower_limit('b', None)
-        print "Shoule print WARNING:"
-        self.hardware.set_lower_limit('b', None)
-        assert self.hardware.get_lower_limit('a') == -1
-        assert self.hardware.get_lower_limit('c') == -3
-
-    def testUpperLimitSetAndGet(self):
-        self.hardware.set_upper_limit('a', 1)
-        self.hardware.set_upper_limit('b', 2)
-        self.hardware.set_upper_limit('c', 3)
-        with pytest.raises(ValueError):
-            self.hardware.set_upper_limit('not an angle', 1)
-        self.hardware.set_upper_limit('b', None)
-        print "Shoule print WARNING:"
-        self.hardware.set_upper_limit('b', None)
-        assert self.hardware.get_upper_limit('a') == 1
-        assert self.hardware.get_upper_limit('c') == 3
-
-    def testis_position_within_limits(self):
-        self.hardware.set_upper_limit('a', 1)
-        self.hardware.set_upper_limit('b', 2)
-        self.hardware.set_lower_limit('a', -1)
-        assert self.hardware.is_position_within_limits([0, 0, 999])
-        assert self.hardware.is_position_within_limits([1, 2, 999])
-        assert self.hardware.is_position_within_limits([-1, -999, 999])
-        assert not self.hardware.is_position_within_limits([1.01, 0, 999])
-        assert not self.hardware.is_position_within_limits([0, 2.01, 999])
-        assert not self.hardware.is_position_within_limits([-1.01, 0, 999])
-
-    def testIsAxisWithinLimits(self):
-        self.hardware.set_upper_limit('a', 1)
-        self.hardware.set_upper_limit('b', 2)
-        self.hardware.set_lower_limit('a', -1)
-
-        assert self.hardware.is_axis_value_within_limits('a', 0)
-        assert self.hardware.is_axis_value_within_limits('b', 0)
-        assert self.hardware.is_axis_value_within_limits('c', 999)
-
-        assert self.hardware.is_axis_value_within_limits('a', 1)
-        assert self.hardware.is_axis_value_within_limits('b', 2)
-        assert self.hardware.is_axis_value_within_limits('c', 999)
-
-        assert self.hardware.is_axis_value_within_limits('a', -1)
-        assert self.hardware.is_axis_value_within_limits('b', -999)
-
-        assert not self.hardware.is_axis_value_within_limits('a', 1.01)
-        assert not self.hardware.is_axis_value_within_limits('b', 2.01)
-        assert not self.hardware.is_axis_value_within_limits('a', 1.01)
-
     def setCutAndGetCuts(self):
         self.hardware.setCut('a', 2)
         self.hardware.setCut('b', 2)
@@ -155,7 +100,7 @@ class TestHardwareAdapterBase(object):
 class TestHardwareCommands():
 
     def setup_method(self):
-        self.hardware = SimpleHardwareAdapter(['a', 'b', 'c'])
+        self.hardware = DummyHardwareAdapter(['a', 'b', 'c'])
         settings.hardware = self.hardware
         from diffcalc import hardware
         reload(hardware)
@@ -211,6 +156,61 @@ class TestDummyHardwareAdapter(object):
         assert self.hardware.get_position_by_name('gamma') == 3
         with pytest.raises(ValueError):
             self.hardware.get_position_by_name('not an angle name')
+
+    def testLowerLimitSetAndGet(self):
+        self.hardware.set_lower_limit('alpha', -1)
+        self.hardware.set_lower_limit('delta', -2)
+        self.hardware.set_lower_limit('gamma', -3)
+        with pytest.raises(ValueError):
+            self.hardware.set_lower_limit('not an angle', 1)
+        self.hardware.set_lower_limit('delta', None)
+        print "Should print WARNING:"
+        self.hardware.set_lower_limit('delta', None)
+        assert self.hardware.get_lower_limit('alpha') == -1
+        assert self.hardware.get_lower_limit('gamma') == -3
+
+    def testUpperLimitSetAndGet(self):
+        self.hardware.set_upper_limit('alpha', 1)
+        self.hardware.set_upper_limit('delta', 2)
+        self.hardware.set_upper_limit('gamma', 3)
+        with pytest.raises(ValueError):
+            self.hardware.set_upper_limit('not an angle', 1)
+        self.hardware.set_upper_limit('delta', None)
+        print "Should print WARNING:"
+        self.hardware.set_upper_limit('delta', None)
+        assert self.hardware.get_upper_limit('alpha') == 1
+        assert self.hardware.get_upper_limit('gamma') == 3
+
+    def testis_position_within_limits(self):
+        self.hardware.set_upper_limit('alpha', 1)
+        self.hardware.set_upper_limit('delta', 2)
+        self.hardware.set_lower_limit('alpha', -1)
+        assert self.hardware.is_position_within_limits([0, 0, 999])
+        assert self.hardware.is_position_within_limits([1, 2, 999])
+        assert self.hardware.is_position_within_limits([-1, -999, 999])
+        assert not self.hardware.is_position_within_limits([1.01, 0, 999])
+        assert not self.hardware.is_position_within_limits([0, 2.01, 999])
+        assert not self.hardware.is_position_within_limits([-1.01, 0, 999])
+
+    def testIsAxisWithinLimits(self):
+        self.hardware.set_upper_limit('alpha', 1)
+        self.hardware.set_upper_limit('delta', 2)
+        self.hardware.set_lower_limit('gamma', -1)
+
+        assert self.hardware.is_axis_value_within_limits('alpha', 0)
+        assert self.hardware.is_axis_value_within_limits('delta', 0)
+        assert self.hardware.is_axis_value_within_limits('gamma', 999)
+
+        assert self.hardware.is_axis_value_within_limits('alpha', 1)
+        assert self.hardware.is_axis_value_within_limits('delta', 2)
+        assert self.hardware.is_axis_value_within_limits('gamma', 999)
+
+        assert self.hardware.is_axis_value_within_limits('alpha', -1)
+        assert self.hardware.is_axis_value_within_limits('delta', -999)
+
+        assert not self.hardware.is_axis_value_within_limits('alpha', 1.01)
+        assert not self.hardware.is_axis_value_within_limits('delta', 2.01)
+        assert not self.hardware.is_axis_value_within_limits('alpha', 1.01)
 
 
 def createDummyAxes(names):

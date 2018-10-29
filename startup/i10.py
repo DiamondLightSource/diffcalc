@@ -62,9 +62,7 @@ def setLimitsAndCuts(delta,eta,chi,phi):
     print "Current hardware limits set to:"
     hardware()
 
-if GDA:
-    setLimitsAndCuts(tth,th,chi,phi)
-else:
+if not GDA:
     setLimitsAndCuts(delta,eta,chi,phi)
 
 if GDA:

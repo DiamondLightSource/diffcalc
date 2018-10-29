@@ -25,13 +25,13 @@ try:
 except ImportError:
     from numjy import matrix
 
+from diffcalc.hardware import DummyHardwareAdapter
 from diffcalc.hkl.you.calc import YouHklCalculator
 from diffcalc.hkl.you.constraints import YouConstraintManager
 from test.tools import assert_array_almost_equal, \
     assert_second_dict_almost_in_first, arrayeq_
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.util import y_rotation, z_rotation, DiffcalcException
-from test.diffcalc.test_hardware import SimpleHardwareAdapter
 from diffcalc.hkl.you.geometry import YouPosition as Pos, SixCircle, YouGeometry
 from diffcalc.hkl.you.calc import youAnglesToHkl
 
@@ -65,7 +65,7 @@ class _BaseTest(object):
         self.mock_ubcalc = createMockUbcalc(None)
         self.sixc_geometry = SixCircle()
         names = ['mu', 'delta', NUNAME, 'eta', 'chi', 'phi']
-        self.mock_hardware = SimpleHardwareAdapter(names)
+        self.mock_hardware = DummyHardwareAdapter(names)
         self.constraints = YouConstraintManager(self.mock_hardware)
         self.calc = YouHklCalculator(self.mock_ubcalc, self.sixc_geometry,
                                      self.mock_hardware, self.constraints)
@@ -1339,7 +1339,7 @@ class Test_I21ExamplesUB(_BaseTest):
 
         self.i21_geometry = FourCircleI21(beamline_axes_transform = matrix('0 0 1; 0 1 0; 1 0 0'))
         names = ['delta', 'eta', 'chi', 'phi']
-        self.mock_hardware = SimpleHardwareAdapter(names)
+        self.mock_hardware = DummyHardwareAdapter(names)
         self.constraints = YouConstraintManager(self.mock_hardware)
         self.calc = YouHklCalculator(self.mock_ubcalc, self.i21_geometry,
                                      self.mock_hardware, self.constraints)

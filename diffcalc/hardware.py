@@ -96,8 +96,6 @@ class HardwareAdapter(object):
                  energyScannableMultiplierToGetKeV=1):
 
         self._diffractometerAngleNames = diffractometerAngleNames
-        self._upperLimitDict = {}
-        self._lowerLimitDict = {}
         self._cut_angles = {}
         self._configure_cuts(defaultCuts)
         self.energyScannableMultiplierToGetKeV = \
@@ -147,48 +145,23 @@ class HardwareAdapter(object):
     def get_lower_limit(self, name):
         '''returns lower limits by axis name. Limit may be None if not set
         '''
-        if name not in self._diffractometerAngleNames:
-            raise ValueError("No angle called %s. Try one of: %s" %
-                             (name, self._diffractometerAngleNames))
-        return self._lowerLimitDict.get(name)
+        raise NotImplementedError()
 
     def get_upper_limit(self, name):
         '''returns upper limit by axis name. Limit may be None if not set
         '''
-        if name not in self._diffractometerAngleNames:
-            raise ValueError("No angle called %s. Try one of: %s" %
-                             name, self._diffractometerAngleNames)
-        return self._upperLimitDict.get(name)
+        raise NotImplementedError()
 
     def set_lower_limit(self, name, value):
         """value may be None to remove limit"""
-        if name not in self._diffractometerAngleNames:
-            raise ValueError(
-                "Cannot set lower Diffcalc limit: No angle called %s. Try one "
-                "of: %s" % (name, self._diffractometerAngleNames))
-        if value is None:
-            try:
-                del self._lowerLimitDict[name]
-            except KeyError:
-                print ("WARNING: There was no lower Diffcalc limit %s set to "
-                       "clear" % name)
-        else:
-            self._lowerLimitDict[name] = value
+        raise NotImplementedError()
 
     def set_upper_limit(self, name, value):
         """value may be None to remove limit"""
-        if name not in self._diffractometerAngleNames:
-            raise ValueError(
-                "Cannot set upper Diffcalc limit: No angle called %s. Try one "
-                "of: %s" % (name, self._diffractometerAngleNames))
-        if value is None:
-            try:
-                del self._upperLimitDict[name]
-            except KeyError:
-                print ("WARNING: There was no upper Diffcalc limit %s set to "
-                       "clear" % name)
-        else:
-            self._upperLimitDict[name] = value
+        raise NotImplementedError()
+
+    def is_axis_value_within_limits(self, axis_name, value):
+        raise NotImplementedError()
 
     def is_position_within_limits(self, positionArray):
         """
@@ -197,15 +170,6 @@ class HardwareAdapter(object):
         names = self._diffractometerAngleNames
         for axis_name, value in zip(names, positionArray):
             if not self.is_axis_value_within_limits(axis_name, value):
-                return False
-        return True
-
-    def is_axis_value_within_limits(self, axis_name, value):
-        if axis_name in self._upperLimitDict:
-            if value > self._upperLimitDict[axis_name]:
-                return False
-        if axis_name in self._lowerLimitDict:
-            if value < self._lowerLimitDict[axis_name]:
                 return False
         return True
 
@@ -296,6 +260,8 @@ class DummyHardwareAdapter(HardwareAdapter):
 #         HardwareAdapter.__init__(self, diffractometerAngleNames)
 
         self._position = [0.] * len(diffractometerAngleNames)
+        self._upperLimitDict = {}
+        self._lowerLimitDict = {}
         self._wavelength = 1.
         self.energyScannableMultiplierToGetKeV = 1
         self._name = "Dummy"
@@ -341,6 +307,61 @@ class DummyHardwareAdapter(HardwareAdapter):
 
     wavelength = property(get_wavelength, _set_wavelength)
 
+    def get_lower_limit(self, name):
+        '''returns lower limits by axis name. Limit may be None if not set
+        '''
+        if name not in self._diffractometerAngleNames:
+            raise ValueError("No angle called %s. Try one of: %s" %
+                             (name, self._diffractometerAngleNames))
+        return self._lowerLimitDict.get(name)
+
+    def get_upper_limit(self, name):
+        '''returns upper limit by axis name. Limit may be None if not set
+        '''
+        if name not in self._diffractometerAngleNames:
+            raise ValueError("No angle called %s. Try one of: %s" %
+                             name, self._diffractometerAngleNames)
+        return self._upperLimitDict.get(name)
+
+    def set_lower_limit(self, name, value):
+        """value may be None to remove limit"""
+        if name not in self._diffractometerAngleNames:
+            raise ValueError(
+                "Cannot set lower Diffcalc limit: No angle called %s. Try one "
+                "of: %s" % (name, self._diffractometerAngleNames))
+        if value is None:
+            try:
+                del self._lowerLimitDict[name]
+            except KeyError:
+                print ("WARNING: There was no lower Diffcalc limit %s set to "
+                       "clear" % name)
+        else:
+            self._lowerLimitDict[name] = value
+
+    def set_upper_limit(self, name, value):
+        """value may be None to remove limit"""
+        if name not in self._diffractometerAngleNames:
+            raise ValueError(
+                "Cannot set upper Diffcalc limit: No angle called %s. Try one "
+                "of: %s" % (name, self._diffractometerAngleNames))
+        if value is None:
+            try:
+                del self._upperLimitDict[name]
+            except KeyError:
+                print ("WARNING: There was no upper Diffcalc limit %s set to "
+                       "clear" % name)
+        else:
+            self._upperLimitDict[name] = value
+
+    def is_axis_value_within_limits(self, axis_name, value):
+        if axis_name in self._upperLimitDict:
+            if value > self._upperLimitDict[axis_name]:
+                return False
+        if axis_name in self._lowerLimitDict:
+            if value < self._lowerLimitDict[axis_name]:
+                return False
+        return True
+
 
 class ScannableHardwareAdapter(HardwareAdapter):
 
@@ -365,7 +386,7 @@ class ScannableHardwareAdapter(HardwareAdapter):
         return self.diffhw.getPosition()
 
     def get_energy(self):
-        """energy = get_energy() -- returns energy in kEv (NOT eV!) """
+        """energy = get_energy() -- returns energy in keV (NOT eV!) """
         multiplier = self.energyScannableMultiplierToGetKeV
         energy = self.energyhw.getPosition() * multiplier
         if energy is None:
@@ -380,3 +401,56 @@ class ScannableHardwareAdapter(HardwareAdapter):
     @property
     def name(self):
         return self.diffhw.getName()
+
+### Limits ###
+
+    def get_lower_limit(self, name):
+        '''returns lower limits by axis name. Limit may be None if not set
+        '''
+        scn = self.diffhw.getGroupMember(name)
+        try:
+            limits = scn.getLowerGdaLimits()
+        except AttributeError:
+            raise DiffcalcException("Cannot read lower limit for scannable {}".format(name))
+        try:
+            if len(limits) != 1:
+                raise DiffcalcException("Lower limit for scannable {} has {} limit values".format(name, len(limits)))
+            return limits[0]
+        except TypeError:
+            return limits
+
+    def get_upper_limit(self, name):
+        '''returns upper limit by axis name. Limit may be None if not set
+        '''
+        scn = self.diffhw.getGroupMember(name)
+        try:
+            limits = scn.getUpperGdaLimits()
+        except AttributeError:
+            raise DiffcalcException("Cannot read upper limit for scannable {}".format(name))
+        try:
+            if len(limits) != 1:
+                raise DiffcalcException("Upper limit for scannable {} has {} limit values".format(name, len(limits)))
+            return limits[0]
+        except TypeError:
+            return limits
+
+    def set_lower_limit(self, name, value):
+        scn = self.diffhw.getGroupMember(name)
+        try:
+            scn.setLowerDummyLimit(value)
+        except AttributeError:
+            raise DiffcalcException('This command is only implemented in dummy mode.\n'
+                                    'Please use GDA/EPICS interface to set hardware limits.')
+
+    def set_upper_limit(self, name, value):
+        scn = self.diffhw.getGroupMember(name)
+        try:
+            scn.setUpperDummyLimit(value)
+        except AttributeError:
+            raise DiffcalcException('This command is only implemented in dummy mode.\n'
+                                    'Please use GDA/EPICS interface to set hardware limits.')
+
+    def is_axis_value_within_limits(self, axis_name, value):
+        scn = self.diffhw.getGroupMember(axis_name)
+        res = False if scn.checkPositionValid([value,]) else True
+        return res

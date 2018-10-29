@@ -65,11 +65,11 @@ azihkl=AzihklClass('aziref')
 azihkl()
 
 # iPython removes the actual command from namespace
-diffcalc.hardware.setrange(chi, -2, 100)
-diffcalc.hardware.setrange(eta, -2, 92)
-diffcalc.hardware.setrange(delta, -2, 145)
-diffcalc.hardware.setrange(gam, -2, 145)
-setcut(phi, -180)
-
 if not GDA:
+    diffcalc.hardware.setrange(chi, -2, 100)
+    diffcalc.hardware.setrange(eta, -2, 92)
+    diffcalc.hardware.setrange(delta, -2, 145)
+    diffcalc.hardware.setrange(gam, -2, 145)
+    setcut(phi, -180)
+
     demo = startup._demo.Demo(globals(), 'i16')
