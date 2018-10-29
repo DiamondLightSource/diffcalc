@@ -53,6 +53,9 @@ settings.energy_scannable = en
 settings.axes_scannable_group= _fourc
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
  
+# for aliasing completeness
+eta= settings.geometry.fixed_constraints['eta']
+chi= settings.geometry.fixed_constraints['chi']
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
 
 if GDA:
@@ -76,7 +79,8 @@ def setLimitsAndCuts():
     print "Current hardware limits set to:"
     hardware()
 
-setLimitsAndCuts()
+if not GDA:
+    setLimitsAndCuts()
 
 # TODO: make demo code for (2+2) diffractometer geometry
 #if not GDA:

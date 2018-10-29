@@ -55,6 +55,9 @@ settings.energy_scannable = en
 settings.axes_scannable_group= _fourc
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
  
+# for aliasing completeness
+mu= settings.geometry.fixed_constraints['mu']
+chi= settings.geometry.fixed_constraints['chi']
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
 
 if GDA:
@@ -64,7 +67,8 @@ if GDA:
 # Load the last ub calculation used
 lastub()
 # Set reference vector direction returning betain and betaout angles as alpha and beta
-setnphi('0; 0; -1')
+if ubcalc.name:
+    setnphi('0; 0; -1')
 
 ### Set i07 specific limits
 def setLimitsAndCuts():
@@ -80,7 +84,8 @@ def setLimitsAndCuts():
     print "Current hardware limits set to:"
     hardware()
 
-setLimitsAndCuts()
+if not GDA:
+    setLimitsAndCuts()
 
 # TODO: make demo code for (2+2) diffractometer geometry
 #if not GDA:
