@@ -213,7 +213,7 @@ def usevessel():
 print "Created i21 bespoke commands: usediode, usevessel, centresample, zerosample, toolpoint_on, toolpoint_off"
 
 if GDA:
-    def swithMotors(sax, say, saz, sath, sachi, saphi, diodedelta, specm5tth):
+    def switchMotors(sax, say, saz, sath, sachi, saphi, diodedelta, specm5tth):
         import __main__
         __main__.xyz_eta = ScannableGroup('xyz_eta', [sax, say, saz])  # @UndefinedVariable
         #update support for i21 non-concentric rotation motions
@@ -227,11 +227,7 @@ if GDA:
         __main__.tp_labz = __main__.tp_lab.tp_labz  # @UndefinedVariable
         
         ### update Wrap i21 names to get diffcalc names
-        _fourc = I21DiffractometerStage('_fourc', diodedelta, __main__.sa)  # @UndefinedVariable
-        __main__.delta = _fourc.delta
-        __main__.eta = _fourc.eta
-        __main__.chi = _fourc.chi
-        __main__.phi = _fourc.phi
+        _fourc = ScannableGroup('_fourc', (diodedelta, sath, sachi, saphi)) # I21DiffractometerStage('_fourc', diodedelta, __main__.sa)  # @UndefinedVariable
             #update diffcalc objects
         __main__.settings.hardware = ScannableHardwareAdapter(_fourc, __main__.en, ESMTGKeV)  # @UndefinedVariable
         __main__.settings.geometry = FourCircleI21(beamline_axes_transform=beamline_axes_transform)  # @UndefinedVariable
@@ -250,25 +246,25 @@ if GDA:
         __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
         __main__.ct = SimulatedCrystalCounter('ct', _fourc, __main__.settings.geometry,__main__.wl)  # @UndefinedVariable
         #update scannales: fourc_vessel & hkl_vessel'
-        _fourc_vessel = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_vessel', m5tth, sa)
+        _fourc_vessel = ScannableGroup('_fourc', (specm5tth, sath, sachi, saphi)) # I21DiffractometerStage('_fourc_vessel', m5tth, sa)
         __main__.fourc_vessel = DiffractometerScannableGroup('fourc_vessel', _dc, _fourc_vessel)
         __main__.hkl_vessel = Hkl('hkl_vessel', _fourc_vessel, _dc)
         __main__.h_vessel, __main__.k_vessel, __main__.l_vessel = hkl_vessel.h, hkl_vessel.k, hkl_vessel.l
         
         #Update scannables: fourc_lowq & hkl_lowq'
-        _fourc_lowq = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_lowq', m5tth, sa,delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)
+        _fourc_lowq = ScannableGroup('_fourc', (specm5tth, sath, sachi, saphi)) #I21DiffractometerStage('_fourc_lowq', m5tth, sa,delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)
         __main__.fourc_lowq = DiffractometerScannableGroup('fourc_lowq', _dc, _fourc_lowq)
         __main__.hkl_lowq = Hkl('hkl_lowq', _fourc_lowq, _dc)
         __main__.h_lowq, __main__.k_lowq, __main__.l_lowq = hkl_lowq.h, hkl_lowq.k, hkl_lowq.l
         
         #Update scannables: fourc_highq & hkl_highq'
-        _fourc_highq = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_highq', m5tth, sa,delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)
+        _fourc_highq = ScannableGroup('_fourc', (specm5tth, sath, sachi, saphi)) #I21DiffractometerStage('_fourc_highq', m5tth, sa,delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)
         __main__.fourc_highq = DiffractometerScannableGroup('fourc_highq', _dc, _fourc_highq)
         __main__.hkl_highq = Hkl('hkl_highq', _fourc_highq, _dc)
         __main__.h_highq, __main__.k_highq, __main__.l_highq = hkl_highq.h, hkl_highq.k, hkl_highq.l
         
         #Update scannables: fourc_diode & hkl_diode'
-        _fourc_diode = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_diode', delta, sa)
+        _fourc_diode = ScannableGroup('_fourc', (diodedelta, sath, sachi, saphi)) #I21DiffractometerStage('_fourc_diode', delta, sa)
         __main__.fourc_diode = DiffractometerScannableGroup('fourc_diode', _dc, _fourc_diode)
         __main__.hkl_diode = Hkl('hkl_diode', _fourc_diode, _dc)
         __main__.h_diode, __main__.k_diode, __main__.l_diode = hkl_diode.h, hkl_diode.k, hkl_diode.l
@@ -296,7 +292,7 @@ if GDA:
         print "Set energy to 12398.425 eV in simulation mode!"
         __main__.en(12398.425) #1 Angstrom wavelength @UndefinedVariable
         print "Switch to simulation motors"
-        swithMotors(simx,simy,simz,simth,simchi,simphi,simdelta,simm5tth)
+        switchMotors(simx,simy,simz,simth,simchi,simphi,simdelta,simm5tth)
 #         __main__.th = __main__.sa.simth  # @UndefinedVariable
 #         __main__.chi = __main__.sa.simchi  # @UndefinedVariable
 #         __main__.phi = __main__.sa.simphi  # @UndefinedVariable
@@ -314,7 +310,7 @@ if GDA:
         print "Set energy to current beamline energy in real mode!"
         __main__.en=energy
         print "Switch to real motors"
-        swithMotors(x,y,z,th,chi,phi,delta,m5tth)
+        switchMotors(x,y,z,th,chi,phi,delta,m5tth)
 #         __main__.th = __main__.sa.th  # @UndefinedVariable
 #         __main__.chi = __main__.sa.chi  # @UndefinedVariable
 #         __main__.phi = __main__.sa.phi  # @UndefinedVariable
