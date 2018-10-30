@@ -109,14 +109,15 @@ print "INFO: diffcalc limits set in $diffcalc/startup/i21.py taken from http://c
 def setLimitsAndCuts(delta_angle, chi_angle, eta_angle, phi_angle):
     ''' set motor limits for diffcalc, these are within the actual motor limits
     '''
-    setmin(delta_angle, 0.0)
-    setmax(delta_angle, 180.0) #default to diode delta limits
-    setmin(chi_angle, -41.0)
-    setmax(chi_angle, 36.0)
-    setmin(eta_angle, 0.0)
-    setmax(eta_angle, 150.0)
-    setmin(phi_angle, -100.0)
-    setmax(phi_angle, 100.0)
+    if not GDA:
+        setmin(delta_angle, 0.0)
+        setmax(delta_angle, 180.0) #default to diode delta limits
+        setmin(chi_angle, -41.0)
+        setmax(chi_angle, 36.0)
+        setmin(eta_angle, 0.0)
+        setmax(eta_angle, 150.0)
+        setmin(phi_angle, -100.0)
+        setmax(phi_angle, 100.0)
     #http://jira.diamond.ac.uk/browse/I21-361
     setcut(eta_angle, 0.0)
     setcut(phi_angle, -180.0)
@@ -185,25 +186,29 @@ def usediode():
     '''
     if SIM_MODE:
         _fourc.delta_scn=simdelta
-        setmin(simdelta, 0)
-        setmax(simdelta, 180)
+        if not GDA:
+            setmin(simdelta, 0)
+            setmax(simdelta, 180)
         
     else:
         _fourc.delta_scn = delta
-        setmin(delta, 0)
-        setmax(delta, 180)
+        if not GDA:
+            setmin(delta, 0)
+            setmax(delta, 180)
     
 def usevessel():
     '''Use spectrometer
     '''
     if SIM_MODE:
         _fourc.delta_scn=simm5tth
-        setmin(simm5tth, 0)
-        setmax(simm5tth, 150)
+        if not GDA:
+            setmin(simm5tth, 0)
+            setmax(simm5tth, 150)
     else:
         _fourc.delta_scn = m5tth  # note, if changed also update in _fourc_vessel constructor!
-        setmin(m5tth, 0)
-        setmax(m5tth, 150)
+        if not GDA:
+            setmin(m5tth, 0)
+            setmax(m5tth, 150)
     
 print "Created i21 bespoke commands: usediode, usevessel, centresample, zerosample, toolpoint_on, toolpoint_off"
 
@@ -422,11 +427,7 @@ else:
             cmd_list=[
                 'help hkl',
                 'con(a_eq_b)',
-                'con',
-                'setmin(delta, 0)',
-                'setmin(chi, -180)',
-                'setmin(phi, -180)',
-                'setmax(phi, 180)']
+                'con']
             self.executeCommand(cmd_list)
     
         def scan(self):
@@ -444,6 +445,3 @@ else:
                 'con(psi)',
                 'scan(psi, 0, 90, 10, hkl, [.1, 0, .1], th, chi, phi, ct, .1)']
             self.executeCommand(cmd_list)
-
-
-
