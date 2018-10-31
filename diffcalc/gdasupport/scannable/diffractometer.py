@@ -81,6 +81,21 @@ class DiffractometerScannableGroup(ScannableMotionBase):
             slave_positions = self.slave_driver.getPositions()
         return list(self.__group.getPosition()) + list(slave_positions)
 
+    def getGroupMembers(self):
+        group_members = []
+        group_members.extend(self.__group.getGroupMembers())
+        if self.slave_driver is not None:
+            group_members.extend(self.slave_driver.scannbles)
+        return group_members
+
+    def getGroupMember(self, name):
+        if name in self.__group.getInputNames():
+            return self.__group.getGroupMember(name)
+        elif self.slave_driver is not None:
+            if name in self.slave_driver.getScannableNames():
+                return self.slave_driver.getScannable()
+        return None
+
     def isBusy(self):
         if self.slave_driver is None:
             return self.__group.isBusy()

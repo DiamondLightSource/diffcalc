@@ -243,11 +243,19 @@ except ImportError:
                 return limitsComponentMsg
             return None
 
-        def getLowerGdaLimits(self):
-            return self.limitsComponent.getInternalLower()
+        def getLowerInnerLimit(self):
+            limits = self.limitsComponent.getInternalLower()
+            try:
+                return limits[0]
+            except TypeError:
+                return None
 
-        def getUpperGdaLimits(self):
-            return self.limitsComponent.getInternalUpper()
+        def getUpperInnerLimit(self):
+            limits = self.limitsComponent.getInternalUpper()
+            try:
+                return limits[0]
+            except TypeError:
+                return None
 
 
     class ScannableAdapter(Scannable):

@@ -27,7 +27,7 @@ from diffcalc.gdasupport.scannable.mock import MockMotor
 from diffcalc.gdasupport.minigda.scannable import \
     SingleFieldDummyScannable
 from diffcalc.gdasupport.minigda.scannable import Scannable
-from diffcalc.gdasupport.scannable.base import ScannableGroup
+from diffcalc.gdasupport.minigda.scannable import ScannableGroup
 
 
 class TestScannable(object):

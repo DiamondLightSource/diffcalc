@@ -26,9 +26,10 @@ except ImportError:
     from diffcalc.gdasupport.minigda.scannable import DummyPD
 
 
-from diffcalc.gdasupport.scannable.base import ScannableGroup
+from diffcalc.gdasupport.minigda.scannable import ScannableGroup
 from diffcalc.gdasupport.scannable.diffractometer import \
     DiffractometerScannableGroup
+from diffcalc.util import DiffcalcException
 from diffcalc.gdasupport.scannable.mock import MockMotor
 from diffcalc.hardware import DummyHardwareAdapter
 from diffcalc.hardware import HardwareAdapter
@@ -244,3 +245,27 @@ class TestGdaHardwareMonitor(object):
     def testGetWavelength(self):
         self.energyhw.asynchronousMoveTo(1.0)
         assert self.hardware.get_wavelength() == 12.39842 / 1.0
+
+    def testLowerLimitSetAndGet(self):
+        self.hardware.set_lower_limit('a', -1)
+        self.hardware.set_lower_limit('b', -2)
+        self.hardware.set_lower_limit('c', -3)
+        with pytest.raises(DiffcalcException):
+            self.hardware.set_lower_limit('not an angle', 1)
+        self.hardware.set_lower_limit('d', None)
+        print "Should print WARNING:"
+        self.hardware.set_lower_limit('d', None)
+        assert self.hardware.get_lower_limit('a') == -1
+        assert self.hardware.get_lower_limit('c') == -3
+
+    def testUpperLimitSetAndGet(self):
+        self.hardware.set_upper_limit('a', 1)
+        self.hardware.set_upper_limit('b', 2)
+        self.hardware.set_upper_limit('c', 3)
+        with pytest.raises(DiffcalcException):
+            self.hardware.set_upper_limit('not an angle', 1)
+        self.hardware.set_upper_limit('d', None)
+        print "Should print WARNING:"
+        self.hardware.set_upper_limit('d', None)
+        assert self.hardware.get_upper_limit('a') == 1
+        assert self.hardware.get_upper_limit('c') == 3

@@ -51,6 +51,12 @@ class SlaveScannableDriver(object):
     def getScannableNames(self):
         return [scn.name for scn in self.scannables]
 
+    def getScannable(self, name):
+        for scn in self.scannables:
+            if scn.getName() == name:
+                return scn
+        return None
+
     def getOutputFormat(self):
         return [list(scn.outputFormat)[0] for scn in self.scannables]
 
