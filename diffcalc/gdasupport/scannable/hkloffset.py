@@ -88,7 +88,7 @@ class HklOffset(ScannableMotionWithScannableFieldsBase):
         pos = self.diffhw.getPosition()  # a tuple
         (hkl_pos , params) = self._diffcalc.angles_to_hkl(pos)
         result = list(self._hkl_reference)
-        pol, az = self._diffcalc._ub.ubcalc.calc_offset_for_hkl(hkl_pos, self._hkl_reference)
+        pol, az, _ = self._diffcalc._ub.ubcalc.calc_offset_for_hkl(hkl_pos, self._hkl_reference)
         result.extend([pol * TODEG, az * TODEG])
         if self.vAngleNames:
             for vAngleName in self.vAngleNames:
@@ -133,7 +133,7 @@ class HklOffset(ScannableMotionWithScannableFieldsBase):
         pos = self.diffhw.getPosition()
         try:
             (hkl_pos, params) = self._diffcalc.angles_to_hkl(pos)
-            pol, az = self._diffcalc._ub.ubcalc.calc_offset_for_hkl(hkl_pos, self._hkl_reference)
+            pol, az, _ = self._diffcalc._ub.ubcalc.calc_offset_for_hkl(hkl_pos, self._hkl_reference)
         except Exception, e:
             return "<hkloffser: %s>" % getMessageFromException(e)
 

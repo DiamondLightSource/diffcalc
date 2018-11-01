@@ -190,9 +190,10 @@ class TestUBCalculationWithYouStrategy():
         self.ubcalc.start_new(NAME)
         self.ubcalc.set_lattice('latt', 1, 1, 1, 90, 90, 90)
         self.ubcalc.set_U_manually(x_rotation(0))
-        for hklref, hkloff, pol, az in [([0, 0, sqrt(2)], [1, 1, 0], 90 * TORAD, -45 * TORAD),
-                                        ([0, 0, sqrt(2)], [-1, 0, 1], 45 * TORAD, 90 * TORAD),
-                                        ([sqrt(5), 0, 0], [1, 0, 2], atan2(2,1), 90 * TORAD),]:
-            matrixeq_(matrix([[pol, az]]),
-                      matrix([list(self.ubcalc.calc_offset_for_hkl(hkloff, hklref))]))
+        for hklref, hkloff, pol_ref, az_ref, sc_ref in [([0, 0, 1], [1, 1, 0], 90 * TORAD, -45 * TORAD, sqrt(2)),
+                                                        ([0, 0, 1], [-1, 0, 1], 45 * TORAD, 90 * TORAD, sqrt(2)),
+                                                        ([1, 0, 0], [1, 0, 2], atan2(2,1), 90 * TORAD, sqrt(5)),]:
+            pol, az , sc = self.ubcalc.calc_offset_for_hkl(hkloff, hklref)
+            matrixeq_(matrix([[pol_ref, az_ref, sc_ref]]),
+                      matrix([[pol, az, sc]]))
 

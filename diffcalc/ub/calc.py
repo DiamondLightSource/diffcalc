@@ -877,9 +877,8 @@ class UBCalculation:
 
     def calc_offset_for_hkl(self, hkl_offset, hkl_ref):
         """
-        Calculate hkl orientation values that are related to
-        the input hkl values by rotation with a given polar
-        and azimuthal angles
+        Calculate polar and azimuthal angles and scaling factor
+        relating offset and reference hkl values
         """
         hklref_nphi = self._UB * matrix([[hkl_ref[0]], [hkl_ref[1]], [hkl_ref[2]]])
         hkloff_nphi = self._UB * matrix([[hkl_offset[0]], [hkl_offset[1]], [hkl_offset[2]]])
@@ -895,4 +894,7 @@ class UBCalculation:
             az = 0
         else:
             az = atan2(y_coord, x_coord)
-        return pol, az
+        d_offset = self._state.crystal.get_hkl_plane_distance(hkl_offset)
+        d_ref = self._state.crystal.get_hkl_plane_distance(hkl_ref)
+        sc = d_ref / d_offset
+        return pol, az, sc
