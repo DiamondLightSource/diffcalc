@@ -20,7 +20,7 @@ import time
 from diffcalc.util import DiffcalcException
 
 try:
-    from gda.device.scannable import ScannableBase
+    from gda.device.scannable import ScannableBase, ScannaleMotionBase
 except ImportError:
     class Scannable(object):
         pass
