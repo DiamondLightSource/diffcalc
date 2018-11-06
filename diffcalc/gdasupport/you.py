@@ -8,6 +8,7 @@ from diffcalc.gdasupport.scannable.parameter import DiffractionCalculatorParamet
 
 from diffcalc.dc import dcyou as _dc
 from diffcalc.dc.help import format_command_help
+from diffcalc.gdasupport.scannable.setref2 import setref2
 reload(_dc)
 from diffcalc.dc.dcyou import *  # @UnusedWildImport
 from diffcalc import settings
@@ -61,6 +62,12 @@ k_offset = hkloffset.k
 l_offset = hkloffset.l
 pol_offset = hkloffset.polar
 az_offset = hkloffset.azimuthal
+
+def sr2(hkl_offset):
+    """
+    setref2 [h k l] -- setup hkloffset scannable to scan for second reflection [h k l]
+    """
+    setref2(hkloffset, hkl_offset)
 
 Hkl.dynamic_docstring = format_command_help(hkl_commands_for_help)  # must be on the class
 ub.__doc__ = format_command_help(ub_commands_for_help)
