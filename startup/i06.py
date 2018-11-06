@@ -10,7 +10,7 @@ if not GDA:
     import startup._demo
 else:
 #     import __main__  # @UnresolvedImport
-    from __main__ import dd2th,ddth,energy  # @UnresolvedImport
+    from __main__ import dd2th,ddth,chi,energy  # @UnresolvedImport
 LOCAL_MANUAL = "http://confluence.diamond.ac.uk/pages/viewpage.action?pageId=31853413"
 # Diffcalc i06-1
 # ======== === 
@@ -39,7 +39,6 @@ class ThreeCircleI06(YouGeometry):
 
 
 ### Create dummy scannables ###
-chi = DummyPD('chi')
 if GDA:  
     print "!!! Starting LIVE diffcalc with delta(dd2th), eta(ddth), chi(dummy) and denergy." 
     _threec = ScannableGroup('_threec', (dd2th, ddth, chi))
@@ -52,6 +51,7 @@ if GDA:
 else:   
     delta = Dummy('delta')
     eta = Dummy('eta')
+    chi = Dummy('chi')
     _threec = ScannableGroup('_threec', (delta, eta, chi))
     en = Dummy('en')
     en(800)
@@ -66,7 +66,8 @@ settings.energy_scannable = en
 settings.axes_scannable_group= _threec
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
 
-setrange('chi', 90 - SMALL, 90 + SMALL)
+if not GDA:
+    setrange('chi', 90 - SMALL, 90 + SMALL)
 
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
  
