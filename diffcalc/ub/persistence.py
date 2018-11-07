@@ -19,7 +19,6 @@
 from __future__ import with_statement
 
 import os, glob
-from diffcalc.ub.calcstate import UBCalcStateEncoder
 import datetime
 
 try:
@@ -54,10 +53,11 @@ def check_directory_appropriate(directory):
 
 class UBCalculationJSONPersister(object):
 
-    def __init__(self, directory):
+    def __init__(self, directory, encoder):
         check_directory_appropriate(directory)
         self.directory = directory
         self.description = directory
+        self.encoder = encoder
         
     def filepath(self, name):
         return os.path.join(self.directory, name + '.json')
@@ -66,7 +66,7 @@ class UBCalculationJSONPersister(object):
         # FORMAT = '%Y-%m-%d %H:%M:%S'
         # time_string = datetime.datetime.strftime(datetime.datetime.now(), FORMAT)
         with open(self.filepath(name), 'w') as f:
-            json.dump(state, f, indent=4, cls=UBCalcStateEncoder)
+            json.dump(state, f, indent=4, cls=self.encoder)
 
     def load(self, name):
         with open(self.filepath(name), 'r') as f:

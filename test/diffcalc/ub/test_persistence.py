@@ -29,6 +29,7 @@ except ImportError:
     print "Could not import LocalProperties to configure database locations."
 
 from diffcalc.ub.persistence import UbCalculationNonPersister, UBCalculationJSONPersister
+from diffcalc.ub.calcstate import UBCalcStateEncoder
 
 
 def prepareEmptyGdaVarFolder():
@@ -55,7 +56,7 @@ class TestUBCalculationJSONPersister(object):
     def setup_method(self):
         self.tmpdir = tempfile.mkdtemp()
         print self.tmpdir
-        self.persister = UBCalculationJSONPersister(self.tmpdir)
+        self.persister = UBCalculationJSONPersister(self.tmpdir, UBCalcStateEncoder)
         f = open(os.path.join(self.tmpdir, 'unexpected_file'), 'w')
         f.close()
         

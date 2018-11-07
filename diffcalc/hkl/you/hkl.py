@@ -78,9 +78,11 @@ def con(*args):
         not hklcalc.constraints.is_current_mode_implemented()):
         msg += ("\n\nWARNING: The selected constraint combination "
             "is not implemented.\n\nType 'help con' to see implemented combinations")
-
     if msg:
         print msg
+
+    diffcalc.ub.ub.ubcalc.save()
+
 
 def _handle_con(args):
     if not args:
@@ -124,6 +126,9 @@ def uncon(scn_or_string):
     name = getNameFromScannableOrString(scn_or_string)
     hklcalc.constraints.unconstrain(name)
     print '\n'.join(hklcalc.constraints.report_constraints_lines())
+
+    diffcalc.ub.ub.ubcalc.save()
+
 
 @command 
 def allhkl(hkl, wavelength=None):
