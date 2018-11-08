@@ -400,6 +400,18 @@ class TestConstraintManager:
         self._constrain('qaz', 'chi', 'phi')
         eq_(self.cm.is_current_mode_implemented(), True)
 
+    def test_is_implemented_2_samp_det_bisect_mu(self):
+        self._constrain('qaz', 'bisect', 'mu')
+        eq_(self.cm.is_current_mode_implemented(), True)
+
+    def test_is_implemented_2_samp_det_bisect_eta(self):
+        self._constrain('qaz', 'bisect', 'eta')
+        eq_(self.cm.is_current_mode_implemented(), True)
+
+    def test_is_implemented_2_samp_det_bisect_omega(self):
+        self._constrain('qaz', 'bisect', 'omega')
+        eq_(self.cm.is_current_mode_implemented(), True)
+
     # 3 samp
 
     def test_is_implemented_3_samp_no_mu(self):

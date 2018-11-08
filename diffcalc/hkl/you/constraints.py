@@ -249,6 +249,8 @@ class YouConstraintManager(object):
                     set(self.sample.keys()) == set(['mu', 'eta']) or
                     set(self.sample.keys()) == set(['mu', 'phi']) or
                     set(self.sample.keys()) == set(['eta', 'phi']) or
+                    set(self.sample.keys()) == set(['mu', 'bisect']) or
+                    set(self.sample.keys()) == set(['eta', 'bisect']) or
                     set(self.sample.keys()) == set(['omega', 'bisect']))
         
         return False
