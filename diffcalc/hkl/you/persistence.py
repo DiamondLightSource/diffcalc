@@ -16,7 +16,7 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 from diffcalc.ub.calcstate import UBCalcStateEncoder, UBCalcState
-from diffcalc.util import DiffcalcException
+from diffcalc.util import DiffcalcException, TODEG
 
 
 class YouStateEncoder(UBCalcStateEncoder):
@@ -43,7 +43,7 @@ class YouStateEncoder(UBCalcStateEncoder):
                 try:
                     constraint_manager.constrain(cons_name)
                     if val is not None:
-                        constraint_manager.set_constraint(cons_name, val)
+                        constraint_manager.set_constraint(cons_name, val * TODEG)
                 except DiffcalcException:
                     print 'WARNING: Ignoring constraint %s' % cons_name
         except KeyError:
