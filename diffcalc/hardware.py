@@ -410,9 +410,19 @@ class ScannableHardwareAdapter(HardwareAdapter):
         scn = self.diffhw.getGroupMember(name)
         try:
             limit = scn.getLowerInnerLimit()
+            return limit
+        except AttributeError:
+            pass
+        try:
+            limits = scn.getLowerGdaLimits()
         except AttributeError:
             raise DiffcalcException("Cannot read lower limit for scannable {}".format(name))
-        return limit
+        try:
+            if len(limits) != 1:
+                raise DiffcalcException("Lower limit for scannable {} has {} limit values".format(name, len(limits)))
+            return limits[0]
+        except TypeError:
+            return limits
 
     def get_upper_limit(self, name):
         '''returns upper limit by axis name. Limit may be None if not set
@@ -420,9 +430,19 @@ class ScannableHardwareAdapter(HardwareAdapter):
         scn = self.diffhw.getGroupMember(name)
         try:
             limit = scn.getUpperInnerLimit()
+            return limit
+        except AttributeError:
+            pass
+        try:
+            limits = scn.getUpperGdaLimits()
         except AttributeError:
             raise DiffcalcException("Cannot read upper limit for scannable {}".format(name))
-        return limit
+        try:
+            if len(limits) != 1:
+                raise DiffcalcException("Upper limit for scannable {} has {} limit values".format(name, len(limits)))
+            return limits[0]
+        except TypeError:
+            return limits
 
     def set_lower_limit(self, name, value):
         scn = self.diffhw.getGroupMember(name)
