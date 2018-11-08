@@ -30,7 +30,6 @@ def alias_commands(global_namespace_dict):
     if not GDA:  # TODO: encapsulation issue: this should be done outside this function!
         commands.append(gnd['pos'])
         commands.append(gnd['scan'])
-        commands.append(gnd['sr2'])
     aliased_names = []
 
     for f in commands:
