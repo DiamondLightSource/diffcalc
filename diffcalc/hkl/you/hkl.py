@@ -55,20 +55,22 @@ def con(*args):
 
     Not all constraint combinations are currently available:
 
-        1 x samp:              all 80 of 80
+        1 x samp:              all
 
         2 x samp and 1 x ref:  chi & phi
                                chi & eta
                                chi & mu
-                               mu & eta (4 of 6)
+                               mu & eta
 
         2 x samp and 1 x det:  chi & phi
                                mu & eta
                                mu & phi
                                eta & phi
-                               bisect & omega (5 of 7)
+                               bisect & mu
+                               bisect & eta
+                               bisect & omega
 
-        3 x samp:              eta, chi & phi (1 of 4)
+        3 x samp:              eta, chi & phi
 
     See also 'uncon'
     """
@@ -78,9 +80,11 @@ def con(*args):
         not hklcalc.constraints.is_current_mode_implemented()):
         msg += ("\n\nWARNING: The selected constraint combination "
             "is not implemented.\n\nType 'help con' to see implemented combinations")
-
     if msg:
         print msg
+
+    diffcalc.ub.ub.ubcalc.save()
+
 
 def _handle_con(args):
     if not args:
@@ -124,6 +128,9 @@ def uncon(scn_or_string):
     name = getNameFromScannableOrString(scn_or_string)
     hklcalc.constraints.unconstrain(name)
     print '\n'.join(hklcalc.constraints.report_constraints_lines())
+
+    diffcalc.ub.ub.ubcalc.save()
+
 
 @command 
 def allhkl(hkl, wavelength=None):

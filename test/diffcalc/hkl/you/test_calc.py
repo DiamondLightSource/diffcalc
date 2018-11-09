@@ -480,6 +480,81 @@ class TestCubicVertical_Bisect(_TestCubic):
             yield case_tuple
 
 
+class TestCubicVertical_Bisect_NuMu(TestCubicVertical_Bisect):
+
+    def setup_method(self):
+        TestCubicVertical_Bisect.setup_method(self)
+        self.constraints._constrained = {NUNAME: 0, 'bisect': None, 'mu': 0}
+
+
+class TestCubicVertical_Bisect_qaz(TestCubicVertical_Bisect):
+
+    def setup_method(self):
+        TestCubicVertical_Bisect.setup_method(self)
+        self.constraints._constrained = {'qaz': 90. * TORAD, 'bisect': None, 'mu': 0}
+
+
+class TestCubicHorizontal_Bisect(_TestCubic):
+
+    def setup_method(self):
+        _TestCubic.setup_method(self)
+        self.constraints._constrained = {'delta': 0, 'bisect': None, 'omega': 0}
+        self.mock_hardware.set_lower_limit('chi', 0.)
+
+    def makes_cases(self, zrot, yrot):
+        self.zrot = zrot
+        self.yrot = yrot
+        self.wavelength = 1
+        self.cases = (
+            Pair('101', (1, 0, 1),
+                 Pos(mu=45, delta=0, nu=90, eta=0, chi=45,
+                     phi=180, unit='DEG')),
+            Pair('10m1', (1, 0, -1),
+                 Pos(mu=45, delta=0, nu=90, eta=0, chi=135,
+                     phi=180, unit='DEG')),
+            Pair('011', (0, 1, 1),
+                 Pos(mu=45, delta=0, nu=90, eta=0, chi=45,
+                     phi=-90, unit='DEG')),
+            Pair('100-->001', (sin(4 * TORAD), 0, cos(4 * TORAD)),
+                 Pos(mu=30, delta=0, nu=60, eta=0, chi=4,
+                     phi=180, unit='DEG'),),
+            Pair('010', (0, 1, 0),
+                 Pos(mu=30, delta=0, nu=60, eta=0, chi=90, phi=-90, unit='DEG')),
+            Pair('001', (0, 0, 1),
+                 Pos(mu=30, delta=0, nu=60, eta=0, chi=0,
+                     phi=0, unit='DEG'), fails=True),
+            Pair('0.1 0 1.5', (0.1, 0, 1.5),  # cover case where delta > 90 !
+                  Pos(mu=48.73480, delta=0, nu=97.46959231642,
+                      eta=0, chi=3.81407 - self.yrot,
+                      phi=180 + self.zrot, unit='DEG')),
+            Pair('010-->001', (0, cos(86 * TORAD), sin(86 * TORAD)),
+                 Pos(mu=30, delta=0, nu=60, eta=0, chi=4,
+                     phi=-90, unit='DEG')),
+        )
+        self.case_dict = {}
+        for case in self.cases:
+            self.case_dict[case.name] = case
+
+    def test_pairs_zrot0_yrot0(self):
+        self.makes_cases(0, 0)
+        for case_tuple in self.case_generator():
+            yield case_tuple
+
+
+class TestCubicHorizontal_Bisect_NuMu(TestCubicHorizontal_Bisect):
+
+    def setup_method(self):
+        TestCubicHorizontal_Bisect.setup_method(self)
+        self.constraints._constrained = {'delta': 0, 'bisect': None, 'eta': 0}
+
+
+class TestCubicHorizontal_Bisect_qaz(TestCubicHorizontal_Bisect):
+
+    def setup_method(self):
+        TestCubicHorizontal_Bisect.setup_method(self)
+        self.constraints._constrained = {'qaz': 0, 'bisect': None, 'eta': 0}
+
+
 class SkipTestYouHklCalculatorWithCubicMode_aeqb_delta_60(_TestCubicVertical):
     '''
     Works to 4-5 decimal places but chooses different solutions when phi||eta .

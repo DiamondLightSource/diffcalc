@@ -138,28 +138,28 @@ class UBCalcStateEncoder(json.JSONEncoder):
         
         return json.JSONEncoder.default(self, obj)
 
+    @staticmethod
+    def decode_ubcalcstate(state, geometry, diffractometer_axes_names):
 
-def decode_ubcalcstate(state, geometry, diffractometer_axes_names):
-
-    # Backwards compatibility code
-    orientlist_=OrientationList([])
-    try:
-        orientlist_=decode_orientlist(state['orientlist'])
-    except KeyError:
-        pass
-    return UBCalcState(
-        name=state['name'],
-        crystal=state['crystal'] and CrystalUnderTest(*eval(state['crystal'])),
-        reflist=decode_reflist(state['reflist'], geometry, diffractometer_axes_names),
-        orientlist=orientlist_,
-        tau=state['tau'],
-        sigma=state['sigma'],
-        manual_U=state['u'] and decode_matrix(state['u']),
-        manual_UB=state['ub'] and decode_matrix(state['ub']),
-        or0=state['or0'],
-        or1=state['or1'],
-        reference=decode_reference(state.get('reference', None))
-    )
+        # Backwards compatibility code
+        orientlist_=OrientationList([])
+        try:
+            orientlist_=decode_orientlist(state['orientlist'])
+        except KeyError:
+            pass
+        return UBCalcState(
+            name=state['name'],
+            crystal=state['crystal'] and CrystalUnderTest(*eval(state['crystal'])),
+            reflist=decode_reflist(state['reflist'], geometry, diffractometer_axes_names),
+            orientlist=orientlist_,
+            tau=state['tau'],
+            sigma=state['sigma'],
+            manual_U=state['u'] and decode_matrix(state['u']),
+            manual_UB=state['ub'] and decode_matrix(state['ub']),
+            or0=state['or0'],
+            or1=state['or1'],
+            reference=decode_reference(state.get('reference', None))
+        )
 
 
 def decode_matrix(rows):

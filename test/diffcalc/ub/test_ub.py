@@ -36,6 +36,7 @@ from diffcalc.hardware import DummyHardwareAdapter
 from test.tools import assert_iterable_almost_equal, mneq_, arrayeq_
 from diffcalc.ub.persistence import UbCalculationNonPersister,\
     UBCalculationJSONPersister
+from diffcalc.ub.calcstate import UBCalcStateEncoder
 from diffcalc.util import DiffcalcException, MockRawInput, xyz_rotation,\
     TODEG, TORAD
 from diffcalc.hkl.vlieg.calc import VliegUbCalcStrategy, vliegAnglesToHkl
@@ -714,7 +715,7 @@ class TestUbCommandsJsonPersistence(TestUBCommandsYou):
     def _createPersister(self):
         self.tmpdir = tempfile.mkdtemp()
         print self.tmpdir
-        self.persister = UBCalculationJSONPersister(self.tmpdir)
+        self.persister = UBCalculationJSONPersister(self.tmpdir, UBCalcStateEncoder)
         f = open(os.path.join(self.tmpdir, 'unexpected_file'), 'w')
         f.close()
         return self.persister

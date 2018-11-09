@@ -259,7 +259,7 @@ def magic_commands(global_namespace_dict):
     commands = list(gnd['hkl_commands_for_help'])
     commands += gnd['ub_commands_for_help']
     commands.append(gnd['pos'])
-    commands.append(gnd['scan'])       
+    commands.append(gnd['scan'])
     command_map = {}
     for f in commands:
         # Skip section headers like 'Motion'

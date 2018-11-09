@@ -24,6 +24,7 @@ import os, sys
 from diffcalc.hardware import ScannableHardwareAdapter
 import diffcalc.hkl.you.geometry
 from diffcalc.ub.persistence import UbCalculationNonPersister, UBCalculationJSONPersister
+from diffcalc.ub.calcstate import UBCalcStateEncoder
 from diffcalc import settings
 import diffcalc.util
 
@@ -59,7 +60,7 @@ if GDA:
     if not os.path.exists(diffcalc_persistance_path):
         print "Making diffcalc var folder:'%s'" % diffcalc_persistance_path
         os.makedirs(diffcalc_persistance_path)
-    settings.ubcalc_persister = UBCalculationJSONPersister(diffcalc_persistance_path)
+    settings.ubcalc_persister = UBCalculationJSONPersister(diffcalc_persistance_path, UBCalcStateEncoder)
 # else: should have been set if outside GDA
 
 

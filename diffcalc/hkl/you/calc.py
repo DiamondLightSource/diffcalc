@@ -1037,12 +1037,14 @@ class YouHklCalculator(HklCalculatorBase):
         N_phi = _calc_N(q_phi, n_phi)
 
         if (('mu' in samp_constraints and 'eta' in samp_constraints) or 
-            ('omega' in samp_constraints and 'bisect' in samp_constraints)):
+            ('omega' in samp_constraints and 'bisect' in samp_constraints) or
+            ('mu' in samp_constraints and 'bisect' in samp_constraints) or
+            ('eta' in samp_constraints and 'bisect' in samp_constraints)):
 
             if 'mu' in samp_constraints and 'eta' in samp_constraints:
                 mu_vals = [samp_constraints['mu'],]
                 eta_vals = [samp_constraints['eta'],]
-            else:
+            elif 'omega' in samp_constraints and 'bisect' in samp_constraints:
                 omega = samp_constraints['omega']
                 atan_mu = atan(tan(theta + omega) * cos(qaz))
                 asin_eta = asin(sin(theta + omega) * sin(qaz))
@@ -1051,6 +1053,48 @@ class YouHklCalculator(HklCalculatorBase):
                     eta_vals = [sign(asin_eta) * pi / 2, ]
                 else:
                     eta_vals = [asin_eta, pi - asin_eta]
+
+            elif 'mu' in samp_constraints and 'bisect' in samp_constraints:
+                mu_vals = [samp_constraints['mu'],]
+                cos_qaz = cos(qaz)
+                tan_mu = tan(samp_constraints['mu'])
+                # Vertical scattering geometry with omega = 0
+                if is_small(cos_qaz):
+                    if is_small(tan_mu):
+                        thomega_vals = [theta,]
+                    else:
+                        return
+                else:
+                    atan_thomega = atan(tan_mu / cos_qaz)
+                    thomega_vals = [atan_thomega, pi + atan_thomega]
+                eta_vals = []
+                for thomega in thomega_vals:
+                    asin_eta = asin(sin(thomega) * sin(qaz))
+                    if is_small(abs(asin_eta) - pi/2):
+                        eta_vals.extend([sign(asin_eta) * pi/2,])
+                    else:
+                        eta_vals.extend([asin_eta, pi - asin_eta])
+
+            elif 'eta' in samp_constraints and 'bisect' in samp_constraints:
+                eta_vals = [samp_constraints['eta'],]
+                sin_qaz = sin(qaz)
+                sin_eta = sin(samp_constraints['eta'])
+                # Horizontal scattering geometry with omega = 0
+                if is_small(sin_qaz):
+                    if is_small(sin_eta):
+                        thomega_vals = [theta,]
+                    else:
+                        return
+                else:
+                    asin_thomega = asin(sin_eta / sin_qaz)
+                    if is_small(abs(asin_thomega) - pi/2):
+                        thomega_vals = [sign(asin_thomega) * pi/2,]
+                    else:
+                        thomega_vals = [asin_thomega, pi - asin_thomega]
+                mu_vals = []
+                for thomega in thomega_vals:
+                    atan_mu = atan(tan(thomega) * cos(qaz))
+                    mu_vals.extend([atan_mu, pi + atan_mu])
 
             for mu, eta in product(mu_vals, eta_vals):
                 F = y_rotation(qaz - pi/2.)

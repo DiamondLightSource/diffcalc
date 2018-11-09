@@ -12,6 +12,7 @@ import diffcalc.settings
 import os
 import sys
 from diffcalc.ub.persistence import UBCalculationJSONPersister
+from diffcalc.ub.calcstate import UBCalcStateEncoder
 from diffcalc.util import bold
 import diffcalc.util
 import diffcalc.gdasupport.minigda.command
@@ -35,7 +36,7 @@ DIFFCALC_VAR = os.path.join(os.path.expanduser('~'), '.diffcalc', module_name)
 if not os.path.exists(DIFFCALC_VAR):
     print "Making diffcalc var folder:'%s'" % DIFFCALC_VAR
     os.makedirs(DIFFCALC_VAR)
-diffcalc.settings.ubcalc_persister = UBCalculationJSONPersister(DIFFCALC_VAR)
+diffcalc.settings.ubcalc_persister = UBCalculationJSONPersister(DIFFCALC_VAR, UBCalcStateEncoder)
 
 # configure debug
 diffcalc.util.DEBUG = debug

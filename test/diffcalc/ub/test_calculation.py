@@ -20,6 +20,7 @@ from diffcalc.hkl.you.calc import YouUbCalcStrategy
 from diffcalc.hkl.you.geometry import SixCircle, YouPosition
 from diffcalc.ub.calc import UBCalculation
 from diffcalc.ub.persistence import UBCalculationJSONPersister
+from diffcalc.ub.calcstate import UBCalcStateEncoder
 from math import pi, sqrt, atan2
 from mock import Mock
 from nose.tools import eq_
@@ -65,7 +66,7 @@ class TestUBCalculationWithYouStrategy():
         print self.tmpdir
         self.ubcalc = UBCalculation(hardware,
                                     geometry,
-                                    UBCalculationJSONPersister(self.tmpdir),
+                                    UBCalculationJSONPersister(self.tmpdir, UBCalcStateEncoder),
                                     YouUbCalcStrategy())
 
     def testAgainstI16Results(self):

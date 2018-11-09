@@ -16,7 +16,6 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-from diffcalc.ub.calcstate import decode_ubcalcstate
 from diffcalc.ub.calcstate import UBCalcState
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.reflections import ReflectionList
@@ -118,7 +117,9 @@ class UBCalculation:
     def load(self, name):
         state = self._persister.load(name)
         if isinstance(self._persister, UBCalculationJSONPersister):
-            self._state = decode_ubcalcstate(state, self._geometry, self._get_diffractometer_axes_names())
+            self._state = self._persister.encoder.decode_ubcalcstate(state,
+                                                                     self._geometry,
+                                                                     self._get_diffractometer_axes_names())
             self._state.reference.get_UB = self._get_UB
         elif isinstance(self._persister, UBCalculationPersister):
             self._state = state
