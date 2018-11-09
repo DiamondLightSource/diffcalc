@@ -1,6 +1,5 @@
 from startup._common_imports import *  # @UnusedWildImport
 from diffcalc.gdasupport.minigda.scannable import ScannableMotionWithScannableFieldsBase  # @UnusedImport
-from diffcalc.gdasupport.minigda.scannable import DummyPD
 
 from diffcalc.hkl.you.geometry import YouGeometry, YouPosition
 from diffcalc.hkl.you.constraints import NUNAME
@@ -10,7 +9,7 @@ if not GDA:
     import startup._demo
 else:
 #     import __main__  # @UnresolvedImport
-    from __main__ import dd2th,ddth,chi,energy  # @UnresolvedImport
+    from __main__ import dd2th,ddth,dummychi,energy  # @UnresolvedImport
 LOCAL_MANUAL = "http://confluence.diamond.ac.uk/pages/viewpage.action?pageId=31853413"
 # Diffcalc i06-1
 # ======== === 
@@ -41,7 +40,7 @@ class ThreeCircleI06(YouGeometry):
 ### Create dummy scannables ###
 if GDA:  
     print "!!! Starting LIVE diffcalc with delta(dd2th), eta(ddth), chi(dummy) and denergy." 
-    _threec = ScannableGroup('_threec', (dd2th, ddth, chi))
+    _threec = ScannableGroup('_threec', (dd2th, ddth, dummychi))
     delta = _threec.dd2th
     eta = _threec.ddth
     en=energy
