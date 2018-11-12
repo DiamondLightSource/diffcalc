@@ -439,6 +439,17 @@ class ScannableGroup(ScannableBase):
     def configure(self):
         pass
 
+    def checkPositionValid(self, positionArray):
+
+        msg = "Wrong position array size for scannable group"
+        assert len(self.__motors) == len(positionArray), msg
+        
+        for motor, pos in zip(self.__motors, positionArray):
+            reason = motor.checkPositionValid([pos,])
+            if reason:
+                return reason
+        return None
+
 
 class ScannableMotionWithScannableFieldsBase(ScannableMotionBase):
     '''

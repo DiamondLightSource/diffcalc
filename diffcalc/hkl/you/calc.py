@@ -1217,7 +1217,7 @@ class YouHklCalculator(HklCalculatorBase):
             for name, value in zip(angle_names, hw_possible_solution):
                 hw_sol.append(self._hardware.cut_angle(name, value))
             if filter_out_of_limits:
-                is_in_limits = all([self._hardware.is_axis_value_within_limits(name, value) for name, value in zip(angle_names, hw_sol)])
+                is_in_limits = self._hardware.is_position_within_limits(hw_sol)
             else:
                 is_in_limits = True
             if is_in_limits:

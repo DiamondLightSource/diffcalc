@@ -460,6 +460,16 @@ class ScannableHardwareAdapter(HardwareAdapter):
             raise DiffcalcException('This command is only implemented in dummy mode.\n'
                                     'Please use GDA/EPICS interface to set hardware limits.')
 
+    def is_position_within_limits(self, positionArray):
+        """
+        where position array is in degrees and cut to be between -180 and 180
+        """
+        try:
+            res = False if self.diffhw.checkPositionValid(positionArray) else True
+        except NotImplementedError:
+            res = HardwareAdapter.is_position_within_limits(self, positionArray)
+        return res
+
     def is_axis_value_within_limits(self, axis_name, value):
         scn = self.diffhw.getGroupMember(axis_name)
         res = False if scn.checkPositionValid([value,]) else True
