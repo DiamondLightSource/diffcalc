@@ -407,7 +407,10 @@ class ScannableHardwareAdapter(HardwareAdapter):
     def get_lower_limit(self, name):
         '''returns lower limits by axis name. Limit may be None if not set
         '''
-        scn = self.diffhw.getGroupMember(name)
+	try:
+	    scn = self.diffhw.getGroupMember(name)
+	except AttributeError:
+            scn = self.diffhw.getFieldScannable(name)
         try:
             limit = scn.getLowerInnerLimit()
             return limit
@@ -427,7 +430,10 @@ class ScannableHardwareAdapter(HardwareAdapter):
     def get_upper_limit(self, name):
         '''returns upper limit by axis name. Limit may be None if not set
         '''
-        scn = self.diffhw.getGroupMember(name)
+	try:
+	    scn = self.diffhw.getGroupMember(name)
+	except AttributeError:
+            scn = self.diffhw.getFieldScannable(name)
         try:
             limit = scn.getUpperInnerLimit()
             return limit
