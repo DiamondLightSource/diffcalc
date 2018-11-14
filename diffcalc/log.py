@@ -19,9 +19,16 @@
 from __future__ import absolute_import
 
 import logging
-import getpass
 
-logging.basicConfig(format="%(asctime)s %(levelname)s:%(name)s:%(message)s",
-                    datefmt='%m/%d/%Y %I:%M:%S',
-                    filename='/tmp/diffcalc_%s.log' % getpass.getuser(),
-                    level=logging.DEBUG)
+try:
+    import gda
+    GDA = True  
+except ImportError:
+    GDA = False
+
+if not GDA:
+    import getpass
+    logging.basicConfig(format="%(asctime)s %(levelname)s:%(name)s:%(message)s",
+                        datefmt='%m/%d/%Y %I:%M:%S',
+                        filename='/tmp/diffcalc_%s.log' % getpass.getuser(),
+                        level=logging.DEBUG)

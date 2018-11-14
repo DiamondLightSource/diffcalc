@@ -277,7 +277,7 @@ class YouHklCalculator(HklCalculatorBase):
             min(absolute_distances))
         pos, virtual_angles = pos_virtual_angles_pairs_in_degrees[shortest_solution_index]
 
-        if logger.isEnabledFor(logging.INFO):
+        if logger.isEnabledFor(logging.DEBUG):
             msg = ('Multiple sample solutions found (choosing solution with '
                    'shortest distance to all-zeros position):\n')
             i = 0
@@ -290,7 +290,7 @@ class YouHklCalculator(HklCalculatorBase):
                 msg += ' (distance=% 4.3f)\n' % (distance * TODEG)
                 i += 1
             msg += ':\n'
-            logger.info(msg)
+            logger.debug(msg)
 
         return pos, virtual_angles
 
@@ -736,16 +736,16 @@ class YouHklCalculator(HklCalculatorBase):
                  samp_constraints, psi, theta, h_phi, self._get_n_phi()):
             qaz, psi, mu, eta, chi, phi = angles 
             values_in_deg = tuple(v * TODEG for v in angles)
-            logger.info('Initial angles: xi=%.3f, psi=%.3f, mu=%.3f, '
+            logger.debug('Initial angles: xi=%.3f, psi=%.3f, mu=%.3f, '
                 'eta=%.3f, chi=%.3f, phi=%.3f' % 
                 values_in_deg) # Try to find a solution for each possible transformed xi
 
-            logger.info("")
+            logger.debug("")
             msg = "---Trying psi=%.3f, qaz=%.3f" % (psi * TODEG, qaz * TODEG)
-            logger.info(msg)
+            logger.debug(msg)
             
             for delta, nu, _ in self._calc_remaining_detector_angles('qaz', qaz, theta):
-                logger.info("delta=%.3f, %s=%.3f", delta * TODEG, NUNAME, nu * TODEG)
+                logger.debug("delta=%.3f, %s=%.3f", delta * TODEG, NUNAME, nu * TODEG)
                 #for mu, eta, chi, phi in self._generate_sample_solutions(
                 #    mu, eta, chi, phi, samp_constraints.keys(), delta, 
                 #    nu, wavelength, (h, k, l), ref_constraint_name, 
@@ -892,7 +892,7 @@ class YouHklCalculator(HklCalculatorBase):
         for mu_, qaz in two_mu_qaz_pairs:
             logger.debug("--- Trying mu_:%.f qaz_%.f", mu_ * TODEG, qaz * TODEG)
             for delta, nu, _ in self._calc_remaining_detector_angles('qaz', qaz, theta):
-                logger.info("delta=%.3f, %s=%.3f", delta * TODEG, NUNAME, nu * TODEG)
+                logger.debug("delta=%.3f, %s=%.3f", delta * TODEG, NUNAME, nu * TODEG)
                 yield mu_, delta, nu, eta_, chi_, phi_
 
     def _calc_sample_angles_given_two_sample_and_reference(
@@ -920,7 +920,7 @@ class YouHklCalculator(HklCalculatorBase):
     #            phi_general = phi
     #            # solved in extensions_to_yous_paper.wxm
     #            phi = atan2(V[1, 1], V[0, 1])
-    #            logger.info("phi = %.3f or %.3f (std)",
+    #            logger.debug("phi = %.3f or %.3f (std)",
     #                        phi*TODEG, phi_general*TODEG )
     
             return qaz, phi
