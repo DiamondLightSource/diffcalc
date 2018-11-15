@@ -13,12 +13,12 @@ if not GDA:
     import startup._demo
 else:
 #     import __main__  # @UnresolvedImport
-    from __main__ import x,y,z,th,chi,phi,delta,m5tth, energy, simx,simy,simz,simth,simchi,simphi,simdelta,simm5tth # @UnresolvedImport
+    from __main__ import x,y,z,th,chi,phi,difftth,m5tth, energy, simx,simy,simz,simth,simchi,simphi,simdelta,simm5tth # @UnresolvedImport
 
 LOCAL_MANUAL = "http://confluence.diamond.ac.uk/x/UoIQAw"
 # Diffcalc i21
 # ======== === 
-# delta    delta or m5tth
+# delta    difftth or m5tth
 # eta      th
 # chi      90deg-chi
 # phi      phi
@@ -72,7 +72,10 @@ tp_laby = tp_lab.tp_laby
 tp_labz = tp_lab.tp_labz
 
 ### Wrap i21 names to get diffcalc names - sample chamber
-_fourc = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc', diodetth, sa)
+if GDA:
+    _fourc = ScannableGroup('_fourc', (difftth, th, chi, phi)) #I21DiffractometerStage('_fourc', diodetth, sa)
+else:
+    _fourc = ScannableGroup('_fourc', (delta, th, chi, phi))
 
 if GDA:
     en=energy
@@ -123,8 +126,12 @@ def setLimitsAndCuts(delta_angle, chi_angle, eta_angle, phi_angle):
     setcut(phi_angle, -180.0)
     print "Current hardware limits set to:"
     hardware()
+    
+if GDA:
+    setLimitsAndCuts(difftth, chi, th, phi)
+else:
+    setLimitsAndCuts(delta, chi, th, phi)
 
-setLimitsAndCuts(delta, chi, th, phi)
 
 ### Create i21 bespoke secondary hkl devices
 # Warning: this breaks the encapsulation provided by the diffcalc.dc.you public
@@ -137,28 +144,40 @@ from diffcalc.gdasupport.scannable.diffractometer import DiffractometerScannable
 from diffcalc.gdasupport.scannable.hkl import Hkl
 
 print '- fourc_vessel & hkl_vessel'
-_fourc_vessel = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_vessel', m5tth, sa)
+if GDA:
+    _fourc_vessel = ScannableGroup('_fourc', (difftth, th, chi, phi))
+else:
+    _fourc_vessel = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_vessel', m5tth, sa)
 fourc_vessel = DiffractometerScannableGroup('fourc_vessel', _dc, _fourc_vessel)
 hkl_vessel = Hkl('hkl_vessel', _fourc_vessel, _dc)
 h_vessel, k_vessel, l_vessel = hkl_vessel.h, hkl_vessel.k, hkl_vessel.l
 
 print '- fourc_lowq & hkl_lowq'
 LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING = -8
-_fourc_lowq = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_lowq', m5tth, sa,delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)
+if GDA:
+    _fourc_lowq = ScannableGroup('_fourc', (difftth, th, chi, phi))
+else:
+    _fourc_lowq = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_lowq', m5tth, sa,delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)
 fourc_lowq = DiffractometerScannableGroup('fourc_lowq', _dc, _fourc_lowq)
 hkl_lowq = Hkl('hkl_lowq', _fourc_lowq, _dc)
 h_lowq, k_lowq, l_lowq = hkl_lowq.h, hkl_lowq.k, hkl_lowq.l
 
 print '- fourc_highq & hkl_highq'
 highq_OFFSET_ADDED_TO_DELTA_WHEN_READING = 0
-_fourc_highq = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_highq', m5tth, sa,delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)
+if GDA:
+    _fourc_highq = ScannableGroup('_fourc', (difftth, th, chi, phi))
+else:
+    _fourc_highq = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_highq', m5tth, sa,delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)
 fourc_highq = DiffractometerScannableGroup('fourc_highq', _dc, _fourc_highq)
 hkl_highq = Hkl('hkl_highq', _fourc_highq, _dc)
 h_highq, k_highq, l_highq = hkl_highq.h, hkl_highq.k, hkl_highq.l
 
 # sample chamber
 print '- fourc_diode & hkl_diode'
-_fourc_diode = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_diode', delta, sa)
+if GDA:
+    _fourc_diode = ScannableGroup('_fourc', (difftth, th, chi, phi))
+else:
+    _fourc_diode = ScannableGroup('_fourc', (delta, th, chi, phi)) #I21DiffractometerStage('_fourc_diode', delta, sa)
 fourc_diode = DiffractometerScannableGroup('fourc_diode', _dc, _fourc_diode)
 hkl_diode = Hkl('hkl_diode', _fourc_diode, _dc)
 h_diode, k_diode, l_diode = hkl_diode.h, hkl_diode.k, hkl_diode.l
@@ -191,7 +210,10 @@ def usediode():
             setmax(simdelta, 180)
         
     else:
-        _fourc.delta_scn = delta
+        if GDA:
+            _fourc.delta_scn = difftth
+        else:
+            _fourc.delta_scn = delta
         if not GDA:
             setmin(delta, 0)
             setmax(delta, 180)
@@ -283,7 +305,10 @@ if GDA:
         ''' switch to use dummy motors in diffcalc
         '''
         print "Stop real motors"
-        stopMotors(x, y, z, th, chi, phi, delta, m5tth)
+        if GDA:
+            stopMotors(x, y, z, th, chi, phi, difftth, m5tth)
+        else:
+            stopMotors(x, y, z, th, chi, phi, delta, m5tth)
         
         global SIM_MODE
         SIM_MODE=True
@@ -310,11 +335,12 @@ if GDA:
         print "Set energy to current beamline energy in real mode!"
         __main__.en=energy
         print "Switch to real motors"
-        switchMotors(x,y,z,th,chi,phi,delta,m5tth)
-#         __main__.th = __main__.sa.th  # @UndefinedVariable
-#         __main__.chi = __main__.sa.chi  # @UndefinedVariable
-#         __main__.phi = __main__.sa.phi  # @UndefinedVariable
-        setLimitsAndCuts(delta,chi,th,phi)
+        if GDA:
+            switchMotors(x,y,z,th,chi,phi,difftth,m5tth)
+            setLimitsAndCuts(difftth,chi,th,phi)
+        else:
+            switchMotors(x,y,z,th,chi,phi,delta,m5tth)
+            setLimitsAndCuts(delta,chi,th,phi)
      
     from gda.jython.commands.GeneralCommands import alias  # @UnresolvedImport
     alias("usediode")
@@ -435,7 +461,7 @@ else:
             cmd_list=[
                 'setnphi([0, 0, 1])',
                 'pos hkl([0, 0, .1])',
-                'scan(delta, 40, 90, 10, hkl, ct, 1)',
+                'scan(difftth, 40, 90, 10, hkl, ct, 1)',
                 'pos(hkl, [0, .1, 0])',
                 'scan(h, 0, .1, .02, k, l, fourc, ct, 1)',
                 'con(psi)',
