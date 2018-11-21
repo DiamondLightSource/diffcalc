@@ -77,7 +77,7 @@ class Sr2(ScannableMotionWithScannableFieldsBase):
             raise DiffcalcException("Please add one reference reflection into the reflection list.")
         az = hkl[-1] * TORAD
         try:
-            pol, _, sc = self._diffcalc._ub.ubcalc.calc_offset_for_hkl(hkl[:3], _hkl_ref)
+            pol, _, sc = self._diffcalc._ub.ubcalc.calc_offset_for_hkl(list(hkl[:3]), _hkl_ref)
             hkl_sc= [sc * val for val in _hkl_ref]
             hkl_offset = self._diffcalc._ub.ubcalc.calc_hkl_offset(*hkl_sc, pol=pol, az=az)
             (pos, _) = self._diffcalc.hkl_to_angles(*hkl_offset)
