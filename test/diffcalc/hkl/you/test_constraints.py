@@ -18,7 +18,6 @@
 
 
 from nose.tools import eq_  # @UnresolvedImport
-from mock import Mock
 
 from diffcalc.hkl.you.constraints import YouConstraintManager
 from diffcalc.util import DiffcalcException
@@ -37,11 +36,7 @@ class TestConstraintManager:
 
     def setup_method(self):
         diffcalc.util.COLOURISE_TERMINAL_OUTPUT = False
-        self.hardware_monitor = Mock()
-        self.hardware_monitor.get_position.return_value = (1.,) * 6
-        self.hardware_monitor.get_axes_names.return_value = [
-                                      'mu', 'delta', NUNAME, 'eta', 'chi', 'phi']
-        self.cm = YouConstraintManager(self.hardware_monitor)
+        self.cm = YouConstraintManager()
 
     def test_init(self):
         eq_(self.cm.all, {})
@@ -516,7 +511,7 @@ class TestConstraintManager:
 class TestConstraintManagerWithFourCircles:
 
     def setup_method(self):
-        self.cm = YouConstraintManager(None, {NUNAME: 0, 'mu': 0})    
+        self.cm = YouConstraintManager({NUNAME: 0, 'mu': 0})    
 
     def test_init(self):
         eq_(self.cm.all, {NUNAME: 0, 'mu': 0})
@@ -526,7 +521,7 @@ class TestConstraintManagerWithFourCircles:
         eq_(self.cm.naz, {})
 
     def test_build_initial_display_table_with_fixed_detector(self):
-        self.cm = YouConstraintManager(None, {NUNAME: 0})
+        self.cm = YouConstraintManager({NUNAME: 0})
         print self.cm.build_display_table_lines()
         eq_(self.cm.build_display_table_lines(),
             ['    REF        SAMP',
@@ -539,7 +534,7 @@ class TestConstraintManagerWithFourCircles:
              '               omega'])
         
     def test_build_initial_display_table_with_fixed_sample(self):
-        self.cm = YouConstraintManager(None, {'mu': 0})
+        self.cm = YouConstraintManager({'mu': 0})
         print self.cm.build_display_table_lines()
         eq_(self.cm.build_display_table_lines(),
             ['    DET        REF        SAMP',
@@ -551,7 +546,7 @@ class TestConstraintManagerWithFourCircles:
              '                          omega'])
         
     def test_build_initial_display_table_for_four_circle(self):
-        self.cm = YouConstraintManager(None, {'mu': 0, NUNAME: 0})
+        self.cm = YouConstraintManager({'mu': 0, NUNAME: 0})
         print self.cm.build_display_table_lines()
         eq_(self.cm.build_display_table_lines(),
             ['    REF        SAMP',

@@ -21,6 +21,7 @@ from math import pi, sin, cos
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_almost_equal, raises, eq_  # @UnresolvedImport
 from mock import Mock
+from diffcalc import settings
 
 try:
     from numpy import matrix
@@ -61,10 +62,9 @@ class Test_anglesToVirtualAngles():
     def setup_method(self):
         constraints = Mock()
         constraints.is_fully_constrained.return_value = True
-        self.calc = YouHklCalculator(createMockUbcalc(None),
-                                     createMockDiffractometerGeometry(),
-                                     createMockHardwareMonitor(),
-                                     constraints)
+        settings.hardware = createMockHardwareMonitor()
+        settings.geometry = createMockDiffractometerGeometry()
+        self.calc = YouHklCalculator(createMockUbcalc(None), constraints)
 
     def check_angle(self, name, expected, mu=-99, delta=99, nu=99,
                      eta=99, chi=99, phi=99):
@@ -244,9 +244,9 @@ class Test_anglesToVirtualAngles():
 class Test_calc_theta():
 
     def setup_method(self):
+        settings.hardware = createMockHardwareMonitor()
+        settings.geometry = createMockDiffractometerGeometry()
         self.calc = YouHklCalculator(createMockUbcalc(I * 2 * pi),
-                                     createMockDiffractometerGeometry(),
-                                     createMockHardwareMonitor(),
                                      Mock())
         self.e = 12.398420  # 1 Angstrom
 
@@ -271,9 +271,9 @@ class Test_calc_remaining_reference_angles_given_one():
     # TODO: These are very incomplete due to either totally failing inutuition
     #       or code!
     def setup_method(self):
+        settings.hardware = createMockHardwareMonitor()
+        settings.geometry = createMockDiffractometerGeometry()
         self.calc = YouHklCalculator(createMockUbcalc(None),
-                                     createMockDiffractometerGeometry(),
-                                     createMockHardwareMonitor(),
                                      Mock())
 
     def check(self, name, value, theta, tau, psi_e, alpha_e, beta_e, places=7):
@@ -337,9 +337,9 @@ class Test_calc_remaining_reference_angles_given_one():
 class Test_calc_detector_angles_given_one():
 
     def setup_method(self):
+        settings.hardware = createMockHardwareMonitor()
+        settings.geometry = createMockDiffractometerGeometry()
         self.calc = YouHklCalculator(createMockUbcalc(None),
-                                     createMockDiffractometerGeometry(),
-                                     createMockHardwareMonitor(),
                                      Mock())
 
     def check(self, name, value, theta, delta_e, nu_e, qaz_e):
@@ -396,9 +396,9 @@ class Test_calc_angle_between_naz_and_qaz():
 class Test_calc_remaining_sample_angles_given_one():
     #_calc_remaining_detector_angles_given_one
     def setup_method(self):
+        settings.hardware = createMockHardwareMonitor()
+        settings.geometry = createMockDiffractometerGeometry()
         self.calc = YouHklCalculator(createMockUbcalc(None),
-                                     createMockDiffractometerGeometry(),
-                                     createMockHardwareMonitor(),
                                      Mock())
 
     def check(self, name, value, Q_lab, n_lab, Q_phi, n_phi,

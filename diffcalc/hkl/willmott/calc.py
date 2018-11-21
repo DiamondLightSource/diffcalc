@@ -169,7 +169,7 @@ class ConstraintAdapter(object):
 
 class WillmottHorizontalCalculator(HklCalculatorBase):
 
-    def __init__(self, ubcalc, geometry, hardware, constraints,
+    def __init__(self, ubcalc, constraints,
                  raiseExceptionsIfAnglesDoNotMapBackToHkl=True):
         """"
         Where constraints.reference is a one element dict with the key either
@@ -177,7 +177,7 @@ class WillmottHorizontalCalculator(HklCalculatorBase):
         'betain_eq_betaout'
         """
 
-        HklCalculatorBase.__init__(self, ubcalc, geometry, hardware,
+        HklCalculatorBase.__init__(self, ubcalc,
                                    raiseExceptionsIfAnglesDoNotMapBackToHkl)
 
         if constraints is not None:

@@ -22,6 +22,7 @@ from math import pi
 from mock import Mock
 from test.tools import mneq_
 import pytest
+from diffcalc import settings
 
 try:
     from numpy import matrix
@@ -150,8 +151,9 @@ class BaseTestHklCalculator():
         raise Exception("Abstract")
 
     def setup_method(self):
-        self.ac = VliegHklCalculator(None, createMockDiffractometerGeometry(),
-                                     createMockHardwareMonitor())
+        settings.geometry = createMockDiffractometerGeometry()
+        settings.hardware = createMockHardwareMonitor()
+        self.ac = VliegHklCalculator(None)
         self.ac.raiseExceptionsIfAnglesDoNotMapBackToHkl = True
         self.setSessionAndCalculation()
 
@@ -159,9 +161,9 @@ class BaseTestHklCalculator():
         mockUbcalc = createMockUbcalc(
             matrix(self.sess.umatrix) * matrix(self.sess.bmatrix))
 
-        self.ac = VliegHklCalculator(mockUbcalc,
-                                     createMockDiffractometerGeometry(),
-                                     createMockHardwareMonitor())
+        settings.geometry = createMockDiffractometerGeometry()
+        settings.hardware = createMockHardwareMonitor()
+        self.ac = VliegHklCalculator(mockUbcalc)
         self.ac.raiseExceptionsIfAnglesDoNotMapBackToHkl = True
 
         # Check the two given reflections
@@ -197,8 +199,9 @@ class BaseTestHklCalculator():
             UB = matrix(self.sess.umatrix) * matrix(self.sess.bmatrix)
             mockUbcalc = createMockUbcalc(UB)
             hw = createMockHardwareMonitor()
-            ac = VliegHklCalculator(mockUbcalc,
-                                    createMockDiffractometerGeometry(), hw)
+            settings.geometry = createMockDiffractometerGeometry()
+            settings.hardware = hw
+            ac = VliegHklCalculator(mockUbcalc)
             ac.raiseExceptionsIfAnglesDoNotMapBackToHkl = True
 
             ## configure the angle calculator for this calculation

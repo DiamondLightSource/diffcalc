@@ -18,6 +18,7 @@
 
 from math import pi
 from mock import Mock
+from diffcalc import settings
 
 try:
     from numpy import matrix
@@ -69,9 +70,9 @@ class TestUBCalculationWithYouStrategy():
         hardware = Mock()
         names = 'm', 'd', 'n', 'e', 'c', 'p'
         hardware.get_axes_names.return_value = names
-        self.ubcalc = UBCalculation(hardware,
-                                    geometry,
-                                    UbCalculationNonPersister(),
+        settings.hardware = hardware
+        settings.geometry = geometry
+        self.ubcalc = UBCalculation(UbCalculationNonPersister(),
                                     YouUbCalcStrategy())
 
     def testAgainstI16Results(self):

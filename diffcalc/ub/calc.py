@@ -25,6 +25,7 @@ from diffcalc.util import DiffcalcException, cross3, dot3, bold, xyz_rotation,\
 from math import acos, cos, sin, pi, atan2
 from diffcalc.ub.reference import YouReference
 from diffcalc.ub.orientations import OrientationList
+from diffcalc import settings
 
 try:
     from numpy import matrix, hstack
@@ -74,32 +75,25 @@ class UBCalculation:
     of the code.
     """
 
-    def __init__(self, hardware, diffractometerPluginObject,
-                 persister, strategy, include_sigtau=True, include_reference=True):
+    def __init__(self, persister, strategy, include_sigtau=True, include_reference=True):
 
         # The diffractometer geometry is required to map the internal angles
         # into those used by this diffractometer (for display only)
 
-        self._hardware = hardware
-        self._geometry = diffractometerPluginObject
         self._persister = persister
         self._strategy = strategy
         self.include_sigtau = include_sigtau
         self.include_reference = include_reference
-        try:
-            self._ROT = diffractometerPluginObject.beamline_axes_transform
-        except AttributeError:
-            self._ROT = None
         self._clear()
         
     def _get_diffractometer_axes_names(self):
-        return self._hardware.get_axes_names()
+        return settings.hardware.get_axes_names()
 
     def _clear(self, name=None):
         # NOTE the Diffraction calculator is expecting this object to exist in
         # the long run. We can't remove this entire object, and recreate it.
         # It also contains a required link to the angle calculator.
-        reflist = ReflectionList(self._geometry, self._get_diffractometer_axes_names())
+        reflist = ReflectionList(settings.geometry, self._get_diffractometer_axes_names())
         orientlist = OrientationList()
         reference = YouReference(self._get_UB)
         self._state = UBCalcState(name=name, reflist=reflist, orientlist=orientlist, reference=reference)
@@ -118,7 +112,7 @@ class UBCalculation:
         state = self._persister.load(name)
         if isinstance(self._persister, UBCalculationJSONPersister):
             self._state = self._persister.encoder.decode_ubcalcstate(state,
-                                                                     self._geometry,
+                                                                     settings.geometry,
                                                                      self._get_diffractometer_axes_names())
             self._state.reference.get_UB = self._get_UB
         elif isinstance(self._persister, UBCalculationPersister):
@@ -171,6 +165,10 @@ class UBCalculation:
 
     def __str__(self):
 
+        try:
+            _ROT = settings.geometry.beamline_axes_transform
+        except AttributeError:
+            _ROT = None
         if self._state.name is None:
             return "<<< No UB calculation started >>>"
         lines = []
@@ -189,7 +187,7 @@ class UBCalculation:
         if self.include_reference:
             lines.append("")
             ub_calculated = self._UB is not None
-            lines.extend(self._state.reference.repr_lines(ub_calculated, WIDTH, self._ROT))
+            lines.extend(self._state.reference.repr_lines(ub_calculated, WIDTH, _ROT))
         
         lines.append("")
         lines.append(bold("CRYSTAL"))
@@ -223,7 +221,7 @@ class UBCalculation:
         lines.append(bold("CRYSTAL ORIENTATIONS"))
         lines.append("")
         
-        lines.extend(self._state.orientlist.str_lines(R=self._ROT))
+        lines.extend(self._state.orientlist.str_lines(R=_ROT))
         
         return '\n'.join(lines)
 
@@ -231,7 +229,8 @@ class UBCalculation:
         lines = []
         fmt = "% 9.5f % 9.5f % 9.5f"
         try:
-            U = self._ROT.I * self.U * self._ROT
+            _ROT = settings.geometry.beamline_axes_transform
+            U = _ROT.I * self.U * _ROT
         except AttributeError:
             U = self.U
         lines.append("   U matrix:".ljust(WIDTH) +
@@ -245,7 +244,11 @@ class UBCalculation:
         fmt = "% 9.5f % 9.5f % 9.5f"
         y = matrix('0; 0; 1')
         try:
-            rotation_axis = cross3(self._ROT * y, self._ROT * self.U * y)
+            _ROT = settings.geometry.beamline_axes_transform
+        except AttributeError:
+            _ROT = None
+        try:
+            rotation_axis = cross3(_ROT * y, _ROT * self.U * y)
         except TypeError:
             rotation_axis = cross3(y, self.U * y)
         if abs(norm(rotation_axis)) < SMALL:
@@ -265,9 +268,9 @@ class UBCalculation:
         lines = []
         fmt = "% 9.5f % 9.5f % 9.5f"
         try:
-            RI = self._ROT.I
+            _ROT = settings.geometry.beamline_axes_transform
             B = self._state.crystal.B
-            UB = RI * self.UB * B.I * self._ROT * B
+            UB = _ROT.I * self.UB * B.I * _ROT * B
         except AttributeError:
             UB = self.UB
         lines.append("   UB matrix:".ljust(WIDTH) +
@@ -374,7 +377,8 @@ class UBCalculation:
     
     def set_n_phi_configured(self, n_phi):
         try:
-            self._state.reference.n_phi_configured = self._ROT.I * n_phi
+            _ROT = settings.geometry.beamline_axes_transform
+            self._state.reference.n_phi_configured = _ROT.I * n_phi
         except AttributeError:
             self._state.reference.n_phi_configured = n_phi
         self.save()
@@ -384,7 +388,11 @@ class UBCalculation:
         self.save()
         
     def print_reference(self):
-        print '\n'.join(self._state.reference.repr_lines(self.is_ub_calculated(), R=self._ROT))
+        try:
+            _ROT = settings.geometry.beamline_axes_transform
+        except AttributeError:
+            _ROT = None
+        print '\n'.join(self._state.reference.repr_lines(self.is_ub_calculated(), R=_ROT))
 
 ### Reflections ###
 
@@ -470,12 +478,16 @@ class UBCalculation:
         if self._state.orientlist is None:
             raise DiffcalcException("No UBCalculation loaded")
         try:
-            xyz_rot = self._ROT * matrix([[x],[y],[z]])
+            _ROT = settings.geometry.beamline_axes_transform
+        except AttributeError:
+            _ROT = None
+        try:
+            xyz_rot = _ROT * matrix([[x],[y],[z]])
             xr, yr, zr = xyz_rot.T.tolist()[0]
             self._state.orientlist.add_orientation(h, k, l, xr, yr, zr, tag, time)
         except TypeError:
             self._state.orientlist.add_orientation(h, k, l, x, y, z, tag, time)
-        self.save()  # incase autocalculateUbAndReport fails
+        self.save()  # in case autocalculateUbAndReport fails
 
         # If second reflection has just been added then calculateUB
         if len(self._state.orientlist) == 2:
@@ -488,7 +500,11 @@ class UBCalculation:
         if self._state.orientlist is None:
             raise DiffcalcException("No UBCalculation loaded")
         try:
-            xyz_rot = self._ROT * matrix([[x],[y],[z]])
+            _ROT = settings.geometry.beamline_axes_transform
+        except AttributeError:
+            _ROT = None
+        try:
+            xyz_rot = _ROT * matrix([[x],[y],[z]])
             xr, yr, zr = xyz_rot.T.tolist()[0]
             self._state.orientlist.edit_orientation(num, h, k, l, xr, yr, zr, tag, time)
         except TypeError:
@@ -504,8 +520,9 @@ class UBCalculation:
         """--> ( [h, k, l], [x, y, z], tag, time )
         num starts at 1"""
         try:
+            _ROT = settings.geometry.beamline_axes_transform
             hkl, xyz, tg, tm = self._state.orientlist.getOrientation(num)
-            xyz_rot = self._ROT.I * matrix([[xyz[0]],[xyz[1]],[xyz[2]]])
+            xyz_rot = _ROT.I * matrix([[xyz[0]],[xyz[1]],[xyz[2]]])
             xyz_lst = xyz_rot.T.tolist()[0]
             return hkl, xyz_lst, tg, tm
         except AttributeError:
@@ -564,9 +581,13 @@ class UBCalculation:
         else:
             print "Recalculating UB matrix."
 
-        if self._ROT is not None:
-            self._U = self._ROT * m * self._ROT.I
-        else:
+        try:
+            _ROT = settings.geometry.beamline_axes_transform
+        except AttributeError:
+            _ROT = None
+        try:
+            self._U = _ROT * m * _ROT.I
+        except TypeError:
             self._U = m
         self._state.configure_calc_type(manual_U=self._U)
         if self._state.crystal is None:
@@ -587,9 +608,13 @@ class UBCalculation:
         if m.shape[0] != 3 or m.shape[1] != 3:
             raise  ValueError("Expects 3*3 matrix")
 
-        if self._ROT is not None:
-            self._UB = self._ROT * m
-        else:
+        try:
+            _ROT = settings.geometry.beamline_axes_transform
+        except AttributeError:
+            _ROT = None
+        try:
+            self._UB = _ROT * m
+        except TypeError:
             self._UB = m
         self._state.configure_calc_type(manual_UB=self._UB)
         self.save()
@@ -801,7 +826,11 @@ class UBCalculation:
         else:
             rot_matrix = xyz_rotation(xyz, angle)
             try:
-                rot_matrix =  self._ROT * rot_matrix * self._ROT.I
+                _ROT = settings.geometry.beamline_axes_transform
+            except AttributeError:
+                _ROT = None
+            try:
+                rot_matrix =  _ROT * rot_matrix * _ROT.I
             except TypeError:
                 pass
             if self.is_ub_calculated() and add_miscut:
@@ -827,7 +856,7 @@ class UBCalculation:
         given hkl position and diffractometer angles
         """
         q_vec = self._strategy.calculate_q_phi(pos)
-        q_hkl = norm(q_vec) / self._hardware.get_wavelength()
+        q_hkl = norm(q_vec) / settings.hardware.get_wavelength()
         d_hkl = self._state.crystal.get_hkl_plane_distance([h, k, l])
         sc = 1/ (q_hkl * d_hkl)
         name, a1, a2, a3, alpha1, alpha2, alpha3 = self._state.crystal.getLattice()
@@ -846,7 +875,8 @@ class UBCalculation:
         q_vec = self._strategy.calculate_q_phi(pos)
         hkl_nphi = self._UB * matrix([[h], [k], [l]])
         try:
-            axis = cross3(self._ROT.I * q_vec, self._ROT.I * hkl_nphi)
+            _ROT = settings.geometry.beamline_axes_transform
+            axis = cross3(_ROT.I * q_vec, _ROT.I * hkl_nphi)
         except AttributeError:
             axis = cross3(q_vec, hkl_nphi)
         norm_axis = norm(axis)

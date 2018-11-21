@@ -22,6 +22,7 @@ from math import cos, sin, pi
 
 from mock import Mock
 from nose.tools import raises
+from diffcalc import settings
 try:
     from numpy import matrix
 except ImportError:
@@ -47,9 +48,10 @@ class TestUBCalculationWithSixCircleGammaOnArm(object):
         self.geometry = SixCircleGammaOnArmGeometry()
         mock_hardware = Mock()
         mock_hardware.get_axes_names.return_value = ('a', 'd', 'g', 'o', 'c', 'p')
-        self.ubcalc = UBCalculation(
-            mock_hardware, self.geometry, UbCalculationNonPersister(),
-            VliegUbCalcStrategy())
+        settings.hardware = mock_hardware
+        settings.geometry = self.geometry
+        self.ubcalc = UBCalculation(UbCalculationNonPersister(),
+                                    VliegUbCalcStrategy())
         self.time = datetime.now()
 
 ### State ###
@@ -195,9 +197,9 @@ class TestUBCalcWithCubic(object):
         hardware = Mock()
         hardware.get_axes_names.return_value = \
             ('a', 'd', 'g', 'o', 'c', 'p')
-        self.ubcalc = UBCalculation(hardware,
-                                    SixCircleGammaOnArmGeometry(),
-                                    UbCalculationNonPersister(),
+        settings.hardware = hardware
+        settings.geometry = SixCircleGammaOnArmGeometry()
+        self.ubcalc = UBCalculation(UbCalculationNonPersister(),
                                     VliegUbCalcStrategy())
         self.ubcalc.start_new('xtalubcalc')
         self.ubcalc.set_lattice("xtal", *CUBIC)

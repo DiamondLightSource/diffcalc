@@ -28,6 +28,7 @@ from test.tools import matrixeq_
 import tempfile
 import datetime
 from diffcalc.util import TORAD, x_rotation
+from diffcalc import settings
 
 try:
     from numpy import matrix
@@ -64,9 +65,9 @@ class TestUBCalculationWithYouStrategy():
         hardware.get_axes_names.return_value = names
         self.tmpdir = tempfile.mkdtemp()
         print self.tmpdir
-        self.ubcalc = UBCalculation(hardware,
-                                    geometry,
-                                    UBCalculationJSONPersister(self.tmpdir, UBCalcStateEncoder),
+        settings.hardware = hardware
+        settings.geometry = geometry
+        self.ubcalc = UBCalculation(UBCalculationJSONPersister(self.tmpdir, UBCalcStateEncoder),
                                     YouUbCalcStrategy())
 
     def testAgainstI16Results(self):

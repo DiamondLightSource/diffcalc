@@ -50,8 +50,7 @@ number_single_sample = (len(det_constraints) * len(ref_constraints) *
 
 class YouConstraintManager(object):
 
-    def __init__(self, hardware, fixed_constraints = {}):
-        self._hardware = hardware
+    def __init__(self, fixed_constraints = {}):
         self._constrained = {}
 #        self._tracking = []
         self.n_phi = matrix([[0], [0], [1]])

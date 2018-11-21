@@ -17,6 +17,7 @@
 ###
 
 from math import pi, asin, acos, sin, cos, sqrt, atan2, fabs, atan
+from diffcalc import settings
 
 try:
     from numpy import matrix
@@ -108,17 +109,17 @@ class VliegUbCalcStrategy(PaperSpecificUbCalcStrategy):
 
 class VliegHklCalculator(HklCalculatorBase):
 
-    def __init__(self, ubcalc, geometry, hardware,
+    def __init__(self, ubcalc,
                  raiseExceptionsIfAnglesDoNotMapBackToHkl=True):
         r = raiseExceptionsIfAnglesDoNotMapBackToHkl
-        HklCalculatorBase.__init__(self, ubcalc, geometry, hardware,
+        HklCalculatorBase.__init__(self, ubcalc,
                                    raiseExceptionsIfAnglesDoNotMapBackToHkl=r)
         self._gammaParameterName = ({'arm': 'gamma', 'base': 'oopgamma'}
-                                    [self._geometry.gamma_location])
-        self.mode_selector = ModeSelector(self._geometry, None,
+                                    [settings.geometry.gamma_location])
+        self.mode_selector = ModeSelector(settings.geometry, None,
                                           self._gammaParameterName)
         self.parameter_manager = VliegParameterManager(
-            self._geometry, self._hardware, self.mode_selector,
+            settings.geometry, settings.hardware, self.mode_selector,
             self._gammaParameterName)
         self.mode_selector.setParameterManager(self.parameter_manager)
 

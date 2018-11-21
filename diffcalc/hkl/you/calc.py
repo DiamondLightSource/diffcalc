@@ -18,6 +18,7 @@
 
 from math import pi, sin, cos, tan, acos, asin, atan, atan2, sqrt
 from itertools import product
+from diffcalc import settings
 
 try:
     from numpy import matrix
@@ -191,11 +192,10 @@ UNREACHABLE_MSG = (
 
 class YouHklCalculator(HklCalculatorBase):
 
-    def __init__(self, ubcalc, geometry, hardware, constraints,
+    def __init__(self, ubcalc, constraints,
                   raiseExceptionsIfAnglesDoNotMapBackToHkl=True):
-        HklCalculatorBase.__init__(self, ubcalc, geometry, hardware,
+        HklCalculatorBase.__init__(self, ubcalc,
                                    raiseExceptionsIfAnglesDoNotMapBackToHkl)
-        self._hardware = hardware  # for checking limits only
         self.constraints = constraints
         self.parameter_manager = constraints  # TODO: remove need for this attr
 
@@ -1210,18 +1210,18 @@ class YouHklCalculator(HklCalculatorBase):
 
     def _filter_angle_limits(self, possible_solutions, filter_out_of_limits=True):
         res = []
-        angle_names = self._hardware.get_axes_names()
+        angle_names = settings.hardware.get_axes_names()
         for possible_solution in possible_solutions:
             hw_sol = []
-            hw_possible_solution = self._geometry.internal_position_to_physical_angles(YouPosition(*possible_solution, unit='RAD'))
+            hw_possible_solution = settings.geometry.internal_position_to_physical_angles(YouPosition(*possible_solution, unit='RAD'))
             for name, value in zip(angle_names, hw_possible_solution):
-                hw_sol.append(self._hardware.cut_angle(name, value))
+                hw_sol.append(settings.hardware.cut_angle(name, value))
             if filter_out_of_limits:
-                is_in_limits = self._hardware.is_position_within_limits(hw_sol)
+                is_in_limits = settings.hardware.is_position_within_limits(hw_sol)
             else:
                 is_in_limits = True
             if is_in_limits:
-                sol = self._geometry.physical_angles_to_internal_position(tuple(hw_sol))
+                sol = settings.geometry.physical_angles_to_internal_position(tuple(hw_sol))
                 sol.changeToRadians()
                 res.append(sol.totuple())
         return res

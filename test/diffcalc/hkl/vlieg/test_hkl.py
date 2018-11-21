@@ -44,15 +44,12 @@ prepareRawInput([])
 class TestHklCommands(object):
 
     def setup_method(self):
-        self.geometry = SixCircleGammaOnArmGeometry()
-        dummy = 'alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'
-        self.hardware = DummyHardwareAdapter(dummy)
-        self.mock_ubcalc = Mock(spec=UBCalculation)
-        self.hklcalc = VliegHklCalculator(self.mock_ubcalc, self.geometry,
-                                          self.hardware, True)
         from diffcalc import settings
-        settings.hardware = self.hardware
-        settings.geometry = self.geometry
+        settings.geometry = SixCircleGammaOnArmGeometry()
+        dummy = 'alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'
+        settings.hardware = DummyHardwareAdapter(dummy)
+        self.mock_ubcalc = Mock(spec=UBCalculation)
+        self.hklcalc = VliegHklCalculator(self.mock_ubcalc, True)
         settings.ubcalc_persister = UbCalculationNonPersister()
         
         from diffcalc.hkl.vlieg import hkl

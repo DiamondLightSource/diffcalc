@@ -29,7 +29,7 @@ __all__ = ['hklmode', 'setpar', 'trackalpha', 'trackgamma', 'trackphi',
            'parameter_manager', 'hklcalc']
 
 
-hklcalc = VliegHklCalculator(ub.ubcalc, settings.geometry, settings.hardware)
+hklcalc = VliegHklCalculator(ub.ubcalc)
 
 parameter_manager = hklcalc.parameter_manager
 

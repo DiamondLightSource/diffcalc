@@ -53,9 +53,7 @@ if settings.include_reference:
     __all__.append('setnhkl')
 
 
-ubcalc = UBCalculation(settings.hardware,
-                       settings.geometry,
-                       settings.ubcalc_persister,
+ubcalc = UBCalculation(settings.ubcalc_persister,
                        settings.ubcalc_strategy,
                        settings.include_sigtau,
                        settings.include_reference)

@@ -19,6 +19,7 @@
 from math import pi
 
 from diffcalc.util import DiffcalcException, differ
+from diffcalc import settings
 
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -26,13 +27,10 @@ TODEG = 180 / pi
 
 class HklCalculatorBase(object):
 
-    def __init__(self, ubcalc, geometry, hardware,
+    def __init__(self, ubcalc,
                  raiseExceptionsIfAnglesDoNotMapBackToHkl=False):
 
         self._ubcalc = ubcalc  # to get the UBMatrix, tau and sigma
-        self._geometry = geometry   # to access information about the
-                                    # diffractometer geometry and mode_selector
-        self._hardware = hardware  # Used for tracking parameters only
         self.raiseExceptionsIfAnglesDoNotMapBackToHkl = \
             raiseExceptionsIfAnglesDoNotMapBackToHkl
 

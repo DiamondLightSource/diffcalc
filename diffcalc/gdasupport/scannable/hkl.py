@@ -127,7 +127,7 @@ class Hkl(ScannableMotionWithScannableFieldsBase):
             return "<hkl: %s>" % getMessageFromException(e)
 
         width = max(len(k) for k in params)
-        lines.append('  ' + 'hkl'.rjust(width) + ' : %9.4f  %.4f  %.4f' % (hkl[0], hkl[1], hkl[2]))
+        lines.append('  ' + self.name.rjust(width) + ' : %9.4f  %.4f  %.4f' % (hkl[0], hkl[1], hkl[2]))
         lines[-1] = lines[-1] + '\n'
         fmt = '  %' + str(width) + 's : % 9.4f'
         for k in sorted(params):

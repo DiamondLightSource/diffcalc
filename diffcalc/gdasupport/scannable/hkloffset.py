@@ -138,7 +138,7 @@ class HklOffset(ScannableMotionWithScannableFieldsBase):
             return "<hkloffser: %s>" % getMessageFromException(e)
 
         width = max(len(k) for k in params)
-        lines.append('  ' + 'hkloffset'.rjust(width) + ' : %9.4f  %.4f  %.4f  %.4f  %.4f' % (self._hkl_reference[0],
+        lines.append('  ' + self.name.rjust(width) + ' : %9.4f  %.4f  %.4f  %.4f  %.4f' % (self._hkl_reference[0],
                                                                                        self._hkl_reference[1],
                                                                                        self._hkl_reference[2],
                                                                                        pol * TODEG, az * TODEG))

@@ -21,6 +21,7 @@
 from math import pi
 from mock import Mock
 from nose.tools import raises
+from diffcalc import settings
 
 try:
     from numpy import matrix
@@ -53,8 +54,10 @@ class _BaseTest():
         self.mock_hardware = SimpleHardwareAdapter(
                              ['delta', 'gamma', 'omegah', 'phi'])
         self.constraints = Mock()
-        self.calc = WillmottHorizontalCalculator(self.mock_ubcalc,
-                    self.mock_geometry, self.mock_hardware, self.constraints)
+        
+        settings.geometry = self.mock_geometry
+        settings.hardware = self.mock_hardware
+        self.calc = WillmottHorizontalCalculator(self.mock_ubcalc, self.constraints)
 
         self.places = 12
 
@@ -112,8 +115,9 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12():
     def setup_method(self):
         hardware = Mock()
         hardware.get_axes_names.return_value = ('d', 'g', 'oh', 'p')
-        self.ubcalc = UBCalculation(hardware, WillmottHorizontalGeometry(),
-                                    UbCalculationNonPersister(),
+        settings.geometry = WillmottHorizontalGeometry()
+        settings.hardware = hardware
+        self.ubcalc = UBCalculation(UbCalculationNonPersister(),
                                     WillmottHorizontalUbCalcStrategy())
 
     def testAgainstResultsFromJan_27_2010(self):
@@ -249,8 +253,9 @@ class TestUBCalculationWithWillmotStrategy_Pt531():
     def setup_method(self):
         hardware = Mock()
         hardware.get_axes_names.return_value = ('d', 'g', 'oh', 'p')
-        self.ubcalc = UBCalculation(hardware, WillmottHorizontalGeometry(),
-                                    UbCalculationNonPersister(),
+        settings.geometry = WillmottHorizontalGeometry()
+        settings.hardware = hardware
+        self.ubcalc = UBCalculation(UbCalculationNonPersister(),
                                     WillmottHorizontalUbCalcStrategy())
 
     def testAgainstResultsFromJan_27_2010(self):

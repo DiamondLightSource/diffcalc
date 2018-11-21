@@ -33,10 +33,9 @@ __all__ = ['allhkl', 'con', 'uncon', 'hklcalc', 'constraint_manager']
 
 _fixed_constraints = settings.geometry.fixed_constraints  # @UndefinedVariable
 
-constraint_manager = YouConstraintManager(settings.hardware, _fixed_constraints)
+constraint_manager = YouConstraintManager(_fixed_constraints)
 
-hklcalc = YouHklCalculator(
-    diffcalc.ub.ub.ubcalc, settings.geometry, settings.hardware, constraint_manager)
+hklcalc = YouHklCalculator(diffcalc.ub.ub.ubcalc, constraint_manager)
 
 
 def __str__(self):
@@ -137,10 +136,10 @@ def allhkl(hkl, wavelength=None):
     """allhkl [h k l] -- print all hkl solutions ignoring limits
 
     """
-    hardware = hklcalc._hardware
-    geometry = hklcalc._geometry
+    _hardware = settings.hardware
+    _geometry = settings.geometry
     if wavelength is None:
-        wavelength = hardware.get_wavelength()
+        wavelength = _hardware.get_wavelength()
     h, k, l = hkl
     pos_virtual_angles_pairs = hklcalc.hkl_to_all_angles(
                                     h, k, l, wavelength)
@@ -148,7 +147,7 @@ def allhkl(hkl, wavelength=None):
     # virtual_angle_names = list(pos_virtual_angles_pairs[0][1].keys())
     # virtual_angle_names.sort()
     virtual_angle_names = ['qaz', 'psi', 'naz', 'tau', 'theta', 'alpha', 'beta', 'bin', 'bout']
-    header_cells = list(hardware.get_axes_names()) + [' '] + virtual_angle_names
+    header_cells = list(_hardware.get_axes_names()) + [' '] + virtual_angle_names
     cells.append(['%9s' % s for s in header_cells])
     cells.append([''] * len(header_cells))
     
@@ -157,8 +156,8 @@ def allhkl(hkl, wavelength=None):
         row_cells = []
 
 
-        angle_tuple = geometry.internal_position_to_physical_angles(pos)
-        angle_tuple = hardware.cut_angles(angle_tuple)
+        angle_tuple = _geometry.internal_position_to_physical_angles(pos)
+        angle_tuple = _hardware.cut_angles(angle_tuple)
         for val in angle_tuple:
             row_cells.append('%9.4f' % val)
         

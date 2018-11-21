@@ -19,6 +19,7 @@
 from math import pi, cos, sin
 from nose.tools import raises
 from mock import Mock
+from diffcalc import settings
 
 try:
     from numpy import matrix
@@ -64,11 +65,12 @@ class _BaseTest(object):
     def setup_method(self):
         self.mock_ubcalc = createMockUbcalc(None)
         self.sixc_geometry = SixCircle()
+        settings.geometry = self.sixc_geometry
         names = ['mu', 'delta', NUNAME, 'eta', 'chi', 'phi']
         self.mock_hardware = DummyHardwareAdapter(names)
-        self.constraints = YouConstraintManager(self.mock_hardware)
-        self.calc = YouHklCalculator(self.mock_ubcalc, self.sixc_geometry,
-                                     self.mock_hardware, self.constraints)
+        settings.hardware = self.mock_hardware
+        self.constraints = YouConstraintManager()
+        self.calc = YouHklCalculator(self.mock_ubcalc, self.constraints)
 
         self.mock_hardware.set_lower_limit('delta', 0)
         self.mock_hardware.set_upper_limit('delta', 179.999)
@@ -1413,11 +1415,12 @@ class Test_I21ExamplesUB(_BaseTest):
         _BaseTest.setup_method(self)
 
         self.i21_geometry = FourCircleI21(beamline_axes_transform = matrix('0 0 1; 0 1 0; 1 0 0'))
+        settings.geometry = self.i21_geometry
         names = ['delta', 'eta', 'chi', 'phi']
         self.mock_hardware = DummyHardwareAdapter(names)
-        self.constraints = YouConstraintManager(self.mock_hardware)
-        self.calc = YouHklCalculator(self.mock_ubcalc, self.i21_geometry,
-                                     self.mock_hardware, self.constraints)
+        settings.hardware = self.mock_hardware
+        self.constraints = YouConstraintManager()
+        self.calc = YouHklCalculator(self.mock_ubcalc, self.constraints)
 
         U = matrix(((1.0,  0., 0.),
                     (0.0, 0.18482, -0.98277),

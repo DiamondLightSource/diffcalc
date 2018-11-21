@@ -21,6 +21,7 @@
 from math import pi
 from mock import Mock
 from nose.plugins.skip import SkipTest
+from diffcalc import settings
 
 try:
     from numpy import matrix
@@ -155,8 +156,9 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12_FixedMuEta():
         hardware = Mock()
         hardware.get_axes_names.return_value = ('m', 'd', 'n', 'e', 'c',
                                                        'p')
-        self.ubcalc = UBCalculation(hardware, SixCircle(),
-                                    UbCalculationNonPersister(),
+        settings.hardware = hardware
+        settings.geometry = SixCircle()
+        self.ubcalc = UBCalculation(UbCalculationNonPersister(),
                                     YouUbCalcStrategy())
 
     def testAgainstResultsFromJan_27_2010(self):
@@ -294,8 +296,9 @@ class TestUBCalculationWithWillmotStrategy_Si_5_5_12_FixedMuChi():
         hardware = Mock()
         names = 'm', 'd', 'n', 'e', 'c', 'p'
         hardware.get_axes_names.return_value = names
-        self.ubcalc = UBCalculation(hardware, SixCircle(),
-                                    UbCalculationNonPersister(),
+        settings.hardware = hardware
+        settings.geometry = SixCircle()
+        self.ubcalc = UBCalculation(UbCalculationNonPersister(),
                                     YouUbCalcStrategy())
 
     def testAgainstResultsFromJan_27_2010(self):
@@ -421,8 +424,9 @@ class TestUBCalculationWithYouStrategy_Pt531_FixedMuChi():
         hardware = Mock()
         names = 'm', 'd', 'n', 'e', 'c', 'p'
         hardware.get_axes_names.return_value = names
-        self.ubcalc = UBCalculation(hardware, SixCircle(),
-                                    UbCalculationNonPersister(),
+        settings.hardware = hardware
+        settings.geometry = SixCircle()
+        self.ubcalc = UBCalculation(UbCalculationNonPersister(),
                                     YouUbCalcStrategy())
 
     def testAgainstResultsFromJan_28_2010(self):

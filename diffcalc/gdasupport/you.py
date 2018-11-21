@@ -116,9 +116,5 @@ if isconstrainable('phi'): phi_con = _create_constraint_scannable('phi', 'phi_co
 if isconstrainable('mu') and isconstrainable('gam'): mu_is_gam = 'mu_is_gam'
 
 
-# Cleanup to allow "from gdasupport.you import *"
-del DiffractometerScannableGroup, Hkl, SimulatedCrystalCounter
-del Wavelength, DiffractionCalculatorParameter
-
 # Cleanup other cruft
 del format_command_help
