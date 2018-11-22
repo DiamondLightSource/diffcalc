@@ -11,7 +11,7 @@ if not GDA:
     import startup._demo
 else:
 #     import __main__  # @UnresolvedImport
-    from __main__ import x,y,z,th,chi,phi,difftth,m5tth, energy, simx,simy,simz,simth,simchi,simphi,simdelta,simm5tth # @UnresolvedImport
+    from __main__ import x,y,z,th,chi,phi,difftth,m5tth, energy, simx,simy,simz,simth,simchi,simphi,simdelta # @UnresolvedImport
 
 LOCAL_MANUAL = "http://confluence.diamond.ac.uk/x/UoIQAw"
 # Diffcalc i21
@@ -55,12 +55,14 @@ if GDA:
     en=energy
     if float(en.getPosition()) == 0: # no energy value - dummy?
         en(800)
-
+    simenergy = Dummy('en')
+    simenergy(800)
 else:
-    en = Dummy('en')
+    en = simenergy = Dummy('en')
     en(800)
-    
+
 en.level = 3
+simenergy.level = 3
 
 ### Configure and import diffcalc objects ###
 beamline_axes_transform = matrix('0 0 1; 0 1 0; 1 0 0')
@@ -71,12 +73,14 @@ _tth_geometry = FourCircleI21(beamline_axes_transform=beamline_axes_transform)
 if GDA:
     _sc_difftth = ScannableGroup('_fourc', (difftth, th, chi, phi))
     _sc_m5tth = ScannableGroup('_fourc', (m5tth, th, chi, phi))
+    _sc_sim = ScannableGroup('_fourc', (simdelta, simth, simchi, simphi))
 else:
     _sc_difftth = _sc_m5tth = ScannableGroup('_fourc', (delta, th, chi, phi))
 
 ESMTGKeV = 0.001
 _hw_difftth = ScannableHardwareAdapter(_sc_difftth, en, ESMTGKeV)
 _hw_m5tth = ScannableHardwareAdapter(_sc_m5tth, en, ESMTGKeV)
+_hw_sim = ScannableHardwareAdapter(_sc_sim, simenergy, ESMTGKeV)
 
 settings.hardware = _hw_difftth
 settings.geometry = _tth_geometry
@@ -116,6 +120,7 @@ def setLimitsAndCuts(delta_angle, chi_angle, eta_angle, phi_angle):
     
 if GDA:
     setLimitsAndCuts(difftth, chi, th, phi)
+    setLimitsAndCuts(simdelta, simchi, simth, simphi)
 else:
     setLimitsAndCuts(delta, chi, th, phi)
 
@@ -131,6 +136,7 @@ hkl_m5tth = Hkl('hkl_m5tth', _sc_m5tth, DiffractometerYouCalculator(_hw_m5tth, _
 hkl_lowq = Hkl('hkl_lowq', _sc_m5tth, DiffractometerYouCalculator(_hw_m5tth, _lowq_geometry))
 hkl_highq = Hkl('hkl_highq', _sc_m5tth, DiffractometerYouCalculator(_hw_m5tth, _highq_geometry))
 hkl_difftth = Hkl('hkl_difftth', _sc_difftth, DiffractometerYouCalculator(_hw_difftth, _tth_geometry))
+hkl_sim = Hkl('hkl_sim', _sc_sim, DiffractometerYouCalculator(_hw_sim, _tth_geometry))
 
 def usem5tth():
     print '- setting hkl ---> hkl_m5tth'
@@ -139,6 +145,8 @@ def usem5tth():
     settings.axes_scannable_group = _sc_m5tth
     import __main__
     __main__.hkl = hkl_m5tth
+    if GDA:
+        __main__.en = energy
 
 def uselowq():
     print '- setting hkl ---> hkl_lowq'
@@ -147,6 +155,8 @@ def uselowq():
     settings.axes_scannable_group = _sc_m5tth
     import __main__
     __main__.hkl = hkl_lowq
+    if GDA:
+        __main__.en = energy
 
 def usehighq():
     print '- setting hkl ---> hkl_highq'
@@ -155,6 +165,8 @@ def usehighq():
     settings.axes_scannable_group = _sc_m5tth
     import __main__
     __main__.hkl = hkl_highq
+    if GDA:
+        __main__.en = energy
 
 def usedifftth():
     # sample chamber
@@ -164,6 +176,20 @@ def usedifftth():
     settings.axes_scannable_group = _sc_difftth
     import __main__
     __main__.hkl = hkl_difftth
+    if GDA:
+        __main__.en = energy
+
+def usesim():
+    # sample chamber
+    print '- setting hkl ---> hkl_sim'
+    print '-          en ---> simenergy'
+    settings.hardware = _hw_sim
+    settings.geometry = _tth_geometry
+    settings.axes_scannable_group = _sc_sim
+    import __main__
+    __main__.hkl = hkl_sim
+    if GDA:
+        __main__.en = simenergy
 
 def centresample():
     sa.centresample()
@@ -330,6 +356,7 @@ if GDA:
     alias("uselowq")
     alias("usehighq")
     alias("usedifftth")
+    alias("usesim")
     alias("usediode")
     alias("usevessel")
     alias("centresample")
@@ -352,6 +379,8 @@ else:
         del usehighq
         register_line_magic(parse_line(usedifftth, globals()))
         del usedifftth
+        register_line_magic(parse_line(usesim, globals()))
+        del usesim
         register_line_magic(parse_line(usediode, globals()))
         del usediode
         register_line_magic(parse_line(usevessel, globals()))
