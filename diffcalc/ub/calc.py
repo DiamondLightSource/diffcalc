@@ -134,12 +134,21 @@ class UBCalculation:
             self.save()
         elif self._state.or0 is not None:
             if self._state.or1 is None:
-                self.calculate_UB_from_primary_only()
+                try:
+                    self.calculate_UB_from_primary_only()
+                except DiffcalcException, e:
+                    print e
             else:
                 if self._state.reflist:
-                    self.calculate_UB()
+                    try:
+                        self.calculate_UB()
+                    except DiffcalcException, e:
+                        print e
                 elif self._state.orientlist:
-                    self.calculate_UB_from_orientation()
+                    try:
+                        self.calculate_UB_from_orientation()
+                    except DiffcalcException, e:
+                        print e
                 else:
                     pass
         else:
