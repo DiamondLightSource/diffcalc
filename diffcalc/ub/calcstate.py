@@ -139,7 +139,7 @@ class UBCalcStateEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
     @staticmethod
-    def decode_ubcalcstate(state, geometry, diffractometer_axes_names):
+    def decode_ubcalcstate(state, geometry, diffractometer_axes_names, multiplier):
 
         # Backwards compatibility code
         orientlist_=OrientationList([])
@@ -150,7 +150,7 @@ class UBCalcStateEncoder(json.JSONEncoder):
         return UBCalcState(
             name=state['name'],
             crystal=state['crystal'] and CrystalUnderTest(*eval(state['crystal'])),
-            reflist=decode_reflist(state['reflist'], geometry, diffractometer_axes_names),
+            reflist=decode_reflist(state['reflist'], geometry, diffractometer_axes_names, multiplier),
             orientlist=orientlist_,
             tau=state['tau'],
             sigma=state['sigma'],
@@ -166,12 +166,12 @@ def decode_matrix(rows):
     return matrix([[eval(e) for e in row.split(', ')] for row in rows])
 
 
-def decode_reflist(reflist_dict, geometry, diffractometer_axes_names):
+def decode_reflist(reflist_dict, geometry, diffractometer_axes_names, multiplier):
     reflections = []
     for key in sorted(reflist_dict.keys()):
         reflections.append(decode_reflection(reflist_dict[key], geometry))
         
-    return ReflectionList(geometry, diffractometer_axes_names, reflections)
+    return ReflectionList(geometry, diffractometer_axes_names, reflections, multiplier)
 
 
 def decode_orientlist(orientlist_dict):

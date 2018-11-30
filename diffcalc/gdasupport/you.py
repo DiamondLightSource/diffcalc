@@ -114,6 +114,8 @@ if isconstrainable('eta'): eta_con = _create_constraint_scannable('eta', 'eta_co
 if isconstrainable('chi'): chi_con = _create_constraint_scannable('chi', 'chi_con')
 if isconstrainable('phi'): phi_con = _create_constraint_scannable('phi', 'phi_con')
 if isconstrainable('mu') and isconstrainable('gam'): mu_is_gam = 'mu_is_gam'
+omega = _create_constraint_scannable('omega')
+bisect = 'bisect'
 
 
 # Cleanup other cruft

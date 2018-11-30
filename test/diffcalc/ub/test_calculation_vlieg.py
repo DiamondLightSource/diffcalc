@@ -47,6 +47,7 @@ class TestUBCalculationWithSixCircleGammaOnArm(object):
     def setup_method(self):
         self.geometry = SixCircleGammaOnArmGeometry()
         mock_hardware = Mock()
+        mock_hardware.energyScannableMultiplierToGetKeV = 1
         mock_hardware.get_axes_names.return_value = ('a', 'd', 'g', 'o', 'c', 'p')
         settings.hardware = mock_hardware
         settings.geometry = self.geometry
@@ -194,10 +195,11 @@ class TestUBCalcWithCubic(object):
 
     def setup_method(self):
         print "TestUBCalcWithCubic.setup_method"
-        hardware = Mock()
-        hardware.get_axes_names.return_value = \
+        mock_hardware = Mock()
+        mock_hardware.energyScannableMultiplierToGetKeV = 1
+        mock_hardware.get_axes_names.return_value = \
             ('a', 'd', 'g', 'o', 'c', 'p')
-        settings.hardware = hardware
+        settings.hardware = mock_hardware
         settings.geometry = SixCircleGammaOnArmGeometry()
         self.ubcalc = UBCalculation(UbCalculationNonPersister(),
                                     VliegUbCalcStrategy())

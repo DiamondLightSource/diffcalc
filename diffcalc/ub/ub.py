@@ -350,6 +350,7 @@ def addref(*args):
     addref [h k l] (p1, .., pN) energy {'tag'} -- add arbitrary reflection
     """
 
+    multiplier = settings.hardware.energyScannableMultiplierToGetKeV
     if len(args) == 0:
         h = promptForNumber('h', 0.)
         k = promptForNumber('k', 0.)
@@ -371,13 +372,12 @@ def addref(*args):
                                           " Return to accept default!")
                     return
                 positionList.append(val)
-            muliplier = settings.hardware.energyScannableMultiplierToGetKeV  # @UndefinedVariable
-            energy = promptForNumber('energy', settings.hardware.get_energy() / muliplier)  # @UndefinedVariable
+            energy = promptForNumber('energy', settings.hardware.get_energy() / multiplier)  # @UndefinedVariable
             if val is None:
                 _handleInputError("Please enter a number, or press "
                                       "Return to accept default!")
                 return
-            energy = energy * muliplier
+            energy *= multiplier
         tag = promptForInput("tag")
         if tag == '':
             tag = None
@@ -392,7 +392,7 @@ def addref(*args):
         if len(args) >= 2:
             pos = settings.geometry.physical_angles_to_internal_position(  # @UndefinedVariable
                 args.pop(0))
-            energy = args.pop(0)
+            energy = args.pop(0) * multiplier
             if not isnum(energy):
                 raise TypeError()
         else:

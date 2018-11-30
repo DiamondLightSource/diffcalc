@@ -17,6 +17,7 @@
 ###
 
 import platform
+from diffcalc.util import DiffcalcException
 
 DEBUG = False
 
@@ -63,5 +64,8 @@ class AzihklClass(ScannableBase):
         return 0
 
     def getPosition(self):
-        ref_matrix = ubcalc.n_hkl
-        return ref_matrix.T.tolist()[0]
+        try:
+            ref_matrix = ubcalc.n_hkl
+            return ref_matrix.T.tolist()[0]
+        except DiffcalcException, e:
+            print e
