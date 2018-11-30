@@ -45,11 +45,11 @@ class _Reflection:
 
 class ReflectionList:
 
-    def __init__(self, diffractometerPluginObject, externalAngleNames, reflections=None):
+    def __init__(self, diffractometerPluginObject, externalAngleNames, reflections=None, multiplier=1):
         self._geometry = diffractometerPluginObject
         self._externalAngleNames = externalAngleNames
         self._reflist = reflections if reflections else []
-            
+        self._multiplier = multiplier
 
     def add_reflection(self, h, k, l, position, energy, tag, time):
         """adds a reflection, position in degrees
@@ -121,6 +121,6 @@ class ReflectionList:
                 tag = ""
             format = ("  %2d %6.3f % 4.2f % 4.2f % 4.2f  " +
                       "% 8.4f " * len(axes) + " %s")
-            values = (n + 1, energy, h, k, l) + externalAngles + (tag,)
+            values = (n + 1, energy / self._multiplier, h, k, l) + externalAngles + (tag,)
             lines.append(format % values)
         return lines

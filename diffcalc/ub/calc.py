@@ -99,7 +99,8 @@ class UBCalculation:
         # NOTE the Diffraction calculator is expecting this object to exist in
         # the long run. We can't remove this entire object, and recreate it.
         # It also contains a required link to the angle calculator.
-        reflist = ReflectionList(self._geometry, self._get_diffractometer_axes_names())
+        reflist = ReflectionList(self._geometry, self._get_diffractometer_axes_names(),
+                                 multiplier=self._hardware.energyScannableMultiplierToGetKeV)
         orientlist = OrientationList()
         reference = YouReference(self._get_UB)
         self._state = UBCalcState(name=name, reflist=reflist, orientlist=orientlist, reference=reference)
@@ -119,7 +120,8 @@ class UBCalculation:
         if isinstance(self._persister, UBCalculationJSONPersister):
             self._state = self._persister.encoder.decode_ubcalcstate(state,
                                                                      self._geometry,
-                                                                     self._get_diffractometer_axes_names())
+                                                                     self._get_diffractometer_axes_names(),
+                                                                     self._hardware.energyScannableMultiplierToGetKeV)
             self._state.reference.get_UB = self._get_UB
         elif isinstance(self._persister, UBCalculationPersister):
             self._state = state

@@ -33,7 +33,7 @@ class YouStateEncoder(UBCalcStateEncoder):
         return UBCalcStateEncoder.default(self, obj)
 
     @staticmethod
-    def decode_ubcalcstate(state, geometry, diffractometer_axes_names):
+    def decode_ubcalcstate(state, geometry, diffractometer_axes_names, multiplier):
 
         # Backwards compatibility code
         try:
@@ -49,4 +49,4 @@ class YouStateEncoder(UBCalcStateEncoder):
         except KeyError:
             pass
 
-        return UBCalcStateEncoder.decode_ubcalcstate(state, geometry, diffractometer_axes_names)
+        return UBCalcStateEncoder.decode_ubcalcstate(state, geometry, diffractometer_axes_names, multiplier)
