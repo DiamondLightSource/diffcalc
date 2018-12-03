@@ -5,7 +5,7 @@ from math import pi
 import datetime  # @UnusedImport For crazy time eval code!
 from diffcalc.ub.reference import YouReference
 from diffcalc.ub.orientations import _Orientation, OrientationList
-
+from diffcalc.log import logging
 try:
     from collection import OrderedDict
 except ImportError:
@@ -21,6 +21,7 @@ try:
 except ImportError:
     from numjy import matrix
 
+logger = logging.getLogger("diffcalc.ub.calcstate")
 
 TODEG = 180 / pi
 
@@ -168,7 +169,13 @@ def decode_matrix(rows):
 
 def decode_reflist(reflist_dict, geometry, diffractometer_axes_names, multiplier):
     reflections = []
-    for key in sorted(reflist_dict.keys()):
+    try:
+        sorted_ref_keys = sorted(reflist_dict.keys(), key=int)
+    except ValueError:
+        logger.warning("Warning: Invalid index found in the stored list of reflections. "
+                       "Please check the reflection list order.")
+        sorted_ref_keys = sorted(reflist_dict.keys())
+    for key in sorted_ref_keys:
         reflections.append(decode_reflection(reflist_dict[key], geometry))
         
     return ReflectionList(geometry, diffractometer_axes_names, reflections, multiplier)
@@ -176,7 +183,13 @@ def decode_reflist(reflist_dict, geometry, diffractometer_axes_names, multiplier
 
 def decode_orientlist(orientlist_dict):
     orientations = []
-    for key in sorted(orientlist_dict.keys()):
+    try:
+        sorted_orient_keys = sorted(orientlist_dict.keys(), key=int)
+    except ValueError:
+        logger.exception("Warning: Invalid index found in the stored list of orientations. "
+                         "Please check the orientation list order.")
+        sorted_orient_keys = sorted(orientlist_dict.keys())
+    for key in sorted_orient_keys:
         orientations.append(decode_orientation(orientlist_dict[key]))
         
     return OrientationList(orientations)
