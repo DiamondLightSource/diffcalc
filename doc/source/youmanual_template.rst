@@ -21,7 +21,9 @@ This manual assumes that you are running Diffcalc within OpenGDA or have started
 it using IPython. It assumes that Diffcalc has been configured for the six
 circle diffractometer pictured here:
 
-.. figure:: youmanual_images/4s_2d_diffractometer.png
+.. image:: youmanual_images/4s_2d_diffractometer.png
+   :height: 2974px
+   :width: 2203px
    :scale: 20
    :align: center
 
