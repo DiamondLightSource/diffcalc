@@ -22,7 +22,7 @@ it using IPython. It assumes that Diffcalc has been configured for the six
 circle diffractometer pictured here:
 
 .. figure:: youmanual_images/4s_2d_diffractometer.png
-   :scale: 100
+   :scale: 20
    :align: center
 
    4s + 2d six-circle diffractometer, from H.You (1999)
