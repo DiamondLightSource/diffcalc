@@ -624,6 +624,9 @@ class ScannableMotionWithScannableFieldsBase(ScannableMotionBase):
             self.setOutputFormat(
                 [self.parentScannable.getOutputFormat()[index]])
 
+        def getParent(self):
+            return self.parentScannable
+
         def isBusy(self):
             return self.parentScannable.isBusy()
 

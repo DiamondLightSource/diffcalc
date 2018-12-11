@@ -395,7 +395,7 @@ class UBCalculation:
         self.save()
         
     def print_reference(self):
-        print '\n'.join(self._state.reference.repr_lines(self.is_ub_calculated(), R=self._ROT))
+        print '\n'.join(self._state.reference.repr_lines(self.is_ub_calculated(), R=self._ROT.I))
 
 ### Reflections ###
 
@@ -892,8 +892,14 @@ class UBCalculation:
         Calculate polar and azimuthal angles and scaling factor
         relating offset and reference hkl values
         """
+        d_ref = self._state.crystal.get_hkl_plane_distance(hkl_ref)
         hklref_nphi = self._UB * matrix([[hkl_ref[0]], [hkl_ref[1]], [hkl_ref[2]]])
+        d_offset = self._state.crystal.get_hkl_plane_distance(hkl_offset)
         hkloff_nphi = self._UB * matrix([[hkl_offset[0]], [hkl_offset[1]], [hkl_offset[2]]])
+        sc = d_ref / d_offset
+        par_ref_off = cross3(hklref_nphi, hkloff_nphi)
+        if norm3(par_ref_off) < SMALL:
+            return 0, float('nan'), sc
         y_axis = cross3(hklref_nphi, matrix('0; 1; 0'))
         if norm3(y_axis) < SMALL:
             y_axis = cross3(hklref_nphi, matrix('0; 0; 1'))
@@ -906,7 +912,4 @@ class UBCalculation:
             az = 0
         else:
             az = atan2(y_coord, x_coord)
-        d_offset = self._state.crystal.get_hkl_plane_distance(hkl_offset)
-        d_ref = self._state.crystal.get_hkl_plane_distance(hkl_ref)
-        sc = d_ref / d_offset
         return pol, az, sc

@@ -9,6 +9,7 @@ from diffcalc.gdasupport.scannable.parameter import DiffractionCalculatorParamet
 from diffcalc.dc import dcyou as _dc
 from diffcalc.dc.help import format_command_help
 from diffcalc.gdasupport.scannable.sr2 import Sr2
+from diffcalc.gdasupport.scannable.qtrans import Qtrans
 reload(_dc)
 from diffcalc.dc.dcyou import *  # @UnusedWildImport
 from diffcalc import settings
@@ -64,6 +65,13 @@ pol_offset = hkloffset.polar
 az_offset = hkloffset.azimuthal
 
 sr2 = Sr2('sr2', _scn_group, _dc)
+
+qtrans = Qtrans('qtrans', _scn_group, _dc)
+h_qt = qtrans.h
+k_qt = qtrans.k
+l_qt = qtrans.l
+qpar = qtrans.qpar
+az_qt = qtrans.azimuthal
 
 Hkl.dynamic_docstring = format_command_help(hkl_commands_for_help)  # must be on the class
 ub.__doc__ = format_command_help(ub_commands_for_help)
