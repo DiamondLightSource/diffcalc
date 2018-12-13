@@ -16,21 +16,22 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 import platform
-from math import pi, asin, sin, isnan
-from diffcalc.hkl.you.calc import cut_at_minus_pi
-from diffcalc.hardware import cut_angle_at
+from math import pi, sqrt, acos, cos
+try:
+    from numpy import matrix
+except ImportError:
+    from numjy import matrix
 
 DEBUG = False
 
 try:
     from gda.device.scannable.scannablegroup import \
-        ScannableMotionWithScannableFieldsBase
+        ScannableMotionBase
 except ImportError:
     from diffcalc.gdasupport.minigda.scannable import \
-        ScannableMotionWithScannableFieldsBase
+        ScannableMotionBase
 
-from diffcalc.util import getMessageFromException, DiffcalcException, TODEG,\
-    TORAD, bound, cross3, SMALL
+from diffcalc.util import DiffcalcException, bound, SMALL, dot3
 
 
 class _DynamicDocstringMetaclass(type):
@@ -41,14 +42,7 @@ class _DynamicDocstringMetaclass(type):
     __doc__ = property(_get_doc)  # @ReservedAssignment
 
 
-def _simulateMoveFieldTo(obj, index, val):
-    print "Index: %d   Value: %f" % (index, val)
-    pos = [None] * len(obj.getParent().getInputNames())
-    pos[index] = val
-    obj.getParent().simulateMoveTo(pos)
-
-
-class Qtrans(ScannableMotionWithScannableFieldsBase):
+class Qtrans(ScannableMotionBase):
 
     if platform.system() != 'Java':
         __metaclass__ = _DynamicDocstringMetaclass  # TODO: Removed to fix Jython
@@ -65,55 +59,36 @@ class Qtrans(ScannableMotionWithScannableFieldsBase):
     def __init__(self, name, diffractometerObject, diffcalcObject):
         self.diffhw = diffractometerObject
         self._diffcalc = diffcalcObject
-        self._hkl_reference = [0, 0, 0]
-        self._az = 0 # Disambiguate 
 
         self.setName(name)
-        self.setInputNames(['h', 'k', 'l', 'qpar', 'azimuthal'])
-        self.setOutputFormat(['%7.5f'] * 5)
+        self.setInputNames([name])
+        self.setOutputFormat(['%7.5f'])
 
-        self.completeInstantiation()
-        self.setAutoCompletePartialMoveToTargets(True)
         self.dynamic_class_doc = 'qtrans scannable'
 
-        for name in self.getInputNames():
-            sc = self.getPart(name)
-            sc.simulateMoveTo = _simulateMoveFieldTo
 
+    def asynchronousMoveTo(self, newpos):
 
-    def rawAsynchronousMoveTo(self, hkl):
-        if type(hkl) not in (list, tuple): raise ValueError('Invalid input type for qtrans scannable')
-        if len(hkl)!=5: raise ValueError('qtrans device expects five inputs')
-
-        _h = self._hkl_reference[0] if hkl[0] is None else hkl[0]
-        _k = self._hkl_reference[1] if hkl[1] is None else hkl[1]
-        _l = self._hkl_reference[2] if hkl[2] is None else hkl[2]
-
-        if None in hkl[-2:]:
-            pos = self.diffhw.getPosition()  # a tuple
-            (hkl_pos , _) = self._diffcalc.angles_to_hkl(pos)
-            pol_pos, az_pos, _ = self._diffcalc._ub.ubcalc.calc_offset_for_hkl(hkl_pos, self._hkl_reference)
-            if isnan(az_pos):
-                az_pos = self._az
-
-        if hkl[3] is None:
-            pol = pol_pos
-        else:
-            if hkl[3] < 0  or hkl[3] > 1: raise ValueError('Invalid input value %f for q-vector projection length in r.l.u.' % hkl[3])
-            pol = asin(hkl[3])
+        pos = self.diffhw.getPosition()  # a tuple
+        (hkl_pos , _) = self._diffcalc.angles_to_hkl(pos)
 
         nref_hkl = [i[0] for i in self._diffcalc._ub.ubcalc.n_hkl.tolist()]
-        _, az_ref, _ = self._diffcalc._ub.ubcalc.calc_offset_for_hkl([_h, _k, _l], nref_hkl)
-        if not az_ref:
-            raise DiffcalcException("Cannot define azimuthal direction. Reference vector and scattering vector are parallel.")
-        if hkl[4] is None:
-            az = az_pos
-        else:
-            az = hkl[4] * TORAD
-        az_ref += az
+        pol, az_nref, sc = self._diffcalc._ub.ubcalc.calc_offset_for_hkl(hkl_pos, nref_hkl)
+        if pol < SMALL:
+            az_nref = 0
+        sc_nref_hkl = [sc * v for v in nref_hkl]
+
+        _ubm = self._diffcalc._ub.ubcalc._get_UB()
+        qvec = _ubm * matrix(hkl_pos).T
+        qvec_rlu = sqrt(dot3(qvec, qvec)) * self._diffcalc._ub.ubcalc.get_hkl_plane_distance(nref_hkl) / (2.*pi)
 
         try:
-            hkl_offset = self._diffcalc._ub.ubcalc.calc_hkl_offset(_h, _k, _l, pol=pol, az=az_ref)
+            newpol = acos(bound(newpos / qvec_rlu))
+        except AssertionError:
+            raise DiffcalcException("Scattering vector projection value of %.5f r.l.u. unreachable." % newpos)
+
+        try:
+            hkl_offset = self._diffcalc._ub.ubcalc.calc_hkl_offset(*sc_nref_hkl, pol=newpol, az=az_nref)
             (pos, _) = self._diffcalc.hkl_to_angles(*hkl_offset)
         except DiffcalcException, e:
             if DEBUG:
@@ -122,27 +97,18 @@ class Qtrans(ScannableMotionWithScannableFieldsBase):
                 raise DiffcalcException(e.message)
 
         self.diffhw.asynchronousMoveTo(pos)
-        self._hkl_reference = [_h, _k, _l]
-        self._az = az
 
 
-    def rawGetPosition(self):
+    def getPosition(self):
         pos = self.diffhw.getPosition()  # a tuple
         (hkl_pos , _) = self._diffcalc.angles_to_hkl(pos)
-        result = list(self._hkl_reference)
-        pol, az, _ = self._diffcalc._ub.ubcalc.calc_offset_for_hkl(hkl_pos, self._hkl_reference)
-        if pol < SMALL:
-            result.extend([0, cut_angle_at(self._az * TODEG, 0)])
-        else:
-            nref_hkl = [i[0] for i in self._diffcalc._ub.ubcalc.n_hkl.tolist()]
-            _, az_ref, _ = self._diffcalc._ub.ubcalc.calc_offset_for_hkl(self._hkl_reference, nref_hkl)
-            az -= az_ref
-            qtrans = sin(abs(pol))
-            result.extend([qtrans,  cut_angle_at(az * TODEG, 0)])
-        return result
-
-    def getFieldPosition(self, i):
-        return self.getPosition()[i]
+        nref_hkl = [i[0] for i in self._diffcalc._ub.ubcalc.n_hkl.tolist()]
+        pol = self._diffcalc._ub.ubcalc.calc_offset_for_hkl(hkl_pos, nref_hkl)[0]
+        _ubm = self._diffcalc._ub.ubcalc._get_UB()
+        qvec = _ubm * matrix(hkl_pos).T
+        sc = sqrt(dot3(qvec, qvec)) * self._diffcalc._ub.ubcalc.get_hkl_plane_distance(nref_hkl) / (2.*pi)
+        res = sc * cos(pol)
+        return res
 
     def isBusy(self):
         return self.diffhw.isBusy()
@@ -150,39 +116,28 @@ class Qtrans(ScannableMotionWithScannableFieldsBase):
     def waitWhileBusy(self):
         return self.diffhw.waitWhileBusy()
 
-    def simulateMoveTo(self, hkl):
-        if type(hkl) not in (list, tuple): raise ValueError('Invalid input type for qtrans scannable')
-        if len(hkl) > 5 or len(hkl) < 4: raise ValueError('qtrans device expects five inputs')
-        if hkl[3] < 0 or hkl[3] > 1: raise ValueError('Invalid input value %f for q-vector projection length in r.l.u.' % hkl[3])
+    def simulateMoveTo(self, newpos):
 
-        _h = self._hkl_reference[0] if hkl[0] is None else hkl[0]
-        _k = self._hkl_reference[1] if hkl[1] is None else hkl[1]
-        _l = self._hkl_reference[2] if hkl[2] is None else hkl[2]
-        _hkl = [_h, _k, _l]
+        pos = self.diffhw.getPosition()  # a tuple
+        (hkl_pos , _) = self._diffcalc.angles_to_hkl(pos)
 
-        if None in hkl[-2:]:
-            pos = self.diffhw.getPosition()  # a tuple
-            (hkl_pos , _) = self._diffcalc.angles_to_hkl(pos)
-            pol_pos, az_pos, _ = self._diffcalc._ub.ubcalc.calc_offset_for_hkl(hkl_pos, self._hkl_reference)
+        nref_hkl = [i[0] for i in self._diffcalc._ub.ubcalc.n_hkl.tolist()]
+        pol, az_nref, sc = self._diffcalc._ub.ubcalc.calc_offset_for_hkl(hkl_pos, nref_hkl)
+        if pol < SMALL:
+            az_nref = 0
+        sc_nref_hkl = [sc * v for v in nref_hkl]
 
-        if hkl[3] is None:
-            pol = pol_pos
-        else:
-            if hkl[3] < 0  or hkl[3] > 1: raise ValueError('Invalid input value %f for q-vector projection length in r.l.u.' % hkl[3])
-            pol = asin(hkl[3])
-
-        if hkl[4] is None:
-            az_ref = az_pos
-        else:
-            nref_hkl = [i[0] for i in self._diffcalc._ub.ubcalc.n_hkl.tolist()]
-            az = hkl[4] * TORAD
-            _, az_ref, _ = self._diffcalc._ub.ubcalc.calc_offset_for_hkl(self._hkl_reference, nref_hkl)
-            if not az_ref:
-                raise DiffcalcException("Cannot define azimuthal direction. Reference vector and scattering vector are parallel.")
-            az_ref += az
+        _ubm = self._diffcalc._ub.ubcalc._get_UB()
+        qvec = _ubm * matrix(hkl_pos).T
+        qvec_rlu = sqrt(dot3(qvec, qvec)) * self._diffcalc._ub.ubcalc.get_hkl_plane_distance(nref_hkl) / (2.*pi)
 
         try:
-            hkl_offset = self._diffcalc._ub.ubcalc.calc_hkl_offset(*_hkl, pol=pol, az=az_ref)
+            newpol = acos(bound(newpos / qvec_rlu))
+        except AssertionError:
+            raise DiffcalcException("Scattering vector projection value  of %.5f r.l.u. unreachable." % newpos)
+
+        try:
+            hkl_offset = self._diffcalc._ub.ubcalc.calc_hkl_offset(*sc_nref_hkl, pol=newpol, az=az_nref)
             (pos, params) = self._diffcalc.hkl_to_angles(*hkl_offset)
         except DiffcalcException, e:
             if DEBUG:
