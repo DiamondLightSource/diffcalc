@@ -470,11 +470,13 @@ class YouHklCalculator(HklCalculatorBase):
                 try:
                     constraint_name, constraint_value = constraint.items()[0]
                     if constraint_name == 'a_eq_b':
-                        if not is_small(pseudo_angles['alpha'] - pseudo_angles['beta']):
+                        diff = pseudo_angles['alpha'] - pseudo_angles['beta']
+                        if not is_small(1.0 - cos(diff)):
                             is_sol = False
                             break
                     else:
-                        if not is_small(constraint_value - pseudo_angles[constraint_name]):
+                        diff = constraint_value - pseudo_angles[constraint_name]
+                        if not is_small(1.0 - cos(diff)):
                             is_sol = False
                             break
                 except:
