@@ -83,6 +83,46 @@ def xyz_rotation(u, angle):
     return matrix([[e11,e12,e13],[e21,e22,e23],[e31,e32,e33]])
 
 
+class CoordinateConverter(object):
+    """Class for converting matrix objects between coordinate frames"""
+
+    def __init__(self, transform=None):
+        if type(transform) in (list, tuple, matrix):
+            self.R = matrix(transform)
+        else:
+            raise TypeError('Invalid object type %s' % str(type(transform)))
+        self.nrow, self.ncol = self.R.shape
+        if self.nrow != self.ncol:
+            raise TypeError('Transformation matrix shape is invalid: %d x %d' % (self.nrow, self.ncol))
+
+    def transform(self, v, inv=False):
+        if type(v) in (list, tuple, matrix):
+            m = matrix(v)
+        else:
+            raise TypeError('Invalid object type %s' % str(type(m)))
+        nr, nc = m.shape
+        if nc == 1:
+            if nr != self.nrow:
+                raise TypeError('Invalid number of rows: %d != %d'% (nr, self.nrow))
+            if inv:
+                return self.R.I * m
+            else:
+                return self.R * m
+        elif nr == 1:
+            if nc != self.ncol:
+                raise TypeError('Invalid number of columns: %d != %d' % (nc, self.ncol))
+            if inv:
+                return m * self.R.I
+            else:
+                return m * self.R
+        elif m.shape == self.R.shape:
+            if inv:
+                return self.R.I * m * self.R
+            else:
+                return self.R * m * self.R.I
+        raise TypeError('Invalid matrix shape: %d x %d' % (nr, nc))
+
+
 class DiffcalcException(Exception):
     """Error caused by user misuse of diffraction calculator.
     """

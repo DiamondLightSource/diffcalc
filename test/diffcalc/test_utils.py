@@ -17,12 +17,19 @@
 ###
 
 import unittest
+from nose.tools import eq_  # @UnresolvedImport
 
 from diffcalc.hkl.vlieg.geometry import VliegPosition
 from diffcalc.util import MockRawInput, \
-    getInputWithDefault, differ, nearlyEqual, degreesEquivilant
+    getInputWithDefault, differ, nearlyEqual, degreesEquivilant,\
+    CoordinateConverter
 import diffcalc.util  # @UnusedImport
 import pytest
+
+try:
+    from numpy import matrix
+except ImportError:
+    from numjy import matrix
 
 
 class TestUtils(object):
@@ -125,3 +132,90 @@ class TestPosition(object):
         assert pos == copy
         pos.alpha = 10
         pos.omega = 4.1
+
+
+class TestCoordinateConverter(object):
+
+    def setup_method(self):
+        self.conv = CoordinateConverter(transform=matrix('0 0 1; 1 0 0; 0 1 0'))
+
+    def testVector(self):
+        vec100 = matrix('1;0;0')
+        vec010 = matrix('0;1;0')
+        vec001 = matrix('0;0;1')
+
+        conv100 = self.conv.transform(vec100)
+        conv010 = self.conv.transform(vec010)
+        conv001 = self.conv.transform(vec001)
+
+        inv100 = self.conv.transform(conv100, True)
+        inv010 = self.conv.transform(conv010, True)
+        inv001 = self.conv.transform(conv001, True)
+
+        eq_(conv100.tolist(), vec010.tolist())
+        eq_(conv010.tolist(), vec001.tolist())
+        eq_(conv001.tolist(), vec100.tolist())
+        eq_(vec100.tolist(), inv100.tolist())
+        eq_(vec010.tolist(), inv010.tolist())
+        eq_(vec001.tolist(), inv001.tolist())
+
+    def testVector1m10(self):
+        vec110 = matrix(' 1; -1;  0')
+        vec011 = matrix(' 0;  1; -1')
+        vec101 = matrix('-1;  0;  1')
+
+        conv110 = self.conv.transform(vec110)
+        conv011 = self.conv.transform(vec011)
+        conv101 = self.conv.transform(vec101)
+
+        inv110 = self.conv.transform(conv110, True)
+        inv011 = self.conv.transform(conv011, True)
+        inv101 = self.conv.transform(conv101, True)
+
+        eq_(conv110.tolist(), vec011.tolist())
+        eq_(conv011.tolist(), vec101.tolist())
+        eq_(conv101.tolist(), vec110.tolist())
+        eq_(vec110.tolist(), inv110.tolist())
+        eq_(vec011.tolist(), inv011.tolist())
+        eq_(vec101.tolist(), inv101.tolist())
+
+    def testMatrix(self):
+        m = matrix('0 -1 0; 1 0 0; 0 0 -1')
+        tm = self.conv.transform(m)
+        im = self.conv.transform(tm, True)
+
+        eq_(m.tolist(), im.tolist())
+
+        vec110 = matrix(' 1; -1;  0')
+        vec011 = matrix(' 0;  1; -1')
+        vec101 = matrix('-1;  0;  1')
+        conv110 = self.conv.transform(vec110)
+        conv011 = self.conv.transform(vec011)
+        conv101 = self.conv.transform(vec101)
+
+        m110 = m * vec110
+        m011 = m * vec011
+        m101 = m * vec101
+        cm110 = tm * conv110
+        cm011 = tm * conv011
+        cm101 = tm * conv101
+        inv110 = self.conv.transform(cm110, True)
+        inv011 = self.conv.transform(cm011, True)
+        inv101 = self.conv.transform(cm101, True)
+
+        eq_(cm110.tolist(), self.conv.transform(m110).tolist())
+        eq_(cm011.tolist(), self.conv.transform(m011).tolist())
+        eq_(cm101.tolist(), self.conv.transform(m101).tolist())
+        eq_(m110.tolist(), inv110.tolist())
+        eq_(m011.tolist(), inv011.tolist())
+        eq_(m101.tolist(), inv101.tolist())
+
+    def testVectorFail(self):
+        failvec = matrix('0;0;1;0')
+        failmarix = matrix('0 0 1; 0 0 1; 1 0 0; 0 0 1')
+        with pytest.raises(TypeError):
+            CoordinateConverter(transform=failmarix)
+        with pytest.raises(TypeError):
+            self.conv.transform(failvec)
+        with pytest.raises(TypeError):
+            self.conv.transform(failmarix)
