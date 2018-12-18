@@ -74,13 +74,13 @@ class YouReference(object):
         
         if ub_calculated:
             try:
-                lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(R.I * self.n_phi) + nphi_label)
-            except AttributeError:
+                lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(R * self.n_phi) + nphi_label)
+            except TypeError:
                 lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(self.n_phi) + nphi_label)
             lines.append("   n_hkl:".ljust(WIDTH) + self._pretty_vector(self.n_hkl) + nhkl_label)
             try:
-                rotation_axis = R.I * cross3(matrix('0; 0; 1'), self.n_phi)
-            except AttributeError:
+                rotation_axis = R * cross3(matrix('0; 0; 1'), self.n_phi)
+            except TypeError:
                 rotation_axis = cross3(matrix('0; 0; 1'), self.n_phi)
             if abs(norm(rotation_axis)) < SMALL:
                 lines.append("   normal:".ljust(WIDTH) + "  None")
@@ -95,8 +95,8 @@ class YouReference(object):
         else:  # no ub calculated
             if self._n_phi_configured is not None:
                 try:
-                    lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(R.I * self._n_phi_configured) + SET_LABEL)
-                except AttributeError:
+                    lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(R * self._n_phi_configured) + SET_LABEL)
+                except TypeError:
                     lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(self._n_phi_configured) + SET_LABEL)
             elif self._n_hkl_configured is not None:
                 lines.append("   n_hkl:".ljust(WIDTH) + self._pretty_vector(self._n_hkl_configured) + SET_LABEL)

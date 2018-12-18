@@ -395,7 +395,7 @@ class UBCalculation:
         self.save()
         
     def print_reference(self):
-        print '\n'.join(self._state.reference.repr_lines(self.is_ub_calculated(), R=self._ROT.I))
+        print '\n'.join(self._state.reference.repr_lines(self.is_ub_calculated(), R=self._ROT))
 
 ### Reflections ###
 
