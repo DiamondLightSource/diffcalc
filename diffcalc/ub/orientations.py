@@ -62,6 +62,7 @@ class OrientationList:
 
     def edit_orientation(self, num, h, k, l, x, y, z, tag, time):
         """num starts at 1"""
+        if num < 1: raise TypeError("Orientation indices start at 1")
         try:
             self._orientlist[num - 1] = _Orientation(h, k, l, x, y, z, tag,
                                                 time.__repr__())
@@ -74,13 +75,16 @@ class OrientationList:
         getOrientation(num) --> ( [h, k, l], [x, y, z], tag, time ) --
         num starts at 1
         """
+        if num < 1: raise TypeError("Orientation indices start at 1")
         r = deepcopy(self._orientlist[num - 1])  # for convenience
         return [r.h, r.k, r.l], [r.x, r.y, r.z], r.tag, eval(r.time)
 
     def removeOrientation(self, num):
+        if num < 1: raise TypeError("Orientation indices start at 1")
         del self._orientlist[num - 1]
 
     def swap_orientations(self, num1, num2):
+        if num1 < 1 or num2 < 1: raise TypeError("Orientation indices start at 1")
         orig1 = self._orientlist[num1 - 1]
         self._orientlist[num1 - 1] = self._orientlist[num2 - 1]
         self._orientlist[num2 - 1] = orig1
@@ -101,8 +105,8 @@ class OrientationList:
         values = ('H', 'K', 'L', 'X', 'Y', 'Z')
         lines.append(bold(str_format % values))
 
-        for n in range(len(self._orientlist)):
-            orient_tuple = self.getOrientation(n + 1)
+        for n in range(1, len(self._orientlist) + 1):
+            orient_tuple = self.getOrientation(n)
             [h, k, l], [x, y, z], tag, _ = orient_tuple
             try:
                 xyz_rot = R.I * matrix([[x],[y],[z]])
@@ -113,6 +117,6 @@ class OrientationList:
                 tag = ""
             str_format = ("  %2d % 4.2f % 4.2f % 4.2f  " +
                       "% 4.2f % 4.2f % 4.2f  %s")
-            values = (n + 1, h, k, l, xr, yr, zr, tag)
+            values = (n, h, k, l, xr, yr, zr, tag)
             lines.append(str_format % values)
         return lines
