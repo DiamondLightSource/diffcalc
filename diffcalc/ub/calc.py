@@ -21,7 +21,7 @@ from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.reflections import ReflectionList
 from diffcalc.ub.persistence import UBCalculationJSONPersister, UBCalculationPersister
 from diffcalc.util import DiffcalcException, cross3, dot3, bold, xyz_rotation,\
-    bound, angle_between_vectors, norm3
+    bound, angle_between_vectors, norm3, CoordinateConverter
 from math import acos, cos, sin, pi, atan2
 from diffcalc.ub.reference import YouReference
 from diffcalc.ub.orientations import OrientationList
@@ -87,9 +87,9 @@ class UBCalculation:
         self.include_sigtau = include_sigtau
         self.include_reference = include_reference
         try:
-            self._ROT = diffractometerPluginObject.beamline_axes_transform
+            self._tobj = CoordinateConverter(transform=diffractometerPluginObject.beamline_axes_transform)
         except AttributeError:
-            self._ROT = None
+            self._tobj = CoordinateConverter(transform=None)
         self._clear()
         
     def _get_diffractometer_axes_names(self):
@@ -200,7 +200,7 @@ class UBCalculation:
         if self.include_reference:
             lines.append("")
             ub_calculated = self._UB is not None
-            lines.extend(self._state.reference.repr_lines(ub_calculated, WIDTH, self._ROT))
+            lines.extend(self._state.reference.repr_lines(ub_calculated, WIDTH, self._tobj))
         
         lines.append("")
         lines.append(bold("CRYSTAL"))
@@ -234,7 +234,7 @@ class UBCalculation:
         lines.append(bold("CRYSTAL ORIENTATIONS"))
         lines.append("")
         
-        lines.extend(self._state.orientlist.str_lines(R=self._ROT))
+        lines.extend(self._state.orientlist.str_lines(self._tobj))
         
         return '\n'.join(lines)
 
@@ -255,10 +255,7 @@ class UBCalculation:
         lines = []
         fmt = "% 9.5f % 9.5f % 9.5f"
         y = matrix('0; 0; 1')
-        try:
-            rotation_axis = cross3(self._ROT * y, self._ROT * self.U * y)
-        except TypeError:
-            rotation_axis = cross3(y, self.U * y)
+        rotation_axis = self._tobj.transform(cross3(y, self.U * y), True)
         if abs(norm(rotation_axis)) < SMALL:
             lines.append("   miscut angle:".ljust(WIDTH) + "  0")
         else:
@@ -395,7 +392,7 @@ class UBCalculation:
         self.save()
         
     def print_reference(self):
-        print '\n'.join(self._state.reference.repr_lines(self.is_ub_calculated(), R=self._ROT))
+        print '\n'.join(self._state.reference.repr_lines(self.is_ub_calculated(), WIDTH=9, conv=self._tobj))
 
 ### Reflections ###
 
@@ -480,13 +477,10 @@ class UBCalculation:
         """
         if self._state.orientlist is None:
             raise DiffcalcException("No UBCalculation loaded")
-        try:
-            xyz_rot = self._ROT * matrix([[x],[y],[z]])
-            xr, yr, zr = xyz_rot.T.tolist()[0]
-            self._state.orientlist.add_orientation(h, k, l, xr, yr, zr, tag, time)
-        except TypeError:
-            self._state.orientlist.add_orientation(h, k, l, x, y, z, tag, time)
-        self.save()  # incase autocalculateUbAndReport fails
+        xyz_tr = self._tobj.transform(matrix([[x],[y],[z]]))
+        xr, yr, zr = xyz_tr.T.tolist()[0]
+        self._state.orientlist.add_orientation(h, k, l, xr, yr, zr, tag, time)
+        self.save()  # in case autocalculateUbAndReport fails
 
         # If second reflection has just been added then calculateUB
         if len(self._state.orientlist) == 2:
@@ -498,12 +492,9 @@ class UBCalculation:
         edit_orientation(num, h, k, l, x, y, z, tag=None) -- edit a crystal reflection        """
         if self._state.orientlist is None:
             raise DiffcalcException("No UBCalculation loaded")
-        try:
-            xyz_rot = self._ROT * matrix([[x],[y],[z]])
-            xr, yr, zr = xyz_rot.T.tolist()[0]
-            self._state.orientlist.edit_orientation(num, h, k, l, xr, yr, zr, tag, time)
-        except TypeError:
-            self._state.orientlist.edit_orientation(num, h, k, l, x, y, z, tag, time)
+        xyz_tr = self._tobj.transform(matrix([[x],[y],[z]]))
+        xr, yr, zr = xyz_tr.T.tolist()[0]
+        self._state.orientlist.edit_orientation(num, h, k, l, xr, yr, zr, tag, time)
 
         # If first or second orientation has been changed and there are
         # two orientations then recalculate  UB
@@ -514,13 +505,10 @@ class UBCalculation:
     def get_orientation(self, num):
         """--> ( [h, k, l], [x, y, z], tag, time )
         num starts at 1"""
-        try:
-            hkl, xyz, tg, tm = self._state.orientlist.getOrientation(num)
-            xyz_rot = self._ROT.I * matrix([[xyz[0]],[xyz[1]],[xyz[2]]])
-            xyz_lst = xyz_rot.T.tolist()[0]
-            return hkl, xyz_lst, tg, tm
-        except AttributeError:
-            return self._state.orientlist.getOrientation(num)
+        hkl, xyz, tg, tm = self._state.orientlist.getOrientation(num)
+        xyz_rot = self._tobj.transform(matrix([[xyz[0]],[xyz[1]],[xyz[2]]]), True)
+        xyz_lst = xyz_rot.T.tolist()[0]
+        return hkl, xyz_lst, tg, tm
 
 
     def get_number_orientations(self):
@@ -575,10 +563,7 @@ class UBCalculation:
         else:
             print "Recalculating UB matrix."
 
-        if self._ROT is not None:
-            self._U = self._ROT * m * self._ROT.I
-        else:
-            self._U = m
+        self._U = self._tobj.transform(m)
         self._state.configure_calc_type(manual_U=self._U)
         if self._state.crystal is None:
             raise DiffcalcException(
@@ -598,8 +583,8 @@ class UBCalculation:
         if m.shape[0] != 3 or m.shape[1] != 3:
             raise  ValueError("Expects 3*3 matrix")
 
-        if self._ROT is not None:
-            self._UB = self._ROT * m
+        if self._tobj.R is not None:
+            self._UB = self._tobj.R * m
         else:
             self._UB = m
         self._state.configure_calc_type(manual_UB=self._UB)
@@ -805,20 +790,12 @@ class UBCalculation:
         """Calculate U matrix using a miscut axis and an angle"""
         if xyz is None:
             rot_matrix = xyz_rotation([0, 1, 0], angle)
-            if self.is_ub_calculated() and add_miscut:
-                self._U = rot_matrix * self._U
-            else:
-                self._U = rot_matrix
         else:
-            rot_matrix = xyz_rotation(xyz, angle)
-            try:
-                rot_matrix =  self._ROT * rot_matrix * self._ROT.I
-            except TypeError:
-                pass
-            if self.is_ub_calculated() and add_miscut:
-                self._U = rot_matrix * self._U
-            else:
-                self._U = rot_matrix
+            rot_matrix = self._tobj.transform(xyz_rotation(xyz, angle))
+        if self.is_ub_calculated() and add_miscut:
+            self._U = rot_matrix * self._U
+        else:
+            self._U = rot_matrix
         self._state.configure_calc_type(manual_U=self._U)
         self._UB = self._U * self._state.crystal.B
         self.print_reference()

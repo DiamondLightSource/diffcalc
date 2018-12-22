@@ -95,7 +95,7 @@ class OrientationList:
     def __str__(self):
         return '\n'.join(self.str_lines())
 
-    def str_lines(self, R=None):
+    def str_lines(self, conv):
         if not self._orientlist:
             return ["   <<< none specified >>>"]
 
@@ -109,7 +109,7 @@ class OrientationList:
             orient_tuple = self.getOrientation(n)
             [h, k, l], [x, y, z], tag, _ = orient_tuple
             try:
-                xyz_rot = R.I * matrix([[x],[y],[z]])
+                xyz_rot = conv.transform(matrix([[x],[y],[z]]), True)
                 xr, yr, zr = xyz_rot.T.tolist()[0]
             except AttributeError:
                 xr, yr, zr = x ,y ,z

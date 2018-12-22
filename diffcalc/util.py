@@ -87,19 +87,23 @@ class CoordinateConverter(object):
     """Class for converting matrix objects between coordinate frames"""
 
     def __init__(self, transform=None):
-        if type(transform) in (list, tuple, matrix):
+        if transform is None:
+            self.R = None
+        elif type(transform) in (list, tuple, matrix):
             self.R = matrix(transform)
+            self.nrow, self.ncol = self.R.shape
+            if self.nrow != self.ncol:
+                raise TypeError('Transformation matrix shape is invalid: %d x %d' % (self.nrow, self.ncol))
         else:
             raise TypeError('Invalid object type %s' % str(type(transform)))
-        self.nrow, self.ncol = self.R.shape
-        if self.nrow != self.ncol:
-            raise TypeError('Transformation matrix shape is invalid: %d x %d' % (self.nrow, self.ncol))
 
     def transform(self, v, inv=False):
         if type(v) in (list, tuple, matrix):
             m = matrix(v)
         else:
             raise TypeError('Invalid object type %s' % str(type(m)))
+        if self.R is None:
+            return m
         nr, nc = m.shape
         if nc == 1:
             if nr != self.nrow:

@@ -38,7 +38,7 @@ from diffcalc.ub.persistence import UbCalculationNonPersister,\
     UBCalculationJSONPersister
 from diffcalc.ub.calcstate import UBCalcStateEncoder
 from diffcalc.util import DiffcalcException, MockRawInput, xyz_rotation,\
-    TODEG, TORAD
+    TODEG, TORAD, CoordinateConverter
 from diffcalc.hkl.vlieg.calc import VliegUbCalcStrategy, vliegAnglesToHkl
 from diffcalc.hkl.you.calc import youAnglesToHkl, YouUbCalcStrategy
 from test.diffcalc import scenarios
@@ -63,10 +63,8 @@ class _UBCommandsBase():
         names = 'alpha', 'delta', 'gamma', 'omega', 'chi', 'phi'
         self.hardware = DummyHardwareAdapter(names)
         settings.hardware = self.hardware
-        settings.ubcalc_persister = UbCalculationNonPersister()
-        settings.Pos = None
-        self.t_matrix = matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-        self.t_hand = 1
+        self.conv = CoordinateConverter(transform=self.t_matrix)
+        self._refineub_matrix = matrix('0.70711   0.70711   0.00000; -0.70711   0.70711   0.00000; 0.00000   0.00000   1.00000')
 
         from diffcalc.ub import ub
         reload(ub)
@@ -318,14 +316,14 @@ class _UBCommandsBase():
         #
         self.ub.addorient(hkl1, orient1)
         result = orientlist.getOrientation(1)
-        trans_orient1 = self.t_matrix.I * matrix([orient1]).T
+        trans_orient1 = self.conv.transform(matrix([orient1]).T)
         eq_(result[0], hkl1)
         mneq_(matrix([result[1]]), trans_orient1.T)
         eq_(result[2], None)
 
         self.ub.addorient(hkl2, orient2, 'atag')
         result = orientlist.getOrientation(2)
-        trans_orient2 = self.t_matrix.I * matrix([orient2]).T
+        trans_orient2 = self.conv.transform(matrix([orient2]).T)
         eq_(result[0], hkl2)
         mneq_(matrix([result[1]]), trans_orient2.T)
         eq_(result[2], 'atag')
@@ -344,7 +342,7 @@ class _UBCommandsBase():
         prepareRawInput(['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', ''])
         self.ub.addorient()
         result = orientlist.getOrientation(1)
-        trans_orient1 = self.t_matrix.I * matrix([orient1]).T
+        trans_orient1 = self.conv.transform(matrix([orient1]).T)
         eq_(result[0], hkl1)
         mneq_(matrix([result[1]]), trans_orient1.T)
         eq_(result[2], None)
@@ -352,7 +350,7 @@ class _UBCommandsBase():
         prepareRawInput(['2.1', '2.2', '2.3', '2.4', '2.5', '2.6', 'atag'])
         self.ub.addorient()
         result = orientlist.getOrientation(2)
-        trans_orient2 = self.t_matrix.I * matrix([orient2]).T
+        trans_orient2 = self.conv.transform(matrix([orient2]).T)
         eq_(result[0], hkl2)
         mneq_(matrix([result[1]]), trans_orient2.T)
         eq_(result[2], 'atag')
@@ -370,7 +368,7 @@ class _UBCommandsBase():
 
         orientlist = self.ub.ubcalc._state.orientlist
         result = orientlist.getOrientation(1)
-        trans_orient2 = self.t_matrix.I * matrix([orient2]).T
+        trans_orient2 = self.conv.transform(matrix([orient2]).T)
         eq_(result[0], hkl2)
         mneq_(matrix([result[1]]), trans_orient2.T)
         eq_(result[2], 'newtag')
@@ -524,11 +522,11 @@ class _UBCommandsBase():
         s = scenarios.sessions(settings.Pos)[1]
         self.ub.setlat(s.name, *s.lattice)
         r1 = s.ref1
-        orient1 = self.t_matrix * matrix('1; 0; 0')
+        orient1 = self.conv.transform(matrix('1; 0; 0'), True)
         self.ub.addorient(
             (r1.h, r1.k, r1.l), orient1.T.tolist()[0], r1.tag)
         r2 = s.ref2
-        orient2 = self.t_matrix * matrix('0; -1; 0')
+        orient2 = self.conv.transform(matrix('0; -1; 0'), True)
         self.ub.addorient(
             (r2.h, r2.k, r2.l), orient2.T.tolist()[0], r2.tag)
         self.ub.orientub()
@@ -543,7 +541,7 @@ class _UBCommandsBase():
         self.ub.refineub()
         getLattice = self.ub.ubcalc._state.crystal.getLattice
         eq_(('xtal', sqrt(2.), sqrt(2.), 1, 90, 90, 90), getLattice())
-        mneq_(self.ub.ubcalc.U, matrix('0.70711   0.70711   0.00000; -0.70711   0.70711   0.00000; 0.00000   0.00000   1.00000'),
+        mneq_(self.ub.ubcalc.U, self.conv.transform(self._refineub_matrix),
               4, note="wrong U matrix after refinement")
 
     def testRefineubInteractivelyWithPosition(self):
@@ -555,7 +553,7 @@ class _UBCommandsBase():
         self.ub.refineub()
         getLattice = self.ub.ubcalc._state.crystal.getLattice
         eq_(('xtal', sqrt(2.), sqrt(2.), 1, 90, 90, 90), getLattice())
-        mneq_(self.ub.ubcalc.U, matrix('0.70711   0.70711   0.00000; -0.70711   0.70711   0.00000; 0.00000   0.00000   1.00000'),
+        mneq_(self.ub.ubcalc.U, self.conv.transform(self._refineub_matrix),
               4, note="wrong U matrix after refinement")
 
     def testRefineubInteractivelyWithHKL(self):
@@ -567,7 +565,7 @@ class _UBCommandsBase():
         self.ub.refineub([1, 1, 0])
         getLattice = self.ub.ubcalc._state.crystal.getLattice
         eq_(('xtal', sqrt(2.), sqrt(2.), 1, 90, 90, 90), getLattice())
-        mneq_(self.ub.ubcalc.U, matrix('0.70711   0.70711   0.00000; -0.70711   0.70711   0.00000; 0.00000   0.00000   1.00000'),
+        mneq_(self.ub.ubcalc.U, self.conv.transform(self._refineub_matrix),
               4, note="wrong U matrix after refinement")
 
     def testRefineub(self):
@@ -578,7 +576,7 @@ class _UBCommandsBase():
         self.ub.refineub([1, 1, 0], [0, 60, 0, 30, 0, 0])
         getLattice = self.ub.ubcalc._state.crystal.getLattice
         eq_(('xtal', sqrt(2.), sqrt(2.), 1, 90, 90, 90), getLattice())
-        mneq_(self.ub.ubcalc.U, matrix('0.70711   0.70711   0.00000; -0.70711   0.70711   0.00000; 0.00000   0.00000   1.00000'),
+        mneq_(self.ub.ubcalc.U, self.conv.transform(self._refineub_matrix),
               4, note="wrong U matrix after refinement")
 
     def testC2th(self):
@@ -642,8 +640,8 @@ class _UBCommandsBase():
     def testMiscut(self):
         self.ub.newub('testsetmiscut')
         self.ub.setlat('cube', 1, 1, 1, 90, 90, 90)
-        beam_axis = (self.t_matrix * matrix('0; 1; 0')).T.tolist()[0]
-        beam_maxis = (self.t_matrix * matrix('0; -1; 0')).T.tolist()[0]
+        beam_axis = self.conv.transform(matrix('0; 1; 0'), True).T.tolist()[0]
+        beam_maxis = self.conv.transform(matrix('0; -1; 0'), True).T.tolist()[0]
         self.ub.setmiscut(self.t_hand * 30, beam_axis)
         mneq_(self.ub.ubcalc._state.reference.n_hkl, matrix('-0.5000000; 0.00000; 0.8660254'))
         self.ub.addmiscut(self.t_hand * 15, beam_axis)
@@ -655,40 +653,49 @@ class _UBCommandsBase():
 class TestUbCommandsVlieg(_UBCommandsBase):
     
     def setup_method(self):
-        _UBCommandsBase.setup_method(self)
+        settings.ubcalc_persister = UbCalculationNonPersister()
         settings.geometry = SixCircleGammaOnArmGeometry()
         settings.ubcalc_strategy = VliegUbCalcStrategy()
         settings.angles_to_hkl_function = vliegAnglesToHkl
         settings.Pos = VliegPosition
+        self.t_matrix = matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        self.t_hand = 1
+        _UBCommandsBase.setup_method(self)
 
 
 class TestUBCommandsYou(_UBCommandsBase):
 
     def setup_method(self):
-        _UBCommandsBase.setup_method(self)
+        settings.ubcalc_persister = UbCalculationNonPersister()
         settings.geometry = SixCircle()
         settings.ubcalc_strategy = YouUbCalcStrategy()
         settings.angles_to_hkl_function = youAnglesToHkl
         settings.Pos = YouPositionScenario
+        self.t_matrix = matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        self.t_hand = 1
+        _UBCommandsBase.setup_method(self)
 
 
 class TestUBCommandsCustomGeom(TestUBCommandsYou):
 
     def setup_method(self):
-        TestUBCommandsYou.setup_method(self)
+        settings.ubcalc_persister = UbCalculationNonPersister()
         inv = matrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
-        self.xrot = xyz_rotation([1, 0 ,0], 30. * TORAD)
-        self.t_matrix = inv * self.xrot
+        self.zrot = xyz_rotation([0, 0 ,1], 30. * TORAD)
+        self.t_matrix = inv * self.zrot
         self.t_hand = -1
-        settings.geometry = SixCircle(beamline_axes_transform=self.t_matrix.I)
+        settings.geometry = SixCircle(beamline_axes_transform=self.t_matrix)
+        settings.ubcalc_strategy = YouUbCalcStrategy()
+        settings.angles_to_hkl_function = youAnglesToHkl
+        settings.Pos = YouPositionScenario
+        _UBCommandsBase.setup_method(self)
 
     def testSetu(self):
         self.ub.newub('testsetu_custom')
         self.ub.setlat('NaCl', 1.1)
-        zrot = xyz_rotation([0, 0 , 1], self.t_hand * 30. * TORAD)
+        zrot = xyz_rotation([0, 0 , 1], 30. * TORAD)
         self.ub.setu(zrot.tolist())
-
-        mneq_(self.ub.ubcalc.U, self.xrot)
+        mneq_(self.ub.ubcalc.U, self.conv.transform(self.zrot))
 
     def testSetuInteractive(self):
         # Interactive functionality already tested
@@ -697,10 +704,10 @@ class TestUBCommandsCustomGeom(TestUBCommandsYou):
     def testSetub(self):
         self.ub.newub('testsetub_custom')
         self.ub.setlat('NaCl', 1.1)
-        zrot = xyz_rotation([0, 0 , 1], self.t_hand * 30. * TORAD)
+        zrot = xyz_rotation([0, 0 , 1], 30. * TORAD)
         self.ub.setu(zrot.tolist())
 
-        mneq_(self.ub.ubcalc.UB, self.xrot * self.ub.ubcalc._state.crystal.B)
+        mneq_(self.ub.ubcalc.UB, self.conv.transform(self.zrot) * self.ub.ubcalc._state.crystal.B)
 
     def testSetUbInteractive(self):
         # Interactive functionality already tested
@@ -709,8 +716,14 @@ class TestUBCommandsCustomGeom(TestUBCommandsYou):
 class TestUbCommandsJsonPersistence(TestUBCommandsYou):
 
     def setup_method(self):
-        TestUBCommandsYou.setup_method(self)
         settings.ubcalc_persister = self._createPersister()
+        settings.geometry = SixCircle()
+        settings.ubcalc_strategy = YouUbCalcStrategy()
+        settings.angles_to_hkl_function = youAnglesToHkl
+        settings.Pos = YouPositionScenario
+        self.t_matrix = matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        self.t_hand = 1
+        _UBCommandsBase.setup_method(self)
 
     def _createPersister(self):
         self.tmpdir = tempfile.mkdtemp()
