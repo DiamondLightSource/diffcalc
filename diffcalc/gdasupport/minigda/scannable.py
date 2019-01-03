@@ -174,19 +174,17 @@ except ImportError:
             # Check lower limits if set
             if self.internalLowerLim:
                 for i, (lim, pos) in enumerate(zip(self.internalLowerLim, internalPosition)):
-                    if lim and pos:
-                        if pos < lim:
-                            fieldName = "{}.{}".format(self.getHostScannable().getName(), self.getHostScannable().getInputNames()[i])
-                            return "{} limit violation on {}: {} < {} (internal/hardware/dial values).".format(
+                    if pos < lim:
+                        fieldName = "{}.{}".format(self.getHostScannable().getName(), self.getHostScannable().getInputNames()[i])
+                        return "{} limit violation on {}: {} < {} (internal/hardware/dial values).".format(
                                                                 self.limitType, fieldName, pos, lim)
 
             # Check upper limits if set
             if self.internalUpperLim:
                 for i, (lim, pos) in enumerate(zip(self.internalUpperLim, internalPosition)):
-                    if lim and pos:
-                        if pos > lim:
-                            fieldName = "{}.{}".format(self.getHostScannable().getName(), self.getHostScannable().getInputNames()[i])
-                            return "{} limit violation on {}: {} > {} (internal/hardware/dial values).".format(
+                    if pos > lim:
+                        fieldName = "{}.{}".format(self.getHostScannable().getName(), self.getHostScannable().getInputNames()[i])
+                        return "{} limit violation on {}: {} > {} (internal/hardware/dial values).".format(
                                                                 self.limitType, fieldName, pos, lim)
             return None
 
