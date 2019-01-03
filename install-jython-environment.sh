@@ -5,7 +5,7 @@ JAMA_JAR_URL='http://search.maven.org/remotecontent?filepath=gov/nist/math/jama/
 
 # Install Jama jar
 mkdir -p lib
-wget -P $HOME/lib $JAMA_JAR_URL
+wget -O $HOME/lib/jama-1.0.3.jar $JAMA_JAR_URL
 export CLASSPATH=$HOME/lib/jama-1.0.3.jar:$CLASSPATH
 
 # Install Jython
