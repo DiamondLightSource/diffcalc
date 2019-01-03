@@ -1,7 +1,33 @@
 from diffcalc.util import x_rotation, y_rotation, z_rotation, TORAD, TODEG
 from startup._common_imports import *
+from diffcalc.hkl.you.geometry import YouGeometry, YouPosition
+
+try:
+    from numpy import matrix
+except ImportError:
+    from numjy import matrix
+
 if not GDA:
     import startup._demo
+
+
+class FiveCircleI13(YouGeometry):
+    """For a diffractometer with angles:
+          delta, gamma, eta, chi, phi
+    """
+    def __init__(self, beamline_axes_transform=None):
+        YouGeometry.__init__(self, 'diffcalc_fivec', {'mu': 0}, beamline_axes_transform)
+
+    def physical_angles_to_internal_position(self, physical_angle_tuple):
+        # mu, delta, nu, eta, chi, phi
+        delta_phys, gam_phys, eta_phys, chi_phys, phi_phys = physical_angle_tuple
+        return YouPosition(0, delta_phys, gam_phys, -eta_phys, -chi_phys, -phi_phys, 'DEG')
+
+    def internal_position_to_physical_angles(self, internal_position):
+        clone_position = internal_position.clone()
+        clone_position.changeToDegrees()
+        _, delta_phys, gam_phys, eta_phys, chi_phys, phi_phys = clone_position.totuple()
+        return delta_phys, gam_phys, -eta_phys, -chi_phys, -phi_phys
 
 
 if '_fivec' in globals() and 'en' in globals():
@@ -26,7 +52,8 @@ else:
 ### Configure and import diffcalc objects ###
 ESMTGKeV = 1
 settings.hardware = ScannableHardwareAdapter(_fivec, en, ESMTGKeV)
-settings.geometry = diffcalc.hkl.you.geometry.FiveCircle()
+beamline_axes_transform = matrix([[0, 0, 1],[1, 0, 0], [0, 1, 0,]])
+settings.geometry = FiveCircleI13(beamline_axes_transform=beamline_axes_transform)
 settings.energy_scannable = en
 settings.axes_scannable_group = _fivec
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
@@ -41,7 +68,7 @@ if GDA:
  
   
 # Load the last ub calculation used  
-lastub()
+# lastub()
 
 # 
 # setmax(delta, 28)
@@ -73,19 +100,19 @@ hardware()
 
 
 
-def X(th_deg):
-    return x_rotation(th_deg * TORAD)
-
-
-def Y(th_deg):
-    return y_rotation(th_deg * TORAD)
-                      
-
-def Z(th_deg):
-    return z_rotation(th_deg * TORAD)
-
-
-WEDGE = X(15)
+#def X(th_deg):
+#    return x_rotation(th_deg * TORAD)
+#
+#
+#def Y(th_deg):
+#    return y_rotation(th_deg * TORAD)
+#                      
+#
+#def Z(th_deg):
+#    return z_rotation(th_deg * TORAD)
+#
+#
+#WEDGE = X(15)
 
 
 if not GDA:
@@ -183,4 +210,4 @@ _fivec would move to:
     tau :   54.7356
   theta :   13.1989
 
-""""
+"""

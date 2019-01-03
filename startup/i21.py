@@ -23,6 +23,28 @@ LOCAL_MANUAL = "http://confluence.diamond.ac.uk/x/UoIQAw"
 
 SIM_MODE=False
 
+<<<<<<< HEAD
+=======
+class FourCircleI21(YouGeometry):
+    """For a diffractometer with angles:
+          delta, eta, chi, phi
+    """
+    def __init__(self, beamline_axes_transform=None):
+        YouGeometry.__init__(self, 'fourc', {'eta': 0, 'delta': 0}, beamline_axes_transform)
+
+    def physical_angles_to_internal_position(self, physical_angle_tuple):
+        # mu, delta, nu, eta, chi, phi
+        delta_phys, th_phys, chi_phys, phi_phys = physical_angle_tuple
+        return YouPosition(th_phys, 0, delta_phys, 0, chi_phys, -phi_phys, 'DEG')
+
+    def internal_position_to_physical_angles(self, internal_position):
+        clone_position = internal_position.clone()
+        clone_position.changeToDegrees()
+        _mu, _, _gam, _, _chi, _phi = clone_position.totuple()
+        return _gam, _mu, _chi, -_phi
+
+
+>>>>>>> refs/heads/master
 ### Create dummy scannables ###
 if GDA:  
     xyz_eta = ScannableGroup('xyz_eta', [x, y, z])  # @UndefinedVariable
@@ -65,6 +87,7 @@ en.level = 3
 simenergy.level = 3
 
 ### Configure and import diffcalc objects ###
+<<<<<<< HEAD
 beamline_axes_transform = matrix('0 0 1; 0 1 0; 1 0 0')
 _lowq_geometry = FourCircleI21(beamline_axes_transform=beamline_axes_transform, delta_offset=-5.)
 _highq_geometry = FourCircleI21(beamline_axes_transform=beamline_axes_transform, delta_offset=5.)
@@ -84,6 +107,12 @@ _hw_sim = ScannableHardwareAdapter(_sc_sim, simenergy, ESMTGKeV)
 
 settings.hardware = _hw_difftth
 settings.geometry = _tth_geometry
+=======
+ESMTGKeV = 0.001
+settings.hardware = ScannableHardwareAdapter(_fourc, en, ESMTGKeV)
+beamline_axes_transform = matrix('0 0 -1; 0 1 0; 1 0 0')
+settings.geometry = FourCircleI21(beamline_axes_transform=beamline_axes_transform)  # @UndefinedVariable
+>>>>>>> refs/heads/master
 settings.energy_scannable = en
 settings.axes_scannable_group = _sc_difftth
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV

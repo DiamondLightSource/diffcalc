@@ -31,7 +31,7 @@ class matrix(object):
                           for element in row.replace(',', ' ').split()])
             self.m = Jama.Matrix(l)
         elif isinstance(a, matrix):
-            self.m = Jama.Matrix(a.m)
+            self.m = Jama.Matrix(a.tolist())
         elif isinstance(a, (list, tuple)):
             if isinstance(a[0], (list, tuple)):
                 # a is a list of lists (not rigorous test!)

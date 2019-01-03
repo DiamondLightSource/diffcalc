@@ -60,7 +60,7 @@ class YouReference(object):
     def _pretty_vector(self, m):
         return ' '.join([('% 9.5f' % e).rjust(9) for e in m.T.tolist()[0]])
     
-    def repr_lines(self, ub_calculated, WIDTH=9, R=None):
+    def repr_lines(self, ub_calculated, WIDTH, conv):
         SET_LABEL = ' <- set'
         lines = []
         if self._n_phi_configured is not None:
@@ -73,15 +73,9 @@ class YouReference(object):
             raise AssertionError("Neither a manual n_phi nor n_hkl is configured")
         
         if ub_calculated:
-            try:
-                lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(R.I * self.n_phi) + nphi_label)
-            except AttributeError:
-                lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(self.n_phi) + nphi_label)
+            lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(conv.transform(self.n_phi, True)) + nphi_label)
             lines.append("   n_hkl:".ljust(WIDTH) + self._pretty_vector(self.n_hkl) + nhkl_label)
-            try:
-                rotation_axis = R.I * cross3(matrix('0; 0; 1'), self.n_phi)
-            except AttributeError:
-                rotation_axis = cross3(matrix('0; 0; 1'), self.n_phi)
+            rotation_axis = conv.transform(cross3(matrix('0; 0; 1'), self.n_phi), True)
             if abs(norm(rotation_axis)) < SMALL:
                 lines.append("   normal:".ljust(WIDTH) + "  None")
             else:
@@ -94,10 +88,7 @@ class YouReference(object):
  
         else:  # no ub calculated
             if self._n_phi_configured is not None:
-                try:
-                    lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(R.I * self._n_phi_configured) + SET_LABEL)
-                except AttributeError:
-                    lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(self._n_phi_configured) + SET_LABEL)
+                lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(conv.transform(self._n_phi_configured, True)) + SET_LABEL)
             elif self._n_hkl_configured is not None:
                 lines.append("   n_hkl:".ljust(WIDTH) + self._pretty_vector(self._n_hkl_configured) + SET_LABEL)
 

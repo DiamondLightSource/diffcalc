@@ -64,6 +64,7 @@ class ReflectionList:
 
     def edit_reflection(self, num, h, k, l, position, energy, tag, time):
         """num starts at 1"""
+        if num < 1: raise TypeError("Reflection indices start at 1")
         if type(position) in (list, tuple):
             position = VliegPosition(*position)
         try:
@@ -78,21 +79,25 @@ class ReflectionList:
         getReflection(num) --> ( [h, k, l], position, energy, tag, time ) --
         num starts at 1 position in degrees
         """
+        if num < 1: raise TypeError("Reflection indices start at 1")
         r = deepcopy(self._reflist[num - 1])  # for convenience
         return [r.h, r.k, r.l], deepcopy(r.pos), r.energy, r.tag, eval(r.time)
 
     def get_reflection_in_external_angles(self, num):
         """getReflection(num) --> ( [h, k, l], (angle1...angleN), energy, tag )
         -- num starts at 1 position in degrees"""
+        if num < 1: raise TypeError("Reflection indices start at 1")
         r = deepcopy(self._reflist[num - 1])  # for convenience
         externalAngles = self._geometry.internal_position_to_physical_angles(r.pos)
         result = [r.h, r.k, r.l], externalAngles, r.energy, r.tag, eval(r.time)
         return result
 
     def removeReflection(self, num):
+        if num < 1: raise TypeError("Reflection indices start at 1")
         del self._reflist[num - 1]
 
     def swap_reflections(self, num1, num2):
+        if num1 < 1 or num2 < 1: raise TypeError("Reflection indices start at 1")
         orig1 = self._reflist[num1 - 1]
         self._reflist[num1 - 1] = self._reflist[num2 - 1]
         self._reflist[num2 - 1] = orig1
@@ -114,13 +119,13 @@ class ReflectionList:
         values = ('ENERGY', 'H', 'K', 'L') + axes
         lines.append(bold(format % values))
 
-        for n in range(len(self._reflist)):
-            ref_tuple = self.get_reflection_in_external_angles(n + 1)
+        for n in range(1, len(self._reflist) + 1):
+            ref_tuple = self.get_reflection_in_external_angles(n)
             [h, k, l], externalAngles, energy, tag, _ = ref_tuple
             if tag is None:
                 tag = ""
             format = ("  %2d %6.3f % 4.2f % 4.2f % 4.2f  " +
                       "% 8.4f " * len(axes) + " %s")
-            values = (n + 1, energy / self._multiplier, h, k, l) + externalAngles + (tag,)
+            values = (n, energy / self._multiplier, h, k, l) + externalAngles + (tag,)
             lines.append(format % values)
         return lines
