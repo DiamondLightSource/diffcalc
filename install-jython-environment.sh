@@ -15,5 +15,5 @@ java -jar jython_installer.jar -s -d $HOME/jython
 # Install nose for Jython
 # TODO: move to a setup.py
 $HOME/jython/bin/pip install nose
-$HOME/jython/bin/pip install pytest==3.2.3
+$HOME/jython/bin/pip install pytest==3.10.1
 $HOME/jython/bin/pip install pytest-xdist
