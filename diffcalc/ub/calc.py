@@ -207,7 +207,7 @@ class UBCalculation:
         if self._state.crystal is None:
             lines.append("   <<< none specified >>>")
         else:
-            lines.extend(self._state.crystal.str_lines())
+            lines.extend(self._state.crystal.str_lines(self._tobj))
 
         lines.append("")
         lines.append(bold("UB MATRIX"))

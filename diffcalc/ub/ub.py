@@ -29,7 +29,7 @@ except ImportError:
 
 
 from diffcalc.util import getInputWithDefault as promptForInput, \
-    promptForNumber, promptForList, allnum, isnum, bold, xyz_rotation
+    promptForNumber, promptForList, allnum, isnum, bold
 from diffcalc.util import command
 
 TORAD = pi / 180
