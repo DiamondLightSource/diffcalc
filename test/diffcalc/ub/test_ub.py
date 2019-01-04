@@ -541,7 +541,7 @@ class _UBCommandsBase():
         self.ub.refineub()
         getLattice = self.ub.ubcalc._state.crystal.getLattice
         eq_(('xtal', sqrt(2.), sqrt(2.), 1, 90, 90, 90), getLattice())
-        mneq_(self.ub.ubcalc.U, self.conv.transform(self._refineub_matrix),
+        mneq_(self.ub.ubcalc.U, self._refineub_matrix,
               4, note="wrong U matrix after refinement")
 
     def testRefineubInteractivelyWithPosition(self):
@@ -553,7 +553,7 @@ class _UBCommandsBase():
         self.ub.refineub()
         getLattice = self.ub.ubcalc._state.crystal.getLattice
         eq_(('xtal', sqrt(2.), sqrt(2.), 1, 90, 90, 90), getLattice())
-        mneq_(self.ub.ubcalc.U, self.conv.transform(self._refineub_matrix),
+        mneq_(self.ub.ubcalc.U, self._refineub_matrix,
               4, note="wrong U matrix after refinement")
 
     def testRefineubInteractivelyWithHKL(self):
@@ -565,7 +565,7 @@ class _UBCommandsBase():
         self.ub.refineub([1, 1, 0])
         getLattice = self.ub.ubcalc._state.crystal.getLattice
         eq_(('xtal', sqrt(2.), sqrt(2.), 1, 90, 90, 90), getLattice())
-        mneq_(self.ub.ubcalc.U, self.conv.transform(self._refineub_matrix),
+        mneq_(self.ub.ubcalc.U, self._refineub_matrix,
               4, note="wrong U matrix after refinement")
 
     def testRefineub(self):
@@ -576,7 +576,7 @@ class _UBCommandsBase():
         self.ub.refineub([1, 1, 0], [0, 60, 0, 30, 0, 0])
         getLattice = self.ub.ubcalc._state.crystal.getLattice
         eq_(('xtal', sqrt(2.), sqrt(2.), 1, 90, 90, 90), getLattice())
-        mneq_(self.ub.ubcalc.U, self.conv.transform(self._refineub_matrix),
+        mneq_(self.ub.ubcalc.U, self._refineub_matrix,
               4, note="wrong U matrix after refinement")
 
     def testC2th(self):
@@ -680,10 +680,10 @@ class TestUBCommandsCustomGeom(TestUBCommandsYou):
 
     def setup_method(self):
         settings.ubcalc_persister = UbCalculationNonPersister()
-        inv = matrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
+        inv = matrix([[0, 0, -1], [0, 1, 0], [1, 0, 0]])
         self.zrot = xyz_rotation([0, 0 ,1], 30. * TORAD)
         self.t_matrix = inv * self.zrot
-        self.t_hand = -1
+        self.t_hand = 1
         settings.geometry = SixCircle(beamline_axes_transform=self.t_matrix)
         settings.ubcalc_strategy = YouUbCalcStrategy()
         settings.angles_to_hkl_function = youAnglesToHkl

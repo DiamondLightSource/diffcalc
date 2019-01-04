@@ -119,12 +119,14 @@ class CrystalUnderTest(object):
         '''    Returns lattice name and all set and calculated parameters'''
         return '\n'.join(self.str_lines())
 
-    def str_lines(self):
+    def str_lines(self, conv=None):
         WIDTH = 13
         if self._name is None:
             return ["   none specified"]
-
-        b = self._bMatrix
+        try:
+            b = conv.R.I * self._bMatrix
+        except AttributeError:
+            b = self._bMatrix
         lines = []
         lines.append("   name:".ljust(WIDTH) + self._name.rjust(9))
         lines.append("")

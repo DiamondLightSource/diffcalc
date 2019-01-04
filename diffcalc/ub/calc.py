@@ -209,7 +209,7 @@ class UBCalculation:
         if self._state.crystal is None:
             lines.append("   <<< none specified >>>")
         else:
-            lines.extend(self._state.crystal.str_lines())
+            lines.extend(self._state.crystal.str_lines(self._tobj))
 
         lines.append("")
         lines.append(bold("UB MATRIX"))
@@ -241,10 +241,7 @@ class UBCalculation:
     def str_lines_u(self):
         lines = []
         fmt = "% 9.5f % 9.5f % 9.5f"
-        try:
-            U = self._ROT.I * self.U * self._ROT
-        except AttributeError:
-            U = self.U
+        U = self._tobj.transform(self.U, True)
         lines.append("   U matrix:".ljust(WIDTH) +
                      fmt % (z(U[0, 0]), z(U[0, 1]), z(U[0, 2])))
         lines.append(' ' * WIDTH + fmt % (z(U[1, 0]), z(U[1, 1]), z(U[1, 2])))
@@ -272,11 +269,9 @@ class UBCalculation:
     def str_lines_ub(self):
         lines = []
         fmt = "% 9.5f % 9.5f % 9.5f"
-        try:
-            RI = self._ROT.I
-            B = self._state.crystal.B
-            UB = RI * self.UB * B.I * self._ROT * B
-        except AttributeError:
+        if self._tobj.R is not None:
+            UB = self._tobj.R.I * self.UB
+        else:
             UB = self.UB
         lines.append("   UB matrix:".ljust(WIDTH) +
                      fmt % (z(UB[0, 0]), z(UB[0, 1]), z(UB[0, 2])))
@@ -381,10 +376,7 @@ class UBCalculation:
     n_phi = property(_get_n_phi)
     
     def set_n_phi_configured(self, n_phi):
-        try:
-            self._state.reference.n_phi_configured = self._ROT.I * n_phi
-        except AttributeError:
-            self._state.reference.n_phi_configured = n_phi
+        self._state.reference.n_phi_configured = self._tobj.transform(n_phi)
         self.save()
         
     def set_n_hkl_configured(self, n_hkl):
@@ -833,10 +825,7 @@ class UBCalculation:
         """
         q_vec = self._strategy.calculate_q_phi(pos)
         hkl_nphi = self._UB * matrix([[h], [k], [l]])
-        try:
-            axis = cross3(self._ROT.I * q_vec, self._ROT.I * hkl_nphi)
-        except AttributeError:
-            axis = cross3(q_vec, hkl_nphi)
+        axis = self._tobj.transform(cross3(q_vec, hkl_nphi), True)
         norm_axis = norm(axis)
         if norm_axis < SMALL:
             return None, None
