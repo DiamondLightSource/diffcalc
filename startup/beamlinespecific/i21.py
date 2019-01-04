@@ -85,18 +85,18 @@ class FourCircleI21(YouGeometry):
     """
     def __init__(self, beamline_axes_transform=None, delta_offset=0):
         self._delta_offset = delta_offset
-        YouGeometry.__init__(self, 'fourc', {'mu': 0, NUNAME: 0}, beamline_axes_transform)
+        YouGeometry.__init__(self, 'fourc', {'eta': 0, 'delta': 0}, beamline_axes_transform)
 
     def physical_angles_to_internal_position(self, physical_angle_tuple):
         # mu, delta, nu, eta, chi, phi
-        delta_phys, eta_phys, chi_phys, phi_phys = physical_angle_tuple
-        return YouPosition(0, delta_phys + self._delta_offset, 0, eta_phys, 90 - chi_phys, phi_phys, 'DEG')
+        delta_phys, th_phys, chi_phys, phi_phys = physical_angle_tuple
+        return YouPosition(th_phys, 0, delta_phys + self._delta_offset, 0, chi_phys, -phi_phys, 'DEG')
 
     def internal_position_to_physical_angles(self, internal_position):
         clone_position = internal_position.clone()
         clone_position.changeToDegrees()
-        _, delta_phys, _, eta_phys, chi_phys, phi_phys = clone_position.totuple()
-        return delta_phys - self._delta_offset, eta_phys, 90 - chi_phys, phi_phys
+        _mu, _, _gam, _, _chi, _phi = clone_position.totuple()
+        return _gam - self._delta_offset, _mu, _chi, -_phi
 
 
 class I21SampleStage(ScannableMotionWithScannableFieldsBase):
