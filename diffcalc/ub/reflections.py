@@ -51,6 +51,20 @@ class ReflectionList:
         self._reflist = reflections if reflections else []
         self._multiplier = multiplier
 
+    def get_tag_index(self, idx):
+        _tag_list = [ref.tag for ref in self._reflist]
+        try:
+            num  = _tag_list.index(idx)
+        except ValueError:
+            if isinstance(idx, int):
+                if idx < 1 or idx > len(self._reflist):
+                    raise IndexError("Reflection index is out of range")
+                else:
+                    num = idx - 1
+            else:
+                raise IndexError("Reflection index not found")
+        return num
+
     def add_reflection(self, h, k, l, position, energy, tag, time):
         """adds a reflection, position in degrees
         """
@@ -59,48 +73,47 @@ class ReflectionList:
                 position = self._geometry.create_position(*position)
             except AttributeError:
                 position = VliegPosition(*position)
-        self._reflist += [_Reflection(h, k, l, position, energy, tag,
-                                     time.__repr__())]
+        self._reflist += [_Reflection(h, k, l, position, energy, tag, time.__repr__())]
 
-    def edit_reflection(self, num, h, k, l, position, energy, tag, time):
+    def edit_reflection(self, idx, h, k, l, position, energy, tag, time):
         """num starts at 1"""
-        if num < 1: raise TypeError("Reflection indices start at 1")
+        try:
+            num = self.get_tag_index(idx)
+        except IndexError:
+            raise DiffcalcException("There is no reflection " + repr(idx)
+                                     + " to edit.")
         if type(position) in (list, tuple):
             position = VliegPosition(*position)
-        try:
-            self._reflist[num - 1] = _Reflection(h, k, l, position, energy, tag,
-                                                time.__repr__())
-        except IndexError:
-            raise DiffcalcException("There is no reflection " + repr(num)
-                                     + " to edit.")
+        self._reflist[num] = _Reflection(h, k, l, position, energy, tag, time.__repr__())
 
-    def getReflection(self, num):
+    def getReflection(self, idx):
         """
-        getReflection(num) --> ( [h, k, l], position, energy, tag, time ) --
-        num starts at 1 position in degrees
+        getReflection(idx) --> ( [h, k, l], position, energy, tag, time ) --
+        position in degrees
         """
-        if num < 1: raise TypeError("Reflection indices start at 1")
-        r = deepcopy(self._reflist[num - 1])  # for convenience
+        num = self.get_tag_index(idx)
+        r = deepcopy(self._reflist[num])  # for convenience
         return [r.h, r.k, r.l], deepcopy(r.pos), r.energy, r.tag, eval(r.time)
 
-    def get_reflection_in_external_angles(self, num):
+    def get_reflection_in_external_angles(self, idx):
         """getReflection(num) --> ( [h, k, l], (angle1...angleN), energy, tag )
-        -- num starts at 1 position in degrees"""
-        if num < 1: raise TypeError("Reflection indices start at 1")
-        r = deepcopy(self._reflist[num - 1])  # for convenience
+        -- position in degrees"""
+        num = self.get_tag_index(idx)
+        r = deepcopy(self._reflist[num])  # for convenience
         externalAngles = self._geometry.internal_position_to_physical_angles(r.pos)
         result = [r.h, r.k, r.l], externalAngles, r.energy, r.tag, eval(r.time)
         return result
 
-    def removeReflection(self, num):
-        if num < 1: raise TypeError("Reflection indices start at 1")
-        del self._reflist[num - 1]
+    def removeReflection(self, idx):
+        num = self.get_tag_index(idx)
+        del self._reflist[num]
 
-    def swap_reflections(self, num1, num2):
-        if num1 < 1 or num2 < 1: raise TypeError("Reflection indices start at 1")
-        orig1 = self._reflist[num1 - 1]
-        self._reflist[num1 - 1] = self._reflist[num2 - 1]
-        self._reflist[num2 - 1] = orig1
+    def swap_reflections(self, idx1, idx2):
+        num1 = self.get_tag_index(idx1)
+        num2 = self.get_tag_index(idx2)
+        orig1 = self._reflist[num1]
+        self._reflist[num1] = self._reflist[num2]
+        self._reflist[num2] = orig1
 
     def __len__(self):
         return len(self._reflist)

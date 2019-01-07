@@ -390,13 +390,13 @@ def addref(*args):
         args = list(args)
         h, k, l = args.pop(0)
         if not (isnum(h) and isnum(k) and isnum(l)):
-            raise TypeError()
+            raise TypeError("h,k and l must all be numbers")
         if len(args) >= 2:
             pos = settings.geometry.physical_angles_to_internal_position(  # @UndefinedVariable
                 args.pop(0))
             energy = args.pop(0) * multiplier
             if not isnum(energy):
-                raise TypeError()
+                raise TypeError("Energy value must be a number")
         else:
             pos = settings.geometry.physical_angles_to_internal_position(  # @UndefinedVariable
                 settings.hardware.get_position())  # @UndefinedVariable
@@ -404,23 +404,24 @@ def addref(*args):
         if len(args) == 1:
             tag = args.pop(0)
             if not isinstance(tag, str):
-                raise TypeError()
+                raise TypeError("Tag value must be a string")
+            if tag == '':
+                tag = None
         else:
             tag = None
         ubcalc.add_reflection(h, k, l, pos, energy, tag,
                                    datetime.now())
     else:
-        raise TypeError()
+        raise TypeError("Too many parameters specified for addref command.")
 
 @command
-def editref(num):
-    """editref num -- interactively edit a reflection.
+def editref(idx):
+    """editref {num | 'tag'} -- interactively edit a reflection.
     """
-    num = int(num)
 
     # Get old reflection values
     [oldh, oldk, oldl], oldExternalAngles, oldEnergy, oldTag, oldT = \
-        ubcalc.get_reflection_in_external_angles(num)
+        ubcalc.get_reflection_in_external_angles(idx)
     del oldT  # current time will be used.
 
     h = promptForNumber('h', oldh)
@@ -454,14 +455,14 @@ def editref(num):
     if tag == '':
         tag = None
     pos = settings.geometry.physical_angles_to_internal_position(positionList)  # @UndefinedVariable
-    ubcalc.edit_reflection(num, h, k, l, pos, energy, tag,
+    ubcalc.edit_reflection(idx, h, k, l, pos, energy, tag,
                                 datetime.now())
 
 @command
-def delref(num):
-    """delref num -- deletes a reflection (numbered from 1)
+def delref(idx):
+    """delref {num | 'tag'} -- deletes a reflection
     """
-    ubcalc.del_reflection(int(num))
+    ubcalc.del_reflection(idx)
     
 @command
 def clearref():
@@ -471,17 +472,17 @@ def clearref():
         ubcalc.del_reflection(1)   
 
 @command
-def swapref(num1=None, num2=None):
+def swapref(idx1=None, idx2=None):
     """
-    swapref -- swaps first two reflections used for calulating U matrix
-    swapref num1 num2 -- swaps two reflections (numbered from 1)
+    swapref -- swaps first two reflections used for calculating U matrix
+    swapref {num1 | 'tag1'} {num2 | 'tag2'} -- swaps two reflections
     """
-    if num1 is None and num2 is None:
+    if idx1 is None and idx2 is None:
         ubcalc.swap_reflections(1, 2)
-    elif isinstance(num1, int) and isinstance(num2, int):
-        ubcalc.swap_reflections(num1, num2)
+    elif idx1 is None or idx2 is None:
+        raise TypeError("Please specify two reflection references to swap")
     else:
-        raise TypeError()
+        ubcalc.swap_reflections(idx1, idx2)
 
 ### U calculation from crystal orientation
 @command
@@ -521,30 +522,31 @@ def addorient(*args):
         args = list(args)
         h, k, l = args.pop(0)
         if not (isnum(h) and isnum(k) and isnum(l)):
-            raise TypeError()
+            raise TypeError("h,k and l must all be numbers")
         x, y, z = args.pop(0)
         if not (isnum(x) and isnum(y) and isnum(z)):
-            raise TypeError()
+            raise TypeError("x,y and z must all be numbers")
         if len(args) == 1:
             tag = args.pop(0)
             if not isinstance(tag, str):
-                raise TypeError()
+                raise TypeError("Tag value must be a string.")
+            if tag == '':
+                tag = None
         else:
             tag = None
         ubcalc.add_orientation(h, k, l, x, y ,z, tag,
                                    datetime.now())
     else:
-        raise TypeError()
+        raise TypeError("Too many parameters specified for addorient command.")
 
 @command
-def editorient(num):
-    """editorient num -- interactively edit a crystal orientation.
+def editorient(idx):
+    """editorient num | 'tag' -- interactively edit a crystal orientation.
     """
-    num = int(num)
 
     # Get old reflection values
     [oldh, oldk, oldl], [oldx, oldy, oldz], oldTag, oldT = \
-        ubcalc.get_orientation(num)
+        ubcalc.get_orientation(idx)
     del oldT  # current time will be used.
 
     h = promptForNumber('h', oldh)
@@ -560,14 +562,14 @@ def editorient(num):
     tag = promptForInput("tag", oldTag)
     if tag == '':
         tag = None
-    ubcalc.edit_orientation(num, h, k, l, x, y, z, tag,
+    ubcalc.edit_orientation(idx, h, k, l, x, y, z, tag,
                                 datetime.now())
 
 @command
-def delorient(num):
-    """delorient num -- deletes a crystal orientation (numbered from 1)
+def delorient(idx):
+    """delorient num | 'tag' -- deletes a crystal orientation
     """
-    ubcalc.del_orientation(int(num))
+    ubcalc.del_orientation(idx)
     
 @command
 def clearorient():
@@ -577,17 +579,17 @@ def clearorient():
         ubcalc.del_orientation(1)
 
 @command
-def swaporient(num1=None, num2=None):
+def swaporient(idx1=None, idx2=None):
     """
-    swaporient -- swaps first two crystal orientations used for calulating U matrix
-    swaporient num1 num2 -- swaps two crystal orientations (numbered from 1)
+    swaporient -- swaps first two crystal orientations used for calculating U matrix
+    swaporient {num1 | 'tag1'} {num2 | 'tag2'} -- swaps two crystal orientations
     """
-    if num1 is None and num2 is None:
+    if idx1 is None and idx2 is None:
         ubcalc.swap_orientations(1, 2)
-    elif isinstance(num1, int) and isinstance(num2, int):
-        ubcalc.swap_orientations(num1, num2)
+    elif idx1 is None or idx2 is None:
+        raise TypeError("Please specify two orientation references to swap")
     else:
-        raise TypeError()
+        ubcalc.swap_orientations(idx1, idx2)
 
 
 ### UB calculations ###
@@ -634,22 +636,24 @@ def _promptFor3x3MatrixDefaultingToIdentity():
     return [row1, row2, row3]
 
 @command
-def calcub():
-    """calcub -- (re)calculate U matrix from ref1 and ref2.
+def calcub(idx1=1, idx2=2):
     """
-    ubcalc.calculate_UB()
+    calcub -- (re)calculate U matrix from ref1 and ref2.
+    calcub idx1 idx2 -- (re)calculate U matrix from reflections and/or orientations referred by indices and/or tags idx1 and idx2.
+    """
+    ubcalc.calculate_UB(idx1, idx2)
 
 @command
-def trialub():
-    """trialub -- (re)calculate U matrix from ref1 only (check carefully).
+def trialub(idx=1):
+    """trialub -- (re)calculate U matrix from reflection with index or tag idx only (check carefully). Default: use first reflection.
     """
-    ubcalc.calculate_UB_from_primary_only()
+    ubcalc.calculate_UB_from_primary_only(idx)
 
 @command
-def orientub():
+def orientub(idx1=1, idx2=2):
     """orientub -- (re)calculate U matrix from orient1 and orient2.
     """
-    ubcalc.calculate_UB_from_orientation()
+    ubcalc.calculate_UB_from_orientation(idx1, idx2)
 
 
     # This command requires the ubcalc

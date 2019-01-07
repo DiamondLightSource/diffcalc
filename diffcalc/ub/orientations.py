@@ -52,7 +52,20 @@ class OrientationList:
 
     def __init__(self, orientations=None):
         self._orientlist = orientations if orientations else []
-            
+
+    def get_tag_index(self, idx):
+        _tag_list = [ornt.tag for ornt in self._orientlist]
+        try:
+            num  = _tag_list.index(idx)
+        except ValueError:
+            if isinstance(idx, int):
+                if idx < 1 or idx > len(self._orientlist):
+                    raise IndexError("Orientation index is out of range")
+                else:
+                    num = idx - 1
+            else:
+                raise IndexError("Orientation index not found")
+        return num
 
     def add_orientation(self, h, k, l, x, y, z, tag, time):
         """adds a crystal orientation
@@ -60,40 +73,40 @@ class OrientationList:
         self._orientlist += [_Orientation(h, k, l, x, y, z, tag,
                                      time.__repr__())]
 
-    def edit_orientation(self, num, h, k, l, x, y, z, tag, time):
+    def edit_orientation(self, idx, h, k, l, x, y, z, tag, time):
         """num starts at 1"""
-        if num < 1: raise TypeError("Orientation indices start at 1")
         try:
-            self._orientlist[num - 1] = _Orientation(h, k, l, x, y, z, tag,
-                                                time.__repr__())
+            num = self.get_tag_index(idx)
         except IndexError:
-            raise DiffcalcException("There is no orientation " + repr(num)
+            raise DiffcalcException("There is no orientation " + repr(idx)
                                      + " to edit.")
+        self._orientlist[num] = _Orientation(h, k, l, x, y, z, tag, time.__repr__())
 
-    def getOrientation(self, num):
+    def getOrientation(self, idx):
         """
-        getOrientation(num) --> ( [h, k, l], [x, y, z], tag, time ) --
-        num starts at 1
+        getOrientation(idx) --> ( [h, k, l], [x, y, z], tag, time ) --
+        idx refers to an orientation index (starts at 1) or a tag
         """
-        if num < 1: raise TypeError("Orientation indices start at 1")
-        r = deepcopy(self._orientlist[num - 1])  # for convenience
+        num = self.get_tag_index(idx)
+        r = deepcopy(self._orientlist[num])  # for convenience
         return [r.h, r.k, r.l], [r.x, r.y, r.z], r.tag, eval(r.time)
 
-    def removeOrientation(self, num):
-        if num < 1: raise TypeError("Orientation indices start at 1")
-        del self._orientlist[num - 1]
+    def removeOrientation(self, idx):
+        num = self.get_tag_index(idx)
+        del self._orientlist[num]
 
-    def swap_orientations(self, num1, num2):
-        if num1 < 1 or num2 < 1: raise TypeError("Orientation indices start at 1")
-        orig1 = self._orientlist[num1 - 1]
-        self._orientlist[num1 - 1] = self._orientlist[num2 - 1]
-        self._orientlist[num2 - 1] = orig1
+    def swap_orientations(self, idx1, idx2):
+        num1 = self.get_tag_index(idx1)
+        num2 = self.get_tag_index(idx2)
+        orig1 = self._orientlist[num1]
+        self._orientlist[num1] = self._orientlist[num2]
+        self._orientlist[num2] = orig1
 
     def __len__(self):
         return len(self._orientlist)
 
     def __str__(self):
-        return '\n'.join(self.str_lines())
+        return '\n'.join(self.str_lines(None))
 
     def str_lines(self, conv):
         if not self._orientlist:

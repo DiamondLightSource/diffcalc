@@ -20,7 +20,8 @@ from datetime import datetime
 from diffcalc.hkl.vlieg.geometry import SixCircleGammaOnArmGeometry
 from diffcalc.ub.reflections import ReflectionList
 from diffcalc.hkl.vlieg.geometry  import VliegPosition as Pos
-import unittest
+from diffcalc.util import DiffcalcException
+import pytest
 
 
 class TestReflectionList(object):
@@ -37,11 +38,15 @@ class TestReflectionList(object):
 
     def test_add_reflection(self):
         assert len(self.reflist) == 2
+        pos = Pos(0.11, 0.22, 0.33, 0.44, 0.55, 0.66)
+        self.reflist.add_reflection(11.1, 12.2, 13.3, pos, 1100, "ref2", self.time)
 
     def testGetReflection(self):
         answered = self.reflist.getReflection(1)
         pos = Pos(0.1, 0.2, 0.3, 0.4, 0.5, 0.6)
         desired = ([1, 2, 3], pos, 1000, "ref1", self.time)
+        assert answered == desired
+        answered = self.reflist.getReflection('ref1')
         assert answered == desired
 
     def testRemoveReflection(self):
@@ -50,6 +55,8 @@ class TestReflectionList(object):
         pos = Pos(0.11, 0.22, 0.33, 0.44, 0.55, 0.66)
         desired = ([1.1, 2.2, 3.3], pos, 1100, "ref2", self.time)
         assert answered == desired
+        self.reflist.removeReflection("ref2")
+        assert self.reflist._reflist == []
 
     def testedit_reflection(self):
         ps = Pos(0.1, 0.2, 0.3, 0.4, 0.5, 0.6)
@@ -59,6 +66,12 @@ class TestReflectionList(object):
         pos = Pos(0.11, 0.22, 0.33, 0.44, 0.55, 0.66)
         assert (self.reflist.getReflection(2)
                 == ([1.1, 2.2, 3.3], pos, 1100, "ref2", self.time))
+        self.reflist.edit_reflection("ref2", 1.1, 2.2, 3.3, pos, 1100, "new2", self.time)
+        assert (self.reflist.getReflection("new2")
+                == ([1.1, 2.2, 3.3], pos, 1100, "new2", self.time))
+        self.reflist.edit_reflection("new2", 10, 20, 30, pos, 1100, "new1", self.time)
+        assert (self.reflist.getReflection("new1")
+                == ([10, 20, 30], ps, 1000, "new1", self.time))
 
     def testSwapReflection(self):
         self.reflist.swap_reflections(1, 2)
@@ -67,6 +80,13 @@ class TestReflectionList(object):
                 == ([1.1, 2.2, 3.3], pos, 1100, "ref2", self.time))
         pos = Pos(0.1, 0.2, 0.3, 0.4, 0.5, 0.6)
         assert (self.reflist.getReflection(2)
+                 == ([1, 2, 3], pos, 1000, "ref1", self.time))
+        self.reflist.swap_reflections("ref1", "ref2")
+        pos = Pos(0.11, 0.22, 0.33, 0.44, 0.55, 0.66)
+        assert (self.reflist.getReflection(2)
+                == ([1.1, 2.2, 3.3], pos, 1100, "ref2", self.time))
+        pos = Pos(0.1, 0.2, 0.3, 0.4, 0.5, 0.6)
+        assert (self.reflist.getReflection(1)
                  == ([1, 2, 3], pos, 1000, "ref1", self.time))
 
     def createRefStateDicts(self):
