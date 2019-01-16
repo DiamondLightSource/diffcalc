@@ -524,16 +524,28 @@ class _UBCommandsBase():
         self.ub.setlat(s.name, *s.lattice)
         r1 = s.ref1
         orient1 = self.conv.transform(matrix('1; 0; 0'), True)
+        tag1 = 'or'+r1.tag
         self.ub.addorient(
-            (r1.h, r1.k, r1.l), orient1.T.tolist()[0], r1.tag)
+            (r1.h, r1.k, r1.l), orient1.T.tolist()[0], tag1)
         r2 = s.ref2
         orient2 = self.conv.transform(matrix('0; -1; 0'), True)
+        tag2 = 'or'+r2.tag
         self.ub.addorient(
-            (r2.h, r2.k, r2.l), orient2.T.tolist()[0], r2.tag)
+            (r2.h, r2.k, r2.l), orient2.T.tolist()[0], tag2)
         self.ub.orientub()
         mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
               4, note="wrong UB matrix after calculating U")
-        self.ub.orientub(r1.tag, r2.tag)
+        self.ub.orientub(tag1, tag2)
+        mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
+              4, note="wrong UB matrix after calculating U")
+        self.ub.addref(
+            [r1.h, r1.k, r1.l], r1.pos.totuple(), r1.energy, r1.tag)
+        self.ub.orientub(r1.tag, tag2)
+        mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
+              4, note="wrong UB matrix after calculating U")
+        self.ub.addref(
+            [r2.h, r2.k, r2.l], r2.pos.totuple(), r2.energy, r2.tag)
+        self.ub.orientub(tag1, r2.tag)
         mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
               4, note="wrong UB matrix after calculating U")
 

@@ -546,7 +546,7 @@ def editorient(idx):
 
     # Get old reflection values
     [oldh, oldk, oldl], [oldx, oldy, oldz], oldTag, oldT = \
-        ubcalc.get_orientation(idx)
+        ubcalc.get_orientation(idx, True)
     del oldT  # current time will be used.
 
     h = promptForNumber('h', oldh)
@@ -636,9 +636,9 @@ def _promptFor3x3MatrixDefaultingToIdentity():
     return [row1, row2, row3]
 
 @command
-def calcub(idx1=1, idx2=2):
+def calcub(idx1=None, idx2=None):
     """
-    calcub -- (re)calculate U matrix from ref1 and ref2.
+    calcub -- (re)calculate U matrix from the first two reflections and/or orientations.
     calcub idx1 idx2 -- (re)calculate U matrix from reflections and/or orientations referred by indices and/or tags idx1 and idx2.
     """
     ubcalc.calculate_UB(idx1, idx2)
@@ -647,13 +647,16 @@ def calcub(idx1=1, idx2=2):
 def trialub(idx=1):
     """trialub -- (re)calculate U matrix from reflection with index or tag idx only (check carefully). Default: use first reflection.
     """
-    ubcalc.calculate_UB_from_primary_only(idx)
+    ubcalc.calculate_UB(idx)
 
 @command
-def orientub(idx1=1, idx2=2):
-    """orientub -- (re)calculate U matrix from orient1 and orient2.
+def orientub(idx1=None, idx2=None):
     """
-    ubcalc.calculate_UB_from_orientation(idx1, idx2)
+    DEPRECATED. Please use 'calcub' command.
+    orientub -- (re)calculate U matrix from the first two reflections and/or orientations.
+    orientub idx1 idx2 -- (re)calculate U matrix from reflections and/or orientations referred by indices and/or tags idx1 and idx2.
+    """
+    ubcalc.calculate_UB(idx1, idx2)
 
 
     # This command requires the ubcalc
