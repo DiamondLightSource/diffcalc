@@ -138,6 +138,13 @@ class YouConstraintManager(object):
         names.sort(key=lambda name: list(all_constraints).index(name))
         return tuple(names)
 
+    @property
+    def available_names(self):
+        """ordered tuple of fixed circles"""
+        names = [name for name in self.all.keys() if not self.is_constraint_fixed(name)]
+        names.sort(key=lambda name: list(all_constraints).index(name))
+        return tuple(names)
+
     def _fix_constraints(self, fixed_constraints):
         for name in fixed_constraints:
             self.constrain(name)
@@ -218,8 +225,7 @@ class YouConstraintManager(object):
         constraints.extend(self.naz.keys())
         constraints.extend(self.reference.keys())
         constraints.extend(sorted(self.sample.keys()))
-        for name in constraints:
-            lines.append(self._report_constraint(name))
+        lines.extend([self._report_constraint(name) for name in self.available_names])
         return lines
 
     def is_fully_constrained(self):
@@ -272,7 +278,7 @@ class YouConstraintManager(object):
 
     def constrain(self, name):
         if self.is_constraint_fixed(name):
-            raise DiffcalcException('%s is not a valid constraint name' % name)
+            raise DiffcalcException('%s constraint cannot be changed' % name)
         if name in self.all:
             return "%s is already constrained." % name.capitalize()
         elif name in det_constraints:
@@ -304,40 +310,57 @@ class YouConstraintManager(object):
             self._constrained[name] = None
 
     def _could_not_constrain_exception(self, name):
+        names = self.available_names
+        if len(names) > 1:
+            names_fmt = 'one of the\nangles ' + ', '.join(names[:-1]) + ' or ' + names[-1]
+        else:
+            names_fmt = 'angle ' + names[0]
         return DiffcalcException(
-            "%s could not be constrained. First un-constrain one of the\n"
-            "angles %s, %s or %s (with 'uncon')" %
-            ((name.capitalize(),) + self.constrained_names))
+            "%s could not be constrained. First un-constrain %s "
+            "(with 'uncon')" %
+            (name.capitalize(), names_fmt))
 
     def _constrain_reference(self, name):
         if self.reference:
             constrained_name = self.reference.keys()[0]
+        elif len(self._constrained) < 3:
+            constrained_name = None
+        elif len(self.available_names) == 1:
+            constrained_name = self.available_names[0]
+        else:
+            raise self._could_not_constrain_exception(name)
+        try:
             del self._constrained[constrained_name]
             self._constrained[name] = None
             return '%s constraint replaced.' % constrained_name.capitalize()
-        elif len(self.all) == 3:  # and no reference
-            raise self._could_not_constrain_exception(name)
-        else:
+        except KeyError:
             self._constrained[name] = None
 
     def _constrain_sample(self, name):
         if len(self._constrained) < 3:
-            # okay, more to add
-            self._constrained[name] = None
-        # else: three constraints are set
+            constrained_name = None
+        elif len(self.available_names) == 1:
+            # Only one settable constraint
+            constrained_name = self.available_names[0]
         elif len(self.sample) == 1:
             # (detector and reference constraints set)
             # it is clear which sample constraint to remove
             constrained_name = self.sample.keys()[0]
+            if self.is_constraint_fixed(constrained_name):
+                raise self._could_not_constrain_exception(name)
+        else:
+            # else: three constraints are set
+            raise self._could_not_constrain_exception(name)
+        try:
             del self._constrained[constrained_name]
             self._constrained[name] = None
             return '%s constraint replaced.' % constrained_name.capitalize()
-        else:
-            raise self._could_not_constrain_exception(name)
+        except KeyError:
+            self._constrained[name] = None
 
     def unconstrain(self, name):
         if self.is_constraint_fixed(name):
-            raise DiffcalcException('%s is not a valid constraint name')
+            raise DiffcalcException('%s constraint cannot be removed' % name)
         if name in self._constrained:
             del self._constrained[name]
         else:
@@ -362,7 +385,7 @@ class YouConstraintManager(object):
 
     def set_constraint(self, name, value):  # @ReservedAssignment
         if self.is_constraint_fixed(name):
-            raise DiffcalcException('%s is not a valid constraint name')
+            raise DiffcalcException('%s constraint cannot be changed' % name)
         self._check_constraint_settable(name)
 #        if name in self._tracking:
 #            raise DiffcalcException(
