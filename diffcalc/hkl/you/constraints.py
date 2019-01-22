@@ -393,10 +393,19 @@ class YouConstraintManager(object):
 #                "its associated\nphysical angle. First remove this tracking "
 #                "(use 'untrack %s').""" % (name, name))
         old_value = self.get_constraint(name)
-        old = str(old_value) if old_value is not None else '---'
-        self._constrained[name] = float(value) * TORAD
-        new = str(value)
-        return "%(name)s : %(old)s --> %(new)s" % locals()
+        try:
+            old_str = '---' if old_value is None else str(old_value)
+        except Exception:
+            old_str = '---'
+        try:
+            self._constrained[name] = float(value) * TORAD
+        except Exception:
+            raise DiffcalcException('Cannot set %s constraint. Invalid input value.' % name)
+        try:
+            new_str = '---' if value is None else str(value)
+        except Exception:
+            new_str = '---'
+        return "%s : %s --> %s" % (name, old_str, new_str)
 
     def get_constraint(self, name):
         value = self.all[name]
