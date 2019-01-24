@@ -36,6 +36,18 @@ class YouGeometry(object):
         # i.e. it transforms the beamline coordinate system into the diffcalc one.
         self.beamline_axes_transform = beamline_axes_transform
 
+    def map_to_internal_position(self, name, value):
+        return name, value
+
+    def map_to_external_position(self, name, value):
+        return name, value
+
+    def map_to_internal_name(self, name):
+        return name
+
+    def map_to_external_name(self, name):
+        return name
+
     def physical_angles_to_internal_position(self, physical_angle_tuple):
         raise NotImplementedError()
 
@@ -146,9 +158,6 @@ def calcPHI(phi):
     return z_rotation(-phi)
 
 
-def you_position_names():
-    return ('mu', 'delta', NUNAME, 'eta', 'chi', 'phi')
-
 class YouPosition(AbstractPosition):
 
     def __init__(self, mu, delta, nu, eta, chi, phi, unit):
@@ -195,13 +204,20 @@ class YouPosition(AbstractPosition):
         else:
             raise DiffcalcException("Invalid angle unit value %s." % str(self.unit))
 
+    @staticmethod
+    def get_names():
+        return ('mu', 'delta', NUNAME, 'eta', 'chi', 'phi')
+
     def totuple(self):
         return (self.mu, self.delta, self.nu, self.eta, self.chi, self.phi)
 
+    def todict(self):
+        return dict(zip(self.get_names(), self.totuple()))
+
     def __str__(self):
-        mu, delta, nu, eta, chi, phi = self.totuple()
-        return ("YouPosition(mu %r delta: %r nu: %r eta: %r chi: %r  phi: %r) in %s"
-                % (mu, delta, nu, eta, chi, phi, self.unit))
+        fmt_tuple = sum(zip(self.get_names(), self.totuple()), ()) + (self.unit,)
+        return ("YouPosition(%s: %r %s: %r %s: %r %s: %r %s: %r  %s: %r) in %s"
+                % fmt_tuple)
     
     def __eq__(self, other):
         return self.totuple() == other.totuple()

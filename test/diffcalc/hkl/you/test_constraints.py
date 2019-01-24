@@ -27,6 +27,8 @@ from nose.tools import assert_raises  # @UnresolvedImport
 
 from diffcalc.hkl.you.constraints import NUNAME
 import diffcalc.util
+from diffcalc.hkl.you.geometry import SixCircle
+from diffcalc import settings
 
 def joined(d1, d2):
     d1.update(d2)
@@ -42,6 +44,7 @@ class TestConstraintManager:
         self.hardware_monitor.get_axes_names.return_value = [
                                       'mu', 'delta', NUNAME, 'eta', 'chi', 'phi']
         self.cm = YouConstraintManager(self.hardware_monitor)
+        settings.geometry = SixCircle()
 
     def test_init(self):
         eq_(self.cm.all, {})

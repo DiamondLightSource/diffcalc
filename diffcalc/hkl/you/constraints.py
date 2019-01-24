@@ -17,6 +17,7 @@
 ###
 
 from math import pi
+from diffcalc import settings
 
 try:
     from numpy import matrix
@@ -195,7 +196,8 @@ class YouConstraintManager(object):
             for col in constraint_types:
                 name = col[n_row] if n_row < len(col) else ''
                 row_cells.append(self._label_constraint(name))
-                row_cells.append(('%-' + str(max_name_width) + 's') % name)
+                ext_name = settings.geometry.map_to_external_name(name)
+                row_cells.append(('%-' + str(max_name_width) + 's') % ext_name)
             cells.append(row_cells)
         
         lines = [' '.join(row_cells).rstrip() for row_cells in cells]
@@ -203,14 +205,16 @@ class YouConstraintManager(object):
 
     def _report_constraint(self, name):
         val = self.get_constraint(name)
+        ext_name = settings.geometry.map_to_external_name(name)
         if name in valueless_constraints:
-            return "    %s" % name
+            return "    %s" % ext_name
         else:
             if val is None:
-                return "!   %-5s: ---" % name
+                return "!   %-5s: ---" % ext_name
             else:
-                return "    %-5s: %.4f" % (name, val)
-            
+                ext_name, ext_val = settings.geometry.map_to_external_position(name, val)
+                return "    %-5s: %.4f" % (ext_name, ext_val)
+
     def report_constraints_lines(self):
         lines = []
         required = 3 - len(self.all)
@@ -220,11 +224,6 @@ class YouConstraintManager(object):
             lines.append('!   1 more constraint required')
         else:
             lines.append('!   %d more constraints required' % required)
-        constraints = []
-        constraints.extend(self.detector.keys())
-        constraints.extend(self.naz.keys())
-        constraints.extend(self.reference.keys())
-        constraints.extend(sorted(self.sample.keys()))
         lines.extend([self._report_constraint(name) for name in self.available_names])
         return lines
 
@@ -277,10 +276,11 @@ class YouConstraintManager(object):
         return label
 
     def constrain(self, name):
+        ext_name = settings.geometry.map_to_external_name(name)
         if self.is_constraint_fixed(name):
-            raise DiffcalcException('%s constraint cannot be changed' % name)
+            raise DiffcalcException('%s constraint cannot be changed' % ext_name)
         if name in self.all:
-            return "%s is already constrained." % name.capitalize()
+            return "%s is already constrained." % ext_name.capitalize()
         elif name in det_constraints:
             return self._constrain_detector(name)
         elif name in ref_constraints:
@@ -288,7 +288,7 @@ class YouConstraintManager(object):
         elif name in samp_constraints:
             return self._constrain_sample(name)
         else:
-            raise DiffcalcException("%s is not a valid constraint name. Type 'con' for a table of constraint name" % name)
+            raise DiffcalcException("%s is not a valid constraint name. Type 'con' for a table of constraint name" % ext_name)
 
     def is_constraint_fixed(self, name):
         return ((name in det_constraints and self._hide_detector_constraint) or
@@ -310,7 +310,8 @@ class YouConstraintManager(object):
             self._constrained[name] = None
 
     def _could_not_constrain_exception(self, name):
-        names = self.available_names
+        ext_name = settings.geometry.map_to_external_name(name)
+        names = [settings.geometry.map_to_external_name(nm) for nm in self.available_names]
         if len(names) > 1:
             names_fmt = 'one of the\nangles ' + ', '.join(names[:-1]) + ' or ' + names[-1]
         else:
@@ -318,7 +319,7 @@ class YouConstraintManager(object):
         return DiffcalcException(
             "%s could not be constrained. First un-constrain %s "
             "(with 'uncon')" %
-            (name.capitalize(), names_fmt))
+            (ext_name.capitalize(), names_fmt))
 
     def _constrain_reference(self, name):
         if self.reference:
@@ -332,7 +333,8 @@ class YouConstraintManager(object):
         try:
             del self._constrained[constrained_name]
             self._constrained[name] = None
-            return '%s constraint replaced.' % constrained_name.capitalize()
+            ext_constrained_name = settings.geometry.map_to_external_name(constrained_name)
+            return '%s constraint replaced.' % ext_constrained_name.capitalize()
         except KeyError:
             self._constrained[name] = None
 
@@ -354,38 +356,42 @@ class YouConstraintManager(object):
         try:
             del self._constrained[constrained_name]
             self._constrained[name] = None
-            return '%s constraint replaced.' % constrained_name.capitalize()
+            ext_constrained_name = settings.geometry.map_to_external_name(constrained_name)
+            return '%s constraint replaced.' % ext_constrained_name.capitalize()
         except KeyError:
             self._constrained[name] = None
 
     def unconstrain(self, name):
+        ext_name = settings.geometry.map_to_external_name(name)
         if self.is_constraint_fixed(name):
-            raise DiffcalcException('%s constraint cannot be removed' % name)
+            raise DiffcalcException('%s constraint cannot be removed' % ext_name)
         if name in self._constrained:
             del self._constrained[name]
         else:
-            return "%s was not already constrained." % name.capitalize()
+            return "%s was not already constrained." % ext_name.capitalize()
 
     def _check_constraint_settable(self, name):
+        ext_name = settings.geometry.map_to_external_name(name)
         if name not in all_constraints:
             raise DiffcalcException(
-                'Could not set %(name)s. This is not an available '
+                'Could not set %(ext_name)s. This is not an available '
                 'constraint.' % locals())
         elif name not in self.all.keys():
             raise DiffcalcException(
-                'Could not set %(name)s. This is not currently '
+                'Could not set %(ext_name)s. This is not currently '
                 'constrained.' % locals())
         elif name in valueless_constraints:
             raise DiffcalcException(
-                'Could not set %(name)s. This constraint takes no '
+                'Could not set %(ext_name)s. This constraint takes no '
                 'value.' % locals())
 
     def clear_constraints(self):
         self._constrained = {}
 
     def set_constraint(self, name, value):  # @ReservedAssignment
+        ext_name = settings.geometry.map_to_external_name(name)
         if self.is_constraint_fixed(name):
-            raise DiffcalcException('%s constraint cannot be changed' % name)
+            raise DiffcalcException('%s constraint cannot be changed' % ext_name)
         self._check_constraint_settable(name)
 #        if name in self._tracking:
 #            raise DiffcalcException(
@@ -400,7 +406,7 @@ class YouConstraintManager(object):
         try:
             self._constrained[name] = float(value) * TORAD
         except Exception:
-            raise DiffcalcException('Cannot set %s constraint. Invalid input value.' % name)
+            raise DiffcalcException('Cannot set %s constraint. Invalid input value.' % ext_name)
         try:
             new_str = '---' if value is None else str(value)
         except Exception:

@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
+from diffcalc import settings
 
 try:
     from gda.device.scannable import ScannableMotionBase
@@ -29,6 +30,7 @@ class DiffractionCalculatorParameter(ScannableMotionBase):
 
         self.parameter_manager = parameter_manager
         self.parameterName = parameterName
+        self._ext_name = settings.geometry.map_to_external_name(parameterName)
 
         self.setName(name)
         self.setInputNames([parameterName])
@@ -36,10 +38,13 @@ class DiffractionCalculatorParameter(ScannableMotionBase):
         self.setLevel(3)
 
     def asynchronousMoveTo(self, value):
-        self.parameter_manager.set_constraint(self.parameterName, value)
+        _, cons_value = settings.geometry.map_to_internal_position(self._ext_name, value)
+        self.parameter_manager.set_constraint(self.parameterName, cons_value)
 
     def getPosition(self):
-        return self.parameter_manager.get_constraint(self.parameterName)
+        value = self.parameter_manager.get_constraint(self.parameterName)
+        _, cons_value = settings.geometry.map_to_internal_position(self.parameterName, value)
+        return cons_value
 
     def isBusy(self):
         return False
