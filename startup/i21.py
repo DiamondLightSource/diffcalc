@@ -32,16 +32,75 @@ class FourCircleI21(YouGeometry):
     def __init__(self, beamline_axes_transform=None):
         YouGeometry.__init__(self, 'fourc', {'eta': 0, 'delta': 0}, beamline_axes_transform)
 
+        # Order should match scannable order in _fourc group for mapping to work correctly
+        self._scannable_mapping = ((NUNAME, lambda x: x),
+                                   ('mu',   lambda x: x),
+                                   ('chi',  lambda x: x),
+                                   ('phi',  lambda x: -x))
+
+    def map_to_internal_name(self, name):
+        scn_names = settings.hardware.diffhw.getInputNames()
+        try:
+            idx_name = scn_names.index(name)
+            you_name, _ = self._scannable_mapping[idx_name]
+            return you_name
+        except ValueError:
+            return name
+
+    def map_to_external_name(self, name):
+        scn_names = settings.hardware.diffhw.getInputNames()
+        for idx, (you_name, _) in enumerate(self._scannable_mapping):
+            if you_name == name:
+                return scn_names[idx]
+        return name
+
+    def map_to_internal_position(self, name, value):
+        scn_names = settings.hardware.diffhw.getInputNames()
+        try:
+            idx_name = scn_names.index(name)
+        except ValueError:
+            return name, value
+        new_name, op = self._scannable_mapping[idx_name]
+        try:
+            return new_name, op(value)
+        except TypeError:
+            return new_name, None
+
+    def map_to_external_position(self, name, value):
+        try:
+            (idx, _, op), = tuple((i, nm, o) for i, (nm, o) in enumerate(self._scannable_mapping) if nm == name)
+        except ValueError:
+            return name, value
+        scn_names = settings.hardware.diffhw.getInputNames()
+        try:
+            ext_name = scn_names[idx]
+        except ValueError:
+            return name, value
+        try:
+            return ext_name, op(value)
+        except TypeError:
+            return ext_name, None
+
     def physical_angles_to_internal_position(self, physical_angle_tuple):
-        # mu, delta, nu, eta, chi, phi
-        delta_phys, th_phys, chi_phys, phi_phys = physical_angle_tuple
-        return YouPosition(th_phys, 0, delta_phys, 0, chi_phys, -phi_phys, 'DEG')
+        you_angles = {}
+        scn_names = settings.hardware.diffhw.getInputNames()
+        for scn_name, phys_angle in zip(scn_names, physical_angle_tuple):
+            name, val = self.map_to_internal_position(scn_name, phys_angle)
+            you_angles[name] = val
+        you_angles.update(self.fixed_constraints)
+
+        angle_values = tuple(you_angles[name] for name in YouPosition.get_names())
+        return YouPosition(*angle_values, unit='DEG')
 
     def internal_position_to_physical_angles(self, internal_position):
         clone_position = internal_position.clone()
         clone_position.changeToDegrees()
-        _mu, _, _gam, _, _chi, _phi = clone_position.totuple()
-        return _gam, _mu, _chi, -_phi
+        you_angles = clone_position.todict()
+        res = []
+        for name, _ in self._scannable_mapping:
+            _, val = self.map_to_external_position(name, you_angles[name])
+            res.append(val)
+        return tuple(res)
 
 
 ### Create dummy scannables ###
