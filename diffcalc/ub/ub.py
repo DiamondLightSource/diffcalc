@@ -42,7 +42,7 @@ TODEG = 180 / pi
 __all__ = ['addorient', 'addref', 'c2th', 'hklangle', 'calcub', 'delorient', 'delref', 'editorient',
            'editref', 'listub', 'loadub', 'newub', 'orientub', 'saveubas', 'setlat',
            'addmiscut', 'setmiscut', 'setu', 'setub', 'showorient', 'showref', 'swaporient',
-           'swapref', 'trialub', 'checkub', 'ub', 'ubcalc', 'rmub', 'clearorient',
+           'swapref', 'trialub', 'fitub', 'checkub', 'ub', 'ubcalc', 'rmub', 'clearorient',
            'clearref', 'lastub', 'refineub']
 
 if settings.include_sigtau:
@@ -658,6 +658,12 @@ def orientub(idx1=None, idx2=None):
     """
     ubcalc.calculate_UB(idx1, idx2)
 
+@command
+def fitub(*args):
+    """fitub ref1, ref2, ref3... -- fit UB matrix to match list of provided reference reflections."""
+    new_umatrix, new_lattice = ubcalc.fit_ub_matrix(*args)
+    ubcalc.set_lattice(*new_lattice)
+    ubcalc.set_U_manually(new_umatrix, False)
 
     # This command requires the ubcalc
 
@@ -758,6 +764,7 @@ commands_for_help.extend([
                      clearorient,
                      swaporient,
                      'UB matrix',
+                     fitub,
                      checkub,
                      setu,
                      setub,

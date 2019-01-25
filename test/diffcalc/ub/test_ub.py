@@ -595,6 +595,20 @@ class _UBCommandsBase():
         mneq_(self.ub.ubcalc.U, self._refineub_matrix,
               4, note="wrong U matrix after refinement")
 
+    def testFitub(self):
+        self.ub.newub('testfitub')
+        for s in [scenarios.sessions(settings.Pos)[-1],]:
+            self.ub.setlat(s.name, *s.lattice)
+            self.ub.clearref()
+            for r in (s.ref1, s.ref2, s.ref3):
+                self.ub.addref(
+                    [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
+            self.ub.calcub(s.ref1.tag, s.ref2.tag)
+            self.ub.addmiscut(1.)
+            self.ub.fitub(s.ref1.tag, s.ref2.tag, s.ref3.tag)
+            mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
+                  4, note="wrong UB matrix after calculating U")
+
     def testC2th(self):
         self.ub.newub('testc2th')
         self.ub.setlat('cube', 1, 1, 1, 90, 90, 90)

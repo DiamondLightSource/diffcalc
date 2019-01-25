@@ -787,6 +787,52 @@ class UBCalculation:
         self._state.configure_calc_type(manual_U=self._U, or0=idx)
         self.save()
 
+    def fit_ub_matrix(self, *args):
+        if args is None:
+            raise DiffcalcException("Please specify list of reference reflection indices.")
+        if len(args) < 3:
+            raise DiffcalcException("Need at least 3 reference reflections to fit UB matrix.")
+
+        x = []
+        y = []
+        for idx in args:
+            try:
+                hkl_vals, pos, en, _, _ = self.get_reflection(idx)
+            except IndexError:
+                raise DiffcalcException("Cannot read reflection data for index %s" % str(idx))
+            pos.changeToRadians()
+            x.append(hkl_vals)
+            wl = 12.3984 / en
+            y_tmp = self._strategy.calculate_q_phi(pos) * 2.* pi / wl
+            y.append(y_tmp.T.tolist()[0])
+
+        xm = matrix(x)
+        ym = matrix(y)
+        b = (xm.T * xm).I * xm.T * ym
+
+        b1, b2, b3 = matrix(b.tolist()[0]), matrix(b.tolist()[1]), matrix(b.tolist()[2])
+        e1 = b1 / norm(b1)
+        e2 = b2 - e1 * dot3(b2.T, e1.T)
+        e2 = e2 / norm(e2)
+        e3 = b3 - e1 * dot3(b3.T, e1.T) - e2 * dot3(b3.T, e2.T)
+        e3 = e3 / norm(e3)
+
+        new_umatrix = matrix(e1.tolist() +
+                             e2.tolist() +
+                             e3.tolist()).T
+
+        V = dot3(cross3(b1.T, b2.T), b3.T)
+        a1 = cross3(b2.T, b3.T) * 2 * pi / V
+        a2 = cross3(b3.T, b1.T) * 2 * pi / V
+        a3 = cross3(b1.T, b2.T) * 2 * pi / V
+        ax, bx, cx = norm(a1), norm(a2), norm(a3)
+        alpha = acos(dot3(a2, a3)/(bx * cx)) *TODEG
+        beta = acos(dot3(a1, a3)/(ax * cx)) *TODEG
+        gamma = acos(dot3(a1, a2)/(ax * bx)) *TODEG
+
+        lattice_name = self._state.crystal.getLattice()[0]
+        return new_umatrix, (lattice_name, ax, bx, cx, alpha, beta, gamma)
+
     def set_miscut(self, xyz, angle, add_miscut=False):
         """Calculate U matrix using a miscut axis and an angle"""
         if xyz is None:
