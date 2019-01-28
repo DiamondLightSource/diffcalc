@@ -240,7 +240,7 @@ class YouConstraintManager(object):
             return False
 
         if len(self.sample) == 1:
-            return ('omega' not in set(self.sample.keys()) or
+            return ('omega' not in set(self.sample.keys()) and
                     'bisect' not in set(self.sample.keys()))
 
         if len(self.reference) == 1:
