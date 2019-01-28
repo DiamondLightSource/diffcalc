@@ -471,16 +471,14 @@ class YouHklCalculator(HklCalculatorBase):
                     constraint_name, constraint_value = constraint.items()[0]
                     if constraint_name == 'a_eq_b':
                         diff = pseudo_angles['alpha'] - pseudo_angles['beta']
-                        if not is_small(1.0 - cos(diff)):
-                            is_sol = False
-                            break
                     else:
                         diff = constraint_value - pseudo_angles[constraint_name]
-                        if not is_small(1.0 - cos(diff)):
-                            is_sol = False
-                            break
-                except:
+                except Exception:
                     continue
+                diff = abs(sin(diff/2.))
+                if not is_small(diff):
+                    is_sol = False
+                    break
             if is_sol:
                 position_pseudo_angles_pairs.append((position, pseudo_angles))
         return position_pseudo_angles_pairs
