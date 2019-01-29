@@ -22,6 +22,7 @@ from diffcalc import settings
 
 import diffcalc
 from test.diffcalc.test_hardware import SimpleHardwareAdapter
+from diffcalc.hkl.you.geometry import SixCircle
 diffcalc.util.DEBUG = True
 
 
@@ -29,7 +30,7 @@ hkl = None
 def setup_module():
     global hkl
     settings.hardware=SimpleHardwareAdapter([])
-    settings.geometry=Mock()
+    settings.geometry=SixCircle()
     settings.angles_to_hkl_function=Mock()
     settings.ubcalc_strategy=Mock()
     settings.geometry.fixed_constraints = {}

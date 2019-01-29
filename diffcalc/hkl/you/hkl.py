@@ -95,15 +95,16 @@ def _handle_con(args):
     cons_value_pairs = []
     while args:
         scn_or_str = args.pop(0)
-        name = getNameFromScannableOrString(scn_or_str)
+        ext_name = getNameFromScannableOrString(scn_or_str)
         if args and isinstance(args[0], (int, long, float)):
-            value = args.pop(0)
+            ext_value = args.pop(0)
         else:
             try:
-                value = settings.hardware.get_position_by_name(name)
+                ext_value = settings.hardware.get_position_by_name(ext_name)
             except ValueError:
-                value = None
-        cons_value_pairs.append((name, value))
+                ext_value = None
+        cons_name, cons_value = settings.geometry.map_to_internal_position(ext_name, ext_value)
+        cons_value_pairs.append((cons_name, cons_value))
     
     if len(cons_value_pairs) == 1:
         pass
@@ -124,8 +125,9 @@ def uncon(scn_or_string):
 
     See also 'con'
     """
-    name = getNameFromScannableOrString(scn_or_string)
-    hklcalc.constraints.unconstrain(name)
+    ext_name = getNameFromScannableOrString(scn_or_string)
+    cons_name = settings.geometry.map_to_internal_name(ext_name)
+    hklcalc.constraints.unconstrain(cons_name)
     print '\n'.join(hklcalc.constraints.report_constraints_lines())
 
     diffcalc.ub.ub.ubcalc.save()

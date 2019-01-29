@@ -29,7 +29,7 @@ except ImportError:
 
 
 from diffcalc.util import getInputWithDefault as promptForInput, \
-    promptForNumber, promptForList, allnum, isnum, bold
+    promptForNumber, promptForList, isnum, bold
 from diffcalc.util import command
 
 TORAD = pi / 180
@@ -42,7 +42,7 @@ TODEG = 180 / pi
 __all__ = ['addorient', 'addref', 'c2th', 'hklangle', 'calcub', 'delorient', 'delref', 'editorient',
            'editref', 'listub', 'loadub', 'newub', 'orientub', 'saveubas', 'setlat',
            'addmiscut', 'setmiscut', 'setu', 'setub', 'showorient', 'showref', 'swaporient',
-           'swapref', 'trialub', 'checkub', 'ub', 'ubcalc', 'rmub', 'clearorient',
+           'swapref', 'trialub', 'fitub', 'checkub', 'ub', 'ubcalc', 'rmub', 'clearorient',
            'clearref', 'lastub', 'refineub']
 
 if settings.include_sigtau:
@@ -232,30 +232,65 @@ def refineub(*args):
 def setlat(name=None, *args):
     """
     setlat  -- interactively enter lattice parameters (Angstroms and Deg)
-    setlat name a -- assumes cubic
-    setlat name a b -- assumes tetragonal
-    setlat name a b c -- assumes ortho
-    setlat name a b c gamma -- assumes mon/hex with gam not equal to 90
-    setlat name a b c alpha beta gamma -- arbitrary
+
+    setlat name 'Cubic' a -- sets Cubic system
+    setlat name 'Tetragonal' a c -- sets Tetragonal system
+    setlat name 'Hexagonal' a c -- sets Hexagonal system
+    setlat name 'Orthorhombic' a b c -- sets Orthorombic system
+    setlat name 'Rhombohedral' a alpha -- sets Rhombohedral system
+    setlat name 'Monoclinic' a b c beta -- sets Monoclinic system
+    setlat name 'Triclinic' a b c alpha beta gamma -- sets Triclinic system
+
+    setlat name a -- assumes Cubic system
+    setlat name a b -- assumes Tetragonal system
+    setlat name a b c -- assumes Orthorombic system
+    setlat name a b c angle -- assumes Monoclinic system with beta not equal to 90 or
+                                       Hexagonal system if a = b and gamma = 120
+    setlat name a b c alpha beta gamma -- sets Triclinic system
     """
 
     if name is None:  # Interactive
         name = promptForInput("crystal name")
+        system = None
+        systen_dict = {1: "Triclinic",
+                       2: "Monoclinic",
+                       3: "Orthorhombic",
+                       4: "Tetragonal",
+                       5: "Rhombohedral",
+                       6: "Hexagonal",
+                       7: "Cubic"}
+        while system is None:
+            system_fmt = "\n".join(["crystal system",] + 
+                                   ["%d) %s" % (k, v) 
+                                    for (k, v) in systen_dict.items()] +
+                                   ['',])
+            system = promptForNumber(system_fmt, 1)
+            if system not in systen_dict.keys():
+                print "Invalid crystal system index selection.\n"
+                print "Please select vale between 1 and 7."
+                system = None
         a = promptForNumber('    a', 1)
-        b = promptForNumber('    b', a)
-        c = promptForNumber('    c', a)
-        alpha = promptForNumber('alpha', 90)
-        beta = promptForNumber('beta', 90)
-        gamma = promptForNumber('gamma', 90)
-        ubcalc.set_lattice(name, a, b, c, alpha, beta, gamma)
+        args = (a,)
+        if system in (1, 2, 3):
+            b = promptForNumber('    b', a)
+            args += (b,)
+        if system in (1, 2, 3, 4, 6):
+            c = promptForNumber('    c', a)
+            args += (c,)
+        if system in (1, 5):
+            alpha = promptForNumber('alpha', 90)
+            args += (alpha,)
+        if system in (1, 2):
+            beta = promptForNumber('beta', 90)
+            args += (beta,)
+        if system in (1,):
+            gamma = promptForNumber('gamma', 90)
+            args += (gamma,)
+        args = (systen_dict[system],) + args
+    elif not isinstance(name, str):
+        raise TypeError("Invalid crystal name.")
+    ubcalc.set_lattice(name, *args)
 
-    elif (isinstance(name, str) and
-          len(args) in (1, 2, 3, 4, 6) and
-          allnum(args)):
-        # first arg is string and rest are numbers
-        ubcalc.set_lattice(name, *args)
-    else:
-        raise TypeError()
 
 @command
 def c2th(hkl, en=None):
@@ -388,13 +423,13 @@ def addref(*args):
         args = list(args)
         h, k, l = args.pop(0)
         if not (isnum(h) and isnum(k) and isnum(l)):
-            raise TypeError()
+            raise TypeError("h,k and l must all be numbers")
         if len(args) >= 2:
             pos = settings.geometry.physical_angles_to_internal_position(  # @UndefinedVariable
                 args.pop(0))
             energy = args.pop(0) * multiplier
             if not isnum(energy):
-                raise TypeError()
+                raise TypeError("Energy value must be a number")
         else:
             pos = settings.geometry.physical_angles_to_internal_position(  # @UndefinedVariable
                 settings.hardware.get_position())  # @UndefinedVariable
@@ -402,23 +437,24 @@ def addref(*args):
         if len(args) == 1:
             tag = args.pop(0)
             if not isinstance(tag, str):
-                raise TypeError()
+                raise TypeError("Tag value must be a string")
+            if tag == '':
+                tag = None
         else:
             tag = None
         ubcalc.add_reflection(h, k, l, pos, energy, tag,
                                    datetime.now())
     else:
-        raise TypeError()
+        raise TypeError("Too many parameters specified for addref command.")
 
 @command
-def editref(num):
-    """editref num -- interactively edit a reflection.
+def editref(idx):
+    """editref {num | 'tag'} -- interactively edit a reflection.
     """
-    num = int(num)
 
     # Get old reflection values
     [oldh, oldk, oldl], oldExternalAngles, oldEnergy, oldTag, oldT = \
-        ubcalc.get_reflection_in_external_angles(num)
+        ubcalc.get_reflection_in_external_angles(idx)
     del oldT  # current time will be used.
 
     h = promptForNumber('h', oldh)
@@ -452,14 +488,14 @@ def editref(num):
     if tag == '':
         tag = None
     pos = settings.geometry.physical_angles_to_internal_position(positionList)  # @UndefinedVariable
-    ubcalc.edit_reflection(num, h, k, l, pos, energy, tag,
+    ubcalc.edit_reflection(idx, h, k, l, pos, energy, tag,
                                 datetime.now())
 
 @command
-def delref(num):
-    """delref num -- deletes a reflection (numbered from 1)
+def delref(idx):
+    """delref {num | 'tag'} -- deletes a reflection
     """
-    ubcalc.del_reflection(int(num))
+    ubcalc.del_reflection(idx)
     
 @command
 def clearref():
@@ -469,17 +505,17 @@ def clearref():
         ubcalc.del_reflection(1)   
 
 @command
-def swapref(num1=None, num2=None):
+def swapref(idx1=None, idx2=None):
     """
-    swapref -- swaps first two reflections used for calulating U matrix
-    swapref num1 num2 -- swaps two reflections (numbered from 1)
+    swapref -- swaps first two reflections used for calculating U matrix
+    swapref {num1 | 'tag1'} {num2 | 'tag2'} -- swaps two reflections
     """
-    if num1 is None and num2 is None:
+    if idx1 is None and idx2 is None:
         ubcalc.swap_reflections(1, 2)
-    elif isinstance(num1, int) and isinstance(num2, int):
-        ubcalc.swap_reflections(num1, num2)
+    elif idx1 is None or idx2 is None:
+        raise TypeError("Please specify two reflection references to swap")
     else:
-        raise TypeError()
+        ubcalc.swap_reflections(idx1, idx2)
 
 ### U calculation from crystal orientation
 @command
@@ -519,30 +555,31 @@ def addorient(*args):
         args = list(args)
         h, k, l = args.pop(0)
         if not (isnum(h) and isnum(k) and isnum(l)):
-            raise TypeError()
+            raise TypeError("h,k and l must all be numbers")
         x, y, z = args.pop(0)
         if not (isnum(x) and isnum(y) and isnum(z)):
-            raise TypeError()
+            raise TypeError("x,y and z must all be numbers")
         if len(args) == 1:
             tag = args.pop(0)
             if not isinstance(tag, str):
-                raise TypeError()
+                raise TypeError("Tag value must be a string.")
+            if tag == '':
+                tag = None
         else:
             tag = None
         ubcalc.add_orientation(h, k, l, x, y ,z, tag,
                                    datetime.now())
     else:
-        raise TypeError()
+        raise TypeError("Too many parameters specified for addorient command.")
 
 @command
-def editorient(num):
-    """editorient num -- interactively edit a crystal orientation.
+def editorient(idx):
+    """editorient num | 'tag' -- interactively edit a crystal orientation.
     """
-    num = int(num)
 
     # Get old reflection values
     [oldh, oldk, oldl], [oldx, oldy, oldz], oldTag, oldT = \
-        ubcalc.get_orientation(num)
+        ubcalc.get_orientation(idx, True)
     del oldT  # current time will be used.
 
     h = promptForNumber('h', oldh)
@@ -558,14 +595,14 @@ def editorient(num):
     tag = promptForInput("tag", oldTag)
     if tag == '':
         tag = None
-    ubcalc.edit_orientation(num, h, k, l, x, y, z, tag,
+    ubcalc.edit_orientation(idx, h, k, l, x, y, z, tag,
                                 datetime.now())
 
 @command
-def delorient(num):
-    """delorient num -- deletes a crystal orientation (numbered from 1)
+def delorient(idx):
+    """delorient num | 'tag' -- deletes a crystal orientation
     """
-    ubcalc.del_orientation(int(num))
+    ubcalc.del_orientation(idx)
     
 @command
 def clearorient():
@@ -575,17 +612,17 @@ def clearorient():
         ubcalc.del_orientation(1)
 
 @command
-def swaporient(num1=None, num2=None):
+def swaporient(idx1=None, idx2=None):
     """
-    swaporient -- swaps first two crystal orientations used for calulating U matrix
-    swaporient num1 num2 -- swaps two crystal orientations (numbered from 1)
+    swaporient -- swaps first two crystal orientations used for calculating U matrix
+    swaporient {num1 | 'tag1'} {num2 | 'tag2'} -- swaps two crystal orientations
     """
-    if num1 is None and num2 is None:
+    if idx1 is None and idx2 is None:
         ubcalc.swap_orientations(1, 2)
-    elif isinstance(num1, int) and isinstance(num2, int):
-        ubcalc.swap_orientations(num1, num2)
+    elif idx1 is None or idx2 is None:
+        raise TypeError("Please specify two orientation references to swap")
     else:
-        raise TypeError()
+        ubcalc.swap_orientations(idx1, idx2)
 
 
 ### UB calculations ###
@@ -632,23 +669,34 @@ def _promptFor3x3MatrixDefaultingToIdentity():
     return [row1, row2, row3]
 
 @command
-def calcub():
-    """calcub -- (re)calculate U matrix from ref1 and ref2.
+def calcub(idx1=None, idx2=None):
     """
-    ubcalc.calculate_UB()
+    calcub -- (re)calculate U matrix from the first two reflections and/or orientations.
+    calcub idx1 idx2 -- (re)calculate U matrix from reflections and/or orientations referred by indices and/or tags idx1 and idx2.
+    """
+    ubcalc.calculate_UB(idx1, idx2)
 
 @command
-def trialub():
-    """trialub -- (re)calculate U matrix from ref1 only (check carefully).
+def trialub(idx=1):
+    """trialub -- (re)calculate U matrix from reflection with index or tag idx only (check carefully). Default: use first reflection.
     """
-    ubcalc.calculate_UB_from_primary_only()
+    ubcalc.calculate_UB(idx)
 
 @command
-def orientub():
-    """orientub -- (re)calculate U matrix from orient1 and orient2.
+def orientub(idx1=None, idx2=None):
     """
-    ubcalc.calculate_UB_from_orientation()
+    DEPRECATED. Please use 'calcub' command.
+    orientub -- (re)calculate U matrix from the first two reflections and/or orientations.
+    orientub idx1 idx2 -- (re)calculate U matrix from reflections and/or orientations referred by indices and/or tags idx1 and idx2.
+    """
+    ubcalc.calculate_UB(idx1, idx2)
 
+@command
+def fitub(*args):
+    """fitub ref1, ref2, ref3... -- fit UB matrix to match list of provided reference reflections."""
+    new_umatrix, new_lattice = ubcalc.fit_ub_matrix(*args)
+    ubcalc.set_lattice(*new_lattice)
+    ubcalc.set_U_manually(new_umatrix, False)
 
     # This command requires the ubcalc
 
@@ -749,6 +797,7 @@ commands_for_help.extend([
                      clearorient,
                      swaporient,
                      'UB matrix',
+                     fitub,
                      checkub,
                      setu,
                      setub,

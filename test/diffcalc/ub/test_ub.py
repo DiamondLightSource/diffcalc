@@ -80,7 +80,7 @@ class _UBCommandsBase():
             self.ub.newub(1)
 
     def testNewUbInteractively(self):
-        prepareRawInput(['ubcalcname', 'xtal', '1', '2', '3', '91', '92',
+        prepareRawInput(['ubcalcname', 'xtal', '1', '1', '2', '3', '91', '92',
                          '93'])
         self.ub.newub()
 
@@ -122,7 +122,7 @@ class _UBCommandsBase():
         self.ub.setlat('NaCl', 1.1, 2.2, 3.3)
         eq_(('NaCl', 1.1, 2.2, 3.3, 90, 90, 90), ubcalc._state.crystal.getLattice())
         self.ub.setlat('NaCl', 1.1, 2.2, 3.3, 91)
-        eq_(('NaCl', 1.1, 2.2, 3.3, 90, 90, 91), ubcalc._state.crystal.getLattice())
+        eq_(('NaCl', 1.1, 2.2, 3.3, 90, 91, 90), ubcalc._state.crystal.getLattice())
         with pytest.raises(TypeError):
             self.ub.setlat(('NaCl', 1.1, 2.2, 3.3, 91, 92))
         self.ub.setlat('NaCl', 1.1, 2.2, 3.3, 91, 92, 93)
@@ -132,14 +132,14 @@ class _UBCommandsBase():
 
     def testSetlatInteractive(self):
         self.ub.newub('testing_setlatinteractive')
-        prepareRawInput(['xtal', '1', '2', '3', '91', '92', '93'])
+        prepareRawInput(['xtal', '1', '1', '2', '3', '91', '92', '93'])
         self.ub.setlat()
         getLattice = self.ub.ubcalc._state.crystal.getLattice
         assert_iterable_almost_equal(getLattice(),
                          ('xtal', 1., 2., 3., 91, 92, 92.999999999999986))
 
         #Defaults:
-        prepareRawInput(['xtal', '', '', '', '', '', ''])
+        prepareRawInput(['xtal', '', '', '', '', '', '', ''])
         self.ub.setlat()
         getLattice = self.ub.ubcalc._state.crystal.getLattice
         eq_(getLattice(), ('xtal', 1., 1., 1., 90, 90, 90))
@@ -257,7 +257,7 @@ class _UBCommandsBase():
             self.ub.swapref(1)
         with pytest.raises(TypeError):
             self.ub.swapref(1, 2, 3)
-        with pytest.raises(TypeError):
+        with pytest.raises(IndexError):
             self.ub.swapref(1, 1.1)
         self.ub.newub('testing_swapref')
         pos = (1.1, 1.2, 1.3, 1.4, 1.5, 1.6)
@@ -378,7 +378,7 @@ class _UBCommandsBase():
             self.ub.swaporient(1)
         with pytest.raises(TypeError):
             self.ub.swaporient(1, 2, 3)
-        with pytest.raises(TypeError):
+        with pytest.raises(IndexError):
             self.ub.swaporient(1, 1.1)
         self.ub.newub('testing_swaporient')
         hkl = [1.1, 1.2, 1.3]
@@ -486,7 +486,7 @@ class _UBCommandsBase():
             [[1, 0, 0], [9, 9.9, 99], [0, 0, 1]])
 
     def testCalcub(self):
-        with pytest.raises(TypeError):
+        with pytest.raises(DiffcalcException):
             self.ub.calcub(1)  # wrong input
         # no ubcalc started:
         with pytest.raises(DiffcalcException):
@@ -496,20 +496,21 @@ class _UBCommandsBase():
         with pytest.raises(DiffcalcException):
             self.ub.calcub()
 
-        s = scenarios.sessions(settings.Pos)[0]
-        self.ub.setlat(s.name, *s.lattice)
-        r = s.ref1
-        self.ub.addref(
-            [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
-        r = s.ref2
-        self.ub.addref(
-            [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
-        self.ub.calcub()
-        mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
-              4, note="wrong UB matrix after calculating U")
+        for s in scenarios.sessions(settings.Pos):
+            self.ub.setlat(s.name, *s.lattice)
+            self.ub.clearref()
+            r = s.ref1
+            self.ub.addref(
+                [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
+            r = s.ref2
+            self.ub.addref(
+                [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
+            self.ub.calcub(s.ref1.tag, s.ref2.tag)
+            mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
+                  4, note="wrong UB matrix after calculating U")
 
     def testOrientub(self):
-        with pytest.raises(TypeError):
+        with pytest.raises(DiffcalcException):
             self.ub.orientub(1)  # wrong input
         # no ubcalc started:
         with pytest.raises(DiffcalcException):
@@ -523,13 +524,28 @@ class _UBCommandsBase():
         self.ub.setlat(s.name, *s.lattice)
         r1 = s.ref1
         orient1 = self.conv.transform(matrix('1; 0; 0'), True)
+        tag1 = 'or'+r1.tag
         self.ub.addorient(
-            (r1.h, r1.k, r1.l), orient1.T.tolist()[0], r1.tag)
+            (r1.h, r1.k, r1.l), orient1.T.tolist()[0], tag1)
         r2 = s.ref2
         orient2 = self.conv.transform(matrix('0; -1; 0'), True)
+        tag2 = 'or'+r2.tag
         self.ub.addorient(
-            (r2.h, r2.k, r2.l), orient2.T.tolist()[0], r2.tag)
+            (r2.h, r2.k, r2.l), orient2.T.tolist()[0], tag2)
         self.ub.orientub()
+        mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
+              4, note="wrong UB matrix after calculating U")
+        self.ub.orientub(tag1, tag2)
+        mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
+              4, note="wrong UB matrix after calculating U")
+        self.ub.addref(
+            [r1.h, r1.k, r1.l], r1.pos.totuple(), r1.energy, r1.tag)
+        self.ub.orientub(r1.tag, tag2)
+        mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
+              4, note="wrong UB matrix after calculating U")
+        self.ub.addref(
+            [r2.h, r2.k, r2.l], r2.pos.totuple(), r2.energy, r2.tag)
+        self.ub.orientub(tag1, r2.tag)
         mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
               4, note="wrong UB matrix after calculating U")
 
@@ -579,6 +595,20 @@ class _UBCommandsBase():
         mneq_(self.ub.ubcalc.U, self._refineub_matrix,
               4, note="wrong U matrix after refinement")
 
+    def testFitub(self):
+        self.ub.newub('testfitub')
+        for s in [scenarios.sessions(settings.Pos)[-1],]:
+            self.ub.setlat(s.name, *s.lattice)
+            self.ub.clearref()
+            for r in (s.ref1, s.ref2, s.ref3):
+                self.ub.addref(
+                    [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
+            self.ub.calcub(s.ref1.tag, s.ref2.tag)
+            self.ub.addmiscut(1.)
+            self.ub.fitub(s.ref1.tag, s.ref2.tag, s.ref3.tag)
+            mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
+                  4, note="wrong UB matrix after calculating U")
+
     def testC2th(self):
         self.ub.newub('testc2th')
         self.ub.setlat('cube', 1, 1, 1, 90, 90, 90)
@@ -620,9 +650,9 @@ class _UBCommandsBase():
 
     def testSetWithString(self):
         with pytest.raises(TypeError):
-            self.ub.setlat('alpha', 'a')
+            self.ub.setlat('alpha')
         with pytest.raises(TypeError):
-            self.ub.setlat('alpha', 1, 'a')   
+            self.ub.setlat('alpha', 1, 'a')
 
     def test_setnphihkl_at_various_phases(self):
         self.ub.setnphi([1, 0, 1])

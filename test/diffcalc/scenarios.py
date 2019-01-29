@@ -197,6 +197,29 @@ def sessions(P=VliegPosition):
     
     session3.calculations.append(ac)
     
+    ############################ SESSION4 ############################
+    # test crystal
+    
+    session4 = SessionScenario()
+    session4.name = "test_orth"
+    session4.time = datetime.now()
+    session4.lattice = ((1.41421, 1.41421, 1.00000, 90, 90, 90))
+    session4.bmatrix = (((4.44288, 0, 0), (0, 4.44288, 0), (0, 0, 6.28319)))
+    session4.ref1 = _Reflection(0, 1, 2,
+                               P(0.0000, 122.4938, 0.0000, 80.7181, 90.0000, -45.0000),
+                               15., 'ref1', session4.time)
+    session4.ref2 = _Reflection(1, 0, 2,
+                               P(0.0000, 122.4938, 0.000, 61.2469, 70.5288, -45.0000),
+                               15, 'ref2', session4.time)
+    session4.ref3 = _Reflection(1, 0, 1,
+                               P(0.0000, 60.8172, 0.000, 30.4086, 54.7356, -45.0000),
+                               15, 'ref3', session4.time)
+    session4.umatrix = ((0.70711, 0.70711, 0.00),
+                   (-0.70711, 0.70711, 0.00),
+                   (0.00, 0.00, 1.00))
+    session4.ref1calchkl = (0, 1, 2)  # Must match the guessed value!
+    session4.ref2calchkl = (1, 0, 2)
+    
     
     ########################################################################
-    return (session1, session2, session3)
+    return (session1, session2, session3, session4)

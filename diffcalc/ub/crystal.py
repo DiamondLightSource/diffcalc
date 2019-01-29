@@ -17,7 +17,7 @@
 ###
 
 from math import pi, cos, sin, acos, sqrt
-from diffcalc.util import angle_between_vectors
+from diffcalc.util import angle_between_vectors, allnum
 
 
 try:
@@ -40,16 +40,16 @@ def z(num):
 
 class CrystalUnderTest(object):
     """
-    Contains the lattice parameters and calculated B matrix for the crytsal
+    Contains the lattice parameters and calculated B matrix for the crystal
     under test. Also Calculates the distance between planes at a given hkl
     value.
 
-    The lattice paraemters can be specified and then if desired saved to a
+    The lattice parameters can be specified and then if desired saved to a
     __library to be loaded later. The parameters are persisted across restarts.
     Lattices stored in config/var/crystals.xml .
     """
 
-    def __init__(self, name, a, b, c, alpha, beta, gamma):
+    def __init__(self, name, *args):
         '''Creates a new lattice and calculates related values.
 
         Keyword arguments:
@@ -58,15 +58,30 @@ class CrystalUnderTest(object):
         '''
 
         self._name = name
+        self._a1 = None
+        self._a2 = None
+        self._a3 = None
+        self._alpha1 = None
+        self._alpha2 = None
+        self._alpha3 = None
+        if allnum(args):
+            # Set the direct lattice parameters
+            a, b, c, alpha, beta, gamma = args
+            self._a1 = a
+            self._a2 = b
+            self._a3 = c
+            self._alpha1 = alpha * TORAD
+            self._alpha2 = beta * TORAD
+            self._alpha3 = gamma * TORAD
+            self._system = "Triclinic"
+        else:
+            self._system = args[0]
+            self._set_cell_for_system(self._system, *args[1:])
 
-        # Set the direct lattice parameters
-        self._a1 = a1 = a
-        self._a2 = a2 = b
-        self._a3 = a3 = c
-        self._alpha1 = alpha1 = alpha * TORAD
-        self._alpha2 = alpha2 = beta * TORAD
-        self._alpha3 = alpha3 = gamma * TORAD
+        self._set_reciprocal_cell(self._a1, self._a2, self._a3,
+                                     self._alpha1, self._alpha2, self._alpha3)
 
+    def _set_reciprocal_cell(self, a1, a2, a3, alpha1, alpha2, alpha3):
         # Calculate the reciprocal lattice parameters
         self._beta1 = acos((cos(alpha2) * cos(alpha3) - cos(alpha1)) /
                            (sin(alpha2) * sin(alpha3)))
@@ -133,7 +148,7 @@ class CrystalUnderTest(object):
         lines.append("   a, b, c:".ljust(WIDTH) +
                      "% 9.5f % 9.5f % 9.5f" % (self.getLattice()[1:4]))
         lines.append(" " * WIDTH +
-                     "% 9.5f % 9.5f % 9.5f" % (self.getLattice()[4:]))
+                     "% 9.5f % 9.5f % 9.5f  %s" % (self.getLattice()[4:] + (self._system,)))
         lines.append("")
 
         fmt = "% 9.5f % 9.5f % 9.5f"
@@ -146,4 +161,57 @@ class CrystalUnderTest(object):
     def getLattice(self):
         return(self._name, self._a1, self._a2, self._a3, self._alpha1 * TODEG,
                self._alpha2 * TODEG, self._alpha3 * TODEG)
+
+    def _get_cell_for_system(self, system=None):
+        if system == 'Triclinic':
+            return (self._a1, self._a2, self._a3,
+                        self._alpha1 * TORAD,
+                        self._alpha2 * TORAD,
+                        self._alpha3 * TORAD)
+        elif system == 'Monoclinic':
+            return (self._a1, self._a2, self._a3,
+                        pi/2, self._alpha2 * TORAD, pi/2)
+        elif system == 'Orthorhombic':
+            return (self._a1, self._a2, self._a3,
+                        pi/2, pi/2, pi/2)
+        elif system == 'Tetragonal':
+            return (self._a1, self._a1, self._a3,
+                        pi/2, pi/2, pi/2)
+        elif system == 'Rhombohedral':
+            return (self._a1, self._a1, self._a1,
+                        self._alpha1 * TORAD,
+                        self._alpha1 * TORAD,
+                        self._alpha1 * TORAD)
+        elif system == 'Hexagonal':
+            return (self._a1, self._a1, self._a3,
+                        pi/2, pi/2, 2*pi/3)
+        elif system == 'Cubic':
+            return (self._a1, self._a1, self._a1,
+                        pi/2, pi/2, pi/2)
+        else:
+            raise TypeError("Invalid crystal system parameter: %s" % str(system))
+
+    def _set_cell_for_system(self, system=None, *args):
+        try:
+            if len(args) == 6 or system == 'Triclinic':
+                (self._a1, self._a2, self._a3,
+                    self._alpha1, self._alpha2, self._alpha3) = args
+            elif system == 'Monoclinic':
+                (self._a1, self._a2, self._a3,
+                    self._alpha2) = args
+            elif system == 'Orthorhombic':
+                (self._a1, self._a2, self._a3) = args
+            elif system == 'Tetragonal' or system == 'Hexagonal':
+                (self._a1, self._a3) = args
+            elif system == 'Rhombohedral': 
+                (self._a1,
+                    self._alpha1) = args
+            elif system == 'Cubic':
+                (self._a1,) = args
+            else:
+                raise TypeError("Invalid crystal system parameter: %s" % str(system))
+        except ValueError, e:
+            raise TypeError(e.message)
+        (self._a1, self._a2, self._a3,
+            self._alpha1, self._alpha2, self._alpha3) = self._get_cell_for_system(system)
 

@@ -26,6 +26,8 @@ from nose.tools import assert_raises  # @UnresolvedImport
 
 from diffcalc.hkl.you.constraints import NUNAME
 import diffcalc.util
+from diffcalc.hkl.you.geometry import SixCircle
+from diffcalc import settings
 
 def joined(d1, d2):
     d1.update(d2)
@@ -37,6 +39,7 @@ class TestConstraintManager:
     def setup_method(self):
         diffcalc.util.COLOURISE_TERMINAL_OUTPUT = False
         self.cm = YouConstraintManager()
+        settings.geometry = SixCircle()
 
     def test_init(self):
         eq_(self.cm.all, {})
