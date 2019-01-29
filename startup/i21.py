@@ -1,6 +1,7 @@
 from startup._common_imports import *  # @UnusedWildImport
 from diffcalc.gdasupport.minigda.scannable import ScannableMotionWithScannableFieldsBase  # @UnusedImport
 from startup.beamlinespecific.i21 import FourCircleI21, I21SampleStage, I21TPLab
+from diffcalc.gdasupport.scannable.diffractometer import DiffractometerScannableGroup
 
 try:
     from numpy import matrix
@@ -18,8 +19,8 @@ LOCAL_MANUAL = "http://confluence.diamond.ac.uk/x/UoIQAw"
 # ======== === 
 # delta    difftth or m5tth
 # eta      th
-# chi      90deg-chi
-# phi      phi
+# chi      chi
+# phi      -phi
 
 SIM_MODE=False
 
@@ -100,7 +101,7 @@ lastub()
  
 ### Set i21 specific limits
 print "INFO: diffcalc limits set in $diffcalc/startup/i21.py taken from http://confluence.diamond.ac.uk/pages/viewpage.action?pageId=51413586"
-def setLimitsAndCuts(delta_angle, chi_angle, eta_angle, phi_angle):
+def setLimitsAndCuts(delta_angle, eta_angle, chi_angle, phi_angle):
     ''' set motor limits for diffcalc, these are within the actual motor limits
     '''
     if not GDA:
@@ -119,10 +120,9 @@ def setLimitsAndCuts(delta_angle, chi_angle, eta_angle, phi_angle):
     hardware()
     
 if GDA:
-    setLimitsAndCuts(difftth, chi, th, phi)
-    setLimitsAndCuts(simdelta, simchi, simth, simphi)
+    setLimitsAndCuts(difftth, th, chi, phi)
 else:
-    setLimitsAndCuts(delta, chi, th, phi)
+    setLimitsAndCuts(delta, th, chi, phi)
 
 
 ### Create i21 bespoke secondary hkl devices
@@ -143,8 +143,15 @@ def usem5tth():
     settings.hardware = _hw_m5tth
     settings.geometry = _tth_geometry
     settings.axes_scannable_group = _sc_m5tth
+
+    # Create diffractometer scannable
+    _diff_scn_name = _tth_geometry.name
+    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _sc_m5tth)
+
+    setLimitsAndCuts(m5tth, th, chi, phi)
     import __main__
     __main__.hkl = hkl_m5tth
+    __main__.foruc = _diff_scn
     if GDA:
         __main__.en = energy
 
@@ -153,8 +160,15 @@ def uselowq():
     settings.hardware = _hw_m5tth
     settings.geometry = _lowq_geometry
     settings.axes_scannable_group = _sc_m5tth
+
+    # Create diffractometer scannable
+    _diff_scn_name = _lowq_geometry.name
+    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _sc_m5tth)
+
+    setLimitsAndCuts(m5tth, th, chi, phi)
     import __main__
     __main__.hkl = hkl_lowq
+    __main__.foruc = _diff_scn
     if GDA:
         __main__.en = energy
 
@@ -163,8 +177,15 @@ def usehighq():
     settings.hardware = _hw_m5tth
     settings.geometry = _highq_geometry
     settings.axes_scannable_group = _sc_m5tth
+    setLimitsAndCuts(m5tth, th, chi, phi)
+
+    # Create diffractometer scannable
+    _diff_scn_name = _highq_geometry.name
+    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _sc_m5tth)
+
     import __main__
     __main__.hkl = hkl_highq
+    __main__.foruc = _diff_scn
     if GDA:
         __main__.en = energy
 
@@ -174,8 +195,15 @@ def usedifftth():
     settings.hardware = _hw_difftth
     settings.geometry = _tth_geometry
     settings.axes_scannable_group = _sc_difftth
+
+    # Create diffractometer scannable
+    _diff_scn_name = _tth_geometry.name
+    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _sc_difftth)
+
+    setLimitsAndCuts(difftth, th, chi, phi)
     import __main__
     __main__.hkl = hkl_difftth
+    __main__.foruc = _diff_scn
     if GDA:
         __main__.en = energy
 
@@ -186,8 +214,15 @@ def usesim():
     settings.hardware = _hw_sim
     settings.geometry = _tth_geometry
     settings.axes_scannable_group = _sc_sim
+    setLimitsAndCuts(simdelta, simth, simchi, simphi)
+
+    # Create diffractometer scannable
+    _diff_scn_name = _tth_geometry.name
+    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _sc_sim)
+
     import __main__
     __main__.hkl = hkl_sim
+    __main__.foruc = _diff_scn
     if GDA:
         __main__.en = simenergy
 
@@ -298,7 +333,7 @@ if GDA:
 #         __main__.th = __main__.sa.simth  # @UndefinedVariable
 #         __main__.chi = __main__.sa.simchi  # @UndefinedVariable
 #         __main__.phi = __main__.sa.simphi  # @UndefinedVariable
-        setLimitsAndCuts(simdelta,simchi,simth,simphi)
+        setLimitsAndCuts(simdelta,simth,simchi,simphi)
         
     def realdc():
         ''' switch to use real motors in diffcalc
@@ -314,10 +349,10 @@ if GDA:
         print "Switch to real motors"
         if GDA:
             switchMotors(x,y,z,th,chi,phi,difftth,m5tth)
-            setLimitsAndCuts(difftth,chi,th,phi)
+            setLimitsAndCuts(difftth,th,chi,phi)
         else:
             switchMotors(x,y,z,th,chi,phi,delta,m5tth)
-            setLimitsAndCuts(delta,chi,th,phi)
+            setLimitsAndCuts(delta,th,chi,phi)
      
     from gda.jython.commands.GeneralCommands import alias  # @UnresolvedImport
     alias("usem5tth")

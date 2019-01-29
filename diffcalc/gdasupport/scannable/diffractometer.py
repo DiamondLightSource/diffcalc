@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
+from diffcalc import settings
 
 try:
     from gda.device.scannable import ScannableMotionBase
@@ -44,10 +45,9 @@ class DiffractometerScannableGroup(ScannableMotionBase):
     cleared to null at will without effecting the core calculation code.
     """
 
-    def __init__(self, name, diffcalc_module, scannableGroup,
+    def __init__(self, name, scannableGroup,
                  slave_driver=None, hint_generator=None):
         # if motorList is None, will create a dummy __group
-        self.diffcalc_module = diffcalc_module
         self.__group = scannableGroup
         self.slave_driver = slave_driver
         self.setName(name)
@@ -111,7 +111,7 @@ class DiffractometerScannableGroup(ScannableMotionBase):
         if len(pos) != len(self.getInputNames()):
             raise ValueError('Wrong number of inputs')
         try:
-            (hkl, params) = self.diffcalc_module.angles_to_hkl(pos)
+            (hkl, params) = settings.angles_to_hkl_function(pos)
         except Exception, e:
             return "Error: %s" % getMessageFromException(e)
         width = max(len(k) for k in params)
