@@ -209,39 +209,7 @@ def toolpoint_off():
     '''
     sa.centre_toolpoint = False
     
-def usediode():
-    '''Use photo diode in sample chamber
-    '''
-    if SIM_MODE:
-        _fourc.delta_scn=simdelta
-        if not GDA:
-            setmin(simdelta, 0)
-            setmax(simdelta, 180)
-        
-    else:
-        if GDA:
-            _fourc.delta_scn = difftth
-        else:
-            _fourc.delta_scn = delta
-        if not GDA:
-            setmin(delta, 0)
-            setmax(delta, 180)
-    
-def usevessel():
-    '''Use spectrometer
-    '''
-    if SIM_MODE:
-        _fourc.delta_scn=simm5tth
-        if not GDA:
-            setmin(simm5tth, 0)
-            setmax(simm5tth, 150)
-    else:
-        _fourc.delta_scn = m5tth  # note, if changed also update in _fourc_vessel constructor!
-        if not GDA:
-            setmin(m5tth, 0)
-            setmax(m5tth, 150)
-    
-print "Created i21 bespoke commands: usediode, usevessel, centresample, zerosample, toolpoint_on, toolpoint_off"
+print "Created i21 bespoke commands: usem5tth, uselowq, usehighq, usedifftth, usesim, centresample, zerosample, toolpoint_on, toolpoint_off"
 
 if GDA:
     def switchMotors(sax, say, saz, sath, sachi, saphi, diodedelta, specm5tth):
@@ -357,8 +325,6 @@ if GDA:
     alias("usehighq")
     alias("usedifftth")
     alias("usesim")
-    alias("usediode")
-    alias("usevessel")
     alias("centresample")
     alias("zerosample")
     alias("toolpoint_on")
@@ -381,10 +347,6 @@ else:
         del usedifftth
         register_line_magic(parse_line(usesim, globals()))
         del usesim
-        register_line_magic(parse_line(usediode, globals()))
-        del usediode
-        register_line_magic(parse_line(usevessel, globals()))
-        del usevessel
         register_line_magic(parse_line(centresample, globals()))
         del centresample
         register_line_magic(parse_line(zerosample, globals()))
@@ -410,7 +372,7 @@ if not GDA:
                 'pos chi 2',
                 'pos phi 3',
                 'pos m5tth 4',
-                'usevessel',
+                'usem5tth',
                 'fourc'])
         
     demo = I21Demo(globals())
