@@ -33,8 +33,8 @@ class DiffractionCalculatorParameter(ScannableMotionBase):
         self._ext_name = settings.geometry.map_to_external_name(parameterName)
 
         self.setName(name)
-        self.setInputNames([parameterName])
-        self.setOutputFormat(['%5.5f'])
+        self.setInputNames([parameterName,])
+        self.setOutputFormat(['%5.5f',])
         self.setLevel(3)
 
     def asynchronousMoveTo(self, value):
@@ -44,7 +44,7 @@ class DiffractionCalculatorParameter(ScannableMotionBase):
     def getPosition(self):
         value = self.parameter_manager.get_constraint(self.parameterName)
         _, cons_value = settings.geometry.map_to_internal_position(self.parameterName, value)
-        return cons_value
+        return [cons_value,]
 
     def isBusy(self):
         return False
