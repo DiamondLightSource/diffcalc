@@ -80,7 +80,7 @@ class _UBCommandsBase():
             self.ub.newub(1)
 
     def testNewUbInteractively(self):
-        prepareRawInput(['ubcalcname', 'xtal', '1', '2', '3', '91', '92',
+        prepareRawInput(['ubcalcname', 'xtal', '1', '1', '2', '3', '91', '92',
                          '93'])
         self.ub.newub()
 
@@ -122,7 +122,7 @@ class _UBCommandsBase():
         self.ub.setlat('NaCl', 1.1, 2.2, 3.3)
         eq_(('NaCl', 1.1, 2.2, 3.3, 90, 90, 90), ubcalc._state.crystal.getLattice())
         self.ub.setlat('NaCl', 1.1, 2.2, 3.3, 91)
-        eq_(('NaCl', 1.1, 2.2, 3.3, 90, 90, 91), ubcalc._state.crystal.getLattice())
+        eq_(('NaCl', 1.1, 2.2, 3.3, 90, 91, 90), ubcalc._state.crystal.getLattice())
         with pytest.raises(TypeError):
             self.ub.setlat(('NaCl', 1.1, 2.2, 3.3, 91, 92))
         self.ub.setlat('NaCl', 1.1, 2.2, 3.3, 91, 92, 93)
@@ -132,14 +132,14 @@ class _UBCommandsBase():
 
     def testSetlatInteractive(self):
         self.ub.newub('testing_setlatinteractive')
-        prepareRawInput(['xtal', '1', '2', '3', '91', '92', '93'])
+        prepareRawInput(['xtal', '1', '1', '2', '3', '91', '92', '93'])
         self.ub.setlat()
         getLattice = self.ub.ubcalc._state.crystal.getLattice
         assert_iterable_almost_equal(getLattice(),
                          ('xtal', 1., 2., 3., 91, 92, 92.999999999999986))
 
         #Defaults:
-        prepareRawInput(['xtal', '', '', '', '', '', ''])
+        prepareRawInput(['xtal', '', '', '', '', '', '', ''])
         self.ub.setlat()
         getLattice = self.ub.ubcalc._state.crystal.getLattice
         eq_(getLattice(), ('xtal', 1., 1., 1., 90, 90, 90))
@@ -650,9 +650,9 @@ class _UBCommandsBase():
 
     def testSetWithString(self):
         with pytest.raises(TypeError):
-            self.ub.setlat('alpha', 'a')
+            self.ub.setlat('alpha')
         with pytest.raises(TypeError):
-            self.ub.setlat('alpha', 1, 'a')   
+            self.ub.setlat('alpha', 1, 'a')
 
     def test_setnphihkl_at_various_phases(self):
         self.ub.setnphi([1, 0, 1])

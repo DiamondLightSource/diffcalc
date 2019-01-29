@@ -21,7 +21,7 @@ from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.reflections import ReflectionList
 from diffcalc.ub.persistence import UBCalculationJSONPersister, UBCalculationPersister
 from diffcalc.util import DiffcalcException, cross3, dot3, bold, xyz_rotation,\
-    bound, angle_between_vectors, norm3, CoordinateConverter
+    bound, angle_between_vectors, norm3, CoordinateConverter, allnum
 from math import acos, cos, sin, pi, atan2
 from diffcalc.ub.reference import YouReference
 from diffcalc.ub.orientations import OrientationList
@@ -272,48 +272,47 @@ class UBCalculation:
 ### Lattice ###
 
     def set_lattice(self, name, *shortform):
-        """
-        Converts a list shortform crystal parameter specification to a six-long
-        tuple returned as . Returns None if wrong number of input args. See
-        set_lattice() for a description of the shortforms supported.
-
-        shortformLattice -- a tuple as follows:
-             [a]         - assumes cubic
-           [a,b])       - assumes tetragonal
-           [a,b,c])     - assumes ortho
-           [a,b,c,gam]) - assumes mon/hex gam different from 90.
-           [a,b,c,alp,bet,gam]) - for arbitrary
-           where all measurements in angstroms and angles in degrees
-        """
         self._set_lattice_without_saving(name, *shortform)
         self.save()
 
     def _set_lattice_without_saving(self, name, *shortform):
-        sf = shortform
-        if len(sf) == 1:
-            fullform = (sf[0], sf[0], sf[0], 90., 90., 90.)  # cubic
-        elif len(sf) == 2:
-            fullform = (sf[0], sf[0], sf[1], 90., 90., 90.)  # tetragonal
-        elif len(sf) == 3:
-            fullform = (sf[0], sf[1], sf[2], 90., 90., 90.)  # ortho
-        elif len(sf) == 4:
-            fullform = (sf[0], sf[1], sf[2], 90., 90., sf[3])   # mon/hex gam
-                                                                # not 90
-        elif len(sf) == 5:
-            raise ValueError("wrong length input to set_lattice")
-        elif len(sf) == 6:
-            fullform = sf  # triclinic/arbitrary
+        """
+        Converts a list shortform crystal parameter specification to a six-long
+        tuple. See setlat() for a description of the shortforms supported.
+        """
+        if not shortform:
+            raise TypeError("Please specify unit cell parameters.")
+        elif allnum(shortform):
+            sf = shortform
+            if len(sf) == 1:
+                system = "Cubic"
+            elif len(sf) == 2:
+                system = "Tetragonal"
+            elif len(sf) == 3:
+                system = "Orthorhombic"
+            elif len(sf) == 4:
+                if abs(sf[0] - sf[1]) < SMALL and sf[3] == 120:
+                    system = "Hexagonal"
+                else:
+                    system = "Monoclinic"
+            elif len(sf) == 6:
+                system = "Triclinic"
+            else:
+                raise TypeError("Invalid number of input parameters to set unit lattice.")
+            fullform = (system,) + shortform
         else:
-            raise ValueError("wrong length input to set_lattice")
+            if not isinstance(shortform[0], str):
+                raise TypeError("Invalid unit cell parameters specified.")
+            fullform = shortform
         self._set_lattice(name, *fullform)
 
-    def _set_lattice(self, name, a, b, c, alpha, beta, gamma):
+    def _set_lattice(self, name, *args):
         """set lattice parameters in degrees"""
         if self._state.name is None:
             raise DiffcalcException(
                 "Cannot set lattice until a UBCalcaluation has been started "
                 "with newubcalc")
-        self._state.crystal = CrystalUnderTest(name, a, b, c, alpha, beta, gamma)
+        self._state.crystal = CrystalUnderTest(name, *args)
         # Clear U and UB if these exist
         if self._U is not None:  # (UB will also exist)
             print "Warning: the old UB calculation has been cleared."

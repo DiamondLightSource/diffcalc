@@ -29,7 +29,7 @@ except ImportError:
 
 
 from diffcalc.util import getInputWithDefault as promptForInput, \
-    promptForNumber, promptForList, allnum, isnum, bold
+    promptForNumber, promptForList, isnum, bold
 from diffcalc.util import command
 
 TORAD = pi / 180
@@ -234,30 +234,65 @@ def refineub(*args):
 def setlat(name=None, *args):
     """
     setlat  -- interactively enter lattice parameters (Angstroms and Deg)
-    setlat name a -- assumes cubic
-    setlat name a b -- assumes tetragonal
-    setlat name a b c -- assumes ortho
-    setlat name a b c gamma -- assumes mon/hex with gam not equal to 90
-    setlat name a b c alpha beta gamma -- arbitrary
+
+    setlat name 'Cubic' a -- sets Cubic system
+    setlat name 'Tetragonal' a c -- sets Tetragonal system
+    setlat name 'Hexagonal' a c -- sets Hexagonal system
+    setlat name 'Orthorhombic' a b c -- sets Orthorombic system
+    setlat name 'Rhombohedral' a alpha -- sets Rhombohedral system
+    setlat name 'Monoclinic' a b c beta -- sets Monoclinic system
+    setlat name 'Triclinic' a b c alpha beta gamma -- sets Triclinic system
+
+    setlat name a -- assumes Cubic system
+    setlat name a b -- assumes Tetragonal system
+    setlat name a b c -- assumes Orthorombic system
+    setlat name a b c angle -- assumes Monoclinic system with beta not equal to 90 or
+                                       Hexagonal system if a = b and gamma = 120
+    setlat name a b c alpha beta gamma -- sets Triclinic system
     """
 
     if name is None:  # Interactive
         name = promptForInput("crystal name")
+        system = None
+        systen_dict = {1: "Triclinic",
+                       2: "Monoclinic",
+                       3: "Orthorhombic",
+                       4: "Tetragonal",
+                       5: "Rhombohedral",
+                       6: "Hexagonal",
+                       7: "Cubic"}
+        while system is None:
+            system_fmt = "\n".join(["crystal system",] + 
+                                   ["%d) %s" % (k, v) 
+                                    for (k, v) in systen_dict.items()] +
+                                   ['',])
+            system = promptForNumber(system_fmt, 1)
+            if system not in systen_dict.keys():
+                print "Invalid crystal system index selection.\n"
+                print "Please select vale between 1 and 7."
+                system = None
         a = promptForNumber('    a', 1)
-        b = promptForNumber('    b', a)
-        c = promptForNumber('    c', a)
-        alpha = promptForNumber('alpha', 90)
-        beta = promptForNumber('beta', 90)
-        gamma = promptForNumber('gamma', 90)
-        ubcalc.set_lattice(name, a, b, c, alpha, beta, gamma)
+        args = (a,)
+        if system in (1, 2, 3):
+            b = promptForNumber('    b', a)
+            args += (b,)
+        if system in (1, 2, 3, 4, 6):
+            c = promptForNumber('    c', a)
+            args += (c,)
+        if system in (1, 5):
+            alpha = promptForNumber('alpha', 90)
+            args += (alpha,)
+        if system in (1, 2):
+            beta = promptForNumber('beta', 90)
+            args += (beta,)
+        if system in (1,):
+            gamma = promptForNumber('gamma', 90)
+            args += (gamma,)
+        args = (systen_dict[system],) + args
+    elif not isinstance(name, str):
+        raise TypeError("Invalid crystal name.")
+    ubcalc.set_lattice(name, *args)
 
-    elif (isinstance(name, str) and
-          len(args) in (1, 2, 3, 4, 6) and
-          allnum(args)):
-        # first arg is string and rest are numbers
-        ubcalc.set_lattice(name, *args)
-    else:
-        raise TypeError()
 
 @command
 def c2th(hkl, en=None):

@@ -86,7 +86,7 @@ class UBCalcStateEncoder(json.JSONEncoder):
             return d
         
         if isinstance(obj, CrystalUnderTest):
-            return repr([obj._name, obj._a1, obj._a2, obj._a3, obj._alpha1 * TODEG,
+            return repr([obj._name, obj._system, obj._a1, obj._a2, obj._a3, obj._alpha1 * TODEG,
                          obj._alpha2 * TODEG, obj._alpha3 * TODEG])
             
         if isinstance(obj, matrix):
