@@ -32,7 +32,7 @@ class TestDiffractionCalculatorParameter(object):
 
     def testAsynchronousMoveToAndGetPosition(self):
         self.dcp.asynchronousMoveTo(12.3)
-        assert self.dcp.getPosition() == 12.3
+        assert self.dcp.getPosition() == [12.3,]
 
     def testIsBusy(self):
         assert not self.dcp.isBusy()
