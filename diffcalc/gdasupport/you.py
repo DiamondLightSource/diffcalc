@@ -48,7 +48,7 @@ _energy_scannable = settings.energy_scannable
 
 
 # Create diffractometer scannable
-_diff_scn = DiffractometerScannableGroup(_diff_scn_name, _scn_group)
+_diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _scn_group)
 globals()[_diff_scn_name] = _diff_scn
 
 # Create hkl scannables

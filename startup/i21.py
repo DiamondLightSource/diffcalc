@@ -147,7 +147,7 @@ def usem5tth():
 
     # Create diffractometer scannable
     _diff_scn_name = _tth_geometry.name
-    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _sc_m5tth)
+    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_m5tth)
 
     setLimitsAndCuts(m5tth, th, chi, phi)
     import __main__
@@ -165,7 +165,7 @@ def uselowq():
 
     # Create diffractometer scannable
     _diff_scn_name = _lowq_geometry.name
-    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _sc_m5tth)
+    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_m5tth)
 
     setLimitsAndCuts(m5tth, th, chi, phi)
     import __main__
@@ -184,7 +184,7 @@ def usehighq():
 
     # Create diffractometer scannable
     _diff_scn_name = _highq_geometry.name
-    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _sc_m5tth)
+    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_m5tth)
 
     import __main__
     __main__.hkl = hkl_highq
@@ -202,7 +202,7 @@ def usedifftth():
 
     # Create diffractometer scannable
     _diff_scn_name = _tth_geometry.name
-    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _sc_difftth)
+    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_difftth)
 
     setLimitsAndCuts(difftth, th, chi, phi)
     import __main__
@@ -223,7 +223,7 @@ def usesim():
 
     # Create diffractometer scannable
     _diff_scn_name = _tth_geometry.name
-    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _sc_sim)
+    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_sim)
 
     import __main__
     __main__.hkl = hkl_sim
@@ -274,7 +274,7 @@ if GDA:
         __main__.settings.axes_scannable_group= _fourc
         __main__.settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
         
-        __main__.fourc=DiffractometerScannableGroup('fourc', _fourc)
+        __main__.fourc=DiffractometerScannableGroup('fourc', _dc, _fourc)
         __main__.hkl = Hkl('hkl', _fourc, _dc)
         __main__.h, __main__.k, __main__.l = hkl.h, hkl.k, hkl.l
 
@@ -286,25 +286,25 @@ if GDA:
         __main__.ct = SimulatedCrystalCounter('ct', _fourc, __main__.settings.geometry,__main__.wl)  # @UndefinedVariable
         #update scannales: fourc_vessel & hkl_vessel'
         _fourc_vessel = ScannableGroup('_fourc', (specm5tth, sath, sachi, saphi)) # I21DiffractometerStage('_fourc_vessel', m5tth, sa)
-        __main__.fourc_vessel = DiffractometerScannableGroup('fourc_vessel', _fourc_vessel)
+        __main__.fourc_vessel = DiffractometerScannableGroup('fourc_vessel', _dc, _fourc_vessel)
         __main__.hkl_vessel = Hkl('hkl_vessel', _fourc_vessel, _dc)
         __main__.h_vessel, __main__.k_vessel, __main__.l_vessel = hkl_vessel.h, hkl_vessel.k, hkl_vessel.l
         
         #Update scannables: fourc_lowq & hkl_lowq'
         _fourc_lowq = ScannableGroup('_fourc', (specm5tth, sath, sachi, saphi)) #I21DiffractometerStage('_fourc_lowq', m5tth, sa,delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)
-        __main__.fourc_lowq = DiffractometerScannableGroup('fourc_lowq', _fourc_lowq)
+        __main__.fourc_lowq = DiffractometerScannableGroup('fourc_lowq', _dc, _fourc_lowq)
         __main__.hkl_lowq = Hkl('hkl_lowq', _fourc_lowq, _dc)
         __main__.h_lowq, __main__.k_lowq, __main__.l_lowq = hkl_lowq.h, hkl_lowq.k, hkl_lowq.l
         
         #Update scannables: fourc_highq & hkl_highq'
         _fourc_highq = ScannableGroup('_fourc', (specm5tth, sath, sachi, saphi)) #I21DiffractometerStage('_fourc_highq', m5tth, sa,delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)
-        __main__.fourc_highq = DiffractometerScannableGroup('fourc_highq', _fourc_highq)
+        __main__.fourc_highq = DiffractometerScannableGroup('fourc_highq', _dc, _fourc_highq)
         __main__.hkl_highq = Hkl('hkl_highq', _fourc_highq, _dc)
         __main__.h_highq, __main__.k_highq, __main__.l_highq = hkl_highq.h, hkl_highq.k, hkl_highq.l
         
         #Update scannables: fourc_diode & hkl_diode'
         _fourc_diode = ScannableGroup('_fourc', (diodedelta, sath, sachi, saphi)) #I21DiffractometerStage('_fourc_diode', delta, sa)
-        __main__.fourc_diode = DiffractometerScannableGroup('fourc_diode', _fourc_diode)
+        __main__.fourc_diode = DiffractometerScannableGroup('fourc_diode', _dc, _fourc_diode)
         __main__.hkl_diode = Hkl('hkl_diode', _fourc_diode, _dc)
         __main__.h_diode, __main__.k_diode, __main__.l_diode = hkl_diode.h, hkl_diode.k, hkl_diode.l
         
