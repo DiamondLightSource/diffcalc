@@ -12,7 +12,7 @@ if not GDA:
     import startup._demo
 else:
 #     import __main__  # @UnresolvedImport
-    from __main__ import x,y,z,th,chi,phi,difftth,m5tth, energy, simx,simy,simz,simth,simchi,simphi,simdelta # @UnresolvedImport
+    from __main__ import x,y,z,th,chi,phi,difftth,m5tth, energy, simx,simy,simz,simth,simchi,simphi,simdelta,simm5tth # @UnresolvedImport
 
 LOCAL_MANUAL = "http://confluence.diamond.ac.uk/x/UoIQAw"
 # Diffcalc i21
@@ -67,8 +67,8 @@ simenergy.level = 3
 
 ### Configure and import diffcalc objects ###
 beamline_axes_transform = matrix('0 0 -1; 0 1 0; 1 0 0')
-_lowq_geometry = FourCircleI21(beamline_axes_transform=beamline_axes_transform, delta_offset=-5.)
-_highq_geometry = FourCircleI21(beamline_axes_transform=beamline_axes_transform, delta_offset=5.)
+_lowq_geometry = FourCircleI21(beamline_axes_transform=beamline_axes_transform, delta_offset=-4.)
+_highq_geometry = FourCircleI21(beamline_axes_transform=beamline_axes_transform, delta_offset=4.)
 _tth_geometry = FourCircleI21(beamline_axes_transform=beamline_axes_transform)
 
 if GDA:
@@ -140,6 +140,7 @@ hkl_sim = Hkl('hkl_sim', _sc_sim, DiffractometerYouCalculator(_hw_sim, _tth_geom
 
 def usem5tth():
     print '- setting hkl ---> hkl_m5tth'
+    global settings
     settings.hardware = _hw_m5tth
     settings.geometry = _tth_geometry
     settings.axes_scannable_group = _sc_m5tth
@@ -151,12 +152,13 @@ def usem5tth():
     setLimitsAndCuts(m5tth, th, chi, phi)
     import __main__
     __main__.hkl = hkl_m5tth
-    __main__.foruc = _diff_scn
+    __main__.fourc = _diff_scn
     if GDA:
         __main__.en = energy
 
 def uselowq():
     print '- setting hkl ---> hkl_lowq'
+    global settings
     settings.hardware = _hw_m5tth
     settings.geometry = _lowq_geometry
     settings.axes_scannable_group = _sc_m5tth
@@ -168,12 +170,13 @@ def uselowq():
     setLimitsAndCuts(m5tth, th, chi, phi)
     import __main__
     __main__.hkl = hkl_lowq
-    __main__.foruc = _diff_scn
+    __main__.fourc = _diff_scn
     if GDA:
         __main__.en = energy
 
 def usehighq():
     print '- setting hkl ---> hkl_highq'
+    global settings
     settings.hardware = _hw_m5tth
     settings.geometry = _highq_geometry
     settings.axes_scannable_group = _sc_m5tth
@@ -185,13 +188,14 @@ def usehighq():
 
     import __main__
     __main__.hkl = hkl_highq
-    __main__.foruc = _diff_scn
+    __main__.fourc = _diff_scn
     if GDA:
         __main__.en = energy
 
 def usedifftth():
     # sample chamber
     print '- setting hkl ---> hkl_difftth'
+    global settings
     settings.hardware = _hw_difftth
     settings.geometry = _tth_geometry
     settings.axes_scannable_group = _sc_difftth
@@ -203,7 +207,7 @@ def usedifftth():
     setLimitsAndCuts(difftth, th, chi, phi)
     import __main__
     __main__.hkl = hkl_difftth
-    __main__.foruc = _diff_scn
+    __main__.fourc = _diff_scn
     if GDA:
         __main__.en = energy
 
@@ -211,6 +215,7 @@ def usesim():
     # sample chamber
     print '- setting hkl ---> hkl_sim'
     print '-          en ---> simenergy'
+    global settings
     settings.hardware = _hw_sim
     settings.geometry = _tth_geometry
     settings.axes_scannable_group = _sc_sim
@@ -222,7 +227,7 @@ def usesim():
 
     import __main__
     __main__.hkl = hkl_sim
-    __main__.foruc = _diff_scn
+    __main__.fourc = _diff_scn
     if GDA:
         __main__.en = simenergy
 
@@ -269,7 +274,7 @@ if GDA:
         __main__.settings.axes_scannable_group= _fourc
         __main__.settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
         
-        __main__.fourc=DiffractometerScannableGroup('fourc', _dc, _fourc)
+        __main__.fourc=DiffractometerScannableGroup('fourc', _fourc)
         __main__.hkl = Hkl('hkl', _fourc, _dc)
         __main__.h, __main__.k, __main__.l = hkl.h, hkl.k, hkl.l
 
@@ -281,25 +286,25 @@ if GDA:
         __main__.ct = SimulatedCrystalCounter('ct', _fourc, __main__.settings.geometry,__main__.wl)  # @UndefinedVariable
         #update scannales: fourc_vessel & hkl_vessel'
         _fourc_vessel = ScannableGroup('_fourc', (specm5tth, sath, sachi, saphi)) # I21DiffractometerStage('_fourc_vessel', m5tth, sa)
-        __main__.fourc_vessel = DiffractometerScannableGroup('fourc_vessel', _dc, _fourc_vessel)
+        __main__.fourc_vessel = DiffractometerScannableGroup('fourc_vessel', _fourc_vessel)
         __main__.hkl_vessel = Hkl('hkl_vessel', _fourc_vessel, _dc)
         __main__.h_vessel, __main__.k_vessel, __main__.l_vessel = hkl_vessel.h, hkl_vessel.k, hkl_vessel.l
         
         #Update scannables: fourc_lowq & hkl_lowq'
         _fourc_lowq = ScannableGroup('_fourc', (specm5tth, sath, sachi, saphi)) #I21DiffractometerStage('_fourc_lowq', m5tth, sa,delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)
-        __main__.fourc_lowq = DiffractometerScannableGroup('fourc_lowq', _dc, _fourc_lowq)
+        __main__.fourc_lowq = DiffractometerScannableGroup('fourc_lowq', _fourc_lowq)
         __main__.hkl_lowq = Hkl('hkl_lowq', _fourc_lowq, _dc)
         __main__.h_lowq, __main__.k_lowq, __main__.l_lowq = hkl_lowq.h, hkl_lowq.k, hkl_lowq.l
         
         #Update scannables: fourc_highq & hkl_highq'
         _fourc_highq = ScannableGroup('_fourc', (specm5tth, sath, sachi, saphi)) #I21DiffractometerStage('_fourc_highq', m5tth, sa,delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)
-        __main__.fourc_highq = DiffractometerScannableGroup('fourc_highq', _dc, _fourc_highq)
+        __main__.fourc_highq = DiffractometerScannableGroup('fourc_highq', _fourc_highq)
         __main__.hkl_highq = Hkl('hkl_highq', _fourc_highq, _dc)
         __main__.h_highq, __main__.k_highq, __main__.l_highq = hkl_highq.h, hkl_highq.k, hkl_highq.l
         
         #Update scannables: fourc_diode & hkl_diode'
         _fourc_diode = ScannableGroup('_fourc', (diodedelta, sath, sachi, saphi)) #I21DiffractometerStage('_fourc_diode', delta, sa)
-        __main__.fourc_diode = DiffractometerScannableGroup('fourc_diode', _dc, _fourc_diode)
+        __main__.fourc_diode = DiffractometerScannableGroup('fourc_diode', _fourc_diode)
         __main__.hkl_diode = Hkl('hkl_diode', _fourc_diode, _dc)
         __main__.h_diode, __main__.k_diode, __main__.l_diode = hkl_diode.h, hkl_diode.k, hkl_diode.l
         
