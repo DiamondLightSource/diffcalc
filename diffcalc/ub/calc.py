@@ -27,6 +27,7 @@ from diffcalc.ub.reference import YouReference
 from diffcalc.ub.orientations import OrientationList
 from diffcalc import settings
 from itertools import product
+from diffcalc.ub.fitting import fit_crystal, fit_u_matrix
 
 try:
     from numpy import matrix, hstack
@@ -785,6 +786,30 @@ class UBCalculation:
         self.save()
 
     def fit_ub_matrix(self, *args):
+        if args is None:
+            raise DiffcalcException("Please specify list of reference reflection indices.")
+        if len(args) < 3:
+            raise DiffcalcException("Need at least 3 reference reflections to fit UB matrix.")
+
+        if len(self._state.crystal.get_lattice_params()[1]) == 6:
+            new_u, uc_params = self.fit_ub_matrix_uncon(*args)
+        else:
+            refl_list = []
+            for idx in args:
+                try:
+                    hkl_vals, pos, en, _ ,_ = self.get_reflection(idx)
+                    pos.changeToRadians()
+                    refl_list.append((hkl_vals, pos, en,))
+                except IndexError:
+                    raise DiffcalcException("Cannot read reflection data for index %s" % str(idx))
+            print "Fitting crystal lattice parameters..."
+            new_lattice = fit_crystal(self._state.crystal, refl_list)
+            print "Fitting orientation matrix..."
+            new_u = fit_u_matrix(self._U, new_lattice, refl_list)
+            uc_params = (self._state.crystal.getLattice()[0],) + new_lattice.getLattice()[1:]
+        return new_u, uc_params
+
+    def fit_ub_matrix_uncon(self, *args):
         if args is None:
             raise DiffcalcException("Please specify list of reference reflection indices.")
         if len(args) < 3:

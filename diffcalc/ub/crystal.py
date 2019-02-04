@@ -64,6 +64,7 @@ class CrystalUnderTest(object):
         self._alpha1 = None
         self._alpha2 = None
         self._alpha3 = None
+        self._system = "Triclinic"
         if allnum(args):
             # Set the direct lattice parameters
             a, b, c, alpha, beta, gamma = args
@@ -73,13 +74,12 @@ class CrystalUnderTest(object):
             self._alpha1 = alpha * TORAD
             self._alpha2 = beta * TORAD
             self._alpha3 = gamma * TORAD
-            self._system = "Triclinic"
+            self._set_reciprocal_cell(self._a1, self._a2, self._a3,
+                                      self._alpha1, self._alpha2, self._alpha3)
         else:
             self._system = args[0]
             self._set_cell_for_system(self._system, *args[1:])
 
-        self._set_reciprocal_cell(self._a1, self._a2, self._a3,
-                                     self._alpha1, self._alpha2, self._alpha3)
 
     def _set_reciprocal_cell(self, a1, a2, a3, alpha1, alpha2, alpha3):
         # Calculate the reciprocal lattice parameters
@@ -162,6 +162,28 @@ class CrystalUnderTest(object):
         return(self._name, self._a1, self._a2, self._a3, self._alpha1 * TODEG,
                self._alpha2 * TODEG, self._alpha3 * TODEG)
 
+    def get_lattice_params(self):
+        try:
+            if self._system == 'Triclinic':
+                return self._system, (self._a1, self._a2, self._a3,
+                    self._alpha1 * TODEG, self._alpha2 * TODEG, self._alpha3 * TODEG)
+            elif self._system == 'Monoclinic':
+                return self._system, (self._a1, self._a2, self._a3,
+                    self._alpha2 * TODEG)
+            elif self._system == 'Orthorhombic':
+                return self._system, (self._a1, self._a2, self._a3)
+            elif self._system == 'Tetragonal' or self._system == 'Hexagonal':
+                return self._system, (self._a1, self._a3)
+            elif self._system == 'Rhombohedral': 
+                return self._system, (self._a1,
+                    self._alpha1 * TODEG)
+            elif self._system == 'Cubic':
+                return self._system, (self._a1,)
+            else:
+                raise TypeError("Invalid crystal system parameter: %s" % str(self._system))
+        except ValueError, e:
+            raise TypeError(e.message)
+
     def _get_cell_for_system(self, system=None):
         if system == 'Triclinic':
             return (self._a1, self._a2, self._a3,
@@ -213,5 +235,7 @@ class CrystalUnderTest(object):
         except ValueError, e:
             raise TypeError(e.message)
         (self._a1, self._a2, self._a3,
-            self._alpha1, self._alpha2, self._alpha3) = self._get_cell_for_system(system)
+         self._alpha1, self._alpha2, self._alpha3) = self._get_cell_for_system(system)
+        self._set_reciprocal_cell(self._a1, self._a2, self._a3,
+                                  self._alpha1, self._alpha2, self._alpha3)
 

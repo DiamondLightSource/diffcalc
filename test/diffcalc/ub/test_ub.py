@@ -597,17 +597,25 @@ class _UBCommandsBase():
 
     def testFitub(self):
         self.ub.newub('testfitub')
-        for s in [scenarios.sessions(settings.Pos)[-1],]:
-            self.ub.setlat(s.name, *s.lattice)
+        for s in scenarios.sessions(settings.Pos)[-3:]:
+            a, b, c, alpha, beta, gamma = s.lattice
             self.ub.clearref()
-            for r in (s.ref1, s.ref2, s.ref3):
+            for r in s.reflist:
                 self.ub.addref(
                     [r.h, r.k, r.l], r.pos.totuple(), r.energy, r.tag)
+            self.ub.setlat(s.name, s.system, *s.lattice)
             self.ub.calcub(s.ref1.tag, s.ref2.tag)
-            self.ub.addmiscut(1.)
-            self.ub.fitub(s.ref1.tag, s.ref2.tag, s.ref3.tag)
-            mneq_(self.ub.ubcalc.UB, matrix(s.umatrix) * matrix(s.bmatrix),
-                  4, note="wrong UB matrix after calculating U")
+
+            init_latt = (1.06 * a, 1.07 * b, 0.94 * c,
+                         1.05 * alpha, 1.06 * beta, 0.95 * gamma)
+            self.ub.setlat(s.name, s.system, *init_latt)
+            self.ub.addmiscut(3., [0.2, 0.8, 0.1])
+
+            self.ub.fitub(*tuple(r.tag for r in s.reflist))
+            mneq_(matrix((self.ub.ubcalc._state.crystal.getLattice()[1:])), matrix(s.lattice),
+                  2, note="wrong lattice after fitting UB")
+            mneq_(self.ub.ubcalc.U, matrix(s.umatrix),
+                  3, note="wrong U matrix after fitting UB")
 
     def testC2th(self):
         self.ub.newub('testc2th')

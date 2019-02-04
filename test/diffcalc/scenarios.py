@@ -204,6 +204,7 @@ def sessions(P=VliegPosition):
     session4.name = "test_orth"
     session4.time = datetime.now()
     session4.lattice = ((1.41421, 1.41421, 1.00000, 90, 90, 90))
+    session4.system = 'Orthorhombic'
     session4.bmatrix = (((4.44288, 0, 0), (0, 4.44288, 0), (0, 0, 6.28319)))
     session4.ref1 = _Reflection(0, 1, 2,
                                P(0.0000, 122.4938, 0.0000, 80.7181, 90.0000, -45.0000),
@@ -214,6 +215,13 @@ def sessions(P=VliegPosition):
     session4.ref3 = _Reflection(1, 0, 1,
                                P(0.0000, 60.8172, 0.000, 30.4086, 54.7356, -45.0000),
                                15, 'ref3', session4.time)
+    session4.ref4 = _Reflection(1, 1, 2,
+                               P(0.0000, 135.0736, 0.000, 67.5368, 63.4349, 0.0000),
+                               15, 'ref4', session4.time)
+    session4.reflist = (session4.ref1,
+                        session4.ref2,
+                        session4.ref3,
+                        session4.ref4)
     session4.umatrix = ((0.70711, 0.70711, 0.00),
                    (-0.70711, 0.70711, 0.00),
                    (0.00, 0.00, 1.00))
@@ -221,5 +229,87 @@ def sessions(P=VliegPosition):
     session4.ref2calchkl = (1, 0, 2)
     
     
+    ############################ SESSION5 ############################
+    # test crystal
+    
+    session5 = SessionScenario()
+    session5.name = "Dalyite"
+    session5.time = datetime.now()
+    session5.lattice = ((7.51, 7.73, 7.00, 106.0, 113.5, 99.5))
+    session5.system = 'Triclinic'
+    session5.bmatrix = (((0.96021, 0.27759, 0.49527), (0, 0.84559, 0.25738), (0, 0, 0.89760)))
+    session5.ref1 = _Reflection(0, 1, 2,
+                               P(0.0000, 23.7405, 0.0000, 11.8703, 46.3100, 43.1304),
+                               12.3984, 'ref1', session5.time)
+    session5.ref2 = _Reflection(1, 0, 3,
+                               P(0.0000, 34.4282, 0.000, 17.2141, 46.4799, 12.7852),
+                               12.3984, 'ref2', session5.time)
+    session5.ref3 = _Reflection(2, 2, 6,
+                               P(0.0000, 82.8618, 0.000, 41.4309, 41.5154, 26.9317),
+                               12.3984, 'ref3', session5.time)
+    session5.ref4 = _Reflection(4, 1, 4,
+                               P(0.0000, 71.2763, 0.000, 35.6382, 29.5042, 14.5490),
+                               12.3984, 'ref4', session5.time)
+    session5.ref5 = _Reflection(8, 3, 1,
+                               P(0.0000, 97.8850, 0.000, 48.9425, 5.6693, 16.7929),
+                               12.3984, 'ref5', session5.time)
+    session5.ref6 = _Reflection(6, 4, 5,
+                               P(0.0000, 129.6412, 0.000, 64.8206, 24.1442, 24.6058),
+                               12.3984, 'ref6', session5.time)
+    session5.ref7 = _Reflection(3, 5, 7,
+                               P(0.0000, 135.9159, 0.000, 67.9579, 34.3696, 35.1816),
+                               12.3984, 'ref7', session5.time)
+    session5.reflist = (session5.ref1,
+                        session5.ref2,
+                        session5.ref3,
+                        session5.ref4,
+                        session5.ref5,
+                        session5.ref6,
+                        session5.ref7
+                        )
+    session5.umatrix = (( 0.99982,  0.00073,  0.01903),
+                        ( 0.00073,  0.99710, -0.07612),
+                        (-0.01903,  0.07612,  0.99692))
+    session5.ref1calchkl = (0, 1, 2)  # Must match the guessed value!
+    session5.ref2calchkl = (1, 0, 3)
+    
+    
+    ############################ SESSION6 ############################
+    # test crystal
+    
+    session6 = SessionScenario()
+    session6.name = "Acanthite"
+    session6.time = datetime.now()
+    session6.lattice = ((4.229, 6.931, 7.862, 90, 99.61, 90))
+    session6.system = 'Monoclinic'
+    session6.bmatrix = ((1.50688, 0.00000, 0.13532),
+                         (0.00000, 0.90653, 0.00000),
+                         (0.00000, 0.00000, 0.79918))
+    session6.ref1 = _Reflection(0, 1, 2,
+                               P(0.0000, 21.1188, 0.0000, 10.5594, 59.6447, 61.8432),
+                               10., 'ref1', session6.time)
+    session6.ref2 = _Reflection(1, 0, 3,
+                               P(0.0000, 35.2291, 0.000, 62.4207, 87.1516, -90.0452),
+                               10., 'ref2', session6.time)
+    session6.ref3 = _Reflection(1, 1, 6,
+                               P(0.0000, 64.4264, 0.000, 63.9009, 97.7940, -88.8808),
+                               10., 'ref3', session6.time)
+    session6.ref4 = _Reflection(1, 2, 2,
+                               P(0.0000, 34.4369, 0.000, 72.4159, 60.1129, -29.0329),
+                               10., 'ref4', session6.time)
+    session6.ref5 = _Reflection(2, 2, 1,
+                               P(0.0000, 43.0718, 0.000, 21.5359, 8.3873, 29.0230),
+                               10., 'ref5', session6.time)
+    session6.reflist = (session6.ref1,
+                        session6.ref2,
+                        session6.ref3,
+                        session6.ref4,
+                        session6.ref5,
+                        )
+    session6.umatrix = (( 0.99411, 0.00079,  0.10835),
+                        ( 0.00460, 0.99876, -0.04949),
+                        (-0.10825, 0.04969,  0.99288))
+    session6.ref1calchkl = (0, 1, 2)  # Must match the guessed value!
+    session6.ref2calchkl = (1, 0, 3)
     ########################################################################
-    return (session1, session2, session3, session4)
+    return (session1, session2, session3, session4, session5, session6)
