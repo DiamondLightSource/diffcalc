@@ -314,9 +314,8 @@ class UBCalculation:
         self._state.crystal = CrystalUnderTest(name, *args)
         # Clear U and UB if these exist
         if self._U is not None:  # (UB will also exist)
-            print "Warning: the old UB calculation has been cleared."
-            print "         Use 'calcub' to recalculate with old reflections or"
-            print "         'orientub' to recalculate with old orientations."
+            print ("Warning: Setting new unit cell parameters.\n"
+                   "         The old UB calculation has been cleared.")
 
 ### Surface normal stuff ###
 

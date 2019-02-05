@@ -29,7 +29,7 @@ except ImportError:
 
 
 from diffcalc.util import getInputWithDefault as promptForInput, \
-    promptForNumber, promptForList, isnum, bold
+    promptForNumber, promptForList, isnum, bold, SMALL
 from diffcalc.util import command
 
 TORAD = pi / 180
@@ -157,74 +157,6 @@ def ub():
     #wavelength = float(hardware.get_wavelength())
     #energy = float(hardware.get_energy())
     print ubcalc.__str__()
-
-@command
-def refineub(*args):
-    """
-    refineub {[h k l]} {pos} -- refine unit cell dimensions and U matrix to match diffractometer angles for a given hkl value
-    """
-    if len(args) > 0:
-        args = list(args)
-        h, k, l = args.pop(0)
-        if not (isnum(h) and isnum(k) and isnum(l)):
-            raise TypeError()
-    else:
-        h = promptForNumber('h', 0.)
-        k = promptForNumber('k', 0.)
-        l = promptForNumber('l', 0.)
-        if None in (h, k, l):
-            _handleInputError("h,k and l must all be numbers")
-    if len(args) == 1:
-        pos = settings.geometry.physical_angles_to_internal_position(  # @UndefinedVariable
-                args.pop(0))
-    elif len(args) == 0:
-        reply = promptForInput('current pos', 'y')
-        if reply in ('y', 'Y', 'yes'):
-            positionList = settings.hardware.get_position()  # @UndefinedVariable
-        else:
-            currentPos = settings.hardware.get_position()  # @UndefinedVariable
-            positionList = []
-            names = settings.hardware.get_axes_names()  # @UndefinedVariable
-            for i, angleName in enumerate(names):
-                val = promptForNumber(angleName.rjust(7), currentPos[i])
-                if val is None:
-                    _handleInputError("Please enter a number, or press"
-                                          " Return to accept default!")
-                    return
-                positionList.append(val)
-        pos = settings.geometry.physical_angles_to_internal_position(positionList)  # @UndefinedVariable
-    else:
-        raise TypeError()
-    
-    pos.changeToRadians()
-    scale, lat = ubcalc.rescale_unit_cell(h, k, l, pos)
-    if scale:
-        lines = ["Unit cell scaling factor:".ljust(9) +
-                         "% 9.5f" % scale]
-        lines.append("Refined crystal lattice:")
-        lines.append("   a, b, c:".ljust(9) +
-                         "% 9.5f % 9.5f % 9.5f" % (lat[1:4]))
-        lines.append(" " * 12 +
-                         "% 9.5f % 9.5f % 9.5f" % (lat[4:]))
-        lines.append("")
-        print '\n'.join(lines)
-        reply = promptForInput('Update crystal settings?', 'y')
-        if reply in ('y', 'Y', 'yes'):
-            ubcalc.set_lattice(*lat)
-    else:
-        print "No unit cell mismatch detected"
-    mc_angle, mc_axis = ubcalc.calc_miscut(h, k, l, pos)
-    if mc_angle:
-        lines = ["Miscut parameters:",]
-        lines.append("      angle:".ljust(9) + "% 9.5f" % mc_angle)
-        lines.append("       axis:".ljust(9) + "% 9.5f % 9.5f % 9.5f" % tuple(mc_axis))
-        print '\n'.join(lines)
-        reply = promptForInput('Apply miscut parameters?', 'y')
-        if reply in ('y', 'Y', 'yes'):
-            ubcalc.set_miscut(mc_axis, -mc_angle * TORAD, True)
-    else:
-        print "No miscut detected for the given settings"
-        ubcalc.set_miscut(None, 0, True)
 
 ### UB lattice ###
 
@@ -691,13 +623,6 @@ def orientub(idx1=None, idx2=None):
     """
     ubcalc.calculate_UB(idx1, idx2)
 
-@command
-def fitub(*args):
-    """fitub ref1, ref2, ref3... -- fit UB matrix to match list of provided reference reflections."""
-    new_umatrix, new_lattice = ubcalc.fit_ub_matrix(*args)
-    ubcalc.set_lattice(*new_lattice)
-    ubcalc.set_U_manually(new_umatrix, False)
-
     # This command requires the ubcalc
 
 def checkub():
@@ -722,6 +647,107 @@ def checkub():
               hklguess[1], hklguess[2], h, k, l, tag))
     print s
 
+@command
+def refineub(*args):
+    """
+    refineub {[h k l]} {pos} -- refine unit cell dimensions and U matrix to match diffractometer angles for a given hkl value
+    """
+    if len(args) > 0:
+        args = list(args)
+        h, k, l = args.pop(0)
+        if not (isnum(h) and isnum(k) and isnum(l)):
+            raise TypeError()
+    else:
+        h = promptForNumber('h', 0.)
+        k = promptForNumber('k', 0.)
+        l = promptForNumber('l', 0.)
+        if None in (h, k, l):
+            _handleInputError("h,k and l must all be numbers")
+    if len(args) == 1:
+        pos = settings.geometry.physical_angles_to_internal_position(  # @UndefinedVariable
+                args.pop(0))
+    elif len(args) == 0:
+        reply = promptForInput('current pos', 'y')
+        if reply in ('y', 'Y', 'yes'):
+            positionList = settings.hardware.get_position()  # @UndefinedVariable
+        else:
+            currentPos = settings.hardware.get_position()  # @UndefinedVariable
+            positionList = []
+            names = settings.hardware.get_axes_names()  # @UndefinedVariable
+            for i, angleName in enumerate(names):
+                val = promptForNumber(angleName.rjust(7), currentPos[i])
+                if val is None:
+                    _handleInputError("Please enter a number, or press"
+                                          " Return to accept default!")
+                    return
+                positionList.append(val)
+        pos = settings.geometry.physical_angles_to_internal_position(positionList)  # @UndefinedVariable
+    else:
+        raise TypeError()
+    
+    pos.changeToRadians()
+    scale, lat = ubcalc.rescale_unit_cell(h, k, l, pos)
+    if scale:
+        lines = ["Unit cell scaling factor:".ljust(9) +
+                         "% 9.5f" % scale]
+        lines.append("Refined crystal lattice:")
+        lines.append("   a, b, c:".ljust(9) +
+                         "% 9.5f % 9.5f % 9.5f" % (lat[1:4]))
+        lines.append(" " * 12 +
+                         "% 9.5f % 9.5f % 9.5f" % (lat[4:]))
+        lines.append("")
+        print '\n'.join(lines)
+        reply = promptForInput('Update crystal settings?', 'y')
+        if reply in ('y', 'Y', 'yes'):
+            ubcalc.set_lattice(*lat)
+    else:
+        print "No unit cell mismatch detected"
+    mc_angle, mc_axis = ubcalc.calc_miscut(h, k, l, pos)
+    if mc_angle:
+        lines = ["Miscut parameters:",]
+        lines.append("      angle:".ljust(9) + "% 9.5f" % mc_angle)
+        lines.append("       axis:".ljust(9) + "% 9.5f % 9.5f % 9.5f" % tuple(mc_axis))
+        print '\n'.join(lines)
+        reply = promptForInput('Apply miscut parameters?', 'y')
+        if reply in ('y', 'Y', 'yes'):
+            ubcalc.set_miscut(mc_axis, -mc_angle * TORAD, True)
+    else:
+        print "No miscut detected for the given settings"
+        ubcalc.set_miscut(None, 0, True)
+
+@command
+def fitub(*args):
+    """fitub ref1, ref2, ref3... -- fit UB matrix to match list of provided reference reflections."""
+    new_umatrix, new_lattice = ubcalc.fit_ub_matrix(*args)
+
+    lines = ["Refined crystal lattice:",]
+    lines.append("   a, b, c:".ljust(9) +
+                     "% 9.5f % 9.5f % 9.5f" % (new_lattice[1:4]))
+    lines.append(" " * 12 +
+                     "% 9.5f % 9.5f % 9.5f" % (new_lattice[4:]))
+    lines.append("")
+    print '\n'.join(lines)
+    reply = promptForInput('Update crystal settings?', 'y')
+    if reply in ('y', 'Y', 'yes'):
+        ubcalc.set_lattice(*new_lattice)
+
+    def z(num):
+        """Round to zero if small. This is useful to get rid of erroneous
+        minus signs resulting from float representation close to zero.
+        """
+        if abs(num) < SMALL:
+            num = 0
+        return num
+    WIDTH = 19
+    fmt = "% 9.5f % 9.5f % 9.5f"
+    lines = ["  Refined U matrix:".ljust(WIDTH) + 
+                               fmt % (z(new_umatrix[0, 0]), z(new_umatrix[0, 1]), z(new_umatrix[0, 2]))]
+    lines.append(' ' * WIDTH + fmt % (z(new_umatrix[1, 0]), z(new_umatrix[1, 1]), z(new_umatrix[1, 2])))
+    lines.append(' ' * WIDTH + fmt % (z(new_umatrix[2, 0]), z(new_umatrix[2, 1]), z(new_umatrix[2, 2])))
+    print '\n'.join(lines)
+    reply = promptForInput('Update U matrix?', 'y')
+    if reply in ('y', 'Y', 'yes'):
+        ubcalc.set_U_manually(new_umatrix, False)
 
 @command
 def addmiscut(*args):
