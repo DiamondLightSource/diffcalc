@@ -173,7 +173,7 @@ def _get_quat_from_u123(u1, u2, u3):
 
 
 def _get_uc_upper_limits(system):
-    max_unit = 10.
+    max_unit = 100.
     sgm_unit = 1e-2
     sgm_angle = 1e-1
     if system == 'Triclinic':
