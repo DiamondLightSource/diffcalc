@@ -613,6 +613,7 @@ class _UBCommandsBase():
 
             prepareRawInput(['y', 'y'])
             self.ub.fitub(*tuple(r.tag for r in s.reflist))
+            assert self.ub.ubcalc._state.crystal._system == s.system
             mneq_(matrix((self.ub.ubcalc._state.crystal.getLattice()[1:])), matrix(s.lattice),
                   2, note="wrong lattice after fitting UB")
             mneq_(self.ub.ubcalc.U, matrix(s.umatrix),

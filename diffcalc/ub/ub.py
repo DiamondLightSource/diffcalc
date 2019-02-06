@@ -719,17 +719,18 @@ def refineub(*args):
 def fitub(*args):
     """fitub ref1, ref2, ref3... -- fit UB matrix to match list of provided reference reflections."""
     new_umatrix, new_lattice = ubcalc.fit_ub_matrix(*args)
+    _system = ubcalc._state.crystal._system
 
     lines = ["Refined crystal lattice:",]
     lines.append("   a, b, c:".ljust(9) +
-                     "% 9.5f % 9.5f % 9.5f" % (new_lattice[1:4]))
+                     "% 9.5f % 9.5f % 9.5f  %s" % (new_lattice[1:4] + (_system,)))
     lines.append(" " * 12 +
                      "% 9.5f % 9.5f % 9.5f" % (new_lattice[4:]))
     lines.append("")
     print '\n'.join(lines)
     reply = promptForInput('Update crystal settings?', 'y')
     if reply in ('y', 'Y', 'yes'):
-        ubcalc.set_lattice(*new_lattice)
+        ubcalc.set_lattice(new_lattice[0], _system, *new_lattice[1:])
 
     lines = ubcalc.str_lines_u(new_umatrix) + ubcalc.str_lines_u_angle_and_axis(new_umatrix)
     print '\n' + '\n'.join(lines)
