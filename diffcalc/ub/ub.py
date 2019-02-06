@@ -731,20 +731,8 @@ def fitub(*args):
     if reply in ('y', 'Y', 'yes'):
         ubcalc.set_lattice(*new_lattice)
 
-    def z(num):
-        """Round to zero if small. This is useful to get rid of erroneous
-        minus signs resulting from float representation close to zero.
-        """
-        if abs(num) < SMALL:
-            num = 0
-        return num
-    WIDTH = 19
-    fmt = "% 9.5f % 9.5f % 9.5f"
-    lines = ["  Refined U matrix:".ljust(WIDTH) + 
-                               fmt % (z(new_umatrix[0, 0]), z(new_umatrix[0, 1]), z(new_umatrix[0, 2]))]
-    lines.append(' ' * WIDTH + fmt % (z(new_umatrix[1, 0]), z(new_umatrix[1, 1]), z(new_umatrix[1, 2])))
-    lines.append(' ' * WIDTH + fmt % (z(new_umatrix[2, 0]), z(new_umatrix[2, 1]), z(new_umatrix[2, 2])))
-    print '\n'.join(lines)
+    lines = ubcalc.str_lines_u(new_umatrix) + ubcalc.str_lines_u_angle_and_axis(new_umatrix)
+    print '\n' + '\n'.join(lines)
     reply = promptForInput('Update U matrix?', 'y')
     if reply in ('y', 'Y', 'yes'):
         ubcalc.set_U_manually(new_umatrix, False)

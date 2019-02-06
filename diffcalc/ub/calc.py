@@ -204,11 +204,11 @@ class UBCalculation:
         if self._UB is None:
             lines.append("   <<< none calculated >>>")
         else:
-            lines.extend(self.str_lines_u())
+            lines.extend(self.str_lines_u(self.U))
             lines.append("")
-            lines.extend(self.str_lines_u_angle_and_axis())
+            lines.extend(self.str_lines_u_angle_and_axis(self.U))
             lines.append("")
-            lines.extend(self.str_lines_ub())
+            lines.extend(self.str_lines_ub(self.UB))
 
         lines.append("")
         lines.append(bold("REFLECTIONS"))
@@ -224,39 +224,34 @@ class UBCalculation:
         
         return '\n'.join(lines)
 
-    def str_lines_u(self):
+    def str_lines_u(self, umatrix):
         lines = []
         fmt = "% 9.5f % 9.5f % 9.5f"
-        U = self._tobj.transform(self.U, True)
+        U = self._tobj.transform(umatrix, True)
         lines.append("   U matrix:".ljust(WIDTH) +
                      fmt % (z(U[0, 0]), z(U[0, 1]), z(U[0, 2])))
         lines.append(' ' * WIDTH + fmt % (z(U[1, 0]), z(U[1, 1]), z(U[1, 2])))
         lines.append(' ' * WIDTH + fmt % (z(U[2, 0]), z(U[2, 1]), z(U[2, 2])))
         return lines
 
-    def str_lines_u_angle_and_axis(self):
+    def str_lines_u_angle_and_axis(self, umatrix):
         lines = []
         fmt = "% 9.5f % 9.5f % 9.5f"
-        y = matrix('0; 0; 1')
-        rotation_axis = self._tobj.transform(cross3(y, self.U * y), True)
+        rotation_angle, rotation_axis = self.get_miscut_angle_axis(umatrix)
         if abs(norm(rotation_axis)) < SMALL:
             lines.append("   miscut angle:".ljust(WIDTH) + "  0")
         else:
-            rotation_axis = rotation_axis * (1 / norm(rotation_axis))
-            cos_rotation_angle = dot3(y, self.U * y)
-            rotation_angle = acos(cos_rotation_angle)
-
             lines.append("   miscut:")
             lines.append("      angle:".ljust(WIDTH) + "% 9.5f" % (rotation_angle * TODEG))
             lines.append("       axis:".ljust(WIDTH) + fmt % tuple((rotation_axis.T).tolist()[0]))
  
         return lines
 
-    def str_lines_ub(self):
+    def str_lines_ub(self, ubmatrix):
         lines = []
         fmt = "% 9.5f % 9.5f % 9.5f"
         if self._tobj.R is not None:
-            UB = self._tobj.R.I * self.UB
+            UB = self._tobj.R.I * ubmatrix
         else:
             UB = self.UB
         lines.append("   UB matrix:".ljust(WIDTH) +
@@ -910,6 +905,18 @@ class UBCalculation:
         except AssertionError:
             return None, None
         return miscut, axis.T.tolist()[0]
+
+    def get_miscut_angle_axis(self, umatrix):
+        y = matrix('0; 0; 1')
+        rotation_axis = self._tobj.transform(cross3(y, umatrix * y), True)
+        if abs(norm(rotation_axis)) < SMALL:
+            rotation_axis = matrix('0; 0; 0')
+            rotation_angle = 0
+        else:
+            rotation_axis = rotation_axis * (1 / norm(rotation_axis))
+            cos_rotation_angle = dot3(y, umatrix * y)
+            rotation_angle = acos(cos_rotation_angle)
+        return rotation_angle, rotation_axis
 
     def calc_hkl_offset(self, h, k, l, pol, az):
         """

@@ -611,6 +611,7 @@ class _UBCommandsBase():
             self.ub.setlat(s.name, s.system, *init_latt)
             self.ub.addmiscut(3., [0.2, 0.8, 0.1])
 
+            prepareRawInput(['y', 'y'])
             self.ub.fitub(*tuple(r.tag for r in s.reflist))
             mneq_(matrix((self.ub.ubcalc._state.crystal.getLattice()[1:])), matrix(s.lattice),
                   2, note="wrong lattice after fitting UB")
