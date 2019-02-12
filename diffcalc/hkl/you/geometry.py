@@ -19,6 +19,7 @@
 from math import pi
 
 from diffcalc.util import AbstractPosition, DiffcalcException
+from diffcalc import settings
 
 TORAD = pi / 180
 TODEG = 180 / pi
@@ -57,6 +58,81 @@ class YouGeometry(object):
     def create_position(self, *args):
         return YouPosition(*args, unit='DEG')
 
+
+class YouRemappedGeometry(YouGeometry):
+    """For a diffractometer with angles:
+          delta, eta, chi, phi
+    """
+    def __init__(self, name, fixed_constraints, beamline_axes_transform=None):
+        YouGeometry.__init__(self, name, fixed_constraints, beamline_axes_transform)
+
+        # Order should match scannable order in _fourc group for mapping to work correctly
+        self._scn_mapping_to_int = ()
+        self._scn_mapping_to_ext = ()
+
+    def map_to_internal_name(self, name):
+        scn_names = settings.hardware.diffhw.getInputNames()
+        try:
+            idx_name = scn_names.index(name)
+            you_name, _ = self._scn_mapping_to_int[idx_name]
+            return you_name
+        except ValueError:
+            return name
+
+    def map_to_external_name(self, name):
+        scn_names = settings.hardware.diffhw.getInputNames()
+        for idx, (you_name, _) in enumerate(self._scn_mapping_to_ext):
+            if you_name == name:
+                return scn_names[idx]
+        return name
+
+    def map_to_internal_position(self, name, value):
+        scn_names = settings.hardware.diffhw.getInputNames()
+        try:
+            idx_name = scn_names.index(name)
+        except ValueError:
+            return name, value
+        new_name, op = self._scn_mapping_to_int[idx_name]
+        try:
+            return new_name, op(value)
+        except TypeError:
+            return new_name, None
+
+    def map_to_external_position(self, name, value):
+        try:
+            (idx, _, op), = tuple((i, nm, o) for i, (nm, o) in enumerate(self._scn_mapping_to_ext) if nm == name)
+        except ValueError:
+            return name, value
+        scn_names = settings.hardware.diffhw.getInputNames()
+        try:
+            ext_name = scn_names[idx]
+        except ValueError:
+            return name, value
+        try:
+            return ext_name, op(value)
+        except TypeError:
+            return ext_name, None
+
+    def physical_angles_to_internal_position(self, physical_angle_tuple):
+        you_angles = {}
+        scn_names = settings.hardware.diffhw.getInputNames()
+        for scn_name, phys_angle in zip(scn_names, physical_angle_tuple):
+            name, val = self.map_to_internal_position(scn_name, phys_angle)
+            you_angles[name] = val
+        you_angles.update(self.fixed_constraints)
+
+        angle_values = tuple(you_angles[name] for name in YouPosition.get_names())
+        return YouPosition(*angle_values, unit='DEG')
+
+    def internal_position_to_physical_angles(self, internal_position):
+        clone_position = internal_position.clone()
+        clone_position.changeToDegrees()
+        you_angles = clone_position.todict()
+        res = []
+        for name, _ in self._scn_mapping_to_ext:
+            _, val = self.map_to_external_position(name, you_angles[name])
+            res.append(val)
+        return tuple(res)
 
 #==============================================================================
 #==============================================================================
