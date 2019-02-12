@@ -4,25 +4,33 @@ from diffcalc.hkl.you.constraints import NUNAME
 if GDA:    
     from __main__ import diff1vdelta, diff1halpha, diff1vgamma, diff1homega, dcm1energy # @UnresolvedImport
 
-from diffcalc.hkl.you.geometry import YouGeometry, YouPosition
+from diffcalc.hkl.you.geometry import YouGeometry, YouPosition,\
+    YouRemappedGeometry
+
+try:
+    from numpy import matrix
+except ImportError:
+    from numjy import matrix
 
 
-class FourCircleI07EH1h(YouGeometry):
+class FourCircleI07EH1h(YouRemappedGeometry):
     """For a diffractometer with angles:
           delta, gam, eta, phi
     """
     def __init__(self, beamline_axes_transform=None):
-        YouGeometry.__init__(self, 'fourc', {'mu': 0, 'chi': -90}, beamline_axes_transform)
+        YouRemappedGeometry.__init__(self, 'fourc', {'mu': 0, 'chi': 90}, beamline_axes_transform)
 
-    def physical_angles_to_internal_position(self, physical_angle_tuple):
-        delta_phys, gam_phys, eta_phys, phi_phys = physical_angle_tuple
-        return YouPosition(0, delta_phys, gam_phys, eta_phys, -90, phi_phys, 'DEG')
-
-    def internal_position_to_physical_angles(self, internal_position):
-        clone_position = internal_position.clone()
-        clone_position.changeToDegrees()
-        _, delta_phys, gam_phys, eta_phys, _, phi_phys = clone_position.totuple()
-        return delta_phys, gam_phys, eta_phys, phi_phys
+        # Order should match scannable order in _fourc group for mapping to work correctly
+        omega_to_phi = lambda x: 180. - x
+        self._scn_mapping_to_int = (('delta', lambda x: x),
+                                    ('gam',   lambda x: x),
+                                    ('eta',   lambda x: x),
+                                    ('phi',   omega_to_phi))
+        phi_to_omega = lambda x: ((180. - x) + 180.) % 360 - 180
+        self._scn_mapping_to_ext = (('delta', lambda x: x),
+                                    ('gam',   lambda x: x),
+                                    ('eta',   lambda x: x),
+                                    ('phi',   phi_to_omega))
 
 ### Create dummy scannables ###
 if GDA:  
@@ -68,7 +76,7 @@ if GDA:
 lastub()
 # Set reference vector direction returning betain and betaout angles as alpha and beta
 if ubcalc.name:
-    setnphi('0; 0; -1')
+    setnphi('0; 0; 1')
 
 ### Set i07 specific limits
 def setLimitsAndCuts():
