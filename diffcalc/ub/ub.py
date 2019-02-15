@@ -136,9 +136,15 @@ def listub():
         ub_metadata = ubcalc.listub_metadata()
     except AttributeError:
         ub_metadata = [''] * len(ubnames)
-    
+    try:
+        wdt_names = max([len(nm) for nm in ubnames])
+    except Exception:
+        wdt_names = 30
+    fmt_names = ' '.join(["%3i) ",
+                          "%%-%is " % wdt_names,
+                          "%s"])
     for n, name, data in zip(range(len(ubnames)), ubnames, ub_metadata):
-        print "%2i) %-15s %s" % (n, name, data)
+        print fmt_names % (n, name, data)
 
 @command
 def saveubas(name):
