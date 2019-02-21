@@ -29,7 +29,7 @@ except ImportError:
 
 
 from diffcalc.util import getInputWithDefault as promptForInput, \
-    promptForNumber, promptForList, isnum, bold, SMALL
+    promptForNumber, promptForList, isnum, bold, SMALL, DiffcalcException
 from diffcalc.util import command
 
 TORAD = pi / 180
@@ -69,7 +69,13 @@ def newub(name=None):
     if name is None:
         # interactive
         name = promptForInput('calculation name')
-        ubcalc.start_new(name)
+        while not name:
+            print 'Please provide non-empty UB calculation name'
+            name = promptForInput('calculation name')
+        try:
+            ubcalc.start_new(name)
+        except IOError:
+            raise DiffcalcException('Cannot create UB calculation persistence file with name "%s"' % name)
         setlat()
     elif isinstance(name, str):
         if name in ubcalc._persister.list():
