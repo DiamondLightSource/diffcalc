@@ -738,7 +738,8 @@ def fitub(*args):
     if reply in ('y', 'Y', 'yes'):
         ubcalc.set_lattice(new_lattice[0], _system, *new_lattice[1:])
 
-    lines = ubcalc.str_lines_u(new_umatrix) + ubcalc.str_lines_u_angle_and_axis(new_umatrix)
+    new_ubmatrix = new_umatrix * ubcalc._state.crystal.B
+    lines = ubcalc.str_lines_u(new_umatrix) + ubcalc.str_lines_ub_angle_and_axis(new_ubmatrix)
     print '\n' + '\n'.join(lines)
     reply = promptForInput('Update U matrix?', 'y')
     if reply in ('y', 'Y', 'yes'):
