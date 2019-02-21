@@ -206,7 +206,7 @@ class UBCalculation:
         else:
             lines.extend(self.str_lines_u(self.U))
             lines.append("")
-            lines.extend(self.str_lines_u_angle_and_axis(self.U))
+            lines.extend(self.str_lines_ub_angle_and_axis(self.UB))
             lines.append("")
             lines.extend(self.str_lines_ub(self.UB))
 
@@ -234,15 +234,15 @@ class UBCalculation:
         lines.append(' ' * WIDTH + fmt % (z(U[2, 0]), z(U[2, 1]), z(U[2, 2])))
         return lines
 
-    def str_lines_u_angle_and_axis(self, umatrix):
+    def str_lines_ub_angle_and_axis(self, ubmatrix):
         lines = []
         fmt = "% 9.5f % 9.5f % 9.5f"
-        rotation_angle, rotation_axis = self.get_miscut_angle_axis(umatrix)
+        rotation_angle, rotation_axis = self.get_miscut_angle_axis(ubmatrix)
         if abs(norm(rotation_axis)) < SMALL:
             lines.append("   miscut angle:".ljust(WIDTH) + "  0")
         else:
             lines.append("   miscut:")
-            lines.append("      angle:".ljust(WIDTH) + "% 9.5f" % (rotation_angle * TODEG))
+            lines.append("      angle:".ljust(WIDTH) + "% 9.5f" % rotation_angle)
             lines.append("       axis:".ljust(WIDTH) + fmt % tuple((rotation_axis.T).tolist()[0]))
  
         return lines
@@ -906,16 +906,17 @@ class UBCalculation:
             return None, None
         return miscut, axis.T.tolist()[0]
 
-    def get_miscut_angle_axis(self, umatrix):
+    def get_miscut_angle_axis(self, ubmatrix):
         y = matrix('0; 0; 1')
-        rotation_axis = self._tobj.transform(cross3(y, umatrix * y), True)
+        l = ubmatrix * y
+        rotation_axis = self._tobj.transform(cross3(y, l), True)
         if abs(norm(rotation_axis)) < SMALL:
             rotation_axis = matrix('0; 0; 0')
             rotation_angle = 0
         else:
             rotation_axis = rotation_axis * (1 / norm(rotation_axis))
-            cos_rotation_angle = dot3(y, umatrix * y)
-            rotation_angle = acos(cos_rotation_angle)
+            cos_rotation_angle = bound(dot3(y, l) / norm(l))
+            rotation_angle = acos(cos_rotation_angle) * TODEG
         return rotation_angle, rotation_axis
 
     def calc_hkl_offset(self, h, k, l, pol, az):
