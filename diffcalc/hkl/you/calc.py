@@ -270,11 +270,20 @@ class YouHklCalculator(HklCalculatorBase):
             return pos_virtual_angles_pairs_in_degrees[0]
 
         absolute_distances = []
-        for pos_, _ in pos_virtual_angles_pairs_in_degrees:
-            absolute_distances.append(sum([abs(pos_.totuple()[i]) for i in (0, 3, 4, 5)]))
+        _hw_pos = settings.hardware.get_position()
+        _you_pos = settings.geometry.physical_angles_to_internal_position(_hw_pos).totuple()
 
-        shortest_solution_index = absolute_distances.index(
-            min(absolute_distances))
+        metric = lambda (a, b): 2.* asin(abs(sin((a - b) * TORAD / 2.))) * TODEG
+
+        for _pos, _ in pos_virtual_angles_pairs_in_degrees:
+            pos_pairs = zip(_pos.totuple(), _you_pos)
+            absolute_distances.append([metric(p)for p in pos_pairs])
+
+        min_distances = [min(d) for d in zip(*absolute_distances)]
+        relative_distances = [sorted([round(vl - mn, 1) for (vl, mn) in zip(ab, min_distances)], reverse=True)
+                               for ab in absolute_distances]
+
+        shortest_solution_index, _ = min(enumerate(relative_distances), key=lambda x: x[1])
         pos, virtual_angles = pos_virtual_angles_pairs_in_degrees[shortest_solution_index]
 
         if logger.isEnabledFor(logging.DEBUG):
@@ -282,12 +291,12 @@ class YouHklCalculator(HklCalculatorBase):
                    'shortest distance to all-zeros position):\n')
             i = 0
             for (pos_, _), distance in zip(pos_virtual_angles_pairs_in_degrees,
-                                          absolute_distances):
+                                          relative_distances):
                 msg += '*' if i == shortest_solution_index else '.'
 
                 msg += ('mu=% 7.3f, delta=% 7.3f, nu=% 7.3f, eta=% 7.3f, chi=% 7.3f, phi=% 7.3f' %
                         pos_.totuple())
-                msg += ' (distance=% 4.3f)\n' % (distance * TODEG)
+                msg += ' (distance=%s)\n' % str(distance)
                 i += 1
             msg += ':\n'
             logger.debug(msg)
