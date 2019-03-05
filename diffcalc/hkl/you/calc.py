@@ -280,7 +280,7 @@ class YouHklCalculator(HklCalculatorBase):
             absolute_distances.append([metric(p)for p in pos_pairs])
 
         min_distances = [min(d) for d in zip(*absolute_distances)]
-        relative_distances = [sorted([round(vl - mn, 1) for (vl, mn) in zip(ab, min_distances)], reverse=True)
+        relative_distances = [sorted([round(vl - mn, 2) for (vl, mn) in zip(ab, min_distances)], reverse=True)
                                for ab in absolute_distances]
 
         shortest_solution_index, _ = min(enumerate(relative_distances), key=lambda x: x[1])
