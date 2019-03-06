@@ -295,7 +295,7 @@ class UBCalculation:
                 raise TypeError("Invalid number of input parameters to set unit lattice.")
             fullform = (system,) + shortform
         else:
-            if not isinstance(shortform[0], str):
+            if not isinstance(shortform[0], basestring):
                 raise TypeError("Invalid unit cell parameters specified.")
             fullform = shortform
         self._set_lattice(name, *fullform)

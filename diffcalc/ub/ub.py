@@ -77,7 +77,7 @@ def newub(name=None):
         except IOError:
             raise DiffcalcException('Cannot create UB calculation persistence file with name "%s"' % name)
         setlat()
-    elif isinstance(name, str):
+    elif isinstance(name, basestring):
         if name in ubcalc._persister.list():
             print ("No UB calculation started: There is already a calculation "
                     "called: " + name)
@@ -102,7 +102,7 @@ def newub(name=None):
 def loadub(name_or_num):
     """loadub 'name' | num -- load an existing ub calculation
     """
-    if isinstance(name_or_num, str):
+    if isinstance(name_or_num, basestring):
         ubcalc.load(name_or_num)
     else:
         ubcalc.load(ubcalc.listub()[int(name_or_num)])
@@ -122,7 +122,7 @@ def lastub():
 def rmub(name_or_num):
     """rmub 'name'|num -- remove existing ub calculation
     """
-    if isinstance(name_or_num, str):
+    if isinstance(name_or_num, basestring):
         ubcalc.remove(name_or_num)
     else:
         ubcalc.remove(ubcalc.listub()[int(name_or_num)])
@@ -156,7 +156,7 @@ def listub():
 def saveubas(name):
     """saveubas 'name' -- save the ub calculation with a new name
     """
-    if isinstance(name, str):
+    if isinstance(name, basestring):
         # just trying might cause confusion here
         ubcalc.saveas(name)
     else:
@@ -231,7 +231,7 @@ def setlat(name=None, *args):
             gamma = promptForNumber('gamma', 90)
             args += (gamma,)
         args = (systen_dict[system],) + args
-    elif not isinstance(name, str):
+    elif not isinstance(name, basestring):
         raise TypeError("Invalid crystal name.")
     ubcalc.set_lattice(name, *args)
 
@@ -380,7 +380,7 @@ def addref(*args):
             energy = settings.hardware.get_energy()  # @UndefinedVariable
         if len(args) == 1:
             tag = args.pop(0)
-            if not isinstance(tag, str):
+            if not isinstance(tag, basestring):
                 raise TypeError("Tag value must be a string")
             if tag == '':
                 tag = None
@@ -505,7 +505,7 @@ def addorient(*args):
             raise TypeError("x,y and z must all be numbers")
         if len(args) == 1:
             tag = args.pop(0)
-            if not isinstance(tag, str):
+            if not isinstance(tag, basestring):
                 raise TypeError("Tag value must be a string.")
             if tag == '':
                 tag = None
