@@ -290,19 +290,26 @@ class Scan(object):
         return posDict
 
     def _frange(self, limit1, limit2, increment):
-        """Range function that accepts floats (and integers).
+        """Range function that accepts scalers or lists of floats (and integers).
         """
-#        limit1 = float(limit1)
-#        limit2 = float(limit2)
         try:
-            increment = float(increment)
+            ranges = zip(limit1, limit2, increment)
         except TypeError:
-            raise TypeError(
-                "Only scaler values are supported, not GDA format vectors.")
-        count = int(math.ceil(((limit2 - limit1) + increment / 100.) / increment))
+            ranges = zip([limit1], [limit2], [increment])
+        counts = []
+        for l1, l2, incr in ranges:
+            if l2 == l1 or incr == 0:
+                counts.append(1)
+            else:
+                counts.append(int(math.ceil(((l2 - l1) + incr / 100.) / incr)))
+        max_count = max(counts)
         result = []
-        for n in range(count):
-            result.append(limit1 + n * increment)
+        for (l1, _, incr), count in zip(ranges, counts):
+            result.append([l1 + min(n, count) * incr  for n in range(max_count)])
+        if len(result) == 1:
+            result = result[0]
+        else:
+            result= zip(*result)
         return result
 
 
