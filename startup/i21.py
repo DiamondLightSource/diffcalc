@@ -147,14 +147,22 @@ def usem5tth():
 
     # Create diffractometer scannable
     _diff_scn_name = _tth_geometry.name
+    from diffcalc.dc import dcyou as _dc
     _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_m5tth)
 
     setLimitsAndCuts(m5tth, th, chi, phi)
     import __main__
     __main__.hkl = hkl_m5tth
+    __main__.h   = hkl_m5tth.h
+    __main__.k   = hkl_m5tth.k
+    __main__.l   = hkl_m5tth.l
     __main__.fourc = _diff_scn
+    from diffcalc.gdasupport.you import _virtual_angles
+    __main__.hklverbose = Hkl('hklverbose', __main__.fourc, _dc, _virtual_angles)
     if GDA:
         __main__.en = energy
+        __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
+        __main__.ct = SimulatedCrystalCounter('ct', __main__.fourc, settings.geometry, __main__.wl)  # @UndefinedVariable
 
 def uselowq():
     print '- setting hkl ---> hkl_lowq'
@@ -165,14 +173,22 @@ def uselowq():
 
     # Create diffractometer scannable
     _diff_scn_name = _lowq_geometry.name
+    from diffcalc.dc import dcyou as _dc
     _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_m5tth)
 
     setLimitsAndCuts(m5tth, th, chi, phi)
     import __main__
     __main__.hkl = hkl_lowq
+    __main__.h   = hkl_lowq.h
+    __main__.k   = hkl_lowq.k
+    __main__.l   = hkl_lowq.l
     __main__.fourc = _diff_scn
+    from diffcalc.gdasupport.you import _virtual_angles
+    __main__.hklverbose = Hkl('hklverbose', __main__.fourc, _dc, _virtual_angles)
     if GDA:
         __main__.en = energy
+        __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
+        __main__.ct = SimulatedCrystalCounter('ct', __main__.fourc, settings.geometry, __main__.wl)  # @UndefinedVariable
 
 def usehighq():
     print '- setting hkl ---> hkl_highq'
@@ -180,17 +196,25 @@ def usehighq():
     settings.hardware = _hw_m5tth
     settings.geometry = _highq_geometry
     settings.axes_scannable_group = _sc_m5tth
-    setLimitsAndCuts(m5tth, th, chi, phi)
 
     # Create diffractometer scannable
     _diff_scn_name = _highq_geometry.name
+    from diffcalc.dc import dcyou as _dc
     _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_m5tth)
 
+    setLimitsAndCuts(m5tth, th, chi, phi)
     import __main__
     __main__.hkl = hkl_highq
+    __main__.h   = hkl_highq.h
+    __main__.k   = hkl_highq.k
+    __main__.l   = hkl_highq.l
     __main__.fourc = _diff_scn
+    from diffcalc.gdasupport.you import _virtual_angles
+    __main__.hklverbose = Hkl('hklverbose', __main__.fourc, _dc, _virtual_angles)
     if GDA:
         __main__.en = energy
+        __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
+        __main__.ct = SimulatedCrystalCounter('ct', __main__.fourc, settings.geometry, __main__.wl)  # @UndefinedVariable
 
 def usedifftth():
     # sample chamber
@@ -202,14 +226,22 @@ def usedifftth():
 
     # Create diffractometer scannable
     _diff_scn_name = _tth_geometry.name
+    from diffcalc.dc import dcyou as _dc
     _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_difftth)
 
     setLimitsAndCuts(difftth, th, chi, phi)
     import __main__
     __main__.hkl = hkl_difftth
+    __main__.h   = hkl_difftth.h
+    __main__.k   = hkl_difftth.k
+    __main__.l   = hkl_difftth.l
     __main__.fourc = _diff_scn
+    from diffcalc.gdasupport.you import _virtual_angles
+    __main__.hklverbose = Hkl('hklverbose', __main__.fourc, _dc, _virtual_angles)
     if GDA:
         __main__.en = energy
+        __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
+        __main__.ct = SimulatedCrystalCounter('ct', __main__.fourc, settings.geometry, __main__.wl)  # @UndefinedVariable
 
 def usesim():
     # sample chamber
@@ -219,17 +251,25 @@ def usesim():
     settings.hardware = _hw_sim
     settings.geometry = _tth_geometry
     settings.axes_scannable_group = _sc_sim
-    setLimitsAndCuts(simdelta, simth, simchi, simphi)
 
     # Create diffractometer scannable
+    import __main__
     _diff_scn_name = _tth_geometry.name
+    from diffcalc.dc import dcyou as _dc
     _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_sim)
 
-    import __main__
     __main__.hkl = hkl_sim
+    __main__.h   = hkl_sim.h
+    __main__.k   = hkl_sim.k
+    __main__.l   = hkl_sim.l
+    setLimitsAndCuts(simdelta, simth, simchi, simphi)
     __main__.fourc = _diff_scn
+    from diffcalc.gdasupport.you import _virtual_angles
+    __main__.hklverbose = Hkl('hklverbose', __main__.fourc, _dc, _virtual_angles)
     if GDA:
         __main__.en = simenergy
+        __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
+        __main__.ct = SimulatedCrystalCounter('ct', __main__.fourc, settings.geometry, __main__.wl)  # @UndefinedVariable
 
 def centresample():
     sa.centresample()
