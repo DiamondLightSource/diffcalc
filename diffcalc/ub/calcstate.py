@@ -29,7 +29,7 @@ TODEG = 180 / pi
 class UBCalcState():
     
     def __init__(self, name=None, crystal=None, reflist=None, orientlist=None, tau=0, sigma=0,
-                 manual_U=None, manual_UB=None, or0=None, or1=None, reference=None):
+                 manual_U=None, manual_UB=None, or0=None, or1=None, reference=None, surface=None):
 
         assert reflist is not None
         self.name = name
@@ -43,6 +43,7 @@ class UBCalcState():
         self.or0 = or0
         self.or1 = or1
         self.reference = reference
+        self.surface = surface
         
     @property
     def is_okay_to_autocalculate_ub(self):
@@ -78,6 +79,7 @@ class UBCalcStateEncoder(json.JSONEncoder):
             d['tau'] = obj.tau
             d['sigma'] = obj.sigma
             d['reference'] = obj.reference
+            d['surface'] = obj.surface
             d['u'] = obj.manual_U
             d['ub'] = obj.manual_UB
             d['or0'] = obj.or0
@@ -148,6 +150,11 @@ class UBCalcStateEncoder(json.JSONEncoder):
             orientlist_=decode_orientlist(state['orientlist'])
         except KeyError:
             pass
+        try:
+            surface_=decode_reference(state['surface'])
+        except KeyError:
+            surface_ = YouReference(None)
+            surface_.n_phi_configured = matrix('0; 0; 1')
         return UBCalcState(
             name=state['name'],
             crystal=state['crystal'] and CrystalUnderTest(*eval(state['crystal'])),
@@ -159,7 +166,8 @@ class UBCalcStateEncoder(json.JSONEncoder):
             manual_UB=state['ub'] and decode_matrix(state['ub']),
             or0=state['or0'],
             or1=state['or1'],
-            reference=decode_reference(state.get('reference', None))
+            reference=decode_reference(state.get('reference', None)),
+            surface=surface_
         )
 
 

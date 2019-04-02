@@ -57,21 +57,35 @@ def createMockUbcalc(UB):
     ubcalc.sigma = 0
     ubcalc.UB = UB
     ubcalc.n_phi = matrix([[0], [0], [1]])
+    ubcalc.surf_nphi = matrix([[0], [0], [1]])
     return ubcalc
+
+
+def createMockHardwareMonitor():
+    names = ['mu', 'delta', NUNAME, 'eta', 'chi', 'phi']
+    hardware = DummyHardwareAdapter(names)
+
+    hardware.set_lower_limit('delta', 0)
+    hardware.set_upper_limit('delta', 179.999)
+    hardware.set_lower_limit(NUNAME, 0)
+    hardware.set_upper_limit(NUNAME, 179.999)
+    hardware.set_lower_limit('mu', 0)
+    hardware.set_lower_limit('eta', 0)
+    hardware.set_upper_limit('chi', 179.999)
+    hardware.set_lower_limit('chi', -10)
+    hardware.set_cut('phi', -179.999)
+    return hardware
 
 
 class _BaseTest(object):
 
     def setup_method(self):
         self.mock_ubcalc = createMockUbcalc(None)
-        self.sixc_geometry = SixCircle()
-        settings.geometry = self.sixc_geometry
-        names = ['mu', 'delta', NUNAME, 'eta', 'chi', 'phi']
-        self.mock_hardware = DummyHardwareAdapter(names)
-        settings.hardware = self.mock_hardware
+        settings.geometry = SixCircle()
         self.constraints = YouConstraintManager()
         self.calc = YouHklCalculator(self.mock_ubcalc, self.constraints)
 
+        self.mock_hardware = createMockHardwareMonitor()
         self.mock_hardware.set_lower_limit('delta', 0)
         self.mock_hardware.set_upper_limit('delta', 179.999)
         self.mock_hardware.set_lower_limit(NUNAME, 0)
@@ -81,6 +95,7 @@ class _BaseTest(object):
         self.mock_hardware.set_upper_limit('chi', 179.999)
         self.mock_hardware.set_lower_limit('chi', -10)
         self.mock_hardware.set_cut('phi', -179.999)
+        settings.hardware = self.mock_hardware
 
         self.places = 5
 

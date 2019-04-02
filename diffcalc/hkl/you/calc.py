@@ -205,6 +205,9 @@ class YouHklCalculator(HklCalculatorBase):
     def _get_n_phi(self):
         return self._ubcalc.n_phi
     
+    def _get_surf_nphi(self):
+        return self._ubcalc.surf_nphi
+    
     def _get_ubmatrix(self):
         return self._getUBMatrix()  # for consistency
 
@@ -252,12 +255,11 @@ class YouHklCalculator(HklCalculatorBase):
         psi = next(self._calc_psi(alpha, theta, tau, qaz, naz))
 
         # Compute incidence and outgoing angles bin and bout
-        surfin = Z * matrix([[0],[0],[-1]])
-        surfout = Z * matrix([[0],[0],[1]])
+        surf_nphi = Z * self._get_surf_nphi()
         kin = matrix([[0],[1],[0]])
         kout = D * matrix([[0],[1],[0]])
-        bin = pi / 2. - angle_between_vectors(kin, surfin)
-        bout = pi / 2. - angle_between_vectors(kout, surfout)
+        bin = angle_between_vectors(kin, surf_nphi) - pi / 2.
+        bout = pi / 2. - angle_between_vectors(kout, surf_nphi)
 
         return {'theta': theta, 'qaz': qaz, 'alpha': alpha,
                 'naz': naz, 'tau': tau, 'psi': psi, 'beta': beta,

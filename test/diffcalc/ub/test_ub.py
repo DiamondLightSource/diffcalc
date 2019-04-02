@@ -677,6 +677,19 @@ class _UBCommandsBase():
         self.ub.setnphi([1, 0, 1])
         self.ub.setnhkl([1, 0, 1])
 
+    def test_surfnphihkl_at_various_phases(self):
+        self.ub.surfnphi([1, 0, 1])
+        self.ub.surfnhkl([1, 0, 1])
+        self.ub.newub('test')
+        self.ub.surfnphi([1, 0, 1])
+        self.ub.surfnhkl([1, 0, 1]) 
+        self.ub.setlat('cube', 1, 1, 1, 90, 90, 90)
+        self.ub.surfnphi([1, 0, 1])
+        self.ub.surfnhkl([1, 0, 1])
+        self.ub.setu([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        self.ub.surfnphi([1, 0, 1])
+        self.ub.surfnhkl([1, 0, 1])
+
     def testMiscut(self):
         self.ub.newub('testsetmiscut')
         self.ub.setlat('cube', 1, 1, 1, 90, 90, 90)

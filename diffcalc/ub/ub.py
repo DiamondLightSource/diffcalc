@@ -43,7 +43,7 @@ __all__ = ['addorient', 'addref', 'c2th', 'hklangle', 'calcub', 'delorient', 'de
            'editref', 'listub', 'loadub', 'newub', 'orientub', 'saveubas', 'setlat',
            'addmiscut', 'setmiscut', 'setu', 'setub', 'showorient', 'showref', 'swaporient',
            'swapref', 'trialub', 'fitub', 'checkub', 'ub', 'ubcalc', 'rmub', 'clearorient',
-           'clearref', 'lastub', 'refineub']
+           'clearref', 'lastub', 'refineub', 'surfnphi', 'surfnhkl']
 
 if settings.include_sigtau:
     __all__.append('sigtau')
@@ -285,7 +285,7 @@ def sigtau(sigma=None, tau=None):
 
 @command
 def setnphi(xyz=None):
-    """setnphi {[x y z]} -- sets or displays n_phi reference"""
+    """setnphi {[x y z]} -- sets or displays n_phi reference vector"""
     if xyz is None:
         ubcalc.print_reference()
     else:
@@ -294,12 +294,31 @@ def setnphi(xyz=None):
 
 @command
 def setnhkl(hkl=None):
-    """setnhkl {[h k l]} -- sets or displays n_hkl reference"""
+    """setnhkl {[h k l]} -- sets or displays n_hkl reference vector"""
     if hkl is None:
         ubcalc.print_reference()
     else:
         ubcalc.set_n_hkl_configured(_to_column_vector_triple(hkl))
         ubcalc.print_reference()
+ 
+ 
+@command
+def surfnphi(xyz=None):
+    """surfnphi {[x y z]} -- sets or displays surface normal vector in lab space"""
+    if xyz is None:
+        ubcalc.print_surface()
+    else:
+        ubcalc.set_surf_nphi_configured(_to_column_vector_triple(xyz))
+        ubcalc.print_surface()
+
+@command
+def surfnhkl(hkl=None):
+    """surfnhkl {[h k l]} -- sets or displays surface normal vector in reciprocal space"""
+    if hkl is None:
+        ubcalc.print_surface()
+    else:
+        ubcalc.set_surf_nhkl_configured(_to_column_vector_triple(hkl))
+        ubcalc.print_surface()
  
  
 def _to_column_vector_triple(o):
@@ -800,9 +819,13 @@ commands_for_help = ['State',
 
 if ubcalc.include_reference:
     commands_for_help.extend([
-                     'Reference (surface)',
+                     'Reference',
                      setnphi,
                      setnhkl])
+commands_for_help.extend([
+                     'Surface normal',
+                     surfnphi,
+                     surfnhkl])
 
 if ubcalc.include_sigtau:
     commands_for_help.extend([

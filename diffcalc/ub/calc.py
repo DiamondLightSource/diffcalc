@@ -103,7 +103,12 @@ class UBCalculation:
                                  multiplier=settings.hardware.energyScannableMultiplierToGetKeV)
         orientlist = OrientationList()
         reference = YouReference(self._get_UB)
-        self._state = UBCalcState(name=name, reflist=reflist, orientlist=orientlist, reference=reference)
+        surface = YouReference(self._get_UB)
+        self._state = UBCalcState(name=name,
+                                  reflist=reflist,
+                                  orientlist=orientlist,
+                                  reference=reference,
+                                  surface=surface)
         self._U = None
         self._UB = None
         self._state.configure_calc_type()
@@ -123,6 +128,7 @@ class UBCalculation:
                                                                      self._get_diffractometer_axes_names(),
                                                                      settings.hardware.energyScannableMultiplierToGetKeV)
             self._state.reference.get_UB = self._get_UB
+            self._state.surface.get_UB = self._get_UB
         elif isinstance(self._persister, UBCalculationPersister):
             self._state = state
         else:
@@ -183,10 +189,16 @@ class UBCalculation:
             lines.append(
                 "   tau:".ljust(WIDTH) + ("% 9.5f" % self._state.tau).rjust(9))
 
+        _ub_calculated = self._UB is not None
         if self.include_reference:
             lines.append("")
-            ub_calculated = self._UB is not None
-            lines.extend(self._state.reference.repr_lines(ub_calculated, WIDTH, self._tobj))
+            lines.append(bold("REFERNCE"))
+            lines.append("")
+            lines.extend(self._state.reference.repr_lines(_ub_calculated, WIDTH, self._tobj))
+        lines.append("")
+        lines.append(bold("SURFACE NORMAL"))
+        lines.append("")
+        lines.extend(self._state.surface.repr_lines(_ub_calculated, WIDTH, self._tobj))
         
         lines.append("")
         lines.append(bold("CRYSTAL"))
@@ -364,6 +376,29 @@ class UBCalculation:
         
     def print_reference(self):
         print '\n'.join(self._state.reference.repr_lines(self.is_ub_calculated(), WIDTH=9, conv=self._tobj))
+
+
+### Surface vector ###
+
+    def _get_surf_nhkl(self):
+        return self._state.surface.n_hkl
+    
+    def _get_surf_nphi(self):
+        return self._state.surface.n_phi
+    
+    surf_nhkl = property(_get_surf_nhkl)
+    surf_nphi = property(_get_surf_nphi)
+    
+    def set_surf_nphi_configured(self, n_phi):
+        self._state.surface.n_phi_configured = self._tobj.transform(n_phi)
+        self.save()
+        
+    def set_surf_nhkl_configured(self, n_hkl):
+        self._state.surface.n_hkl_configured = n_hkl
+        self.save()
+        
+    def print_surface(self):
+        print '\n'.join(self._state.surface.repr_lines(self.is_ub_calculated(), WIDTH=9, conv=self._tobj))
 
 ### Reflections ###
 
@@ -860,7 +895,7 @@ class UBCalculation:
         else:
             new_U = rot_matrix
         self.set_U_manually(new_U, False)
-        self.print_reference()
+        self.print_surface()
         self.save()
 
     def get_hkl_plane_distance(self, hkl):
@@ -907,7 +942,7 @@ class UBCalculation:
         return miscut, axis.T.tolist()[0]
 
     def get_miscut_angle_axis(self, ubmatrix):
-        y = matrix('0; 0; 1')
+        y = self._get_surf_nphi()
         l = ubmatrix * y
         rotation_axis = self._tobj.transform(cross3(y, l), True)
         if abs(norm(rotation_axis)) < SMALL:

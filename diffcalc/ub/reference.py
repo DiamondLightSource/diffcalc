@@ -75,17 +75,6 @@ class YouReference(object):
         if ub_calculated:
             lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(conv.transform(self.n_phi, True)) + nphi_label)
             lines.append("   n_hkl:".ljust(WIDTH) + self._pretty_vector(self.n_hkl) + nhkl_label)
-            rotation_axis = conv.transform(cross3(matrix('0; 0; 1'), self.n_phi), True)
-            if abs(norm(rotation_axis)) < SMALL:
-                lines.append("   normal:".ljust(WIDTH) + "  None")
-            else:
-                rotation_axis = rotation_axis * (1 / norm(rotation_axis))
-                dot_rotation_angle = dot3(matrix('0; 0; 1'), self.n_phi)
-                rotation_angle = acos(dot_rotation_angle / norm(self.n_phi))
-                lines.append("   normal:")
-                lines.append("      angle:".ljust(WIDTH) + "% 9.5f" % (rotation_angle * TODEG))
-                lines.append("      axis:".ljust(WIDTH) + self._pretty_vector(rotation_axis))
- 
         else:  # no ub calculated
             if self._n_phi_configured is not None:
                 lines.append("   n_phi:".ljust(WIDTH) + self._pretty_vector(conv.transform(self._n_phi_configured, True)) + SET_LABEL)
