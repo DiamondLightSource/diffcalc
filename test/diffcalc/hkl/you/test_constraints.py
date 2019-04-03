@@ -24,7 +24,7 @@ from diffcalc.util import DiffcalcException
 from nose.tools import raises
 from nose.tools import assert_raises  # @UnresolvedImport
 
-from diffcalc.hkl.you.constraints import NUNAME
+from diffcalc.settings import NUNAME
 import diffcalc.util
 from diffcalc.hkl.you.geometry import SixCircle
 from diffcalc import settings
@@ -56,15 +56,15 @@ class TestConstraintManager:
         self.cm.set_constraint('eta', 99.)
         print '\n'.join(self.cm.build_display_table_lines())
         eq_(self.cm.build_display_table_lines(),
-            ['    DET        REF        SAMP',
-             '    ------     ------     ------',
-             '    delta      a_eq_b     mu',
-             '    %s o-> alpha  --> eta' % NUNAME.ljust(6),
-             '--> qaz        beta       chi',
-             '    naz        psi        phi',
-             '                          mu_is_%s' % NUNAME,
-             '                          bisect',
-             '                          omega'])
+            ['    DET             REF             SAMP',
+             '    -----------     -----------     -----------',
+             '    delta           a_eq_b          mu',
+             '    %s      o-> alpha       --> eta' % NUNAME.ljust(6),
+             '--> qaz             beta            chi',
+             '    naz             psi             phi',
+             '                    bin_eq_bout     mu_is_%s' % NUNAME,
+             '                    betain          bisect',
+             '                    betaout         omega'])
 
 
 #"""
@@ -527,38 +527,43 @@ class TestConstraintManagerWithFourCircles:
         self.cm = YouConstraintManager({NUNAME: 0})
         print self.cm.build_display_table_lines()
         eq_(self.cm.build_display_table_lines(),
-            ['    REF        SAMP',
-             '    ------     ------',
-             '    a_eq_b     mu',
-             '    alpha      eta',
-             '    beta       chi',
-             '    psi        phi',
-             '               bisect',
-             '               omega'])
+            ['    REF             SAMP',
+             '    -----------     -----------',
+             '    a_eq_b          mu',
+             '    alpha           eta',
+             '    beta            chi',
+             '    psi             phi',
+             '    bin_eq_bout     bisect',
+             '    betain          omega',
+             '    betaout'])
         
     def test_build_initial_display_table_with_fixed_sample(self):
         self.cm = YouConstraintManager({'mu': 0})
         print self.cm.build_display_table_lines()
         eq_(self.cm.build_display_table_lines(),
-            ['    DET        REF        SAMP',
-             '    ------     ------     ------',
-             '    delta      a_eq_b     eta',
-             '    %s     alpha      chi' % NUNAME.ljust(6),
-             '    qaz        beta       phi',
-             '    naz        psi        bisect',
-             '                          omega'])
+            ['    DET             REF             SAMP',
+             '    -----------     -----------     -----------',
+             '    delta           a_eq_b          eta',
+             '    %s          alpha           chi' % NUNAME.ljust(6),
+             '    qaz             beta            phi',
+             '    naz             psi             bisect',
+             '                    bin_eq_bout     omega',
+             '                    betain',
+             '                    betaout'])
         
     def test_build_initial_display_table_for_four_circle(self):
         self.cm = YouConstraintManager({'mu': 0, NUNAME: 0})
         print self.cm.build_display_table_lines()
         eq_(self.cm.build_display_table_lines(),
-            ['    REF        SAMP',
-             '    ------     ------',
-             '    a_eq_b     eta',
-             '    alpha      chi',
-             '    beta       phi',
-             '    psi        bisect',
-             '               omega'])
+            ['    REF             SAMP',
+             '    -----------     -----------',
+             '    a_eq_b          eta',
+             '    alpha           chi',
+             '    beta            phi',
+             '    psi             bisect',
+             '    bin_eq_bout     omega',
+             '    betain',
+             '    betaout'])
         
     def test_constrain_fixed_detector_angle(self):
         assert_raises(DiffcalcException, self.cm.constrain, 'delta')

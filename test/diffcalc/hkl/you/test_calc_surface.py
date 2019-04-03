@@ -38,7 +38,7 @@ from diffcalc.ub.calc import UBCalculation
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.persistence import UbCalculationNonPersister
 from test.diffcalc.hkl.you.test_calc import _BaseTest
-from diffcalc.hkl.you.constraints import NUNAME
+from diffcalc.settings import NUNAME
 
 TORAD = pi / 180
 TODEG = 180 / pi

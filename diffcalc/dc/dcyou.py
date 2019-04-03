@@ -5,7 +5,6 @@ from diffcalc.dc.help import compile_extra_motion_commands_for_help
 import diffcalc.hkl.you.calc
 settings.ubcalc_strategy = diffcalc.hkl.you.calc.YouUbCalcStrategy()
 settings.angles_to_hkl_function = diffcalc.hkl.you.calc.youAnglesToHkl
-settings.include_reference = True
 
 # reload to aid testing only
 from diffcalc.ub import ub as _ub

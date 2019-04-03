@@ -25,11 +25,10 @@ except ImportError:
     from numjy import matrix
 
 from diffcalc.util import DiffcalcException, bold
+from diffcalc.settings import NUNAME
 
 TODEG = 180 / pi
 TORAD = pi / 180
-
-NUNAME = 'gam'
 
 def filter_dict(d, keys):
     """Return a copy of d containing only keys that are in keys"""
@@ -38,10 +37,14 @@ def filter_dict(d, keys):
 
 
 det_constraints = ('delta', NUNAME, 'qaz', 'naz')
-ref_constraints = ('a_eq_b', 'alpha', 'beta', 'psi')
+if settings.include_reference:
+    ref_constraints = ('a_eq_b', 'alpha', 'beta', 'psi', 'bin_eq_bout', 'betain', 'betaout')
+    valueless_constraints = ('a_eq_b', 'bin_eq_bout', 'mu_is_' + NUNAME, 'bisect')
+else:
+    ref_constraints = ('bin_eq_bout', 'betain', 'betaout')
+    valueless_constraints = ('bin_eq_bout', 'mu_is_' + NUNAME, 'bisect')
 samp_constraints = ('mu', 'eta', 'chi', 'phi', 'mu_is_' + NUNAME, 'bisect', 'omega')
 
-valueless_constraints = ('a_eq_b', 'mu_is_' + NUNAME, 'bisect')
 all_constraints = det_constraints + ref_constraints + samp_constraints
 
 

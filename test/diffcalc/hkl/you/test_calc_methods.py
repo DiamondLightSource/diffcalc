@@ -37,7 +37,7 @@ from diffcalc.hkl.you.geometry  import YouPosition, SixCircle
 from test.diffcalc.hkl.you.test_calc import createMockHardwareMonitor, createMockUbcalc
 from diffcalc.util import DiffcalcException
 
-from diffcalc.hkl.you.constraints import NUNAME
+from diffcalc.settings import NUNAME
 
 TORAD = pi / 180
 TODEG = 180 / pi

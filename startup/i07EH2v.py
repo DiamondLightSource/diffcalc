@@ -1,5 +1,5 @@
 from startup._common_imports import *  # @UnusedWildImport
-from diffcalc.hkl.you.constraints import NUNAME
+from diffcalc.settings import NUNAME
 
 if GDA:    
     from __main__ import diff2delta, diff2alpha, diff2gamma, diff2omega, dcm1energy # @UnresolvedImport

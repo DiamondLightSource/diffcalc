@@ -11,7 +11,7 @@ import diffcalc.util  # @UnusedImport
 from diffcalc.hardware import DummyHardwareAdapter
 from diffcalc.hkl.you.geometry import SixCircle
 from diffcalc.ub.persistence import UbCalculationNonPersister
-from diffcalc.hkl.you.constraints import NUNAME
+from diffcalc.settings import NUNAME
 from diffcalc import settings
 
 
@@ -20,7 +20,7 @@ wl = 1
 en = 12.39842 / wl
 
 angles = [0, 60, 0, 30, 0, 0]
-param = {'tau': 90, 'psi': 90, 'beta': 0, 'alpha': 0, 'naz': 0, 'qaz': 90, 'theta': 30, 'bin': 0, 'bout': 0}
+param = {'tau': 90, 'psi': 90, 'beta': 0, 'alpha': 0, 'naz': 0, 'qaz': 90, 'theta': 30, 'betain': 0, 'betaout': 0}
 
 
 dc=None

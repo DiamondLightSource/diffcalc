@@ -1,11 +1,10 @@
 from startup._common_imports import *  # @UnusedWildImport
-from diffcalc.hkl.you.constraints import NUNAME
+from diffcalc.settings import NUNAME
 
 if GDA:    
     from __main__ import diff1vdelta, diff1halpha, diff1vgamma, diff1homega, dcm1energy # @UnresolvedImport
 
-from diffcalc.hkl.you.geometry import YouGeometry, YouPosition,\
-    YouRemappedGeometry
+from diffcalc.hkl.you.geometry import YouRemappedGeometry
 
 try:
     from numpy import matrix

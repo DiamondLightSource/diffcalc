@@ -25,7 +25,7 @@ TORAD = pi / 180
 TODEG = 180 / pi
 from diffcalc.util import x_rotation, z_rotation, y_rotation
 
-from diffcalc.hkl.you.constraints import NUNAME
+from diffcalc.settings import NUNAME
 
 class YouGeometry(object):
 

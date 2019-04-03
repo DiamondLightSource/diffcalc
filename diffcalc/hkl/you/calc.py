@@ -37,7 +37,7 @@ from diffcalc.util import DiffcalcException, bound, angle_between_vectors,\
 from diffcalc.util import cross3, z_rotation, x_rotation
 from diffcalc.ub.calc import PaperSpecificUbCalcStrategy
 
-from diffcalc.hkl.you.constraints import NUNAME
+from diffcalc.settings import NUNAME
 logger = logging.getLogger("diffcalc.hkl.you.calc")
 I = matrix('1 0 0; 0 1 0; 0 0 1')
 
@@ -234,36 +234,40 @@ class YouHklCalculator(HklCalculatorBase):
         [MU, DELTA, NU, ETA, CHI, PHI] = create_you_matrices(mu,
                                            delta, nu, eta, chi, phi)
         Z = MU * ETA * CHI * PHI
-        D = NU * DELTA 
-        n_lab = Z * self._get_n_phi()
-        alpha = asin(bound((-n_lab[1, 0])))
-        naz = atan2(n_lab[0, 0], n_lab[2, 0])                            # (20)
+        D = NU * DELTA
 
-        cos_tau = cos(alpha) * cos(theta) * cos(naz - qaz) + \
-                  sin(alpha) * sin(theta)
-        tau = acos(bound(cos_tau))                                       # (23)
-
-        # Compute Tau using the dot product directly (THIS ALSO WORKS)
-#        q_lab = ( (NU * DELTA - I ) * matrix([[0],[1],[0]])
-#        norm = norm(q_lab)
-#        q_lab = matrix([[1],[0],[0]]) if norm == 0 else q_lab * (1/norm)
-#        tau_from_dot_product = acos(bound(dot3(q_lab, n_lab)))
-
-        sin_beta = 2 * sin(theta) * cos(tau) - sin(alpha)
-        beta = asin(bound(sin_beta))                                     # (24)
-
-        psi = next(self._calc_psi(alpha, theta, tau, qaz, naz))
-
-        # Compute incidence and outgoing angles bin and bout
+        # Compute incidence and outgoing angles bin and betaout
         surf_nphi = Z * self._get_surf_nphi()
         kin = matrix([[0],[1],[0]])
         kout = D * matrix([[0],[1],[0]])
-        bin = angle_between_vectors(kin, surf_nphi) - pi / 2.
-        bout = pi / 2. - angle_between_vectors(kout, surf_nphi)
+        betain = angle_between_vectors(kin, surf_nphi) - pi / 2.
+        betaout = pi / 2. - angle_between_vectors(kout, surf_nphi)
 
-        return {'theta': theta, 'qaz': qaz, 'alpha': alpha,
-                'naz': naz, 'tau': tau, 'psi': psi, 'beta': beta,
-                'bin': bin, 'bout': bout}
+        if settings.include_reference:
+            n_lab = Z * self._get_n_phi()
+            alpha = asin(bound((-n_lab[1, 0])))
+            naz = atan2(n_lab[0, 0], n_lab[2, 0])                            # (20)
+
+            cos_tau = cos(alpha) * cos(theta) * cos(naz - qaz) + \
+                      sin(alpha) * sin(theta)
+            tau = acos(bound(cos_tau))                                       # (23)
+
+            # Compute Tau using the dot product directly (THIS ALSO WORKS)
+            # q_lab = ( (NU * DELTA - I ) * matrix([[0],[1],[0]])
+            # norm = norm(q_lab)
+            # q_lab = matrix([[1],[0],[0]]) if norm == 0 else q_lab * (1/norm)
+            # tau_from_dot_product = acos(bound(dot3(q_lab, n_lab)))
+
+            sin_beta = 2 * sin(theta) * cos(tau) - sin(alpha)
+            beta = asin(bound(sin_beta))                                     # (24)
+
+            psi = next(self._calc_psi(alpha, theta, tau, qaz, naz))
+
+            return {'theta': theta, 'qaz': qaz, 'alpha': alpha,
+                    'naz': naz, 'tau': tau, 'psi': psi, 'beta': beta,
+                    'betain': betain, 'betaout': betaout}
+        return {'theta': theta, 'qaz': qaz,
+                'betain': betain, 'betaout': betaout}
 
 
     def _choose_single_solution(self, pos_virtual_angles_pairs_in_degrees):
@@ -379,6 +383,7 @@ class YouHklCalculator(HklCalculatorBase):
         h_phi = self._get_ubmatrix() * matrix([[h], [k], [l]])
         theta = self._calc_theta(h_phi, wavelength)
         tau = angle_between_vectors(h_phi, self._get_n_phi())
+        surf_tau = angle_between_vectors(h_phi, self._get_surf_nphi())
         
         if is_small(sin(tau)) and ref_constraint:
             if ref_constraint_name == 'psi':
@@ -387,13 +392,24 @@ class YouHklCalculator(HklCalculatorBase):
             elif ref_constraint_name == 'a_eq_b':
                 raise DiffcalcException("Reference constraint 'a_eq_b' is redundant as reference and scattering vectors are parallel.\n"
                                         "Please constrain one of the sample angles or choose different reference vector orientation.")
+        if is_small(sin(surf_tau)) and ref_constraint and ref_constraint_name == 'bin_eq_bout':
+            raise DiffcalcException("Reference constraint 'bin_eq_bout' is redundant as scattering vectors is parallel to the surface normal.\n"
+                                    "Please select another constrain to define sample azimuthal orientation.")
+
 
         ### Reference constraint column ###
 
+        n_phi = self._get_n_phi()
         if ref_constraint:
-            # An angle for the reference vector (n) is given      (Section 5.2)         
-            alpha, _ = self._calc_remaining_reference_angles(
-                ref_constraint_name, ref_constraint_value, theta, tau)
+            if set(['psi', 'a_eq_b', 'alpha', 'beta']).issuperset(ref_constraint.keys()):
+                # An angle for the reference vector (n) is given      (Section 5.2)         
+                alpha, _ = self._calc_remaining_reference_angles(
+                    ref_constraint_name, ref_constraint_value, theta, tau)
+            elif set(['bin_eq_bout', 'betain', 'betaout']).issuperset(ref_constraint.keys()):
+                alpha, _ = self._calc_remaining_reference_angles(
+                    ref_constraint_name, ref_constraint_value, theta, surf_tau)
+                tau = surf_tau
+                n_phi = self._get_surf_nphi()
 
         solution_tuples = []
         if det_constraint or naz_constraint:
@@ -402,7 +418,7 @@ class YouHklCalculator(HklCalculatorBase):
                 for qaz, naz, delta, nu in self._calc_det_angles_given_det_or_naz_constraint(
                                                 det_constraint, naz_constraint, theta, tau, alpha):
                     for mu, eta, chi, phi in self._calc_sample_angles_from_one_sample_constraint(
-                                                samp_constraints, h_phi, theta, alpha, qaz, naz):
+                                                samp_constraints, h_phi, theta, alpha, qaz, naz, n_phi):
                         solution_tuples.append((mu, delta, nu, eta, chi, phi))
 
             elif len(samp_constraints) == 2:
@@ -410,7 +426,7 @@ class YouHklCalculator(HklCalculatorBase):
                     det_constraint_name, det_constraint_val = det_constraint.items()[0]
                     for delta, nu, qaz in self._calc_remaining_detector_angles(det_constraint_name, det_constraint_val, theta):
                         for mu, eta, chi, phi in self._calc_sample_angles_given_two_sample_and_detector(
-                            samp_constraints, qaz, theta, h_phi, self._get_n_phi()):
+                            samp_constraints, qaz, theta, h_phi, n_phi):
                             solution_tuples.append((mu, delta, nu, eta, chi, phi))
                 
                 else:
@@ -424,7 +440,7 @@ class YouHklCalculator(HklCalculatorBase):
                 psi_vals = self._calc_psi(alpha, theta, tau)
             for psi in psi_vals:
                 angles = list(self._calc_sample_given_two_sample_and_reference(
-                    samp_constraints, h_phi, theta, psi))
+                    samp_constraints, h_phi, theta, psi, n_phi))
                 solution_tuples.extend(angles)
 
         elif len(samp_constraints) == 3:
@@ -482,6 +498,8 @@ class YouHklCalculator(HklCalculatorBase):
                     constraint_name, constraint_value = constraint.items()[0]
                     if constraint_name == 'a_eq_b':
                         diff = pseudo_angles['alpha'] - pseudo_angles['beta']
+                    elif constraint_name == 'bin_eq_bout':
+                        diff = pseudo_angles['betain'] - pseudo_angles['betaout']
                     else:
                         diff = constraint_value - pseudo_angles[constraint_name]
                 except Exception:
@@ -571,17 +589,17 @@ class YouHklCalculator(HklCalculatorBase):
 
             beta = asin(bound(sin_beta))
 
-        elif name == 'a_eq_b':
+        elif name == 'a_eq_b' or name == 'bin_eq_bout':
             alpha = beta = asin(cos(tau) * sin(theta))            # (24)
 
-        elif name == 'alpha':
+        elif name == 'alpha' or name == 'betain':
             alpha = value                                                # (24)
             sin_beta = 2 * sin(theta) * cos(tau) - sin(alpha)
             if abs(sin_beta) > 1 + SMALL:
                 raise DiffcalcException(UNREACHABLE_MSG % (name, value * TODEG))
             beta = asin(sin_beta)
 
-        elif name == 'beta':
+        elif name == 'beta' or name == 'betaout':
             beta = value
             sin_alpha = 2 * sin(theta) * cos(tau) - sin(beta)            # (24)
             if abs(sin_alpha) > 1 + SMALL:
@@ -726,7 +744,7 @@ class YouHklCalculator(HklCalculatorBase):
 
 
     def _calc_sample_angles_from_one_sample_constraint(
-            self, samp_constraints, h_phi, theta, alpha, qaz, naz):
+            self, samp_constraints, h_phi, theta, alpha, qaz, naz, n_phi):
         
         sample_constraint_name, sample_value = samp_constraints.items()[0]
         q_lab = matrix([[cos(theta) * sin(qaz)], 
@@ -737,14 +755,14 @@ class YouHklCalculator(HklCalculatorBase):
                 [cos(alpha) * cos(naz)]]) # (20)
         mu_eta_chi_phi_tuples = list(self._calc_remaining_sample_angles(
             sample_constraint_name, sample_value, q_lab, n_lab, h_phi, 
-            self._get_n_phi()))
+            n_phi))
         return mu_eta_chi_phi_tuples
 
     def _calc_sample_given_two_sample_and_reference(
-            self, samp_constraints, h_phi, theta, psi):
+            self, samp_constraints, h_phi, theta, psi, n_phi):
         
         for angles in self._calc_sample_angles_given_two_sample_and_reference(
-                 samp_constraints, psi, theta, h_phi, self._get_n_phi()):
+                 samp_constraints, psi, theta, h_phi, n_phi):
             qaz, psi, mu, eta, chi, phi = angles 
             values_in_deg = tuple(v * TODEG for v in angles)
             logger.debug('Initial angles: xi=%.3f, psi=%.3f, mu=%.3f, '

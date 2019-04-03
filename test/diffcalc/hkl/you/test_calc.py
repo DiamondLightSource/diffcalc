@@ -40,7 +40,7 @@ TORAD = pi / 180
 TODEG = 180 / pi
 I = matrix('1 0 0; 0 1 0; 0 0 1')
 
-from diffcalc.hkl.you.constraints import NUNAME
+from diffcalc.settings import NUNAME
 
 class Pair:
 

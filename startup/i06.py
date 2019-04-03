@@ -2,7 +2,7 @@ from startup._common_imports import *  # @UnusedWildImport
 from diffcalc.gdasupport.minigda.scannable import ScannableMotionWithScannableFieldsBase  # @UnusedImport
 
 from diffcalc.hkl.you.geometry import YouGeometry, YouPosition
-from diffcalc.hkl.you.constraints import NUNAME
+from diffcalc.settings import NUNAME
 from diffcalc.hardware import setrange
 from diffcalc.hkl.you.calc import SMALL
 if not GDA:    

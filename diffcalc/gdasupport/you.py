@@ -71,7 +71,10 @@ qtrans = Qtrans('qtrans', _scn_group, _dc)
 Hkl.dynamic_docstring = format_command_help(hkl_commands_for_help)  # must be on the class
 ub.__doc__ = format_command_help(ub_commands_for_help)
 
-_virtual_angles = ('theta', 'qaz', 'alpha', 'naz', 'tau', 'psi', 'beta', 'bin', 'bout')
+if settings.include_reference:
+    _virtual_angles = ('theta', 'qaz', 'alpha', 'naz', 'tau', 'psi', 'beta', 'betain', 'betaout')
+else:
+    _virtual_angles = ('theta', 'qaz', 'betain', 'betaout')
 hklverbose = Hkl('hklverbose', _scn_group, _dc, _virtual_angles)
 
 
@@ -106,10 +109,14 @@ if isconstrainable('qaz'): qaz = _create_constraint_scannable('qaz')
 if isconstrainable('naz'): naz = _create_constraint_scannable('naz')
 
 # Reference constraints
-alpha = _create_constraint_scannable('alpha')
-beta = _create_constraint_scannable('beta')
-psi = _create_constraint_scannable('psi')
-a_eq_b = 'a_eq_b'
+if settings.include_reference:
+    alpha = _create_constraint_scannable('alpha')
+    beta = _create_constraint_scannable('beta')
+    psi = _create_constraint_scannable('psi')
+    a_eq_b = 'a_eq_b'
+betain = _create_constraint_scannable('betain')
+betaout = _create_constraint_scannable('betaout')
+bin_eq_bout = 'bin_eq_bout'
 
 # Sample constraints
 if isconstrainable('mu'): mu_con = _create_constraint_scannable('mu', 'mu_con')
