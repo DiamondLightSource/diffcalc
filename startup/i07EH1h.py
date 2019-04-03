@@ -61,6 +61,7 @@ settings.geometry = FourCircleI07EH1h()  # @UndefinedVariable
 settings.energy_scannable = en
 settings.axes_scannable_group= _fourc
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
+settings.include_reference = False
  
 # for aliasing completeness
 mu= settings.geometry.fixed_constraints['mu']
@@ -75,7 +76,7 @@ if GDA:
 lastub()
 # Set reference vector direction returning betain and betaout angles as alpha and beta
 if ubcalc.name:
-    setnphi('0; 0; 1')
+    surfnphi('0; 0; 1')
 
 ### Set i07 specific limits
 def setLimitsAndCuts():
