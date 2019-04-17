@@ -6,6 +6,7 @@ import datetime  # @UnusedImport For crazy time eval code!
 from diffcalc.ub.reference import YouReference
 from diffcalc.ub.orientations import _Orientation, OrientationList
 from diffcalc.log import logging
+from diffcalc import settings
 try:
     from collection import OrderedDict
 except ImportError:
@@ -151,10 +152,10 @@ class UBCalcStateEncoder(json.JSONEncoder):
         except KeyError:
             pass
         try:
-            surface_=decode_reference(state['surface'])
+            surface_=decode_reference(state['surface'], settings.surface_vector, False)
         except KeyError:
             surface_ = YouReference(None)
-            surface_.n_phi_configured = matrix('0; 0; 1')
+            surface_._set_n_phi_configured(settings.surface_vector)
         return UBCalcState(
             name=state['name'],
             crystal=state['crystal'] and CrystalUnderTest(*eval(state['crystal'])),
@@ -166,7 +167,7 @@ class UBCalcStateEncoder(json.JSONEncoder):
             manual_UB=state['ub'] and decode_matrix(state['ub']),
             or0=state['or0'],
             or1=state['or1'],
-            reference=decode_reference(state.get('reference', None)),
+            reference=decode_reference(state.get('reference', None), settings.reference_vector, True),
             surface=surface_
         )
 
@@ -214,15 +215,19 @@ def decode_reflection(ref_dict, geometry):
     return _Reflection(h, k, l, position, ref_dict['energy'], str(ref_dict['tag']), repr(time))
 
 
-def decode_reference(ref_dict):
+def decode_reference(ref_dict, ref_vector, flg):
     reference = YouReference(None)  # TODO: We can't set get_ub method yet (tangles!)
     if ref_dict:   
         nhkl = ref_dict.get('n_hkl_configured', None)
         nphi = ref_dict.get('n_phi_configured', None)
         if nhkl:
-            reference.n_hkl_configured = matrix([eval(nhkl)]).T
-        if nphi:
-            reference.n_phi_configured = matrix([eval(nphi)]).T
+            reference._set_n_hkl_configured(matrix([eval(nhkl)]).T)
+        elif nphi:
+            reference._set_n_phi_configured(matrix([eval(nphi)]).T)
+        elif flg:
+            reference._set_n_hkl_configured(ref_vector)
+        else:
+            reference._set_n_phi_configured(ref_vector)
     return reference
 
 

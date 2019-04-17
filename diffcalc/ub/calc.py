@@ -103,7 +103,9 @@ class UBCalculation:
                                  multiplier=settings.hardware.energyScannableMultiplierToGetKeV)
         orientlist = OrientationList()
         reference = YouReference(self._get_UB)
+        reference._set_n_hkl_configured(settings.reference_vector)
         surface = YouReference(self._get_UB)
+        surface._set_n_phi_configured(settings.surface_vector)
         self._state = UBCalcState(name=name,
                                   reflist=reflist,
                                   orientlist=orientlist,

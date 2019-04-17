@@ -1,17 +1,26 @@
-from math import pi, acos
+###
+# Copyright 2008-2019 Diamond Light Source Ltd.
+# This file is part of Diffcalc.
+#
+# Diffcalc is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Diffcalc is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
+###
 
 try:
-    from numpy import matrix
     from numpy.linalg import norm
 except ImportError:
-    from numjy import matrix
     from numjy.linalg import norm
 
-from diffcalc.util import cross3, dot3
-
-
-SMALL = 1e-7
-TODEG = 180 / pi
 
 class YouReference(object):
     
@@ -19,7 +28,6 @@ class YouReference(object):
         self.get_UB = get_UB  # callable
         self._n_phi_configured = None
         self._n_hkl_configured = None
-        self._set_n_phi_configured(matrix('0; 0; 1'))
     
     def _set_n_phi_configured(self, n_phi):
         self._n_phi_configured = n_phi
@@ -82,4 +90,3 @@ class YouReference(object):
                 lines.append("   n_hkl:".ljust(WIDTH) + self._pretty_vector(self._n_hkl_configured) + SET_LABEL)
 
         return lines
-    

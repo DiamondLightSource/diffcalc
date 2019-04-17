@@ -33,6 +33,7 @@ class TestYouReference():
     def setup_method(self):
         self.get_UB = Mock()
         self.reference = YouReference(self.get_UB)
+        self.reference._set_n_phi_configured(matrix('0; 0; 1'))
         self.get_UB.return_value = matrix('1 0 0; 0 1 0; 0 0 1')
 
     def test_default_n_phi(self):

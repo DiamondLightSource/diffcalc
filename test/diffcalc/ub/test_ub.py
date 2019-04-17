@@ -692,6 +692,7 @@ class _UBCommandsBase():
 
     def testMiscut(self):
         self.ub.newub('testsetmiscut')
+        self.ub.ubcalc._state.reference._set_n_phi_configured(matrix('0; 0; 1'))
         self.ub.setlat('cube', 1, 1, 1, 90, 90, 90)
         beam_axis = self.conv.transform(matrix('0; 1; 0'), True).T.tolist()[0]
         beam_maxis = self.conv.transform(matrix('0; -1; 0'), True).T.tolist()[0]

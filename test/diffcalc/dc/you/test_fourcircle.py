@@ -28,6 +28,7 @@ def setup_module():
     settings.hardware = DummyHardwareAdapter(axes)
     settings.geometry = FourCircle()
     settings.ubcalc_persister = UbCalculationNonPersister()
+    settings.reference_vector = matrix('0; 0; 1')
     
     from diffcalc.dc import dcyou as dc
     reload(dc)
