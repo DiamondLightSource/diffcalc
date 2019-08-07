@@ -44,8 +44,8 @@ if GDA:
     delta = _threec.dd2th
     eta = _threec.ddth
     en=energy
-    if float(en.getPosition()) == 0: # no energy value - dummy mode
-        en(800)
+#     if float(en.getPosition()) == 0: # no energy value - dummy mode
+#         en(800)
     
 else:   
     delta = Dummy('delta')
