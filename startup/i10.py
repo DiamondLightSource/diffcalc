@@ -89,7 +89,8 @@ def setLimitsAndCuts(delta,eta,chi,phi):
     print "Current hardware limits set to:"
     hardware()
 
-setLimitsAndCuts(delta,eta,chi,phi)
+if not GDA:
+    setLimitsAndCuts(delta,eta,chi,phi)
 
 if GDA:
     def swithMotors(delta, mu, eta, chi, phi):
