@@ -19,7 +19,7 @@
 from copy import deepcopy
 import datetime  # @UnusedImport for the eval below
 from diffcalc.util import DiffcalcException, bold
-from diffcalc.hkl.vlieg.geometry import VliegPosition
+from diffcalc.hkl.you.geometry import YouPosition
 
 
 class _Reflection:
@@ -36,17 +36,17 @@ class _Reflection:
         self.time = time  # Saved as e.g. repr(datetime.now())
 
     def __str__(self):
-        return ("energy=%-6.3f h=%-4.2f k=%-4.2f l=%-4.2f  alpha=%-8.4f "
-                "delta=%-8.4f gamma=%-8.4f omega=%-8.4f chi=%-8.4f "
+        return ("energy=%-6.3f h=%-4.2f k=%-4.2f l=%-4.2f  mu=%-8.4f "
+                "delta=%-8.4f nu=%-8.4f eta=%-8.4f chi=%-8.4f "
                 "phi=%-8.4f  %-s %s" % (self.energy, self.h, self.k, self.l,
-                self.pos.alpha, self.pos.delta, self.pos.gamma, self.pos.omega,
+                self.pos.mu, self.pos.delta, self.pos.nu, self.pos.eta,
                 self.pos.chi, self.pos.phi, self.tag, self.time))
 
 
 class ReflectionList:
 
-    def __init__(self, diffractometerPluginObject, externalAngleNames, reflections=None, multiplier=1):
-        self._geometry = diffractometerPluginObject
+    def __init__(self, geometry, externalAngleNames, reflections=None, multiplier=1):
+        self._geometry = geometry
         self._externalAngleNames = externalAngleNames
         self._reflist = reflections if reflections else []
         self._multiplier = multiplier
@@ -72,7 +72,7 @@ class ReflectionList:
             try:
                 position = self._geometry.create_position(*position)
             except AttributeError:
-                position = VliegPosition(*position)
+                position = YouPosition(*position)
         self._reflist += [_Reflection(h, k, l, position, energy, tag, time.__repr__())]
 
     def edit_reflection(self, idx, h, k, l, position, energy, tag, time):
@@ -83,7 +83,7 @@ class ReflectionList:
             raise DiffcalcException("There is no reflection " + repr(idx)
                                      + " to edit.")
         if type(position) in (list, tuple):
-            position = VliegPosition(*position)
+            position = YouPosition(*position)
         self._reflist[num] = _Reflection(h, k, l, position, energy, tag, time.__repr__())
 
     def getReflection(self, idx):
