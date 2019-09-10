@@ -1,4 +1,3 @@
-from diffcalc.hkl.vlieg.geometry import VliegPosition
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.reflections import ReflectionList, _Reflection
 from math import pi
@@ -7,6 +6,7 @@ from diffcalc.ub.reference import YouReference
 from diffcalc.ub.orientations import _Orientation, OrientationList
 from diffcalc.log import logging
 from diffcalc import settings
+from diffcalc.hkl.you.geometry import YouPosition
 try:
     from collection import OrderedDict
 except ImportError:
@@ -123,6 +123,7 @@ class UBCalcStateEncoder(json.JSONEncoder):
             d['tag'] = obj.tag
             d['hkl'] = repr([obj.h, obj.k, obj.l])
             d['xyz'] = repr([obj.x, obj.y, obj.z])
+            d['pos'] = repr(list(obj.pos.totuple()))
             dt = eval(obj.time)  # e.g. --> datetime.datetime(2013, 8, 5, 15, 47, 7, 962432)
             d['time'] = None if dt is None else dt.isoformat()
             return d
@@ -146,9 +147,9 @@ class UBCalcStateEncoder(json.JSONEncoder):
     def decode_ubcalcstate(state, geometry, diffractometer_axes_names, multiplier):
 
         # Backwards compatibility code
-        orientlist_=OrientationList([])
+        orientlist_=OrientationList(geometry, diffractometer_axes_names, [])
         try:
-            orientlist_=decode_orientlist(state['orientlist'])
+            orientlist_=decode_orientlist(state['orientlist'], geometry, diffractometer_axes_names)
         except KeyError:
             pass
         try:
@@ -190,7 +191,7 @@ def decode_reflist(reflist_dict, geometry, diffractometer_axes_names, multiplier
     return ReflectionList(geometry, diffractometer_axes_names, reflections, multiplier)
 
 
-def decode_orientlist(orientlist_dict):
+def decode_orientlist(orientlist_dict, geometry, diffractometer_axes_names):
     orientations = []
     try:
         sorted_orient_keys = sorted(orientlist_dict.keys(), key=int)
@@ -199,9 +200,9 @@ def decode_orientlist(orientlist_dict):
                          "Please check the orientation list order.")
         sorted_orient_keys = sorted(orientlist_dict.keys())
     for key in sorted_orient_keys:
-        orientations.append(decode_orientation(orientlist_dict[key]))
+        orientations.append(decode_orientation(orientlist_dict[key], geometry, diffractometer_axes_names))
         
-    return OrientationList(orientations)
+    return OrientationList(geometry, diffractometer_axes_names, orientations)
 
 
 def decode_reflection(ref_dict, geometry):
@@ -211,7 +212,7 @@ def decode_reflection(ref_dict, geometry):
     try:
         position = geometry.create_position(*pos_tuple)
     except AttributeError:
-        position = VliegPosition(*pos_tuple)
+        position = YouPosition(*pos_tuple)
     return _Reflection(h, k, l, position, ref_dict['energy'], str(ref_dict['tag']), repr(time))
 
 
@@ -231,11 +232,19 @@ def decode_reference(ref_dict, ref_vector, flg):
     return reference
 
 
-def decode_orientation(orient_dict):
+def decode_orientation(orient_dict, geometry, diffractometer_axes_names):
     h, k, l = eval(orient_dict['hkl'])
     x, y, z = eval(orient_dict['xyz'])
     time = orient_dict['time'] and gt(orient_dict['time'])
-    return _Orientation(h, k, l, x, y, z, str(orient_dict['tag']), repr(time))
+    try:
+        pos_tuple = eval(orient_dict['pos'])
+    except KeyError:
+        pos_tuple = (0.,) * len(diffractometer_axes_names)
+    try:
+        position = geometry.create_position(*pos_tuple)
+    except AttributeError:
+        position = YouPosition(*pos_tuple)
+    return _Orientation(h, k, l, x, y, z, position, str(orient_dict['tag']), repr(time))
 
 
 # From: http://stackoverflow.com/questions/127803/how-to-parse-iso-formatted-date-in-python

@@ -18,6 +18,7 @@
 
 from copy import deepcopy
 import datetime  # @UnusedImport for the eval below
+from diffcalc.hkl.you.geometry import YouPosition
 
 try:
     from numpy import matrix
@@ -29,7 +30,7 @@ from diffcalc.util import DiffcalcException, bold
 
 class _Orientation:
     """A orientation"""
-    def __init__(self, h, k, l, x, y, z, tag, time):
+    def __init__(self, h, k, l, x, y, z, position, tag, time):
 
         self.h = float(h)
         self.k = float(k)
@@ -37,20 +38,25 @@ class _Orientation:
         self.x = float(x)
         self.y = float(y)
         self.z = float(z)
+        self.pos = position
         self.tag = tag
         self.time = time  # Saved as e.g. repr(datetime.now())
 
     def __str__(self):
         return ("h=%-4.2f k=%-4.2f l=%-4.2f  x=%-4.2f "
-                "y=%-4.2f z=%-4.2 "
-                "  %-s %s" % (self.h, self.k, self.l,
+                "y=%-4.2f z=%-4.2  mu=%-8.4f "
+                "delta=%-8.4f nu=%-8.4f eta=%-8.4f chi=%-8.4f "
+                "phi=%-8.4f  %-s %s" % (self.h, self.k, self.l,
                 self.x, self.y, self.z,
-                self.tag, self.time))
+                self.pos.mu, self.pos.delta, self.pos.nu, self.pos.eta,
+                self.pos.chi, self.pos.phi, self.tag, self.time))
 
 
 class OrientationList:
 
-    def __init__(self, orientations=None):
+    def __init__(self, geometry, externalAngleNames, orientations=None):
+        self._geometry = geometry
+        self._externalAngleNames = externalAngleNames
         self._orientlist = orientations if orientations else []
 
     def get_tag_index(self, idx):
@@ -67,29 +73,47 @@ class OrientationList:
                 raise IndexError("Orientation index not found")
         return num
 
-    def add_orientation(self, h, k, l, x, y, z, tag, time):
+    def add_orientation(self, h, k, l, x, y, z, position, tag, time):
         """adds a crystal orientation
         """
-        self._orientlist += [_Orientation(h, k, l, x, y, z, tag,
+        if type(position) in (list, tuple):
+            try:
+                position = self._geometry.create_position(*position)
+            except AttributeError:
+                position = YouPosition(*position)
+        self._orientlist += [_Orientation(h, k, l, x, y, z, position, tag,
                                      time.__repr__())]
 
-    def edit_orientation(self, idx, h, k, l, x, y, z, tag, time):
+    def edit_orientation(self, idx, h, k, l, x, y, z, position, tag, time):
         """num starts at 1"""
         try:
             num = self.get_tag_index(idx)
         except IndexError:
             raise DiffcalcException("There is no orientation " + repr(idx)
                                      + " to edit.")
-        self._orientlist[num] = _Orientation(h, k, l, x, y, z, tag, time.__repr__())
+        if type(position) in (list, tuple):
+            position = YouPosition(*position)
+        self._orientlist[num] = _Orientation(h, k, l, x, y, z, position, tag, time.__repr__())
 
     def getOrientation(self, idx):
         """
-        getOrientation(idx) --> ( [h, k, l], [x, y, z], tag, time ) --
+        getOrientation(idx) --> ( [h, k, l], [x, y, z], pos, tag, time ) --
         idx refers to an orientation index (starts at 1) or a tag
         """
         num = self.get_tag_index(idx)
         r = deepcopy(self._orientlist[num])  # for convenience
-        return [r.h, r.k, r.l], [r.x, r.y, r.z], r.tag, eval(r.time)
+        return [r.h, r.k, r.l], [r.x, r.y, r.z], deepcopy(r.pos), r.tag, eval(r.time)
+
+    def get_orientation_in_external_angles(self, idx):
+        """
+        get_orientation_in_external_angles(idx) --> ( [h, k, l], [x, y, z], pos, tag, time ) --
+        idx refers to an orientation index (starts at 1) or a tag
+        """
+        num = self.get_tag_index(idx)
+        r = deepcopy(self._orientlist[num])  # for convenience
+        externalAngles = self._geometry.internal_position_to_physical_angles(r.pos)
+        result = [r.h, r.k, r.l], [r.x, r.y, r.z], externalAngles, r.tag, eval(r.time)
+        return result
 
     def removeOrientation(self, idx):
         num = self.get_tag_index(idx)
@@ -109,18 +133,19 @@ class OrientationList:
         return '\n'.join(self.str_lines(None))
 
     def str_lines(self, conv):
+        axes = tuple(s.upper() for s in self._externalAngleNames)
         if not self._orientlist:
             return ["   <<< none specified >>>"]
 
         lines = []
 
-        str_format = ("     %5s %5s %5s   %5s %5s %5s  TAG")
-        values = ('H', 'K', 'L', 'X', 'Y', 'Z')
+        str_format = ("     %5s %5s %5s   %5s %5s %5s  " + "%8s " * len(axes) + " TAG")
+        values = ('H', 'K', 'L', 'X', 'Y', 'Z') + axes
         lines.append(bold(str_format % values))
 
         for n in range(1, len(self._orientlist) + 1):
-            orient_tuple = self.getOrientation(n)
-            [h, k, l], [x, y, z], tag, _ = orient_tuple
+            orient_tuple = self.get_orientation_in_external_angles(n)
+            [h, k, l], [x, y, z], externalAngles, tag, _ = orient_tuple
             try:
                 xyz_rot = conv.transform(matrix([[x],[y],[z]]), True)
                 xr, yr, zr = xyz_rot.T.tolist()[0]
@@ -129,7 +154,7 @@ class OrientationList:
             if tag is None:
                 tag = ""
             str_format = ("  %2d % 4.2f % 4.2f % 4.2f  " +
-                      "% 4.2f % 4.2f % 4.2f  %s")
-            values = (n, h, k, l, xr, yr, zr, tag)
+                      "% 4.2f % 4.2f % 4.2f  " + "% 8.4f " * len(axes) + " %s")
+            values = (n, h, k, l, xr, yr, zr) + externalAngles + (tag,)
             lines.append(str_format % values)
         return lines

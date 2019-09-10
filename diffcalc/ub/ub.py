@@ -371,7 +371,7 @@ def addref(*args):
                     return
                 positionList.append(val)
             energy = promptForNumber('energy', settings.hardware.get_energy() / multiplier)  # @UndefinedVariable
-            if val is None:
+            if energy is None:
                 _handleInputError("Please enter a number, or press "
                                       "Return to accept default!")
                 return
@@ -442,7 +442,7 @@ def editref(idx):
             positionList.append(val)
         muliplier = settings.hardware.energyScannableMultiplierToGetKeV  # @UndefinedVariable
         energy = promptForNumber('energy', oldEnergy / muliplier)
-        if val is None:
+        if energy is None:
             _handleInputError("Please enter a number, or press Return "
                                   "to accept default!")
             return
@@ -493,7 +493,8 @@ def showorient():
 def addorient(*args):
     """
     addorient -- add crystal orientation interactively
-    addorient [h k l] [x y z] {'tag'} -- add crystal orientation in laboratory frame
+    addorient [h k l] [x y z] {'tag'} -- add crystal orientation with current position in laboratory frame
+    addorient [h k l] [x y z] (p1, .., pN) {'tag'} -- add crystal orientation in laboratory frame
     """
 
     if len(args) == 0:
@@ -509,12 +510,27 @@ def addorient(*args):
         if None in (x, y, z):
             _handleInputError("x,y and z must all be numbers")
 
+        reply = promptForInput('current pos', 'y')
+        if reply in ('y', 'Y', 'yes'):
+            positionList = settings.hardware.get_position()  # @UndefinedVariable
+        else:
+            currentPos = settings.hardware.get_position()  # @UndefinedVariable
+            positionList = []
+            names = settings.hardware.get_axes_names()  # @UndefinedVariable
+            for i, angleName in enumerate(names):
+                val = promptForNumber(angleName.rjust(7), currentPos[i])
+                if val is None:
+                    _handleInputError("Please enter a number, or press"
+                                          " Return to accept default!")
+                    return
+                positionList.append(val)
         tag = promptForInput("tag")
         if tag == '':
             tag = None
-        ubcalc.add_orientation(h, k, l, x , y, z, tag,
+        pos = settings.geometry.physical_angles_to_internal_position(positionList)  # @UndefinedVariable
+        ubcalc.add_orientation(h, k, l, x , y, z, pos, tag,
                                    datetime.now())
-    elif len(args) in (1, 2, 3):
+    elif len(args) in (2, 3, 4):
         args = list(args)
         h, k, l = args.pop(0)
         if not (isnum(h) and isnum(k) and isnum(l)):
@@ -522,6 +538,12 @@ def addorient(*args):
         x, y, z = args.pop(0)
         if not (isnum(x) and isnum(y) and isnum(z)):
             raise TypeError("x,y and z must all be numbers")
+        if len(args) > 1:
+            pos = settings.geometry.physical_angles_to_internal_position(  # @UndefinedVariable
+                args.pop(0))
+        else:
+            pos = settings.geometry.physical_angles_to_internal_position(  # @UndefinedVariable
+                settings.hardware.get_position())  # @UndefinedVariable
         if len(args) == 1:
             tag = args.pop(0)
             if not isinstance(tag, basestring):
@@ -530,10 +552,10 @@ def addorient(*args):
                 tag = None
         else:
             tag = None
-        ubcalc.add_orientation(h, k, l, x, y ,z, tag,
+        ubcalc.add_orientation(h, k, l, x, y ,z, pos, tag,
                                    datetime.now())
     else:
-        raise TypeError("Too many parameters specified for addorient command.")
+        raise TypeError("Invalid number of parameters specified for addorient command.")
 
 @command
 def editorient(idx):
@@ -541,8 +563,8 @@ def editorient(idx):
     """
 
     # Get old reflection values
-    [oldh, oldk, oldl], [oldx, oldy, oldz], oldTag, oldT = \
-        ubcalc.get_orientation(idx, True)
+    [oldh, oldk, oldl], [oldx, oldy, oldz], oldExternalAngles, oldTag, oldT = \
+        ubcalc.get_orientation_in_external_angles(idx, True)
     del oldT  # current time will be used.
 
     h = promptForNumber('h', oldh)
@@ -555,10 +577,25 @@ def editorient(idx):
     z = promptForNumber('z', oldz)
     if None in (x, y, z):
         _handleInputError("x,y and z must all be numbers")
+    reply = promptForInput('update position with current hardware setting',
+                           'n')
+    if reply in ('y', 'Y', 'yes'):
+        positionList = settings.hardware.get_position()  # @UndefinedVariable
+    else:
+        positionList = []
+        names = settings.hardware.get_axes_names()  # @UndefinedVariable
+        for i, angleName in enumerate(names):
+            val = promptForNumber(angleName.rjust(7), oldExternalAngles[i])
+            if val is None:
+                _handleInputError("Please enter a number, or press "
+                                      "Return to accept default!")
+                return
+            positionList.append(val)
     tag = promptForInput("tag", oldTag)
     if tag == '':
         tag = None
-    ubcalc.edit_orientation(idx, h, k, l, x, y, z, tag,
+    pos = settings.geometry.physical_angles_to_internal_position(positionList)  # @UndefinedVariable
+    ubcalc.edit_orientation(idx, h, k, l, x, y, z, pos, tag,
                                 datetime.now())
 
 @command

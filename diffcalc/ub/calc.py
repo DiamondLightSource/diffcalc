@@ -28,6 +28,7 @@ from diffcalc.ub.orientations import OrientationList
 from diffcalc import settings
 from itertools import product
 from diffcalc.ub.fitting import fit_crystal, fit_u_matrix
+from diffcalc.hkl.you.geometry import create_you_matrices
 
 try:
     from numpy import matrix, hstack
@@ -101,7 +102,7 @@ class UBCalculation:
         # It also contains a required link to the angle calculator.
         reflist = ReflectionList(settings.geometry, self._get_diffractometer_axes_names(),
                                  multiplier=settings.hardware.energyScannableMultiplierToGetKeV)
-        orientlist = OrientationList()
+        orientlist = OrientationList(settings.geometry, self._get_diffractometer_axes_names())
         reference = YouReference(self._get_UB)
         reference._set_n_hkl_configured(settings.reference_vector)
         surface = YouReference(self._get_UB)
@@ -497,14 +498,14 @@ class UBCalculation:
 
 ### Orientations ###
 
-    def add_orientation(self, h, k, l, x, y, z, tag, time):
+    def add_orientation(self, h, k, l, x, y, z, position, tag, time):
         """add_reflection(h, k, l, x, y, z, tag=None) -- adds a crystal orientation
         """
         if self._state.orientlist is None:
             raise DiffcalcException("No UBCalculation loaded")
         xyz_tr = self._tobj.transform(matrix([[x],[y],[z]]))
         xr, yr, zr = xyz_tr.T.tolist()[0]
-        self._state.orientlist.add_orientation(h, k, l, xr, yr, zr, tag, time)
+        self._state.orientlist.add_orientation(h, k, l, xr, yr, zr, position, tag, time)
         self.save()  # in case autocalculateUbAndReport fails
 
         # If second reflection has just been added then calculateUB
@@ -512,7 +513,7 @@ class UBCalculation:
             self._autocalculateUbAndReport()
         self.save()
 
-    def edit_orientation(self, idx, h, k, l, x, y, z, tag, time):
+    def edit_orientation(self, idx, h, k, l, x, y, z, position, tag, time):
         """
         edit_orientation(idx, h, k, l, x, y, z, tag=None) -- edit a crystal reflection        """
         if self._state.orientlist is None:
@@ -520,7 +521,7 @@ class UBCalculation:
         num = self.get_tag_orient_num(idx)
         xyz_tr = self._tobj.transform(matrix([[x],[y],[z]]))
         xr, yr, zr = xyz_tr.T.tolist()[0]
-        self._state.orientlist.edit_orientation(num, h, k, l, xr, yr, zr, tag, time)
+        self._state.orientlist.edit_orientation(num, h, k, l, xr, yr, zr, position, tag, time)
 
         # If first or second orientation has been changed and there are
         # two orientations then recalculate  UB
@@ -530,12 +531,20 @@ class UBCalculation:
         self.save()
 
     def get_orientation(self, idx, conv=False):
-        """--> ( [h, k, l], [x, y, z], tag, time )"""
-        hkl, xyz, tg, tm = self._state.orientlist.getOrientation(idx)
+        """--> ( [h, k, l], [x, y, z], pos, tag, time )"""
+        hkl, xyz, pos, tg, tm = self._state.orientlist.getOrientation(idx)
         if conv:
             xyz_rot = self._tobj.transform(matrix([[xyz[0]],[xyz[1]],[xyz[2]]]), True)
             xyz = xyz_rot.T.tolist()[0]
-        return hkl, xyz, tg, tm
+        return hkl, xyz, pos, tg, tm
+
+    def get_orientation_in_external_angles(self, idx, conv=False):
+        """--> ( [h, k, l], [x, y, z], pos, tag, time )"""
+        hkl, xyz, pos, tg, tm = self._state.orientlist.get_orientation_in_external_angles(idx)
+        if conv:
+            xyz_rot = self._tobj.transform(matrix([[xyz[0]],[xyz[1]],[xyz[2]]]), True)
+            xyz = xyz_rot.T.tolist()[0]
+        return hkl, xyz, pos, tg, tm
 
     def get_number_orientations(self):
         try:
@@ -704,46 +713,56 @@ class UBCalculation:
             ref_data = []
             for func, idx in product((self.get_reflection, self.get_orientation), (1, 2)):
                 try:
-                    ref_data.append(func(idx)[:2])
+                    ref_data.append(func(idx))
                 except Exception:
                     pass
             try:
-                (h1, pos1), (h2, pos2) = ref_data[:2]
+                ref1, ref2 = ref_data[:2]
             except ValueError:
                 raise DiffcalcException("Cannot find calculate a U matrix. Please add "
                                         "reference reflection and/or orientation data.")
         else:
             try:
-                h1, pos1 = self.get_reflection(idx1)[:2]
+                ref1 = self.get_reflection(idx1)
             except Exception:
                 try:
-                    h1, pos1 = self.get_orientation(idx1)[:2]
+                    ref1 = self.get_orientation(idx1)
                 except Exception:
                     raise DiffcalcException(
                         "Cannot find first reflection or orientation with index %s" % str(idx1))
             try:
-                h2, pos2 = self.get_reflection(idx2)[:2]
+                ref2 = self.get_reflection(idx2)
             except Exception:
                 try:
-                    h2, pos2 = self.get_orientation(idx2)[:2]
+                    ref2 = self.get_orientation(idx2)
                 except Exception:
                     raise DiffcalcException(
                         "Cannot find second reflection or orientation with index %s" % str(idx2))
-        h1 = matrix([h1]).T  # row->column
-        h2 = matrix([h2]).T
+        h1 = matrix([ref1[0]]).T  # row->column
+        h2 = matrix([ref2[0]]).T
 
         # Compute the two reflections' reciprocal lattice vectors in the
         # cartesian crystal frame
         try:
+            _, pos1, _ = ref1[:3]
             pos1.changeToRadians()
             u1p = self._strategy.calculate_q_phi(pos1)
         except AttributeError:
-            u1p = matrix([pos1]).T
+            _, r1, pos1 = ref1[:3]
+            pos1.changeToRadians()
+            [MU, _, _, ETA, CHI, PHI] = create_you_matrices(*pos1.totuple())
+            Z = PHI.I * CHI.I * ETA.I * MU.I
+            u1p = Z * matrix([r1]).T
         try:
+            _, pos2, _ = ref2[:3]
             pos2.changeToRadians()
             u2p = self._strategy.calculate_q_phi(pos2)
         except AttributeError:
-            u2p = matrix([pos2]).T
+            _, r2, pos2 = ref2[:3]
+            pos2.changeToRadians()
+            [MU, _, _, ETA, CHI, PHI] = create_you_matrices(*pos2.totuple())
+            Z = PHI.I * CHI.I * ETA.I * MU.I
+            u2p = Z * matrix([r2]).T
 
         self._calc_UB(h1, h2, u1p, u2p)
 

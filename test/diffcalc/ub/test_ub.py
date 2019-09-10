@@ -319,14 +319,14 @@ class _UBCommandsBase():
         trans_orient1 = self.conv.transform(matrix([orient1]).T)
         eq_(result[0], hkl1)
         mneq_(matrix([result[1]]), trans_orient1.T)
-        eq_(result[2], None)
+        eq_(result[-2], None)
 
         self.ub.addorient(hkl2, orient2, 'atag')
         result = orientlist.getOrientation(2)
         trans_orient2 = self.conv.transform(matrix([orient2]).T)
         eq_(result[0], hkl2)
         mneq_(matrix([result[1]]), trans_orient2.T)
-        eq_(result[2], 'atag')
+        eq_(result[-2], 'atag')
 
     def testAddorientInteractively(self):
         prepareRawInput([])
@@ -339,21 +339,21 @@ class _UBCommandsBase():
         orient1 = [1.4, 1.5, 1.6]
         orient2 = [2.4, 2.5, 2.6]
         #
-        prepareRawInput(['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', ''])
+        prepareRawInput(['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', 'y', ''])
         self.ub.addorient()
         result = orientlist.getOrientation(1)
         trans_orient1 = self.conv.transform(matrix([orient1]).T)
         eq_(result[0], hkl1)
         mneq_(matrix([result[1]]), trans_orient1.T)
-        eq_(result[2], None)
+        eq_(result[-2], None)
 
-        prepareRawInput(['2.1', '2.2', '2.3', '2.4', '2.5', '2.6', 'atag'])
+        prepareRawInput(['2.1', '2.2', '2.3', '2.4', '2.5', '2.6', 'y', 'atag'])
         self.ub.addorient()
         result = orientlist.getOrientation(2)
         trans_orient2 = self.conv.transform(matrix([orient2]).T)
         eq_(result[0], hkl2)
         mneq_(matrix([result[1]]), trans_orient2.T)
-        eq_(result[2], 'atag')
+        eq_(result[-2], 'atag')
 
     def testEditOrientInteractively(self):
         hkl1 = [1.1, 1.2, 1.3]
@@ -363,7 +363,7 @@ class _UBCommandsBase():
         orient2s = ['2.4', '', '2.6']
         self.ub.newub('testing_editorient')
         self.ub.addorient(hkl1, orient1, 'tag1')
-        prepareRawInput(['1.1', '', '3.1'] + orient2s + ['newtag',])
+        prepareRawInput(['1.1', '', '3.1'] + orient2s + ['y', 'newtag',])
         self.ub.editorient(1)
 
         orientlist = self.ub.ubcalc._state.orientlist
@@ -371,7 +371,7 @@ class _UBCommandsBase():
         trans_orient2 = self.conv.transform(matrix([orient2]).T)
         eq_(result[0], hkl2)
         mneq_(matrix([result[1]]), trans_orient2.T)
-        eq_(result[2], 'newtag')
+        eq_(result[-2], 'newtag')
 
     def testSwaporient(self):
         with pytest.raises(TypeError):
@@ -390,15 +390,15 @@ class _UBCommandsBase():
         self.ub.swaporient(1, 3)
         self.ub.swaporient(3, 1)  # end flipped
         orientlist = self.ub.ubcalc._state.orientlist
-        tag1 = orientlist.getOrientation(1)[2]
-        tag2 = orientlist.getOrientation(2)[2]
-        tag3 = orientlist.getOrientation(3)[2]
+        tag1 = orientlist.getOrientation(1)[-2]
+        tag2 = orientlist.getOrientation(2)[-2]
+        tag3 = orientlist.getOrientation(3)[-2]
         eq_(tag1, 'tag3')
         eq_(tag2, 'tag2')
         eq_(tag3, 'tag1')
         self.ub.swaporient()
-        tag1 = orientlist.getOrientation(1)[2]
-        tag2 = orientlist.getOrientation(2)[2]
+        tag1 = orientlist.getOrientation(1)[-2]
+        tag2 = orientlist.getOrientation(2)[-2]
         eq_(tag1, 'tag2')
         eq_(tag2, 'tag3')
 
