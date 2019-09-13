@@ -77,11 +77,11 @@ class _TestNumpyMatrix():
 
     def test__str__(self):
         eq_(str(self.m('1.234 2.; 3.1 4.')),
-            '[[ 1.234  2.   ]\n [ 3.1    4.   ]]')
+            '[[1.234 2.   ]\n [3.1   4.   ]]')
 
     def test__repr__(self):
         eq_(repr(self.m('1. 2.; 3. 4.')),
-            'matrix([[ 1.,  2.],\n        [ 3.,  4.]])')
+            'matrix([[1., 2.],\n        [3., 4.]])')
 
     def test_all(self):
         ok_(self.m([[True, True], [True, True]]).all())
