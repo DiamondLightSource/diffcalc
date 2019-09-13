@@ -43,6 +43,22 @@ class DiffractometerYouCalculator(object):
         return angle_tuple, params
     
     
+    def hkl_list_to_angles(self, hkl_list, energy=None):
+        """Convert a given hkl vector to a set of diffractometer angles
+        
+        return angle tuple and params dictionary
+        
+        """
+        if energy is None:
+            energy = self.diffhw.get_energy()  # @UndefinedVariable
+    
+        (pos, params) = hklcalc.hklListToAngles(hkl_list, energy_to_wavelength(energy))
+        angle_tuple = self.geometry.internal_position_to_physical_angles(pos)  # @UndefinedVariable
+        angle_tuple = self.diffhw.cut_angles(angle_tuple)  # @UndefinedVariable
+    
+        return angle_tuple, params
+    
+    
     def angles_to_hkl(self, angleTuple, energy=None):
         """Converts a set of diffractometer angles to an hkl position
         
@@ -58,6 +74,10 @@ class DiffractometerYouCalculator(object):
 def hkl_to_angles(h, k, l, energy=None):
     _dcyou = DiffractometerYouCalculator(settings.hardware, settings.geometry)
     return _dcyou.hkl_to_angles(h, k, l, energy)
+
+def hkl_list_to_angles(hkl, energy=None):
+    _dcyou = DiffractometerYouCalculator(settings.hardware, settings.geometry)
+    return _dcyou.hkl_list_to_angles(hkl, energy)
 
 def angles_to_hkl(angleTuple, energy=None):
     _dcyou = DiffractometerYouCalculator(settings.hardware, settings.geometry)

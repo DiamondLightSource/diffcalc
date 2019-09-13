@@ -347,6 +347,34 @@ class YouHklCalculator(HklCalculatorBase):
             pos, virtual_angles = self._choose_single_solution(pos_virtual_angles_pairs_in_degrees)
             return pos, virtual_angles
 
+    def hklListToAngles(self, hkl_list, wavelength, return_all_solutions=False):
+        """
+        Return verified Position and all virtual angles in degrees from
+        h, k & l and wavelength in Angstroms.
+
+        The calculated Position is verified by checking that it maps back using
+        anglesToHkl() to the requested hkl value.
+
+        Those virtual angles fixed or generated while calculating the position
+        are verified by by checking that they map back using
+        anglesToVirtualAngles to the virtual angles for the given position.
+
+        Throws a DiffcalcException if either check fails and
+        raiseExceptionsIfAnglesDoNotMapBackToHkl is True, otherwise displays a
+        warning.
+        """
+
+        pos_virtual_angles_pairs_in_degrees = []
+        for (h, k, l) in hkl_list:
+            pos_virtual_angles_pairs_in_degrees.extend(self.hklToAngles(h, k, l, wavelength, True))  # in rad
+        assert pos_virtual_angles_pairs_in_degrees
+
+        if return_all_solutions:
+            return pos_virtual_angles_pairs_in_degrees
+        else:
+            pos, virtual_angles = self._choose_single_solution(pos_virtual_angles_pairs_in_degrees)
+            return pos, virtual_angles
+
 
     def hkl_to_all_angles(self, h, k, l, wavelength):
         return self.hklToAngles(h, k, l, wavelength, True)
