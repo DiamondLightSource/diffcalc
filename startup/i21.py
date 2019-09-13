@@ -435,6 +435,10 @@ else:
         del toolpoint_on
         register_line_magic(parse_line(toolpoint_off, globals()))
         del toolpoint_off
+
+# Custom scannables
+from startup.beamlinespecific.conic_scannables import conic_h, conic_k, conic_l
+
 ### Demo ###
 
 if not GDA:
