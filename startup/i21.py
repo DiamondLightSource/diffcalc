@@ -1,7 +1,7 @@
 from startup._common_imports import *  # @UnusedWildImport
-from diffcalc.gdasupport.minigda.scannable import ScannableMotionWithScannableFieldsBase  # @UnusedImport
-from startup.beamlinespecific.i21 import FourCircleI21, I21SampleStage, I21TPLab
+
 from diffcalc.gdasupport.scannable.diffractometer import DiffractometerScannableGroup
+from startup.beamlinespecific.i21 import FourCircleI21, DiffractometerTPScannableGroup, TPScannableGroup
 
 try:
     from numpy import matrix
@@ -12,7 +12,7 @@ if not GDA:
     import startup._demo
 else:
 #     import __main__  # @UnresolvedImport
-    from __main__ import x,y,z,th,chi,phi,difftth,m5tth, energy, simx,simy,simz,simth,simchi,simphi,simdelta,simm5tth # @UnresolvedImport
+    from __main__ import th, chi, phi, difftth, m5tth, energy, simth,simchi,simphi,simdelta,simm5tth, ps_chi, ps_phi # @UnresolvedImport
 
 LOCAL_MANUAL = "http://confluence.diamond.ac.uk/x/UoIQAw"
 # Diffcalc i21
@@ -22,34 +22,13 @@ LOCAL_MANUAL = "http://confluence.diamond.ac.uk/x/UoIQAw"
 # chi      chi
 # phi      -phi
 
-SIM_MODE=False
-
 ### Create dummy scannables ###
-if GDA:  
-    xyz_eta = ScannableGroup('xyz_eta', [x, y, z])  # @UndefinedVariable
-else:   
+if not GDA:  
     delta = Dummy('delta')
     m5tth = Dummy('m5tth')
     th = Dummy('th')
     chi = Dummy('chi')
     phi = Dummy('phi')
-    x = Dummy('x')
-    y = Dummy('y')
-    z = Dummy('z')
-    xyz_eta = ScannableGroup('xyz_eta', [x, y, z])
-
-#support i21 non-concentric rotation motions
-sa = I21SampleStage('sa', th, chi, phi, xyz_eta)
-#th = sa.th
-#chi = sa.chi
-#phi = sa.phi
-
-tp_phi = sa.tp_phi_scannable
-
-tp_lab = I21TPLab('tp_lab', sa)
-tp_labx = tp_lab.tp_labx
-tp_laby = tp_lab.tp_laby
-tp_labz = tp_lab.tp_labz
 
 ### Wrap i21 names to get diffcalc names - sample chamber
 if GDA:
@@ -74,6 +53,10 @@ _tth_geometry = FourCircleI21(beamline_axes_transform=beamline_axes_transform)
 if GDA:
     _sc_difftth = ScannableGroup('_fourc', (difftth, th, chi, phi))
     _sc_m5tth = ScannableGroup('_fourc', (m5tth, th, chi, phi))
+
+    _sc_difftth_tp = TPScannableGroup('_fourc', (difftth, th, ps_chi, ps_phi))
+    _sc_m5tth_tp = TPScannableGroup('_fourc', (m5tth, th, ps_chi, ps_phi))
+
     _sc_sim = ScannableGroup('_fourc', (simdelta, simth, simchi, simphi))
 else:
     _sc_difftth = _sc_m5tth = _sc_sim = ScannableGroup('_fourc', (delta, th, chi, phi))
@@ -81,6 +64,9 @@ else:
 ESMTGKeV = 0.001
 _hw_difftth = ScannableHardwareAdapter(_sc_difftth, en, ESMTGKeV)
 _hw_m5tth = ScannableHardwareAdapter(_sc_m5tth, en, ESMTGKeV)
+if GDA:
+    _hw_difftth_tp = ScannableHardwareAdapter(_sc_difftth_tp, en, ESMTGKeV)
+    _hw_m5tth_tp = ScannableHardwareAdapter(_sc_m5tth_tp, en, ESMTGKeV)
 _hw_sim = ScannableHardwareAdapter(_sc_sim, simenergy, ESMTGKeV)
 
 settings.hardware = _hw_difftth
@@ -88,7 +74,11 @@ settings.geometry = _tth_geometry
 settings.energy_scannable = en
 settings.axes_scannable_group = _sc_difftth
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
- 
+
+from diffcalc.hkl.you.persistence import YouStateEncoder
+settings.ubcalc_persister = UBCalculationJSONPersister(diffcalc.settings.ubcalc_persister.directory,
+                                                                YouStateEncoder)
+
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
 
 if GDA:
@@ -100,11 +90,11 @@ from diffcalc.ub.ub import lastub
 lastub()
  
 ### Set i21 specific limits
-print "INFO: diffcalc limits set in $diffcalc/startup/i21.py taken from http://confluence.diamond.ac.uk/pages/viewpage.action?pageId=51413586"
 def setLimitsAndCuts(delta_angle, eta_angle, chi_angle, phi_angle):
     ''' set motor limits for diffcalc, these are within the actual motor limits
     '''
     if not GDA:
+        print "INFO: diffcalc limits set in $diffcalc/startup/i21.py taken from http://confluence.diamond.ac.uk/pages/viewpage.action?pageId=51413586"
         setmin(delta_angle, 0.0)
         setmax(delta_angle, 180.0) #default to diode delta limits
         setmin(chi_angle, -41.0)
@@ -118,7 +108,7 @@ def setLimitsAndCuts(delta_angle, eta_angle, chi_angle, phi_angle):
     setcut(phi_angle, -180.0)
     print "Current hardware limits set to:"
     hardware()
-    
+
 if GDA:
     setLimitsAndCuts(difftth, th, chi, phi)
 else:
@@ -136,26 +126,76 @@ hkl_m5tth = Hkl('hkl_m5tth', _sc_m5tth, DiffractometerYouCalculator(_hw_m5tth, _
 hkl_lowq = Hkl('hkl_lowq', _sc_m5tth, DiffractometerYouCalculator(_hw_m5tth, _lowq_geometry))
 hkl_highq = Hkl('hkl_highq', _sc_m5tth, DiffractometerYouCalculator(_hw_m5tth, _highq_geometry))
 hkl_difftth = Hkl('hkl_difftth', _sc_difftth, DiffractometerYouCalculator(_hw_difftth, _tth_geometry))
+if GDA:
+    hkl_m5tth_tp = Hkl('hkl_m5tth_tp', _sc_m5tth_tp, DiffractometerYouCalculator(_hw_m5tth_tp, _tth_geometry))
+    hkl_lowq_tp = Hkl('hkl_lowq_tp', _sc_m5tth_tp, DiffractometerYouCalculator(_hw_m5tth_tp, _lowq_geometry))
+    hkl_highq_tp = Hkl('hkl_highq_tp', _sc_m5tth_tp, DiffractometerYouCalculator(_hw_m5tth_tp, _highq_geometry))
+    hkl_difftth_tp = Hkl('hkl_difftth_tp', _sc_difftth_tp, DiffractometerYouCalculator(_hw_difftth_tp, _tth_geometry))
+
 hkl_sim = Hkl('hkl_sim', _sc_sim, DiffractometerYouCalculator(_hw_sim, _tth_geometry))
 
-def usem5tth():
+# Custom scannables
+from startup.beamlinespecific.conic_scannables import conic_h, conic_k, conic_l
+
+def usem5tth_tp():
+    if GDA:
+        usem5tth(True)
+
+def uselowq_tp():
+    if GDA:
+        uselowq(True)
+
+def usehighq_tp():
+    if GDA:
+        usehighq(True)
+
+def usedifftth_tp():
+    if GDA:
+        usedifftth(True)
+
+def usem5tth(tp=None):
     print '- setting hkl ---> hkl_m5tth'
     global settings
-    settings.hardware = _hw_m5tth
+    if tp:
+        settings.hardware = _hw_m5tth_tp
+    else:
+        settings.hardware = _hw_m5tth
     settings.geometry = _tth_geometry
-    settings.axes_scannable_group = _sc_m5tth
+    if tp:
+        settings.axes_scannable_group = _sc_m5tth_tp
+    else:
+        settings.axes_scannable_group = _sc_m5tth
 
     # Create diffractometer scannable
     _diff_scn_name = _tth_geometry.name
     from diffcalc.dc import dcyou as _dc
-    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_m5tth)
+    reload(_dc)
+    lastub()
 
-    setLimitsAndCuts(m5tth, th, chi, phi)
+    if tp:
+        _diff_scn = DiffractometerTPScannableGroup(_diff_scn_name, _dc, _sc_m5tth_tp)
+    else:
+        _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_m5tth_tp)
+
+    if tp:
+        setLimitsAndCuts(m5tth, th, ps_chi, ps_phi)
+    elif GDA:
+        setLimitsAndCuts(m5tth, th, chi, phi)
+    else:
+        setLimitsAndCuts(delta, th, chi, phi)
+
     import __main__
-    __main__.hkl = hkl_m5tth
-    __main__.h   = hkl_m5tth.h
-    __main__.k   = hkl_m5tth.k
-    __main__.l   = hkl_m5tth.l
+    if tp:
+        __main__.hkl = hkl_m5tth_tp
+        __main__.h   = hkl_m5tth_tp.h
+        __main__.k   = hkl_m5tth_tp.k
+        __main__.l   = hkl_m5tth_tp.l
+    else:
+        __main__.hkl = hkl_m5tth
+        __main__.h   = hkl_m5tth.h
+        __main__.k   = hkl_m5tth.k
+        __main__.l   = hkl_m5tth.l
+
     __main__.fourc = _diff_scn
     from diffcalc.gdasupport.you import _virtual_angles
     __main__.hklverbose = Hkl('hklverbose', __main__.fourc, _dc, _virtual_angles)
@@ -164,24 +204,57 @@ def usem5tth():
         __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
         __main__.ct = SimulatedCrystalCounter('ct', __main__.fourc, settings.geometry, __main__.wl)  # @UndefinedVariable
 
-def uselowq():
+    # Custom scannables
+    import startup.beamlinespecific.conic_scannables as _conic
+    reload(_conic)
+    __main__.conic_h = _conic.conic_h
+    __main__.conic_k = _conic.conic_k
+    __main__.conic_l = _conic.conic_l
+
+
+def uselowq(tp=None):
     print '- setting hkl ---> hkl_lowq'
     global settings
-    settings.hardware = _hw_m5tth
+    if tp:
+        settings.hardware = _hw_m5tth_tp
+    else:
+        settings.hardware = _hw_m5tth
     settings.geometry = _lowq_geometry
-    settings.axes_scannable_group = _sc_m5tth
+    if tp:
+        settings.axes_scannable_group = _sc_m5tth_tp
+    else:
+        settings.axes_scannable_group = _sc_m5tth
 
     # Create diffractometer scannable
     _diff_scn_name = _lowq_geometry.name
     from diffcalc.dc import dcyou as _dc
-    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_m5tth)
+    reload(_dc)
+    lastub()
 
-    setLimitsAndCuts(m5tth, th, chi, phi)
+    if tp:
+        _diff_scn = DiffractometerTPScannableGroup(_diff_scn_name, _dc, _sc_m5tth_tp)
+    else:
+        _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_m5tth)
+
+    if tp:
+        setLimitsAndCuts(m5tth, th, ps_chi, ps_phi)
+    elif GDA:
+        setLimitsAndCuts(m5tth, th, chi, phi)
+    else:
+        setLimitsAndCuts(delta, th, chi, phi)
+    
     import __main__
-    __main__.hkl = hkl_lowq
-    __main__.h   = hkl_lowq.h
-    __main__.k   = hkl_lowq.k
-    __main__.l   = hkl_lowq.l
+    if tp:
+        __main__.hkl = hkl_lowq_tp
+        __main__.h   = hkl_lowq_tp.h
+        __main__.k   = hkl_lowq_tp.k
+        __main__.l   = hkl_lowq_tp.l
+    else:
+        __main__.hkl = hkl_lowq
+        __main__.h   = hkl_lowq.h
+        __main__.k   = hkl_lowq.k
+        __main__.l   = hkl_lowq.l
+
     __main__.fourc = _diff_scn
     from diffcalc.gdasupport.you import _virtual_angles
     __main__.hklverbose = Hkl('hklverbose', __main__.fourc, _dc, _virtual_angles)
@@ -190,24 +263,57 @@ def uselowq():
         __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
         __main__.ct = SimulatedCrystalCounter('ct', __main__.fourc, settings.geometry, __main__.wl)  # @UndefinedVariable
 
-def usehighq():
+    # Custom scannables
+    import startup.beamlinespecific.conic_scannables as _conic
+    reload(_conic)
+    __main__.conic_h = _conic.conic_h
+    __main__.conic_k = _conic.conic_k
+    __main__.conic_l = _conic.conic_l
+
+
+def usehighq(tp=None):
     print '- setting hkl ---> hkl_highq'
     global settings
-    settings.hardware = _hw_m5tth
+    if tp:
+        settings.hardware = _hw_m5tth_tp
+    else:
+        settings.hardware = _hw_m5tth
     settings.geometry = _highq_geometry
-    settings.axes_scannable_group = _sc_m5tth
+    if tp:
+        settings.axes_scannable_group = _sc_m5tth_tp
+    else:
+        settings.axes_scannable_group = _sc_m5tth
 
     # Create diffractometer scannable
     _diff_scn_name = _highq_geometry.name
     from diffcalc.dc import dcyou as _dc
-    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_m5tth)
+    reload(_dc)
+    lastub()
 
-    setLimitsAndCuts(m5tth, th, chi, phi)
+    if tp:
+        _diff_scn = DiffractometerTPScannableGroup(_diff_scn_name, _dc, _sc_m5tth_tp)
+    else:
+        _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_m5tth)
+
+    if tp:
+        setLimitsAndCuts(m5tth, th, ps_chi, ps_phi)
+    elif GDA:
+        setLimitsAndCuts(m5tth, th, chi, phi)
+    else:
+        setLimitsAndCuts(delta, th, chi, phi)
+
     import __main__
-    __main__.hkl = hkl_highq
-    __main__.h   = hkl_highq.h
-    __main__.k   = hkl_highq.k
-    __main__.l   = hkl_highq.l
+    if tp:
+        __main__.hkl = hkl_highq_tp
+        __main__.h   = hkl_highq_tp.h
+        __main__.k   = hkl_highq_tp.k
+        __main__.l   = hkl_highq_tp.l
+    else:
+        __main__.hkl = hkl_highq
+        __main__.h   = hkl_highq.h
+        __main__.k   = hkl_highq.k
+        __main__.l   = hkl_highq.l
+
     __main__.fourc = _diff_scn
     from diffcalc.gdasupport.you import _virtual_angles
     __main__.hklverbose = Hkl('hklverbose', __main__.fourc, _dc, _virtual_angles)
@@ -216,25 +322,58 @@ def usehighq():
         __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
         __main__.ct = SimulatedCrystalCounter('ct', __main__.fourc, settings.geometry, __main__.wl)  # @UndefinedVariable
 
-def usedifftth():
+    # Custom scannables
+    import startup.beamlinespecific.conic_scannables as _conic
+    reload(_conic)
+    __main__.conic_h = _conic.conic_h
+    __main__.conic_k = _conic.conic_k
+    __main__.conic_l = _conic.conic_l
+
+def usedifftth(tp=None):
     # sample chamber
     print '- setting hkl ---> hkl_difftth'
     global settings
-    settings.hardware = _hw_difftth
+    if tp:
+        settings.hardware = _hw_difftth_tp
+    else:
+        settings.hardware = _hw_difftth
     settings.geometry = _tth_geometry
-    settings.axes_scannable_group = _sc_difftth
+    if tp:
+        settings.axes_scannable_group = _sc_difftth_tp
+    else:
+        settings.axes_scannable_group = _sc_difftth
 
     # Create diffractometer scannable
     _diff_scn_name = _tth_geometry.name
-    from diffcalc.dc import dcyou as _dc
-    _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_difftth)
 
-    setLimitsAndCuts(difftth, th, chi, phi)
+    from diffcalc.dc import dcyou as _dc
+    reload(_dc)
+    lastub()
+
+    if tp:
+        _diff_scn = DiffractometerTPScannableGroup(_diff_scn_name, _dc, _sc_difftth_tp)
+    else:
+        _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_difftth)
+
+    if tp:
+        setLimitsAndCuts(difftth, th, ps_chi, ps_phi)
+    elif GDA:
+        setLimitsAndCuts(difftth, th, chi, phi)
+    else:
+        setLimitsAndCuts(delta, th, chi, phi)
+
     import __main__
-    __main__.hkl = hkl_difftth
-    __main__.h   = hkl_difftth.h
-    __main__.k   = hkl_difftth.k
-    __main__.l   = hkl_difftth.l
+    if tp:
+        __main__.hkl = hkl_difftth_tp
+        __main__.h   = hkl_difftth_tp.h
+        __main__.k   = hkl_difftth_tp.k
+        __main__.l   = hkl_difftth_tp.l
+    else:
+        __main__.hkl = hkl_difftth
+        __main__.h   = hkl_difftth.h
+        __main__.k   = hkl_difftth.k
+        __main__.l   = hkl_difftth.l
+
     __main__.fourc = _diff_scn
     from diffcalc.gdasupport.you import _virtual_angles
     __main__.hklverbose = Hkl('hklverbose', __main__.fourc, _dc, _virtual_angles)
@@ -242,6 +381,13 @@ def usedifftth():
         __main__.en = energy
         __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
         __main__.ct = SimulatedCrystalCounter('ct', __main__.fourc, settings.geometry, __main__.wl)  # @UndefinedVariable
+
+    # Custom scannables
+    import startup.beamlinespecific.conic_scannables as _conic
+    reload(_conic)
+    __main__.conic_h = _conic.conic_h
+    __main__.conic_k = _conic.conic_k
+    __main__.conic_l = _conic.conic_l
 
 def usesim():
     # sample chamber
@@ -252,17 +398,22 @@ def usesim():
     settings.geometry = _tth_geometry
     settings.axes_scannable_group = _sc_sim
 
+    setLimitsAndCuts(simdelta, simth, simchi, simphi)
+
     # Create diffractometer scannable
     import __main__
     _diff_scn_name = _tth_geometry.name
     from diffcalc.dc import dcyou as _dc
+    reload(_dc)
+    lastub()
+
     _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_sim)
 
     __main__.hkl = hkl_sim
     __main__.h   = hkl_sim.h
     __main__.k   = hkl_sim.k
     __main__.l   = hkl_sim.l
-    setLimitsAndCuts(simdelta, simth, simchi, simphi)
+
     __main__.fourc = _diff_scn
     from diffcalc.gdasupport.you import _virtual_angles
     __main__.hklverbose = Hkl('hklverbose', __main__.fourc, _dc, _virtual_angles)
@@ -270,148 +421,29 @@ def usesim():
         __main__.en = simenergy
         __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
         __main__.ct = SimulatedCrystalCounter('ct', __main__.fourc, settings.geometry, __main__.wl)  # @UndefinedVariable
+    # Custom scannables
+    import startup.beamlinespecific.conic_scannables as _conic
+    reload(_conic)
+    __main__.conic_h = _conic.conic_h
+    __main__.conic_k = _conic.conic_k
+    __main__.conic_l = _conic.conic_l
 
-def centresample():
-    sa.centresample()
 
-def zerosample():
-    '''zero on the currently centred sample location
-    '''
-    sa.zerosample()
-    
-def toolpoint_on():
-    '''Switch on tool point
-    '''
-    sa.centre_toolpoint = True
-
-def toolpoint_off():
-    '''Switch off tool point
-    '''
-    sa.centre_toolpoint = False
-    
-print "Created i21 bespoke commands: usem5tth, uselowq, usehighq, usedifftth, usesim, centresample, zerosample, toolpoint_on, toolpoint_off"
+print "Created i21 bespoke commands:      usem5tth,    uselowq,    usehighq,    usedifftth"
+print "Set toolpoint mode using commands: usem5tth_tp, uselowq_tp, usehighq_tp, usedifftth_tp"
+print "Set simulation mode using command: usesim"
 
 if GDA:
-    def switchMotors(sax, say, saz, sath, sachi, saphi, diodedelta, specm5tth):
-        import __main__
-        __main__.xyz_eta = ScannableGroup('xyz_eta', [sax, say, saz])  # @UndefinedVariable
-        #update support for i21 non-concentric rotation motions
-        __main__.sa = I21SampleStage('sa', sath, sachi, saphi,__main__.xyz_eta)  # @UndefinedVariable
-        
-        __main__.tp_phi = sa.tp_phi_scannable
-        
-        __main__.tp_lab = I21TPLab('tp_lab', __main__.sa)  # @UndefinedVariable
-        __main__.tp_labx = __main__.tp_lab.tp_labx  # @UndefinedVariable
-        __main__.tp_laby = __main__.tp_lab.tp_laby  # @UndefinedVariable
-        __main__.tp_labz = __main__.tp_lab.tp_labz  # @UndefinedVariable
-        
-        ### update Wrap i21 names to get diffcalc names
-        _fourc = ScannableGroup('_fourc', (diodedelta, sath, sachi, saphi)) # I21DiffractometerStage('_fourc', diodedelta, __main__.sa)  # @UndefinedVariable
-            #update diffcalc objects
-        __main__.settings.hardware = ScannableHardwareAdapter(_fourc, __main__.en, ESMTGKeV)  # @UndefinedVariable
-        __main__.settings.geometry = FourCircleI21(beamline_axes_transform=beamline_axes_transform)  # @UndefinedVariable
-        __main__.settings.energy_scannable = __main__.en  # @UndefinedVariable
-        __main__.settings.axes_scannable_group= _fourc
-        __main__.settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
-        
-        __main__.fourc=DiffractometerScannableGroup('fourc', _dc, _fourc)
-        __main__.hkl = Hkl('hkl', _fourc, _dc)
-        __main__.h, __main__.k, __main__.l = hkl.h, hkl.k, hkl.l
-
-        from diffcalc.gdasupport.you import _virtual_angles
-        from diffcalc.gdasupport.scannable.simulation import SimulatedCrystalCounter
-        from diffcalc.gdasupport.scannable.wavelength import Wavelength
-        __main__.hklverbose = Hkl('hklverbose', _fourc, _dc, _virtual_angles)
-        __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
-        __main__.ct = SimulatedCrystalCounter('ct', _fourc, __main__.settings.geometry,__main__.wl)  # @UndefinedVariable
-        #update scannales: fourc_vessel & hkl_vessel'
-        _fourc_vessel = ScannableGroup('_fourc', (specm5tth, sath, sachi, saphi)) # I21DiffractometerStage('_fourc_vessel', m5tth, sa)
-        __main__.fourc_vessel = DiffractometerScannableGroup('fourc_vessel', _dc, _fourc_vessel)
-        __main__.hkl_vessel = Hkl('hkl_vessel', _fourc_vessel, _dc)
-        __main__.h_vessel, __main__.k_vessel, __main__.l_vessel = hkl_vessel.h, hkl_vessel.k, hkl_vessel.l
-        
-        #Update scannables: fourc_lowq & hkl_lowq'
-        _fourc_lowq = ScannableGroup('_fourc', (specm5tth, sath, sachi, saphi)) #I21DiffractometerStage('_fourc_lowq', m5tth, sa,delta_offset=LOWQ_OFFSET_ADDED_TO_DELTA_WHEN_READING)
-        __main__.fourc_lowq = DiffractometerScannableGroup('fourc_lowq', _dc, _fourc_lowq)
-        __main__.hkl_lowq = Hkl('hkl_lowq', _fourc_lowq, _dc)
-        __main__.h_lowq, __main__.k_lowq, __main__.l_lowq = hkl_lowq.h, hkl_lowq.k, hkl_lowq.l
-        
-        #Update scannables: fourc_highq & hkl_highq'
-        _fourc_highq = ScannableGroup('_fourc', (specm5tth, sath, sachi, saphi)) #I21DiffractometerStage('_fourc_highq', m5tth, sa,delta_offset=highq_OFFSET_ADDED_TO_DELTA_WHEN_READING)
-        __main__.fourc_highq = DiffractometerScannableGroup('fourc_highq', _dc, _fourc_highq)
-        __main__.hkl_highq = Hkl('hkl_highq', _fourc_highq, _dc)
-        __main__.h_highq, __main__.k_highq, __main__.l_highq = hkl_highq.h, hkl_highq.k, hkl_highq.l
-        
-        #Update scannables: fourc_diode & hkl_diode'
-        _fourc_diode = ScannableGroup('_fourc', (diodedelta, sath, sachi, saphi)) #I21DiffractometerStage('_fourc_diode', delta, sa)
-        __main__.fourc_diode = DiffractometerScannableGroup('fourc_diode', _dc, _fourc_diode)
-        __main__.hkl_diode = Hkl('hkl_diode', _fourc_diode, _dc)
-        __main__.h_diode, __main__.k_diode, __main__.l_diode = hkl_diode.h, hkl_diode.k, hkl_diode.l
-        
-    def stopMotors(sax, say, saz, sath, sachi, saphi, diodedelta, specm5tth):
-        sax.stop()
-        say.stop()
-        saz.stop()
-        sath.stop()
-        sachi.stop()
-        saphi.stop()
-        diodedelta.stop()
-        specm5tth.stop()
-        
-    def simdc():
-        ''' switch to use dummy motors in diffcalc
-        '''
-        print "Stop real motors"
-        if GDA:
-            stopMotors(x, y, z, th, chi, phi, difftth, m5tth)
-        else:
-            stopMotors(x, y, z, th, chi, phi, delta, m5tth)
-        
-        global SIM_MODE
-        SIM_MODE=True
-        import __main__
-        __main__.en=Dummy("en")
-        print "Set energy to 12398.425 eV in simulation mode!"
-        __main__.en(12398.425) #1 Angstrom wavelength @UndefinedVariable
-        print "Switch to simulation motors"
-        switchMotors(simx,simy,simz,simth,simchi,simphi,simdelta,simm5tth)
-#         __main__.th = __main__.sa.simth  # @UndefinedVariable
-#         __main__.chi = __main__.sa.simchi  # @UndefinedVariable
-#         __main__.phi = __main__.sa.simphi  # @UndefinedVariable
-        setLimitsAndCuts(simdelta,simth,simchi,simphi)
-        
-    def realdc():
-        ''' switch to use real motors in diffcalc
-        '''
-        print "Stop simulation motors"
-        stopMotors(simx,simy,simz,simth,simchi,simphi,simdelta,simm5tth)
-        
-        global SIM_MODE
-        SIM_MODE=False
-        import __main__
-        print "Set energy to current beamline energy in real mode!"
-        __main__.en=energy
-        print "Switch to real motors"
-        if GDA:
-            switchMotors(x,y,z,th,chi,phi,difftth,m5tth)
-            setLimitsAndCuts(difftth,th,chi,phi)
-        else:
-            switchMotors(x,y,z,th,chi,phi,delta,m5tth)
-            setLimitsAndCuts(delta,th,chi,phi)
-     
     from gda.jython.commands.GeneralCommands import alias  # @UnresolvedImport
     alias("usem5tth")
     alias("uselowq")
     alias("usehighq")
     alias("usedifftth")
+    alias("usem5tth_tp")
+    alias("uselowq_tp")
+    alias("usehighq_tp")
+    alias("usedifftth_tp")
     alias("usesim")
-    alias("centresample")
-    alias("zerosample")
-    alias("toolpoint_on")
-    alias("toolpoint_off")
-    print "Created i21 bespoke commands: simdc, realdc"
-    alias("simdc")
-    alias("realdc")
 else:
     from IPython.core.magic import register_line_magic  # @UnresolvedImport
     from diffcmd.ipython import parse_line
@@ -425,19 +457,16 @@ else:
         del usehighq
         register_line_magic(parse_line(usedifftth, globals()))
         del usedifftth
+        register_line_magic(parse_line(usem5tth_tp, globals()))
+        del usem5tth_tp
+        register_line_magic(parse_line(uselowq_tp, globals()))
+        del uselowq_tp
+        register_line_magic(parse_line(usehighq_tp, globals()))
+        del usehighq_tp
+        register_line_magic(parse_line(usedifftth_tp, globals()))
+        del usedifftth_tp
         register_line_magic(parse_line(usesim, globals()))
         del usesim
-        register_line_magic(parse_line(centresample, globals()))
-        del centresample
-        register_line_magic(parse_line(zerosample, globals()))
-        del zerosample
-        register_line_magic(parse_line(toolpoint_on, globals()))
-        del toolpoint_on
-        register_line_magic(parse_line(toolpoint_off, globals()))
-        del toolpoint_off
-
-# Custom scannables
-from startup.beamlinespecific.conic_scannables import conic_h, conic_k, conic_l
 
 ### Demo ###
 
@@ -451,7 +480,6 @@ if not GDA:
             startup._demo.print_heading('i21 scannables demo')
     
             self.echorun_magiccmd_list([
-                'sa',
                 'pos th 1',
                 'pos chi 2',
                 'pos phi 3',
