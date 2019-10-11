@@ -135,7 +135,7 @@ if GDA:
 hkl_sim = Hkl('hkl_sim', _sc_sim, DiffractometerYouCalculator(_hw_sim, _tth_geometry))
 
 # Custom scannables
-from startup.beamlinespecific.conic_scannables import conic_h, conic_k, conic_l
+from startup.beamlinespecific.conic_scannables import conic_h, conic_k, conic_l, conic_th
 
 def usem5tth_tp():
     if GDA:

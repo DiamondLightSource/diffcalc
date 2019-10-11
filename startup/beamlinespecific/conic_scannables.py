@@ -16,11 +16,10 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 import types
-from math import sin, cos, acos, atan2, sqrt
+from math import sin, cos, acos, atan2, sqrt, pi
 
 from diffcalc.gdasupport.scannable.parametrised_hkl import ParametrisedHKLScannable
-from diffcalc.util import DiffcalcException
-from diffcalc.dc import dcyou as _dc
+from diffcalc.util import DiffcalcException, TORAD, TODEG, SMALL
 
 try:
     from numpy import matrix
@@ -147,3 +146,48 @@ def __hkl_to_conic_l(self, hkl):
 conic_l = ParametrisedHKLScannable('conic_l', ('l', 'a', 'b', 'c', 'd'), 4)
 conic_l.parameter_to_hkl = types.MethodType(__conic_l_to_hkl, conic_l)
 conic_l.hkl_to_parameter = types.MethodType(__hkl_to_conic_l, conic_l)
+
+def __conic_th_to_hkl(self, params):
+    from diffcalc.dc import dcyou as _dc
+    from diffcalc.util import norm3, solve_h_fixed_q, solve_k_fixed_q
+    import __main__
+
+    try:
+        r, th, h0, k0 = params
+    except TypeError:
+        raise DiffcalcException("Invalid number of input parameters.")
+    sin_th = sin(th * TORAD)
+    cos_th = cos(th * TORAD)
+    a  = sin_th
+    b = -cos_th
+    c = 0
+    d = h0 * sin_th - k0 * cos_th
+    h, k, l = __main__.hkl.getPosition()[:3]
+    hkl_nphi = _dc._ub.ubcalc._UB * matrix([[h], [k], [l]])
+    qval = norm3(hkl_nphi)**2
+    if th > 45.:
+        k = k0 + r * sin_th
+        hkl = solve_k_fixed_q(k, qval, _dc._ub.ubcalc._UB, (a, b, c, d))
+    else:
+        h = h0 + r * cos_th
+        hkl = solve_h_fixed_q(h, qval, _dc._ub.ubcalc._UB, (a, b, c, d))
+    return hkl
+
+def __hkl_to_conic_th(self, hkl):
+    h, k, _ = hkl
+    try:
+        r0, th0, h0, k0 = self.cached_params
+    except TypeError:
+        raise DiffcalcException("hkl constraint values not set.")
+    r = sqrt((h - h0)**2 + (k - k0)**2)
+    if abs(r) < SMALL:
+        return r, th0, h0, k0
+    th = atan2(k - k0, h - h0)
+    if r0 < 0 and th < 0:
+        th += pi
+        r = -r
+    return (r, th * TODEG, h0, k0)
+
+conic_th = ParametrisedHKLScannable('conic_th', ('r', 'th', 'h0', 'k0'), 4)
+conic_th.parameter_to_hkl = types.MethodType(__conic_th_to_hkl, conic_th)
+conic_th.hkl_to_parameter = types.MethodType(__hkl_to_conic_th, conic_th)
