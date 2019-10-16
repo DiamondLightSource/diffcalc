@@ -238,12 +238,10 @@ def decode_orientation(orient_dict, geometry, diffractometer_axes_names):
     time = orient_dict['time'] and gt(orient_dict['time'])
     try:
         pos_tuple = eval(orient_dict['pos'])
+        position = geometry.create_position(*pos_tuple)
     except KeyError:
         pos_tuple = (0.,) * len(diffractometer_axes_names)
-    try:
-        position = geometry.create_position(*pos_tuple)
-    except AttributeError:
-        position = YouPosition(*pos_tuple)
+        position = geometry.physical_angles_to_internal_position(pos_tuple)
     return _Orientation(h, k, l, x, y, z, position, str(orient_dict['tag']), repr(time))
 
 
