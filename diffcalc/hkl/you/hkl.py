@@ -146,33 +146,40 @@ def allhkl(hkl, wavelength=None):
     pos_virtual_angles_pairs = hklcalc.hkl_to_all_angles(
                                     h, k, l, wavelength)
     cells = []
+    msg_lines = ['_' * 300]
+    idx_err = 0
     # virtual_angle_names = list(pos_virtual_angles_pairs[0][1].keys())
     # virtual_angle_names.sort()
     if settings.include_reference:
         virtual_angle_names = ['qaz', 'psi', 'naz', 'tau', 'theta', 'alpha', 'beta', 'betain', 'betaout']
     else:
         virtual_angle_names = ['qaz', 'theta', 'betain', 'betaout']
-    header_cells = list(_hardware.get_axes_names()) + [' '] + virtual_angle_names
-    cells.append(['%9s' % s for s in header_cells])
-    cells.append([''] * len(header_cells))
-    
+    header_cell_names = [''] + list(_hardware.get_axes_names()) + [' '] + virtual_angle_names
+    cells.append(['%9s' % s for s in header_cell_names])
 
     for pos, virtual_angles in pos_virtual_angles_pairs:
         row_cells = []
 
-
         angle_tuple = _geometry.internal_position_to_physical_angles(pos)
         angle_tuple = _hardware.cut_angles(angle_tuple)
+        try:
+            err_msg = _hardware.diffhw.checkPositionValid(angle_tuple)
+        except Exception:
+            err_msg = "Cannot read limit violation message."
+        if err_msg:
+            idx_err += 1
+            idx_str =  str(idx_err) + '.'
+            row_cells.append(idx_str)
+            msg_lines.append(idx_str + '  ' + err_msg)
+        else:
+            row_cells.append('*')
         for val in angle_tuple:
             row_cells.append('%9.4f' % val)
-        
         row_cells.append('|')
-        
         for name in virtual_angle_names:
             row_cells.append('%9.4f' %  virtual_angles[name])
         cells.append(row_cells)
-            
-            
+
     column_widths = []
     for col in range(len(cells[0])):
         widths = []
@@ -181,7 +188,8 @@ def allhkl(hkl, wavelength=None):
             width = len(cell.strip())
             widths.append(width)
         column_widths.append(max(widths))
-    
+    total_width = sum(column_widths) + 2 * (len(column_widths) - 1)
+
     lines = []
     for row_cells in cells:
         trimmed_row_cells = []
@@ -189,6 +197,9 @@ def allhkl(hkl, wavelength=None):
             trimmed_cell = cell.strip().rjust(width)
             trimmed_row_cells.append(trimmed_cell)
         lines.append('  '.join(trimmed_row_cells))
+    lines.append('')
+    for msg in msg_lines:
+        lines.append(msg[:total_width])
     print '\n'.join(lines)
 
 
