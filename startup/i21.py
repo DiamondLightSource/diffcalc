@@ -175,7 +175,7 @@ def usem5tth(tp=None):
     if tp:
         _diff_scn = DiffractometerTPScannableGroup(_diff_scn_name, _dc, _sc_m5tth_tp)
     else:
-        _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_m5tth_tp)
+        _diff_scn = DiffractometerScannableGroup(_diff_scn_name, _dc, _sc_m5tth)
 
     if tp:
         setLimitsAndCuts(m5tth, th, ps_chi, ps_phi)
