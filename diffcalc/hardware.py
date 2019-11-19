@@ -126,11 +126,13 @@ class HardwareAdapter(object):
 
     def __str__(self):
         s = self.name + ":\n"
-        s += "  energy : " + str(self.get_energy()) + " keV\n"
-        s += "  wavelength : " + str(self.get_wavelength()) + " Angstrom\n"
+        s += "      energy : %9.4f keV\n" % self.get_energy()
+        s += "  wavelength : %9.4f A\n" % self.get_wavelength()
         names = self._diffractometerAngleNames
+        width = max(len(k) for k in names)
+        fmt = '  %' + str(width) + 's : % 9.4f\n'
         for name, pos in zip(names, self.get_position()):
-            s += "  %s : %r deg\n" % (name, pos)
+            s += fmt % (name, pos)
         return s
 
     def __repr__(self):

@@ -151,9 +151,9 @@ def allhkl(hkl, wavelength=None):
     # virtual_angle_names = list(pos_virtual_angles_pairs[0][1].keys())
     # virtual_angle_names.sort()
     if settings.include_reference:
-        virtual_angle_names = ['qaz', 'psi', 'naz', 'tau', 'theta', 'alpha', 'beta', 'betain', 'betaout']
+        virtual_angle_names = ['qaz', 'psi', 'naz', 'tau', 'theta', 'ttheta', 'alpha', 'beta', 'betain', 'betaout']
     else:
-        virtual_angle_names = ['qaz', 'theta', 'betain', 'betaout']
+        virtual_angle_names = ['qaz', 'theta', 'ttheta', 'betain', 'betaout']
     header_cell_names = [''] + list(_hardware.get_axes_names()) + [' '] + virtual_angle_names
     cells.append(['%9s' % s for s in header_cell_names])
 

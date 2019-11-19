@@ -263,10 +263,10 @@ class YouHklCalculator(HklCalculatorBase):
 
             psi = next(self._calc_psi(alpha, theta, tau, qaz, naz))
 
-            return {'theta': theta, 'qaz': qaz, 'alpha': alpha,
+            return {'theta': theta, 'ttheta': 2 * theta, 'qaz': qaz, 'alpha': alpha,
                     'naz': naz, 'tau': tau, 'psi': psi, 'beta': beta,
                     'betain': betain, 'betaout': betaout}
-        return {'theta': theta, 'qaz': qaz,
+        return {'theta': theta, 'ttheta': 2 * theta, 'qaz': qaz,
                 'betain': betain, 'betaout': betaout}
 
 

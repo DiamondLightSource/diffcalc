@@ -132,4 +132,7 @@ class Hkl(ScannableMotionWithScannableFieldsBase):
         fmt = '  %' + str(width) + 's : % 9.4f'
         for k in sorted(params):
             lines.append(fmt % (k, params[k]))
+        lines.extend(["", self.diffhw.getName() + ":"])
+        for idx, name in enumerate(self.diffhw.getInputNames()):
+            lines.append(fmt % (name, pos[idx]))
         return '\n'.join(lines)

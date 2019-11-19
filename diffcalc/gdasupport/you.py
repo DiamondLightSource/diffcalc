@@ -72,9 +72,9 @@ Hkl.dynamic_docstring = format_command_help(hkl_commands_for_help)  # must be on
 ub.__doc__ = format_command_help(ub_commands_for_help)
 
 if settings.include_reference:
-    _virtual_angles = ('theta', 'qaz', 'alpha', 'naz', 'tau', 'psi', 'beta', 'betain', 'betaout')
+    _virtual_angles = ('theta', 'ttheta', 'qaz', 'alpha', 'naz', 'tau', 'psi', 'beta', 'betain', 'betaout')
 else:
-    _virtual_angles = ('theta', 'qaz', 'betain', 'betaout')
+    _virtual_angles = ('theta', 'ttheta', 'qaz', 'betain', 'betaout')
 hklverbose = Hkl('hklverbose', _scn_group, _dc, _virtual_angles)
 
 
