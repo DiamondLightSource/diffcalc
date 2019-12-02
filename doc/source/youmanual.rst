@@ -32,7 +32,7 @@ diffractometer and possibly the types of experiment you perform. For example, a
 five-circle diffractometer might be missing the nu circle above.
 
 The laboratory frame is shown above. With all settings at zero as shown the
-crystal  cartesian frame aligns with the laboratory frame. Therefor a cubic
+crystal cartesian frame aligns with the laboratory frame. Therefore a cubic
 crystal mounted squarely in a way that the U matrix (defined below) is unitary
 will have h||a||x, k||b||y & l||c||z, crystal and reciprocal-lattice coordinate
 frames are defined with respect to the beam and to gravity to be (for a cubic
@@ -41,7 +41,7 @@ crystal):
 Overview
 ========
 
-The following assumes that the diffractometer has been properly leveled, aligned
+The following assumes that the diffractometer has been properly levelled, aligned
 with the beam and zeroed. See the `SPEC fourc manual
 <http://www.certif.com/spec_manual/fourc_4_2.html>`__.
 
@@ -65,7 +65,7 @@ scanned using the Gda's (or minigda's) generic scan mechanism.
 Theory
 ------
 
-Thanks to Elias Vlieg for sharing his dos based ``DIF`` software that Diffcalc
+Thanks to Elias Vlieg for sharing his DOS based ``DIF`` software that Diffcalc
 has borrowed heavily from. The version of Diffcalc described here is based on papers by
 pHH. You. [You1999]_ and Busing & Levy [Busing1967]_. (See also the THANKS.txt file.)
 
@@ -190,15 +190,18 @@ or interactively::
     >>> newub
     calculation name: example
     crystal name: 1Acube
-           a [1]: 1
-           b [1]: 1
-           c [1]: 1
-      alpha [90]: 90
-       beta [90]: 90
-      gamma [90]: 90
+    crystal system
+    1) Triclinic
+    2) Monoclinic
+    3) Orthorhombic
+    4) Tetragonal
+    5) Rhombohedral
+    6) Hexagonal
+    7) Cubic
+    [1]: 7
+        a[1]: 1
 
-where a,b and c are the lengths of the three unit cell basis vectors
-in Angstroms, and alpha, beta and gamma are angles in Degrees.
+where a is unit cell basis vector in Angstroms for cubic crystal system.
 
 The ``ub`` command will show the state of the current UB-calculation
 (and the current energy for reference)::
@@ -208,6 +211,12 @@ The ``ub`` command will show the state of the current UB-calculation
    
       name:       example
    
+   REFERNCE
+   
+      n_hkl:      1.00000   0.00000   0.00000 <- set
+   
+   SURFACE NORMAL
+   
       n_phi:      0.00000   0.00000   1.00000 <- set
    
    CRYSTAL
@@ -215,7 +224,7 @@ The ``ub`` command will show the state of the current UB-calculation
       name:        1Acube
    
       a, b, c:    1.00000   1.00000   1.00000
-                 90.00000  90.00000  90.00000
+                 90.00000  90.00000  90.00000  Cubic
    
       B matrix:   6.28319   0.00000   0.00000
                   0.00000   6.28319   0.00000
@@ -231,7 +240,7 @@ The ``ub`` command will show the state of the current UB-calculation
    
    CRYSTAL ORIENTATIONS
    
-   <<< none specified >>>
+      <<< none specified >>>
 
 Load a UB calculation
 ---------------------
@@ -317,11 +326,11 @@ Generate a U matrix from two lattice directions
 -----------------------------------------------
 
 Another approach to calculate a U matrix is to provide orientation of **two** crystal lattice
-directions in laboratory frame of reference using ``addorient`` command. The first lattice
-direction will be aligned along the specified in the laboratory frame. The second lattice
-direction will be used to set azimuthal orientation of the crystal in the plane perpendicular
-to the first lattice orientation. Diffcalc allows many lattice directions to be recorded but
-currently uses only the first two when calculating a UB matrix.
+directions using ``addorient`` command after aligning sample in laboratory frame of reference.
+The first lattice direction should be aligned along the selected direction in the laboratory frame.
+For the purpose of finding azimuthal orientation in U matrix calculation it is sufficient for the
+projection of the second lattice direction to be aligned to the given orientation in the laboratory
+frame in the plane perpendicular to the first lattice orientation.
 
 Find U matrix from two lattice directions::
 
@@ -341,8 +350,13 @@ Use the command ``calcub`` to force the UB matrix to be calculated from the
 first two reflections. In case of using lattice orientations instead of reflections,
 use command ``orientub`` to force the UB matrix to be calculated from the first two orientations.
 
+UB matrix can be calculated from any combination of two reflections and/or orientations
+by providing corresponding reflection/orientation tags or numbers as an argument to ``calcub``.
+In case of using one reflection and one orientation it is recommended to use tags to avoid
+ambiguity.
+
 If you have misidentified a reflection used for the orientation the
-resulting UB matrix will be incorrect. Always use the ``checkub``command
+resulting UB matrix will be incorrect. Always use the ``checkub`` command
 to check that the computed reflection indices agree with the estimated values::
 
    >>> checkub
@@ -376,7 +390,7 @@ Set U matrix manually (pretending sample is squarely mounted)::
    Recalculating UB matrix.
    NOTE: A new UB matrix will not be automatically calculated when the orientation reflections are modified.
 
-Refining UB matrix from reflection
+Refining UB matrix with one reflection
 ----------------------------------
 
 UB matrix elements can be refined to match diffractometer settings and crystal orientation experimentally
@@ -405,46 +419,104 @@ parameters to update U matrix::
          angle: 42.10000
          axis:  0.00000   1.00000   0.00000
 
+Calculate UB matrix from multiple reflections
+---------------------------------------------
+
+Using ``fitub`` command UB matrix can be optimised to find best fit for the selected list of reference
+reflections . For triclinic crystal system optimal solution is found by solving multivariate linear
+regression model, while for the higher symmetry systems it is found by running numerical optimiser::
+
+   >>> fitub 1 2 3 4
+   Fitting crystal lattice parameters...
+   Fitting orientation matrix...
+   Refined crystal lattice:
+      a, b, c: 10.56348  10.56348  10.81364
+                90.00000  90.00000  90.00000
+   Update crystal settings?[y]: y
+   Refined U matrix:  0.94559  -0.32489   0.01762
+                      0.32487   0.94575   0.00437
+                     -0.01809   0.00160   0.99984
+   Update U matrix?[y]: y
+   ...
+   ...
+   ...
+   REFLECTIONS
+   
+     ENERGY     H     K     L       PHI      CHI      ETA       MU    DELTA      GAM  TAG
+   1  8.000  0.00  0.00  8.00  -26.3000  89.0000  17.3034   0.0005  33.3569  -0.0042  None
+   2  8.000  4.00  4.00  8.00   62.4273  53.4451  45.2680   0.0000  90.0825   0.0000  None
+   3  8.000  0.00  0.00  8.00   13.3485  89.0097  35.0408   0.0000  69.9326   0.0000  None
+   4  8.000  4.00  4.00  8.00   63.2008  53.4096  44.9007   0.0000  90.1107   0.0000  None
+
+
 Set the reference vector
 -------------------------
 
-When performing surface experiments the reference vector should be set normal
-to the surface. It can also be used to define other directions within the crystal
-with which we want to orient the incident or diffracted beam.
+The reference vector can be used to define azimuthal direction within the crystal
+with which we want to orient the incident or diffracted beam. Orientation of the reference vector
+w.r.t the incident and diffracted beam is indicated using ``alpha`` and ``beta`` angles.
 
-By default the reference vector is set parallel to the phi axis. That is,
-along the z-axis of the phi coordinate frame.
+By default the reference vector is set parallel to the theta axis. That is,
+along the x-axis of the laboratory coordinate frame.
 
-The `ub` command shows the current reference vector along with the orientation relative to
-the z-axis, at the top its report (or it can be shown by calling ``setnphi`` or
-``setnhkl'`` with no args)::
+The ``ub`` command shows the current reference vector at the top its report
+(or it can be shown by calling ``setnphi`` or ``setnhkl`` with no args)::
 
  >>> ub
  ...
- n_phi:      0.00000   0.00000   1.00000 <- set
- n_hkl:     -0.00000   0.00000   1.00000
- normal:     None
+    REFERNCE
+
+    n_phi:      1.00000   0.00000   0.00000
+    n_hkl:      1.00000   0.00000   0.00000 <- set
  ...
 
-The ``<- set`` label here indicates that the reference vector is set in the phi
-coordinate frame. In this case, therefore, its direction in the crystal's
-reciprocal lattice space is inferred from the UB matrix.
+The ``<- set`` label here indicates that the reference vector is set in the reciprocal
+lattice space. In this case, therefore, its direction in the laboratory coordinate
+frame is inferred from the UB matrix.
 
 To set the reference vector in the phi coordinate frame use::
 
-   >>> setnphi [0 0 1]
+   >>> setnphi [1 0 0]
    ...
 
-This is useful if the surface normal has be found with a laser or by x-ray
-occlusion. This vector must currently be manually calculated from the sample
-angle settings required to level the surface (sigma and tau commands on the
-way).
+To set the reference vector in the crystal's reciprocal lattice space use::
 
-To set the reference vector in the crystal's reciprocal lattice space use (this
-is a quick way to determine the surface orientation if the surface is known to
-be cleaved cleanly along a known axis)::
+   >>> setnhkl [1 0 0]
+   ...
 
-   >>> setnhkl [0 0 1]
+Set the surface normal vector
+-------------------------
+
+The orientation of the sample surface can be set using the surface normal vector defined either in
+laboratory coordinate system or reciprocal space. Orientation of the surface normal vector
+w.r.t the incident and diffracted beam is indicated using ``betain`` and ``betaout`` angles.
+
+By default the surface normal vector is set parallel to the phi axis. That is,
+along the z-axis of the laboratory coordinate frame.
+
+The ``ub`` command shows the current surface normal vector at the top its report
+(or it can be shown by calling ``surfnphi`` or ``surfnhkl`` with no args)::
+
+ >>> ub
+ ...
+    SURFACE NORMAL
+
+    n_phi:      0.00000   0.00000   1.00000 <- set
+    n_hkl:      0.00000   0.00000   1.00000
+ ...
+
+The ``<- set`` label here indicates that the surface normal vector is set in the laboratory
+coordinate frame. In this case, therefore, its direction in the crystal's
+reciprocal lattice space is inferred from the UB matrix.
+
+To set the surface normal vector in the phi coordinate frame use::
+
+   >>> surfnphi [0 0 1]
+   ...
+
+To set the surface normal vector in the crystal's reciprocal lattice space use::
+
+   >>> surfnhkl [0 0 1]
    ...
 
 Motion
