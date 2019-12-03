@@ -265,7 +265,10 @@ Generate a U matrix from two reflections
 
 The normal way to calculate a U matrix is to find the position of **two**
 reflections with known hkl values. Diffcalc allows many reflections to be
-recorded but currently only uses the first two when calculating a UB matrix.
+recorded. After adding first two reflections UB matrix will be calculated
+automatically. If there are multiple recorded reflections, the indices or
+tags can be provided to ``calcub`` command as arguments to calculate UB
+matrix from any two given reflections.
 
 Find U matrix from two reflections::
 
@@ -290,6 +293,20 @@ Check that it looks good::
         ENERGY     H     K     L    H_COMP   K_COMP   L_COMP     TAG
     1  12.3984  0.00  0.00  1.00    0.0000   0.0000   1.0000        
     2  12.3984  0.00  1.00  1.00    0.0000   1.0000   1.0000        
+
+After adding another reflection we can use the first and the third reflections to recalculate
+UB matrix::
+
+   >>> addref [1 0 1]
+
+   >>> calcub 1 3
+
+   >>> checkub
+
+        ENERGY     H     K     L    H_COMP   K_COMP   L_COMP     TAG
+    1  12.3984  0.00  0.00  1.00    0.0000   0.0000   1.0000        
+    2  12.3984  0.00  1.00  1.00    0.0000   1.0000   1.0000        
+    3  12.3984  1.00  0.00  1.00    1.0000   0.0000   1.0000        
 
 Generate a U matrix from one reflection
 ---------------------------------------
@@ -391,7 +408,7 @@ Set U matrix manually (pretending sample is squarely mounted)::
    NOTE: A new UB matrix will not be automatically calculated when the orientation reflections are modified.
 
 Refining UB matrix with one reflection
-----------------------------------
+--------------------------------------
 
 UB matrix elements can be refined to match diffractometer settings and crystal orientation experimentally
 found for a given reflection with the corresponding reflection indices. ``refineub`` command rescales
@@ -485,7 +502,7 @@ To set the reference vector in the crystal's reciprocal lattice space use::
    ...
 
 Set the surface normal vector
--------------------------
+-----------------------------
 
 The orientation of the sample surface can be set using the surface normal vector defined either in
 laboratory coordinate system or reciprocal space. Orientation of the surface normal vector
@@ -540,17 +557,19 @@ To get help and see current constraints::
    ...
 
    >>> con
-       DET        REF        SAMP
-       ------     ------     ------
-       delta      a_eq_b     mu
-       gam        alpha      eta
-       qaz        beta       chi
-       naz        psi        phi
-                             mu_is_gam
-   
-   !   3 more constraints required
-   
-       Type 'help con' for instructions
+      DET             REF             SAMP
+      -----------     -----------     -----------
+      delta           a_eq_b          mu
+      gam             alpha           eta
+      qaz             beta            chi
+      naz             psi             phi
+                      bin_eq_bout     mu_is_gam
+                      betain          bisect
+                      betaout         omega
+      
+      !   3 more constraints required
+      
+          Type 'help con' for instructions
 
 Three constraints can be given: zero or one from the DET and REF columns and the
 remainder from the SAMP column. Not all combinations are currently available.
@@ -575,15 +594,20 @@ scattering vector, or momentum transfer vector, and the incident beam.
 
 **REFERENCE COLUMN:**
 
-- **alpha** - incident angle to surface (if reference is normal to surface)
-- **beta** -  exit angle from surface (if reference is normal to surface)
+- **alpha** - incident angle to reference vector
+- **beta** -  exit angle from reference vector
 - **psi** - azimuthal rotation about scattering vector of reference vector (from scattering plane)
 - **a_eq_b** - bisecting mode with alpha=beta. *Equivalent to psi=90*
+- **betain** - incident angle to sample surface
+- **betaout** -  exit angle from sample surface
+- **bin_eq_bout** - bisecting mode with betain=betaout
 
 **SAMPLE COLUMN:**
 
 - **mu, eta, chi & phi** - physical settings
 - **mu_is_gam** - force mu to follow gamma (results in a 5-circle geometry)
+- **bisect** - bisecting mode with scattering vector in chi-circle plane
+- **omega** - bisecting mode with omega angle between scattering vector and chi-circle plane
 
 Diffcalc will report two other (un-constrainable) virtual angles:
 
@@ -609,25 +633,25 @@ There is sometimes more than one way to get the same effect.
 
 **Surface vertical mode**::
 
-   >>> con naz 90 mu 0 alpha 1
+   >>> con naz 90 mu 0 betain 1
 
 **Surface horizontal mode**::
 
-   >>> con naz 0 eta 0 alpha 1
+   >>> con naz 0 eta 0 betain 1
 
 **Z-axis mode (surface horizontal)**::
 
-   >>> con chi (-sigma) phi (-tau) alpha 1
+   >>> con chi (-sigma) phi (-tau) betain 1
 
 where sigma and tau are the offsets required in chi and phi to bring the surface
-normal parallel to eta. Alpha will determine mu directly leaving eta to orient
+normal parallel to eta. betain will determine mu directly leaving eta to orient
 the planes. Or::
 
-   >>> con naz 0 phi 0 alpha 1  # or any another sample angle
+   >>> con naz 0 phi 0 betain 1  # or any another sample angle
 
 **Z-axis mode (surface vertical)**::
 
-   >>> con naz 0 phi 0 alpha 1  # or any another sample angle
+   >>> con naz 0 phi 0 betain 1  # or any another sample angle
 
 Changing constrained values
 ---------------------------
@@ -647,11 +671,12 @@ or via the associated scannable::
 Configuring limits and cuts
 ---------------------------
 
-Diffcalc maintains its own limits on axes. These limits will be used when
-choosing solutions. If more than one detector solution is exists Diffcalc will
-ask you to reduce the the limits until there is only one. However if more than
-one solution for the sample settings is available it will choose one base on
-heuristics.
+Diffcalc uses motor limits set in GDA when used from GDA client running on a beamline.
+The standalone console version maintains its own limits on axes. These limits
+will be used when choosing solutions. If more than one detector solution exists
+Diffcalc will ask you to reduce the the limits until there is only one. However
+if more than one solution for the sample settings is available it will choose one
+that is closest to the current diffractometer orientation.
 
 Use the ``hardware`` command to see the current limits and cuts::
 
@@ -665,7 +690,7 @@ Use the ``hardware`` command to see the current limits and cuts::
    Note: When auto sector/transforms are used,
           cuts are applied before checking limits.
 
-To set the limits::
+To set the limits in standalone Diffcalc session::
 
    >>> setmin delta -1
    >>> setmax delta 145
@@ -699,13 +724,16 @@ Simulate moving to a reflection::
        chi :   45.0000
        phi :   90.0000
    
-     alpha :   30.0000
-      beta :   30.0000
+     alpha :   45.0000
+      beta :   45.0000
+    betain :   30.0000
+   betaout :   30.0000
        naz :   35.2644
        psi :   90.0000
        qaz :   90.0000
        tau :   45.0000
      theta :   45.0000
+    ttheta :   90.0000
 
 Move to reflection::
 
@@ -792,7 +820,7 @@ Orientation Commands
 +-----------------------------+---------------------------------------------------+
 | **-- listub**               | list the ub calculations available to load        |
 +-----------------------------+---------------------------------------------------+
-| **-- rmub** 'name'|num      | remove existing ub calculation                    |
+| **-- rmub** 'name' | num    | remove existing ub calculation                    |
 +-----------------------------+---------------------------------------------------+
 | **-- saveubas** 'name'      | save the ub calculation with a new name           |
 +-----------------------------+---------------------------------------------------+
@@ -818,11 +846,19 @@ Orientation Commands
 | **-- hklangle** [h1 k1 l1]  | calculate angle between [h1 k1 l1] and [h2 k2 l2] |
 | [h2 k2 l2]                  | crystal planes                                    |
 +-----------------------------+---------------------------------------------------+
-| **REFERENCE (SURFACE)**                                                         |
+| **REFERENCE**                                                                   |
 +-----------------------------+---------------------------------------------------+
 | **-- setnphi** {[x y z]}    | sets or displays n_phi reference                  |
 +-----------------------------+---------------------------------------------------+
 | **-- setnhkl** {[h k l]}    | sets or displays n_hkl reference                  |
++-----------------------------+---------------------------------------------------+
+| **SURFACE NORMAL**                                                              |
++-----------------------------+---------------------------------------------------+
+| **-- surfnphi** {[x y z]}   | sets or displays surface normal vector in lab     |
+|                             | space                                             |
++-----------------------------+---------------------------------------------------+
+| **-- surfnhkl** {[h k l]}   | sets or displays surface normal vector in         |
+|                             | reciprocal space                                  |
 +-----------------------------+---------------------------------------------------+
 | **REFLECTIONS**                                                                 |
 +-----------------------------+---------------------------------------------------+
@@ -869,6 +905,9 @@ Orientation Commands
 +-----------------------------+---------------------------------------------------+
 | **UB MATRIX**                                                                   |
 +-----------------------------+---------------------------------------------------+
+| **-- fitub** ref1 ref2      | fit UB matrix to match list of provided           |
+| ref3 ..                     | reference reflections                             |
++-----------------------------+---------------------------------------------------+
 | **-- checkub**              | show calculated and entered hkl values for        |
 |                             | reflections                                       |
 +-----------------------------+---------------------------------------------------+
@@ -880,8 +919,22 @@ Orientation Commands
 +-----------------------------+---------------------------------------------------+
 | **-- calcub**               | (re)calculate u matrix from ref1 and ref2         |
 +-----------------------------+---------------------------------------------------+
-| **-- trialub**              | (re)calculate u matrix from ref1 only (check      |
-|                             | carefully)                                        |
+| **-- calcub** idx1 idx2     | (re)calculate U matrix from reflections and/or    |
+|                             | orientations referred by indices and/or tags      |
+|                             | idx1 and idx2                                     |
++-----------------------------+---------------------------------------------------+
+| **-- orientub**             | (re)calculate U matrix from reflections and/or    |
+|                             | orientations                                      |
++-----------------------------+---------------------------------------------------+
+| **-- orientub** idx1 idx2   | (re)calculate U matrix from the first two         |
+|                             | orientations referred by indices and/or tags      |
+|                             | idx1 and idx2                                     |
++-----------------------------+---------------------------------------------------+
+| **-- trialub**              | (re)calculate U matrix from the first  reflection |
+|                             | (check carefully)                                 |
++-----------------------------+---------------------------------------------------+
+| **-- trialub** idx1         | (re)calculate U matrix from reflection with       |
+|                             | index or tag idx only (check carefully)           |
 +-----------------------------+---------------------------------------------------+
 | **-- refineub** {[h k l]}   | refine unit cell dimensions and U matrix to match |
 | {pos}                       | diffractometer angles for a given hkl value       |
