@@ -336,7 +336,7 @@ def _to_column_vector_triple(o):
 def showref():
     """showref -- shows full reflection list"""
     if ubcalc._state.reflist:
-        print '\n'.join(ubcalc._state.reflist.str_lines())
+        print '\n'.join(ubcalc.str_lines_refl())
     else:
         print "<<< No reflections stored >>>"
 
@@ -485,7 +485,7 @@ def swapref(idx1=None, idx2=None):
 def showorient():
     """showorient -- shows full list of crystal orientations"""
     if ubcalc._state.orientlist:
-        print '\n'.join(ubcalc._state.orientlist.str_lines())
+        print '\n'.join(ubcalc.str_lines_orient())
     else:
         print "<<< No crystal orientations stored >>>"
 

@@ -16,12 +16,19 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+"""
+Interface functions for UB matrix calculation.
+
+This module provides a number of objects and functions for setting UB matrix
+and reference/surface normal vectors based on reflections and/or orientations and
+crystal miscut information.
+"""
 from diffcalc.ub.calcstate import UBCalcState
 from diffcalc.ub.crystal import CrystalUnderTest
 from diffcalc.ub.reflections import ReflectionList
 from diffcalc.ub.persistence import UBCalculationJSONPersister, UBCalculationPersister
 from diffcalc.util import DiffcalcException, cross3, dot3, bold, xyz_rotation,\
-    bound, angle_between_vectors, norm3, CoordinateConverter, allnum
+    bound, angle_between_vectors, norm3, CoordinateConverter, allnum, TODEG
 from math import acos, cos, sin, pi, atan2
 from diffcalc.ub.reference import YouReference
 from diffcalc.ub.orientations import OrientationList
@@ -38,13 +45,24 @@ except ImportError:
     from numjy.linalg import norm
 
 SMALL = 1e-7
-TODEG = 180 / pi
 
 WIDTH = 13
 
 def z(num):
-    """Round to zero if small. This is useful to get rid of erroneous
-    minus signs resulting from float representation close to zero.
+    """Round to zero if small.
+    
+    This is useful to get rid of erroneous minus signs
+    resulting from float representation close to zero.
+    
+    Parameters
+    ----------
+    num : number
+        The value to be checked for rounding.
+
+    Returns
+    -------
+    number
+        The rounded input value.
     """
     if abs(num) < SMALL:
         num = 0
@@ -63,10 +81,24 @@ def z(num):
 
 
 class PaperSpecificUbCalcStrategy(object):
+    """Base class defining interface for scattering vector calculation
+    for the given diffractometer position.
+    """
 
     def calculate_q_phi(self, pos):
-        """Calculate hkl in the phi frame in units of 2 * pi / lambda from
-        pos object in radians"""
+        """Calculate scattering vector in laboratory frame.
+        
+        Calculate hkl in the phi frame in units of 2 * pi / lambda.
+        
+        Parameters
+        ----------
+        pos: object
+            Diffractometer angles in radians.
+        
+        Returns
+        -------
+        matrix:
+            Scattering vector coordinates corresponding to the input position."""
         raise NotImplementedError()
 
 
@@ -118,7 +150,15 @@ class UBCalculation:
 
 ### State ###
     def start_new(self, name):
-        """start_new(name) --- creates a new blank ub calculation"""
+        """Start new UB matrix calculation.
+        
+        Creates a new blank UB matrix calculation.
+        
+        Parameters
+        ----------
+        name: str
+            Name of a new UB matrix calculation
+        """
         # Create storage object if name does not exist (TODO)
         self._clear(name)
         self.save()
@@ -152,22 +192,43 @@ class UBCalculation:
             print "Warning: No UB calculation loaded."
 
     def save(self):
+        """Save current UB matrix calculation."""
         if self._state.name:
             self.saveas(self._state.name)
         else:
             print "Warning: No UB calculation defined."
 
     def saveas(self, name):
+        """Save current UB matrix calculation.
+        
+        Parameters
+        ----------
+        name : str
+            Name for the saved UB matrix calculation.
+        """
         self._state.name = name
         self._persister.save(self._state, name)
 
     def listub(self):
+        """List saved UB matrix calculations.
+        
+        Returns:
+        :obj:`list` of :obj:`str`
+            List of names of the saved UB matrix calculations.
+        """
         return self._persister.list()
     
     def listub_metadata(self):
         return self._persister.list_metadata()
 
     def remove(self, name):
+        """Delete UB matrix calculation.
+        
+        Parameters
+        ----------
+        name : str
+            Name of the UB matrix calculation to be deleted.
+        """
         self._persister.remove(name)
         if self._state.name == name:
             self._clear()
@@ -225,17 +286,9 @@ class UBCalculation:
             lines.append("")
             lines.extend(self.str_lines_ub(self.UB))
 
-        lines.append("")
-        lines.append(bold("REFLECTIONS"))
-        lines.append("")
+        lines.extend(self.str_lines_refl())
         
-        lines.extend(self._state.reflist.str_lines())
-        
-        lines.append("")
-        lines.append(bold("CRYSTAL ORIENTATIONS"))
-        lines.append("")
-        
-        lines.extend(self._state.orientlist.str_lines(self._tobj))
+        lines.extend(self.str_lines_orient())
         
         return '\n'.join(lines)
 
@@ -275,16 +328,25 @@ class UBCalculation:
         lines.append(' ' * WIDTH + fmt % (z(UB[2, 0]), z(UB[2, 1]), z(UB[2, 2])))
         return lines
 
+    def str_lines_refl(self):
+        lines = ["", bold("REFLECTIONS"), ""]
+        
+        lines.extend(self._state.reflist.str_lines())
+        return lines
+
+    def str_lines_orient(self):
+        lines = ["", bold("CRYSTAL ORIENTATIONS"), ""]
+        
+        lines.extend(self._state.orientlist.str_lines(self._tobj))
+        return lines
+
     @property
     def name(self):
+        """str: Name of the current UB matrix calculation."""
         return self._state.name
 ### Lattice ###
 
     def set_lattice(self, name, *shortform):
-        self._set_lattice_without_saving(name, *shortform)
-        self.save()
-
-    def _set_lattice_without_saving(self, name, *shortform):
         """
         Converts a list shortform crystal parameter specification to a six-long
         tuple. See setlat() for a description of the shortforms supported.
@@ -313,19 +375,16 @@ class UBCalculation:
             if not isinstance(shortform[0], basestring):
                 raise TypeError("Invalid unit cell parameters specified.")
             fullform = shortform
-        self._set_lattice(name, *fullform)
-
-    def _set_lattice(self, name, *args):
-        """set lattice parameters in degrees"""
         if self._state.name is None:
             raise DiffcalcException(
                 "Cannot set lattice until a UBCalcaluation has been started "
                 "with newubcalc")
-        self._state.crystal = CrystalUnderTest(name, *args)
+        self._state.crystal = CrystalUnderTest(name, *fullform)
         # Clear U and UB if these exist
         if self._U is not None:  # (UB will also exist)
             print ("Warning: Setting new unit cell parameters.\n"
                    "         The old UB calculation has been cleared.")
+        self.save()
 
 ### Surface normal stuff ###
 
@@ -406,9 +465,27 @@ class UBCalculation:
 ### Reflections ###
 
     def add_reflection(self, h, k, l, position, energy, tag, time):
-        """add_reflection(h, k, l, position, tag=None) -- adds a reflection
-
-        position is in degrees and in the systems internal representation.
+        """Add a reference reflection.
+        
+        Adds a reflection position in degrees and in the
+        systems internal representation.
+        
+        Parameters
+        ----------
+        h : number
+            h index of the reflection
+        k : number
+            k index of the reflection
+        l : number
+            l index of the reflection
+        position: :obj:`list` or :obj:`tuple` of numbers
+            list of diffractometer angles in internal representation in degrees
+        energy : float
+            energy of the x-ray beam
+        tag : str
+            identifying tag for the reflection
+        time : :obj:`datetime`
+            datetime object
         """
         if self._state.reflist is None:
             raise DiffcalcException("No UBCalculation loaded")
@@ -421,10 +498,29 @@ class UBCalculation:
         self.save()
 
     def edit_reflection(self, idx, h, k, l, position, energy, tag, time):
-        """
-        edit_reflection(idx, h, k, l, position, tag=None) -- changes a reflection
-
-        position is in degrees and in the systems internal representation.
+        """Changes a reference reflection.
+        
+        Changes a reflection position in degrees and in the
+        systems internal representation.
+        
+        Parameters
+        ----------
+        idx : str or int
+            index or tag of the reflection to be changed
+        h : number
+            h index of the reflection
+        k : number
+            k index of the reflection
+        l : number
+            l index of the reflection
+        position: :obj:`list` or :obj:`tuple` of numbers
+            list of diffractometer angles in internal representation in degrees
+        energy : float
+            energy of the x-ray beam
+        tag : str
+            identifying tag for the reflection
+        time : :obj:`datetime`
+            datetime object
         """
         if self._state.reflist is None:
             raise DiffcalcException("No UBCalculation loaded")
@@ -439,27 +535,71 @@ class UBCalculation:
         self.save()
 
     def get_reflection(self, idx):
-        """--> ( [h, k, l], position, energy, tag, time
-        position in degrees"""
+        """Get a reference reflection.
+        
+        Get a reflection position in degrees and in the
+        systems internal representation.
+        
+        Parameters
+        ----------
+        idx : str or int
+            index or tag of the reflection
+        """
         return self._state.reflist.getReflection(idx)
 
     def get_reflection_in_external_angles(self, idx):
-        """--> ( [h, k, l], position, energy, tag, time
-        position in degrees"""
+        """Get a reference reflection.
+        
+        Get a reflection position in degrees and in the
+        external diffractometer representation.
+        
+        Parameters
+        ----------
+        idx : str or int
+            index or tag of the reflection
+        """
         return self._state.reflist.get_reflection_in_external_angles(idx)
     
     def get_number_reflections(self):
+        """Get a number of stored reference reflections.
+        
+        Returns
+        -------
+        int:
+            Number of reference reflections.
+        """
         try:
             return len(self._state.reflist)
         except TypeError:
             return 0
 
     def get_tag_refl_num(self, tag):
+        """Get a reference reflection index.
+        
+        Get a reference reflection index for the 
+        provided reflection tag.
+        
+        Parameters
+        ----------
+        tag : str
+            identifying tag for the reflection
+        Returns
+        -------
+        int:
+            Reference reflection index
+        """
         if tag is None:
             raise IndexError("Reflection tag is None")
         return self._state.reflist.get_tag_index(tag) + 1
 
     def del_reflection(self, idx):
+        """Delete a reference reflection.
+        
+        Parameters
+        ----------
+        idx : str or int
+            index or tag of the deleted reflection
+        """
         num = self.get_tag_refl_num(idx)
         self._state.reflist.removeReflection(num)
         or12 = self.get_ub_references()
@@ -469,6 +609,15 @@ class UBCalculation:
         self.save()
 
     def swap_reflections(self, idx1, idx2):
+        """Swap indices of two reference reflections.
+        
+        Parameters
+        ----------
+        idx1 : str or int
+            index or tag of the first reflection to be swapped
+        idx2 : str or int
+            index or tag of the second reflection to be swapped
+        """
         num1 = self.get_tag_refl_num(idx1)
         num2 = self.get_tag_refl_num(idx2)
         self._state.reflist.swap_reflections(num1, num2)
@@ -499,7 +648,31 @@ class UBCalculation:
 ### Orientations ###
 
     def add_orientation(self, h, k, l, x, y, z, position, tag, time):
-        """add_reflection(h, k, l, x, y, z, tag=None) -- adds a crystal orientation
+        """Add a reference orientation.
+        
+        Adds a reference orientation in the external diffractometer
+        coordinate system.
+        
+        Parameters
+        ----------
+        h : number
+            h index of the reference orientation
+        k : number
+            k index of the reference orientation
+        l : number
+            l index of the reference orientation
+        x : number
+            x coordinate of the reference orientation
+        y : number
+            x coordinate of the reference orientation
+        z : number
+            x coordinate of the reference orientation
+        position: :obj:`list` or :obj:`tuple` of numbers
+            list of diffractometer angles in internal representation in degrees
+        tag : str
+            identifying tag for the reflection
+        time : :obj:`datetime`
+            datetime object
         """
         if self._state.orientlist is None:
             raise DiffcalcException("No UBCalculation loaded")
@@ -514,8 +687,34 @@ class UBCalculation:
         self.save()
 
     def edit_orientation(self, idx, h, k, l, x, y, z, position, tag, time):
+        """Change a reference orientation.
+        
+        Changes a reference orientation in the external diffractometer
+        coordinate system.
+        
+        Parameters
+        ----------
+        idx : str or int
+            index or tag of the orientation to be changed
+        h : number
+            h index of the reference orientation
+        k : number
+            k index of the reference orientation
+        l : number
+            l index of the reference orientation
+        x : number
+            x coordinate of the reference orientation
+        y : number
+            x coordinate of the reference orientation
+        z : number
+            x coordinate of the reference orientation
+        position: :obj:`list` or :obj:`tuple` of numbers
+            list of diffractometer angles in internal representation in degrees
+        tag : str
+            identifying tag for the reflection
+        time : :obj:`datetime`
+            datetime object
         """
-        edit_orientation(idx, h, k, l, x, y, z, tag=None) -- edit a crystal reflection        """
         if self._state.orientlist is None:
             raise DiffcalcException("No UBCalculation loaded")
         num = self.get_tag_orient_num(idx)
@@ -531,7 +730,16 @@ class UBCalculation:
         self.save()
 
     def get_orientation(self, idx, conv=False):
-        """--> ( [h, k, l], [x, y, z], pos, tag, time )"""
+        """Get a reference orientation.
+        
+        Get a reference orientation in the external diffractometer
+        coordinate system.
+        
+        Parameters
+        ----------
+        idx : str or int
+            index or tag of the reference orientation
+        """
         hkl, xyz, pos, tg, tm = self._state.orientlist.getOrientation(idx)
         if conv:
             xyz_rot = self._tobj.transform(matrix([[xyz[0]],[xyz[1]],[xyz[2]]]), True)
@@ -539,7 +747,16 @@ class UBCalculation:
         return hkl, xyz, pos, tg, tm
 
     def get_orientation_in_external_angles(self, idx, conv=False):
-        """--> ( [h, k, l], [x, y, z], pos, tag, time )"""
+        """Get a reference orientation.
+        
+        Get a reference orientation in the external diffractometer
+        coordinate system with diffractometer position in external angles.
+        
+        Parameters
+        ----------
+        idx : str or int
+            index or tag of the reference orientation
+        """
         hkl, xyz, pos, tg, tm = self._state.orientlist.get_orientation_in_external_angles(idx)
         if conv:
             xyz_rot = self._tobj.transform(matrix([[xyz[0]],[xyz[1]],[xyz[2]]]), True)
@@ -547,17 +764,45 @@ class UBCalculation:
         return hkl, xyz, pos, tg, tm
 
     def get_number_orientations(self):
+        """Get a number of stored reference orientations.
+        
+        Returns
+        -------
+        int:
+            Number of reference orientations.
+        """
         try:
             return len(self._state.orientlist)
         except TypeError:
             return 0
 
     def get_tag_orient_num(self, tag):
+        """Get a reference orientation index.
+        
+        Get a reference orientation index for the 
+        provided orientation tag.
+        
+        Parameters
+        ----------
+        tag : str
+            identifying tag for the orientation
+        Returns
+        -------
+        int:
+            Reference orientation index
+        """
         if tag is None:
             raise IndexError("Orientations tag is None")
         return self._state.orientlist.get_tag_index(tag) + 1
 
     def del_orientation(self, idx):
+        """Delete a reference orientation.
+        
+        Parameters
+        ----------
+        idx : str or int
+            index or tag of the deleted orientation
+        """
         orientationNumber = self.get_tag_orient_num(idx)
         self._state.orientlist.removeOrientation(orientationNumber)
         if ((orientationNumber == 2) and (self._U is not None)):
@@ -565,6 +810,15 @@ class UBCalculation:
         self.save()
 
     def swap_orientations(self, idx1, idx2):
+        """Swap indices of two reference orientations.
+        
+        Parameters
+        ----------
+        idx1 : str or int
+            index or tag of the first orientation to be swapped
+        idx2 : str or int
+            index or tag of the second orientation to be swapped
+        """
         num1 = self.get_tag_orient_num(idx1)
         num2 = self.get_tag_orient_num(idx2)
         self._state.orientlist.swap_orientations(num1, num2)
@@ -630,6 +884,7 @@ class UBCalculation:
 
     @property
     def U(self):
+        """matrix: Returns U matrix."""
         if self._U is None:
             raise DiffcalcException(
                 "No U matrix has been calculated during this ub calculation")
@@ -637,6 +892,7 @@ class UBCalculation:
 
     @property
     def UB(self):
+        """matrix: Returns UB matrix."""
         return self._get_UB()
     
     def is_ub_calculated(self):
@@ -687,11 +943,21 @@ class UBCalculation:
         self._UB = self._U * B
 
     def calculate_UB(self, idx1=None, idx2=None):
-        """
-        Calculate orientation matrix.
-        Default: use first two orientation reflections
-        as in Busang and Levy, but for the diffractometer in Lohmeier and
-        Vlieg.
+        """Calculate UB matrix.
+        
+        Calculate UB matrix using two reference reflections and/or
+        reference orientations.
+        
+        By default use the first two reference reflections when provided.
+        If one or both reflections are not available use one or two reference
+        orientations to complement mission reflection data.
+        
+        Parameters
+        ----------
+        idx1: int or str, optional
+            The index or the tag of the first reflection or orientation.
+        idx2: int or str, optional
+            The index or the tag of the second reflection or orientation.
         """
 
         # Major variables:
@@ -842,7 +1108,7 @@ class UBCalculation:
             raise DiffcalcException("Need at least 3 reference reflections to fit UB matrix.")
 
         if len(self._state.crystal.get_lattice_params()[1]) == 6:
-            new_u, uc_params = self.fit_ub_matrix_uncon(*args)
+            new_u, uc_params = self._fit_ub_matrix_uncon(*args)
         else:
             refl_list = []
             for idx in args:
@@ -859,7 +1125,7 @@ class UBCalculation:
             uc_params = (self._state.crystal.getLattice()[0],) + new_lattice.getLattice()[1:]
         return new_u, uc_params
 
-    def fit_ub_matrix_uncon(self, *args):
+    def _fit_ub_matrix_uncon(self, *args):
         if args is None:
             raise DiffcalcException("Please specify list of reference reflection indices.")
         if len(args) < 3:

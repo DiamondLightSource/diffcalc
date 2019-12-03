@@ -130,9 +130,9 @@ class OrientationList:
         return len(self._orientlist)
 
     def __str__(self):
-        return '\n'.join(self.str_lines(None))
+        return '\n'.join(self.str_lines())
 
-    def str_lines(self, conv):
+    def str_lines(self, conv=None):
         axes = tuple(s.upper() for s in self._externalAngleNames)
         if not self._orientlist:
             return ["   <<< none specified >>>"]
