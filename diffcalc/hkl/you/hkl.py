@@ -65,6 +65,7 @@ def con(*args):
                                mu & eta
                                mu & phi
                                eta & phi
+                               eta & chi
                                bisect & mu
                                bisect & eta
                                bisect & omega

@@ -1089,6 +1089,7 @@ class YouHklCalculator(HklCalculatorBase):
         mu, eta, detector
         mu, phi, detector
         eta, phi, detector
+        eta, chi, detector
         """
 
         N_phi = _calc_N(q_phi, n_phi)
@@ -1258,6 +1259,43 @@ class YouHklCalculator(HklCalculatorBase):
                                                            - cos(eta)*(N_phi[0,0]*sin(phi)-N_phi[1,0]*cos(phi))
                 ks = atan2(A, B)
                 mu = atan2(cos(theta)*cos(qaz), -sin(theta)) + ks
+                yield mu, eta, chi, phi
+
+        elif 'eta' in samp_constraints and 'chi' in samp_constraints:
+
+            eta = samp_constraints['eta']
+            chi = samp_constraints['chi']
+
+            A = N_phi[1,0]*cos(chi)*cos(eta) - N_phi[0,0]*sin(eta)
+            B = N_phi[0,0]*cos(chi)*cos(eta) + N_phi[1,0]*sin(eta)
+            if is_small(A) and is_small(B):
+                raise DiffcalcException(
+                        'Phi cannot be chosen uniquely. Please choose a different set of constraints.')
+            else:
+                ks = atan2(A, B)
+            try:
+                acos_V00 = acos(bound((cos(theta)*sin(qaz) - N_phi[2,0]*cos(eta)*sin(chi))/sqrt(A**2 + B**2)))
+            except AssertionError:
+                return
+            if is_small(acos_V00):
+                phi_list = [ks,]
+            else:
+                phi_list = [acos_V00 + ks, -acos_V00 + ks]
+            for phi in phi_list:
+                A10 = N_phi[0,0]*cos(phi)*sin(chi) + N_phi[1,0]*sin(chi)*sin(phi) - N_phi[2,0]*cos(chi)
+                B10 = -N_phi[2,0]*sin(chi)*sin(eta) - (cos(chi)*cos(phi)*sin(eta) + cos(eta)*sin(phi))*N_phi[0,0] - \
+                                                      (cos(chi)*sin(eta)*sin(phi) - cos(eta)*cos(phi))*N_phi[1,0]
+                V10 = -sin(theta)
+                A20 = -N_phi[2,0]*sin(chi)*sin(eta) - (cos(chi)*cos(phi)*sin(eta) + cos(eta)*sin(phi))*N_phi[0,0] - \
+                                                      (cos(chi)*sin(eta)*sin(phi) - cos(eta)*cos(phi))*N_phi[1,0]
+                B20 = -N_phi[0,0]*cos(phi)*sin(chi) - N_phi[1,0]*sin(chi)*sin(phi) + N_phi[2,0]*cos(chi)
+                V20 = cos(qaz)*cos(theta)
+                sin_mu = (V10*B20 - V20*B10) * sign(A10*B20 - A20*B10)
+                cos_mu = (V10*A20 - V20*A10) * sign(B10*A20 - B20*A10)
+                if is_small(sin_mu) and is_small(cos_mu):
+                    raise DiffcalcException(
+                            'Mu cannot be chosen uniquely. Please choose a different set of constraints.')
+                mu = atan2(sin_mu, cos_mu)
                 yield mu, eta, chi, phi
 
         else:
