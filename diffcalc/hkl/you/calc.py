@@ -1276,7 +1276,8 @@ class YouHklCalculator(HklCalculatorBase):
             try:
                 acos_V00 = acos(bound((cos(theta)*sin(qaz) - N_phi[2,0]*cos(eta)*sin(chi))/sqrt(A**2 + B**2)))
             except AssertionError:
-                return
+                raise DiffcalcException(
+                        'Phi cannot be chosen uniquely as q || phi. Please choose a different set of constraints.')
             if is_small(acos_V00):
                 phi_list = [ks,]
             else:
