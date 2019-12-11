@@ -366,8 +366,24 @@ class YouHklCalculator(HklCalculatorBase):
 
         pos_virtual_angles_pairs_in_degrees = []
         for (h, k, l) in hkl_list:
-            pos_virtual_angles_pairs_in_degrees.extend(self.hklToAngles(h, k, l, wavelength, True))  # in rad
-        assert pos_virtual_angles_pairs_in_degrees
+            try:
+                pos_virtual_angles_pairs = self._hklToAngles(h, k, l, wavelength, return_all_solutions)  # in rad
+                for pos, virtual_angles in pos_virtual_angles_pairs:
+                    
+                    # to degrees:
+                    pos.changeToDegrees()
+                    for key, val in virtual_angles.items():
+                        if val is not None:
+                            virtual_angles[key] = val * TODEG
+        
+                    self._verify_pos_map_to_hkl(h, k, l, wavelength, pos)
+        
+                    pos_virtual_angles_pairs_in_degrees.append((pos, virtual_angles))
+            except DiffcalcException:
+                continue
+        if not pos_virtual_angles_pairs_in_degrees:
+            raise DiffcalcException('No solutions were found matching existing hardware limits. '
+                'Please consider using an alternative set of constraints.')
 
         if return_all_solutions:
             return pos_virtual_angles_pairs_in_degrees
