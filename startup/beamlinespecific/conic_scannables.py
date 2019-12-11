@@ -156,6 +156,8 @@ def __conic_th_to_hkl(self, params):
         r, th, h0, k0 = params
     except TypeError:
         raise DiffcalcException("Invalid number of input parameters.")
+    if not (th >= 0 and th < 180):
+        raise DiffcalcException("Value of th should be n [0, 180) range")
     sin_th = sin(th * TORAD)
     cos_th = cos(th * TORAD)
     a  = sin_th
@@ -183,9 +185,12 @@ def __hkl_to_conic_th(self, hkl):
     if abs(r) < SMALL:
         return r, th0, h0, k0
     th = atan2(k - k0, h - h0)
-    if r0 < 0 and th < 0:
-        th += pi
+    if r0 < 0:
         r = -r
+        if th < 0:
+            th += pi
+        elif abs(th - pi) < SMALL:
+            th = 0
     return (r, th * TODEG, h0, k0)
 
 conic_th = ParametrisedHKLScannable('conic_th', ('r', 'th', 'h0', 'k0'), 4)
