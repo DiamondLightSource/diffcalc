@@ -1104,6 +1104,7 @@ class YouHklCalculator(HklCalculatorBase):
         chi, phi, detector
         mu, eta, detector
         mu, phi, detector
+        mu, chi, detector
         eta, phi, detector
         eta, chi, detector
         """
@@ -1243,6 +1244,43 @@ class YouHklCalculator(HklCalculatorBase):
             for chi in [asin(bot) + eps, pi - asin(bot) + eps]:
                 a = E[0, 0] * cos(chi) + E[2, 0] * sin(chi)
                 eta = atan2(V[0, 0] * E[1, 0] - V[1, 0] * a, V[0, 0] * a + V[1, 0] * E[1, 0])
+                yield mu, eta, chi, phi
+
+        elif 'mu' in samp_constraints and 'chi' in samp_constraints:
+
+            mu = samp_constraints['mu']
+            chi = samp_constraints['chi']
+            
+            V20 = cos(mu)*cos(qaz)*cos(theta) + sin(mu)*sin(theta)
+            A = N_phi[1,0]
+            B = N_phi[0,0]
+            if is_small(sin(chi)):
+                raise DiffcalcException(
+                        'Degenerate configuration with phi || eta axes cannot be set uniquely. Please choose a different set of constraints.')
+            if is_small(A) and is_small(B):
+                raise DiffcalcException(
+                        'Phi cannot be chosen uniquely. Please choose a different set of constraints.')
+            else:
+                ks = atan2(A, B)
+            try:
+                acos_phi = acos(bound((N_phi[2,0]*cos(chi) - V20)/(sin(chi) * sqrt(A**2 + B**2))))
+            except AssertionError:
+                return
+            if is_small(acos_phi):
+                phi_list = [ks,]
+            else:
+                phi_list = [acos_phi + ks, -acos_phi + ks]
+            for phi in phi_list:
+                A00 = -cos(qaz)*cos(theta)*sin(mu) + cos(mu)*sin(theta)
+                B00 =  sin(qaz)*cos(theta)
+                V00 = N_phi[0,0]*cos(chi)*cos(phi) + N_phi[1,0]*cos(chi)*sin(phi) + N_phi[2,0]*sin(chi)
+                V10 = N_phi[1,0]*cos(phi) - N_phi[0,0]*sin(phi)
+                sin_eta = (V00*A00 + V10*B00) 
+                cos_eta = (V00*B00 - V10*A00)
+                if is_small(A00) and is_small(B00):
+                    raise DiffcalcException(
+                            'Eta cannot be chosen uniquely. Please choose a different set of constraints.')
+                eta = atan2(sin_eta, cos_eta)
                 yield mu, eta, chi, phi
 
         elif 'eta' in samp_constraints and 'phi' in samp_constraints:

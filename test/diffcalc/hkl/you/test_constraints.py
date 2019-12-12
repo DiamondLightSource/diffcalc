@@ -376,7 +376,7 @@ class TestConstraintManager:
 
     def test_is_implemented_2_samp_det_mu_chi(self):
         self._constrain('qaz', 'mu', 'chi')
-        eq_(self.cm.is_current_mode_implemented(), False)
+        eq_(self.cm.is_current_mode_implemented(), True)
 
     def test_is_implemented_2_samp_det_mu_eta(self):
         self._constrain('qaz', 'mu', 'eta')
