@@ -949,24 +949,95 @@ class YouHklCalculator(HklCalculatorBase):
     def _calc_angles_given_three_sample_constraints(
             self, h, k, l, wavelength, return_all_solutions, samp_constraints,
             h_phi, theta):
-        
-        if not 'mu' in samp_constraints:
-            eta_ = self.constraints.sample['eta']
-            chi_ = self.constraints.sample['chi']
-            phi_ = self.constraints.sample['phi']
+
+        def __get_last_sample_angle(A, B, C):
+            if is_small(A) and is_small(B):
+                raise DiffcalcException(
+                        'Sample orientation cannot be chosen uniquely. Please choose a different set of constraints.')
+            ks = atan2(A, B)
             try:
-                two_mu_qaz_pairs = _mu_and_qaz_from_eta_chi_phi(eta_, chi_, phi_, theta, h_phi)
+                acos_alp = acos(bound(C / sqrt(A**2 + B**2))) 
             except AssertionError:
                 return
+            if is_small(acos_alp):
+                alp_list = [ks,]
+            else:
+                alp_list = [acos_alp + ks, -acos_alp + ks]
+            return alp_list
+                
+        def __get_qaz_value(mu, eta, chi, phi):
+            V0 = h2*cos(eta)*sin(chi) + (h0*cos(chi)*cos(eta) + h1*sin(eta))*cos(phi) + (h1*cos(chi)*cos(eta) - h0*sin(eta))*sin(phi)
+            V2 = -h2*sin(chi)*sin(eta)*sin(mu) + h2*cos(chi)*cos(mu) - (h0*cos(mu)*sin(chi) + (h0*cos(chi)*sin(eta) - h1*cos(eta))*sin(mu))*cos(phi) - \
+                    (h1*cos(mu)*sin(chi) + (h1*cos(chi)*sin(eta) + h0*cos(eta))*sin(mu))*sin(phi)
+            sgn_theta = sign(cos(theta))
+            qaz = atan2(sgn_theta * V0, sgn_theta * V2)
+            return qaz
+            
+        h_phi_norm = normalised(h_phi)                                    # (68,69) 
+        h0, h1, h2 = h_phi_norm[0, 0], h_phi_norm[1, 0], h_phi_norm[2, 0]
+
+        if not 'mu' in samp_constraints:
+            eta = self.constraints.sample['eta']
+            chi = self.constraints.sample['chi']
+            phi = self.constraints.sample['phi']
+
+            A = h0*cos(phi)*sin(chi) + h1*sin(chi)*sin(phi) - h2*cos(chi)
+            B = -h2*sin(chi)*sin(eta) - (h0*cos(chi)*sin(eta) - h1*cos(eta))*cos(phi) - (h1*cos(chi)*sin(eta) + h0*cos(eta))*sin(phi)
+            C = -sin(theta)
+            for mu in __get_last_sample_angle(A, B, C):
+                qaz = __get_qaz_value(mu, eta, chi, phi)
+                logger.debug("--- Trying mu:%.f qaz_%.f", mu * TODEG, qaz * TODEG)
+                for delta, nu, _ in self._calc_remaining_detector_angles('qaz', qaz, theta):
+                    logger.debug("delta=%.3f, %s=%.3f", delta * TODEG, NUNAME, nu * TODEG)
+                    yield mu, delta, nu, eta, chi, phi
+
+        elif not 'eta' in samp_constraints:
+            mu = self.constraints.sample['mu']
+            chi = self.constraints.sample['chi']
+            phi = self.constraints.sample['phi']
+
+            A = -h0*cos(chi)*cos(mu)*cos(phi) - h1*cos(chi)*cos(mu)*sin(phi) - h2*cos(mu)*sin(chi)
+            B = h1*cos(mu)*cos(phi) - h0*cos(mu)*sin(phi)
+            C = -h0*cos(phi)*sin(chi)*sin(mu) - h1*sin(chi)*sin(mu)*sin(phi) + h2*cos(chi)*sin(mu) - sin(theta)
+            for eta in __get_last_sample_angle(A, B, C):
+                qaz = __get_qaz_value(mu, eta, chi, phi)
+                logger.debug("--- Trying eta:%.f qaz_%.f", eta * TODEG, qaz * TODEG)
+                for delta, nu, _ in self._calc_remaining_detector_angles('qaz', qaz, theta):
+                    logger.debug("delta=%.3f, %s=%.3f", delta * TODEG, NUNAME, nu * TODEG)
+                    yield mu, delta, nu, eta, chi, phi
+
+        elif not 'chi' in samp_constraints:
+            mu = self.constraints.sample['mu']
+            eta = self.constraints.sample['eta']
+            phi = self.constraints.sample['phi']
+
+            A = -h2*cos(mu)*sin(eta) + h0*cos(phi)*sin(mu) + h1*sin(mu)*sin(phi)
+            B = -h0*cos(mu)*cos(phi)*sin(eta) - h1*cos(mu)*sin(eta)*sin(phi) - h2*sin(mu)
+            C = -h1*cos(eta)*cos(mu)*cos(phi) + h0*cos(eta)*cos(mu)*sin(phi) - sin(theta)
+            for chi in __get_last_sample_angle(A, B, C):
+                qaz = __get_qaz_value(mu, eta, chi, phi)
+                logger.debug("--- Trying chi:%.f qaz_%.f", chi * TODEG, qaz * TODEG)
+                for delta, nu, _ in self._calc_remaining_detector_angles('qaz', qaz, theta):
+                    logger.debug("delta=%.3f, %s=%.3f", delta * TODEG, NUNAME, nu * TODEG)
+                    yield mu, delta, nu, eta, chi, phi
+
+        elif not 'phi' in samp_constraints:
+            mu = self.constraints.sample['mu']
+            eta = self.constraints.sample['eta']
+            chi = self.constraints.sample['chi']
+
+            A = h1*sin(chi)*sin(mu) - (h1*cos(chi)*sin(eta) + h0*cos(eta))*cos(mu)
+            B = h0*sin(chi)*sin(mu) - (h0*cos(chi)*sin(eta) - h1*cos(eta))*cos(mu)
+            C = h2*cos(mu)*sin(chi)*sin(eta) + h2*cos(chi)*sin(mu) - sin(theta)
+            for phi in __get_last_sample_angle(A, B, C):
+                qaz = __get_qaz_value(mu, eta, chi, phi)
+                logger.debug("--- Trying phi:%.f qaz_%.f", phi * TODEG, qaz * TODEG)
+                for delta, nu, _ in self._calc_remaining_detector_angles('qaz', qaz, theta):
+                    logger.debug("delta=%.3f, %s=%.3f", delta * TODEG, NUNAME, nu * TODEG)
+                    yield mu, delta, nu, eta, chi, phi
         else:
             raise DiffcalcException(
-                'No code yet to handle this combination of 3 sample constraints!')
-    # TODO: Code duplicated above
-        for mu_, qaz in two_mu_qaz_pairs:
-            logger.debug("--- Trying mu_:%.f qaz_%.f", mu_ * TODEG, qaz * TODEG)
-            for delta, nu, _ in self._calc_remaining_detector_angles('qaz', qaz, theta):
-                logger.debug("delta=%.3f, %s=%.3f", delta * TODEG, NUNAME, nu * TODEG)
-                yield mu_, delta, nu, eta_, chi_, phi_
+                'Internal error: Invalid set of sample constraints.')
 
     def _calc_sample_angles_given_two_sample_and_reference(
             self, samp_constraints, psi, theta, q_phi, n_phi):
@@ -1374,44 +1445,3 @@ class YouHklCalculator(HklCalculatorBase):
                 sol.changeToRadians()
                 res.append(sol.totuple())
         return res
-
-def _mu_and_qaz_from_eta_chi_phi(eta, chi, phi, theta, h_phi):
-    
-    h_phi_norm = normalised(h_phi)                                    # (68,69) 
-    h1, h2, h3 = h_phi_norm[0, 0], h_phi_norm[1, 0], h_phi_norm[2, 0]
-    a = sin(chi) * h2 * sin(phi) + sin(chi) * h1 * cos(phi) - cos(chi) * h3
-    b = (- cos(chi) * sin(eta) * h2 * sin(phi)
-         - cos(eta) * h1 * sin(phi) + cos(eta) * h2 * cos(phi)
-         - cos(chi) * sin(eta) * h1 * cos(phi)
-         - sin(chi) * sin(eta) * h3)
-    c = -sin(theta)
-    sin_bit = bound(c / sqrt(a * a + b * b))
-    mu1 = asin(sin_bit) - atan2(b, a)
-    mu2 = pi - asin(sin_bit) - atan2(b, a)
-
-    mu1 = cut_at_minus_pi(mu1)
-    mu2 = cut_at_minus_pi(mu2)
-    
-    # TODO: This special case should be *removed* when the general case has shown
-    # to encompass it. It exists as fallback for a particular i16 experiment in
-    # May 2013 --RobW.
-#     if eta == chi == 0:
-#         logger.debug("Testing against simplified equations for eta == chi == 0")
-#         a = - h3
-#         b = - h1 * sin(phi) + h2 * cos(phi)
-#         sin_bit = bound(c / sqrt(a * a + b * b))
-#         mu_simplified = pi - asin(sin_bit) - atan2(b, a)
-#         mu_simplified = cut_at_minus_pi(mu_simplified)
-#         if not ne(mu_simplified, mu):
-#             raise AssertionError("mu_simplified != mu , %f!=%f" % (mu_simplified, mu))
-        
-    
-    [MU, _, _, ETA, CHI, PHI] = create_you_matrices(mu1, None, None, eta, chi, phi)
-    h_lab = MU * ETA * CHI * PHI * h_phi                                 # (11)
-    qaz1 = atan2(h_lab[0, 0] , h_lab[2, 0])
-
-    [MU, _, _, ETA, CHI, PHI] = create_you_matrices(mu2, None, None, eta, chi, phi)
-    h_lab = MU * ETA * CHI * PHI * h_phi                                 # (11)
-    qaz2 = atan2(h_lab[0, 0] , h_lab[2, 0])
-
-    return (mu1, qaz1) , (mu2, qaz2)

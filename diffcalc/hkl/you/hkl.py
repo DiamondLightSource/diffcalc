@@ -72,6 +72,9 @@ def con(*args):
                                bisect & omega
 
         3 x samp:              eta, chi & phi
+                               mu, chi & phi  
+                               mu, eta & phi  
+                               mu, eta & chi  
 
     See also 'uncon'
     """

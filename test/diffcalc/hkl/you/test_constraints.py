@@ -418,15 +418,15 @@ class TestConstraintManager:
 
     def test_is_implemented_3_samp_no_eta(self):
         self._constrain('mu', 'chi', 'phi')
-        eq_(self.cm.is_current_mode_implemented(), False)
+        eq_(self.cm.is_current_mode_implemented(), True)
 
     def test_is_implemented_3_samp_no_chi(self):
         self._constrain('mu', 'eta', 'phi')
-        eq_(self.cm.is_current_mode_implemented(), False)
+        eq_(self.cm.is_current_mode_implemented(), True)
 
     def test_is_implemented_3_samp_no_phi(self):
         self._constrain('mu', 'eta', 'chi')
-        eq_(self.cm.is_current_mode_implemented(), False)
+        eq_(self.cm.is_current_mode_implemented(), True)
 
     def test_set_fails(self):
         try:
