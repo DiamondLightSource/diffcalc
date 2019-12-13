@@ -798,6 +798,74 @@ class TestCubic_FixedDeltaEtaChi30Mode(_TestCubic):
         for case in self.cases:
             self.case_dict[case.name] = case
 
+class TestCubic_FixedGamMuChi90Mode(_TestCubic):
+
+    def setup_method(self):
+        _TestCubic.setup_method(self)
+        self.constraints._constrained = {'mu': 0, NUNAME: 0, 'chi': 90 * TORAD}
+        #self.mock_hardware.set_lower_limit('chi', -180.)
+
+    def makes_cases(self, yrot, zrot):
+        self.zrot = zrot
+        self.yrot = yrot
+        self.wavelength = 1
+        self.cases = (
+             Pair('100', (1, 0, 0),
+                  Pos(mu=0, delta=60, nu=0, eta=120, chi=90,
+                      phi=-90 + self.zrot, unit='DEG')),
+             Pair('010-->100', (sin(4 * TORAD), cos(4 * TORAD), 0),
+                  Pos(mu=0, delta=60, nu=0, eta=120, chi= 90,
+                      phi=-4 + self.zrot, unit='DEG')),
+             Pair('010', (0, 1, 0),
+                  Pos(mu=0, delta=60, nu=0, eta=120, chi=90,
+                      phi=self.zrot, unit='DEG')),
+             Pair('001', (0, 0, 1),
+                  Pos(mu=0, delta=60, nu=0, eta=30, chi=90,
+                      phi=0, unit='DEG'), fails=True),  # degenerate case phi||q
+             Pair('100-->010', (sin(86 * TORAD), cos(86 * TORAD), 0),
+                  Pos(mu=0, delta=60, nu=0, eta=120, chi=90,
+                      phi=-90 + 4 + self.zrot, unit='DEG')),
+            )
+        self.case_dict = {}
+        for case in self.cases:
+            self.case_dict[case.name] = case
+
+    def test_pairs_zrot0_yrot0(self):
+        self.makes_cases(0, 0)
+        for case_tuple in self.case_generator():
+            yield case_tuple
+
+    def test_pairs_various_zrot_and_yrot0(self):
+        for zrot in [0, 2, -2,]:
+            self.makes_cases(0, zrot)
+            for case_tuple in self.case_generator():
+                yield case_tuple
+    
+class TestCubic_FixedGamMuChi30Mode(_TestCubic):
+
+    def setup_method(self):
+        _TestCubic.setup_method(self)
+        self.constraints._constrained = {'mu': 0, NUNAME: 0, 'chi': 30 * TORAD}
+
+    def makes_cases(self, yrot, zrot):
+        self.zrot = zrot
+        self.yrot = yrot
+        self.wavelength = 1
+        self.cases = (
+             Pair('100', (1, 0, 0),
+                  Pos(mu=0, delta=60, nu=0, eta=120, chi=30,
+                      phi=-90, unit='DEG')),
+             Pair('010', (0, 1, 0),
+                  Pos(mu=0, delta=60, nu=0, eta=120, chi=30,
+                      phi=0, unit='DEG')),
+             Pair('100-->010', (sin(30 * TORAD), cos(30 * TORAD), 0),
+                  Pos(mu=00, delta=60, nu=0, eta=120, chi=30,
+                      phi=-30, unit='DEG')),
+            )
+        self.case_dict = {}
+        for case in self.cases:
+            self.case_dict[case.name] = case
+
     def test_pairs_zrot0_yrot0(self):
         self.makes_cases(0, 0)
         for case_tuple in self.case_generator():
