@@ -1381,6 +1381,203 @@ class TestConstrain3Sample_ChiPhiEta(_TestCubic):
                     Pos(mu= 30.3314, delta=5.7392, nu= 0.4970, eta=0, chi=0, phi=0, unit='DEG'))
 
 
+class TestConstrain3Sample_MuChiPhi(_TestCubic):
+
+    def setup_method(self):
+        _TestCubic.setup_method(self)
+        self.mock_hardware.set_lower_limit(NUNAME, 0)
+        self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0,
+                                         'a_eq_b': None}
+        self.wavelength = 1
+        self.UB = I * 2 * pi
+        self.places = 4
+
+        self.mock_hardware.set_lower_limit('mu', None)
+        self.mock_hardware.set_lower_limit('eta', None)
+        self.mock_hardware.set_lower_limit('chi', None)
+
+    def _configure_ub(self):
+        self.mock_ubcalc.UB = self.UB
+        # Set some random reference vector orientation
+        # that won't coincide with the scattering vector direction.
+        #self.mock_ubcalc.n_phi = matrix([[0.087867277], [0.906307787], [0.413383038]])
+
+    def _check(self, hkl, pos, virtual_expected={}, fails=False):
+        self._check_angles_to_hkl(
+            '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        if fails:
+            self._check_hkl_to_angles_fails(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        else:
+            self._check_hkl_to_angles(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+
+    def testHkl_all0_001(self):
+        self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0, 'mu': 0}
+        self._check((0, 0, 1),
+                    Pos(mu=0, delta=60, nu=0, eta=30, chi=90, phi=0, unit='DEG'))
+
+    def testHkl_all0_010(self):
+        self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0, 'mu': 0}
+        self._check((0, 1, 0),
+                    Pos(mu=0, delta=60, nu=0, eta=120, chi=90, phi=0, unit='DEG'))
+
+    def testHkl_all0_011(self):
+        self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0, 'mu': 0}
+        self._check((0, 1, 1),
+                    Pos(mu=0, delta=90, nu=0, eta=90, chi=90, phi=0, unit='DEG'))
+        
+    def testHkl_etam60_100(self):
+        self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 90 * TORAD, 'mu': 0}
+        self._check((1, 0, 0),
+                    Pos(mu=0, delta=60, nu=0, eta=-60, chi=90, phi=90, unit='DEG'))
+        
+    def testHkl_eta90_m110(self):
+        self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0, 'mu': 90 * TORAD}
+        self._check((-1, 1, 0),
+                    Pos(mu=90, delta=90, nu=0, eta=90, chi=90, phi=0, unit='DEG'), fails=True)
+        
+    def testHkl_eta0_101(self):
+        self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 90 * TORAD, 'mu': 0}
+        self._check((1, 0, 1),
+                    Pos(mu=0, delta=90, nu=0, eta=0, chi=90, phi=90, unit='DEG'))
+        
+    def testHkl_all0_010to100(self):
+        self.constraints._constrained = {'chi': 0, 'phi': 0, 'mu': 0}
+        self._check((sin(4 * TORAD), cos(4 * TORAD), 0),
+                    Pos(mu=0, delta=60, nu=0, eta=120 - 4, chi=0, phi=0, unit='DEG'))
+
+
+class TestConstrain3Sample_MuEtaChi(_TestCubic):
+
+    def setup_method(self):
+        _TestCubic.setup_method(self)
+        self.mock_hardware.set_lower_limit(NUNAME, 0)
+        self.constraints._constrained = {'chi': 90 * TORAD, 'eta': 0,
+                                         'a_eq_b': None}
+        self.wavelength = 1
+        self.UB = I * 2 * pi
+        self.places = 4
+
+        self.mock_hardware.set_lower_limit('mu', None)
+        self.mock_hardware.set_lower_limit('eta', None)
+        self.mock_hardware.set_lower_limit('chi', None)
+
+    def _configure_ub(self):
+        self.mock_ubcalc.UB = self.UB
+        # Set some random reference vector orientation
+        # that won't coincide with the scattering vector direction.
+        #self.mock_ubcalc.n_phi = matrix([[0.087867277], [0.906307787], [0.413383038]])
+
+    def _check(self, hkl, pos, virtual_expected={}, fails=False):
+        self._check_angles_to_hkl(
+            '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        if fails:
+            self._check_hkl_to_angles_fails(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        else:
+            self._check_hkl_to_angles(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+
+    def testHkl_all0_001(self):
+        self.constraints._constrained = {'eta': 30 * TORAD, 'chi': 90 * TORAD, 'mu': 0}
+        self._check((0, 0, 1),
+                    Pos(mu=0, delta=60, nu=0, eta=30, chi=90, phi=0, unit='DEG'), fails=True)
+
+    def testHkl_all0_010(self):
+        self.constraints._constrained = {'chi': 90 * TORAD, 'eta': 120 * TORAD, 'mu': 0}
+        self._check((0, 1, 0),
+                    Pos(mu=0, delta=60, nu=0, eta=120, chi=90, phi=0, unit='DEG'))
+
+    def testHkl_all0_011(self):
+        self.constraints._constrained = {'chi': 90 * TORAD, 'eta': 90 * TORAD, 'mu': 0}
+        self._check((0, 1, 1),
+                    Pos(mu=0, delta=90, nu=0, eta=90, chi=90, phi=0, unit='DEG'), fails=True)
+        
+    def testHkl_phi90_100(self):
+        self.constraints._constrained = {'chi': 90 * TORAD, 'eta': -60 * TORAD, 'mu': 0}
+        self._check((1, 0, 0),
+                    Pos(mu=0, delta=60, nu=0, eta=-60, chi=90, phi=90, unit='DEG'))
+        
+    def testHkl_phi0_m110(self):
+        self.constraints._constrained = {'chi': 90 * TORAD, 'eta': 90 * TORAD, 'mu': 90 * TORAD}
+        self._check((-1, 1, 0),
+                    Pos(mu=90, delta=90, nu=0, eta=90, chi=90, phi=0, unit='DEG'))
+        
+    def testHkl_phi90_101(self):
+        self.constraints._constrained = {'chi': 90 * TORAD, 'eta': 0, 'mu': 0}
+        self._check((1, 0, 1),
+                    Pos(mu=0, delta=90, nu=0, eta=0, chi=90, phi=90, unit='DEG'))
+        
+    def testHkl_all0_010to100(self):
+        self.constraints._constrained = {'chi': 0, 'eta': 0, 'mu': 0}
+        self._check((sin(4 * TORAD), cos(4 * TORAD), 0),
+                    Pos(mu=0, delta=60, nu=0, eta=0, chi=0, phi=120 - 4, unit='DEG'))
+
+
+class TestConstrain3Sample_MuEtaPhi(_TestCubic):
+
+    def setup_method(self):
+        _TestCubic.setup_method(self)
+        self.mock_hardware.set_lower_limit(NUNAME, 0)
+        self.constraints._constrained = {'chi': 90 * TORAD, 'phi': 0,
+                                         'a_eq_b': None}
+        self.wavelength = 1
+        self.UB = I * 2 * pi
+        self.places = 4
+
+        self.mock_hardware.set_lower_limit('mu', None)
+        self.mock_hardware.set_lower_limit('eta', None)
+        self.mock_hardware.set_lower_limit('chi', None)
+
+    def _configure_ub(self):
+        self.mock_ubcalc.UB = self.UB
+
+    def _check(self, hkl, pos, virtual_expected={}, fails=False):
+        self._check_angles_to_hkl(
+            '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        if fails:
+            self._check_hkl_to_angles_fails(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+        else:
+            self._check_hkl_to_angles(
+                '', 999, 999, hkl, pos, self.wavelength, virtual_expected)
+
+    def testHkl_all0_001(self):
+        self.constraints._constrained = {'eta': 0, 'phi': 0, 'mu': 30 * TORAD}
+        self._check((0, 0, 1),
+                    Pos(mu=30, delta=0, nu=60, eta=0, chi=0, phi=0, unit='DEG'))
+
+    def testHkl_all0_010(self):
+        self.constraints._constrained = {'eta': 120 * TORAD, 'phi': 0, 'mu': 0}
+        self._check((0, 1, 0),
+                    Pos(mu=0, delta=60, nu=0, eta=120, chi=90, phi=0, unit='DEG'), fails=True)
+
+    def testHkl_all0_011(self):
+        self.constraints._constrained = {'eta': 90 * TORAD, 'phi': 0, 'mu': 0}
+        self._check((0, 1, 1),
+                    Pos(mu=0, delta=90, nu=0, eta=90, chi=90, phi=0, unit='DEG'))
+        
+    def testHkl_chi90_100(self):
+        self.constraints._constrained = {'eta': -60 * TORAD, 'phi': 90 * TORAD, 'mu': 0}
+        self._check((1, 0, 0),
+                    Pos(mu=0, delta=60, nu=0, eta=-60, chi=90, phi=90, unit='DEG'), fails=True)
+        
+    def testHkl_chi90_m110(self):
+        self.constraints._constrained = {'eta': 90 * TORAD, 'phi': 0, 'mu': 90 * TORAD}
+        self._check((-1, 1, 0),
+                    Pos(mu=90, delta=90, nu=0, eta=90, chi=90, phi=0, unit='DEG'))
+        
+    def testHkl_chi90_101(self):
+        self.constraints._constrained = {'eta': 0, 'phi': 90 * TORAD, 'mu': 0}
+        self._check((1, 0, 1),
+                    Pos(mu=0, delta=90, nu=0, eta=0, chi=90, phi=90, unit='DEG'), fails=True)
+        
+    def testHkl_all0_010to100(self):
+        self.constraints._constrained = {'eta': 30 * TORAD, 'phi': 0, 'mu': 0}
+        self._check((sin(4 * TORAD), 0, cos(4 * TORAD)),
+                    Pos(mu=0, delta=60, nu=0, eta=30, chi=90 - 4, phi=0, unit='DEG'))
+
 
 class TestHorizontalDeltaNadeta0_JiraI16_32_failure(_BaseTest):
     """
