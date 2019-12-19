@@ -955,10 +955,7 @@ class YouHklCalculator(HklCalculatorBase):
                 raise DiffcalcException(
                         'Sample orientation cannot be chosen uniquely. Please choose a different set of constraints.')
             ks = atan2(A, B)
-            try:
-                acos_alp = acos(bound(C / sqrt(A**2 + B**2))) 
-            except AssertionError:
-                return
+            acos_alp = acos(bound(C / sqrt(A**2 + B**2))) 
             if is_small(acos_alp):
                 alp_list = [ks,]
             else:
@@ -984,7 +981,11 @@ class YouHklCalculator(HklCalculatorBase):
             A = h0*cos(phi)*sin(chi) + h1*sin(chi)*sin(phi) - h2*cos(chi)
             B = -h2*sin(chi)*sin(eta) - (h0*cos(chi)*sin(eta) - h1*cos(eta))*cos(phi) - (h1*cos(chi)*sin(eta) + h0*cos(eta))*sin(phi)
             C = -sin(theta)
-            for mu in __get_last_sample_angle(A, B, C):
+            try:
+                mu_vals = __get_last_sample_angle(A, B, C)
+            except AssertionError:
+                return
+            for mu in mu_vals:
                 qaz = __get_qaz_value(mu, eta, chi, phi)
                 logger.debug("--- Trying mu:%.f qaz_%.f", mu * TODEG, qaz * TODEG)
                 for delta, nu, _ in self._calc_remaining_detector_angles('qaz', qaz, theta):
@@ -999,7 +1000,11 @@ class YouHklCalculator(HklCalculatorBase):
             A = -h0*cos(chi)*cos(mu)*cos(phi) - h1*cos(chi)*cos(mu)*sin(phi) - h2*cos(mu)*sin(chi)
             B = h1*cos(mu)*cos(phi) - h0*cos(mu)*sin(phi)
             C = -h0*cos(phi)*sin(chi)*sin(mu) - h1*sin(chi)*sin(mu)*sin(phi) + h2*cos(chi)*sin(mu) - sin(theta)
-            for eta in __get_last_sample_angle(A, B, C):
+            try:
+                eta_vals = __get_last_sample_angle(A, B, C)
+            except AssertionError:
+                return
+            for eta in eta_vals:
                 qaz = __get_qaz_value(mu, eta, chi, phi)
                 logger.debug("--- Trying eta:%.f qaz_%.f", eta * TODEG, qaz * TODEG)
                 for delta, nu, _ in self._calc_remaining_detector_angles('qaz', qaz, theta):
@@ -1014,7 +1019,11 @@ class YouHklCalculator(HklCalculatorBase):
             A = -h2*cos(mu)*sin(eta) + h0*cos(phi)*sin(mu) + h1*sin(mu)*sin(phi)
             B = -h0*cos(mu)*cos(phi)*sin(eta) - h1*cos(mu)*sin(eta)*sin(phi) - h2*sin(mu)
             C = -h1*cos(eta)*cos(mu)*cos(phi) + h0*cos(eta)*cos(mu)*sin(phi) - sin(theta)
-            for chi in __get_last_sample_angle(A, B, C):
+            try:
+                chi_vals = __get_last_sample_angle(A, B, C)
+            except AssertionError:
+                return
+            for chi in chi_vals:
                 qaz = __get_qaz_value(mu, eta, chi, phi)
                 logger.debug("--- Trying chi:%.f qaz_%.f", chi * TODEG, qaz * TODEG)
                 for delta, nu, _ in self._calc_remaining_detector_angles('qaz', qaz, theta):
@@ -1029,7 +1038,11 @@ class YouHklCalculator(HklCalculatorBase):
             A = h1*sin(chi)*sin(mu) - (h1*cos(chi)*sin(eta) + h0*cos(eta))*cos(mu)
             B = h0*sin(chi)*sin(mu) - (h0*cos(chi)*sin(eta) - h1*cos(eta))*cos(mu)
             C = h2*cos(mu)*sin(chi)*sin(eta) + h2*cos(chi)*sin(mu) - sin(theta)
-            for phi in __get_last_sample_angle(A, B, C):
+            try:
+                phi_vals = __get_last_sample_angle(A, B, C)
+            except AssertionError:
+                return
+            for phi in phi_vals:
                 qaz = __get_qaz_value(mu, eta, chi, phi)
                 logger.debug("--- Trying phi:%.f qaz_%.f", phi * TODEG, qaz * TODEG)
                 for delta, nu, _ in self._calc_remaining_detector_angles('qaz', qaz, theta):
