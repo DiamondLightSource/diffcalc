@@ -1059,6 +1059,8 @@ class YouHklCalculator(HklCalculatorBase):
         mu, eta, reference,
         chi, eta, reference
         chi, mu, reference
+        mu, phi, reference
+        eta, phi, reference
         """
 
         def __get_phi_and_qaz(chi, eta, mu):
@@ -1081,6 +1083,23 @@ class YouHklCalculator(HklCalculatorBase):
     #                        phi*TODEG, phi_general*TODEG )
     
             return qaz, phi
+
+        def __get_chi_and_qaz(mu, eta):
+            A = sin(mu)
+            B = -cos(mu)*sin(eta)
+            sin_chi = A * V[1,0] + B * V[1,2]
+            cos_chi = B * V[1,0] - A * V[1,2]
+            if is_small(sin_chi) and is_small(cos_chi):
+                raise DiffcalcException(
+                        'Chi cannot be chosen uniquely. Please choose a different set of constraints.')
+            chi = atan2(sin_chi, cos_chi)
+
+            A = sin(eta)
+            B = cos(eta)*sin(mu)
+            sin_qaz = A * V[0,1] + B * V[2,1]
+            cos_qaz = B * V[0,1] - A * V[2,1]
+            qaz = atan2(sin_qaz, cos_qaz)
+            return qaz, chi
 
         N_phi = _calc_N(q_phi, n_phi)
         THETA = z_rotation(-theta)
@@ -1175,6 +1194,44 @@ class YouHklCalculator(HklCalculatorBase):
 
             for eta in [asin_eta, pi - asin_eta]:
                 qaz, phi = __get_phi_and_qaz(chi, eta, mu)
+                yield qaz, psi, mu, eta, chi, phi
+
+        elif 'mu' in samp_constraints and 'phi' in samp_constraints:
+
+            mu = samp_constraints['mu']
+            phi = samp_constraints['phi']
+
+            PHI = calcPHI(phi)
+            V = THETA * PSI * N_phi.I * PHI.T
+
+            if is_small(cos(mu)):
+                raise DiffcalcException(
+                            'Eta cannot be chosen uniquely. Please choose a different set of constraints.')
+            try:
+                acos_eta = acos(bound(V[1,1] / cos(mu)))
+            except AssertionError:
+                return
+            for eta in [acos_eta, -acos_eta]:
+                qaz, chi = __get_chi_and_qaz(mu, eta)
+                yield qaz, psi, mu, eta, chi, phi
+
+        elif 'eta' in samp_constraints and 'phi' in samp_constraints:
+
+            eta = samp_constraints['eta']
+            phi = samp_constraints['phi']
+
+            PHI = calcPHI(phi)
+            V = THETA * PSI * N_phi.I * PHI.T
+
+            if is_small(cos(eta)):
+                raise DiffcalcException(
+                            'Mu cannot be chosen uniquely. Please choose a different set of constraints.')
+            try:
+                acos_mu = acos(bound(V[1,1] / cos(eta)))
+            except AssertionError:
+                return
+            for mu in [acos_mu, -acos_mu]:
+                qaz, chi = __get_chi_and_qaz(mu, eta)
                 yield qaz, psi, mu, eta, chi, phi
 
         else:

@@ -450,6 +450,92 @@ class TestCubicVertical_MuEtaMode(_TestCubic):
             yield case_tuple
 
 
+class TestCubic_FixedRefMuPhiMode(_TestCubic):
+
+    def setup_method(self):
+        _TestCubic.setup_method(self)
+        self.constraints._constrained = {'psi': 90 * TORAD, 'mu': 0, 'phi': 0}
+        self.mock_hardware.set_upper_limit('chi', 180.)
+        self.mock_hardware.set_lower_limit('chi', -180.)
+
+    def makes_cases(self, zrot, yrot):
+        self.zrot = zrot
+        self.yrot = yrot
+        self.wavelength = 1
+        self.cases = (
+            Pair('100', (1, 0, 0),
+                 Pos(mu=0, delta=60, nu=0, eta=30, chi=0,
+                     phi=0, unit='DEG')),
+            Pair('010-->100', (sin(4 * TORAD), cos(4 * TORAD), 0),
+                 Pos(mu=0, delta=60, nu=0, eta=120 - 4, chi=0,
+                     phi=0, unit='DEG'),),
+            Pair('010', (0, 1, 0),
+                 Pos(mu=0, delta=60, nu=0, eta=120, chi=0, phi=0, unit='DEG')),
+            Pair('001', (0, 0, 1),
+                 Pos(mu=0, delta=60, nu=0, eta=30, chi=90,
+                     phi=0, unit='DEG'), fails=True),
+            Pair('0.1 0 1.5', (0.1, 0, 1.5),  # cover case where delta > 90 !
+                  Pos(mu=0, delta=97.46959231642, nu=0,
+                      eta=97.46959231642/2, chi=86.18592516571,
+                      phi=0, unit='DEG')),
+            Pair('001-->100', (cos(86 * TORAD), 0, sin(86 * TORAD)),
+                 Pos(mu=0, delta=60, nu=0, eta=30, chi=86,
+                     phi=0, unit='DEG')),
+        )
+        self.case_dict = {}
+        for case in self.cases:
+            self.case_dict[case.name] = case
+
+    def test_pairs_various_zrot0_and_yrot0(self):
+        self.makes_cases(0, 0)
+        for case_tuple in self.case_generator():
+            yield case_tuple
+
+
+class TestCubic_FixedRefEtaPhiMode(_TestCubic):
+
+    def setup_method(self):
+        _TestCubic.setup_method(self)
+        self.constraints._constrained = {'psi': 0, 'eta': 0, 'phi': 0}
+        self.mock_hardware.set_upper_limit('chi', 180.)
+        self.mock_hardware.set_lower_limit('chi', -180.)
+        self.mock_hardware.set_upper_limit('mu', 180.)
+        self.mock_hardware.set_lower_limit('mu', -180.)
+
+    def makes_cases(self, zrot, yrot):
+        self.zrot = zrot
+        self.yrot = yrot
+        self.wavelength = 1
+        self.cases = (
+            Pair('100', (1, 0, 0),
+                 Pos(mu=-90, delta=60, nu=0, eta=0, chi=30,
+                     phi=0, unit='DEG')),
+            Pair('100-->001', (cos(4 * TORAD), 0, sin(4 * TORAD)),
+                 Pos(mu=-90, delta=60, nu=0, eta=0, chi=30 + 4,
+                     phi=0, unit='DEG'),),
+            Pair('010', (0, 1, 0),
+                 Pos(mu=120, delta=0, nu=60, eta=0, chi=180, phi=0, unit='DEG')),
+            Pair('001', (0, 0, 1),
+                 Pos(mu=0, delta=60, nu=0, eta=30, chi=90,
+                     phi=0, unit='DEG'), fails=True),
+            Pair('0.1 0 1.5', (0.1, 0, 0.15),  # cover case where delta > 90 !
+                  Pos(mu=-90, delta=10.34318, nu=0,
+                      eta=0, chi=61.48152,
+                      phi=0, unit='DEG')),
+            Pair('010-->001', (0, cos(4 * TORAD), sin(4 * TORAD)),
+                 Pos(mu=120 + 4, delta=0, nu=60, eta=0, chi=180,
+                     phi=0, unit='DEG')),
+        )
+        self.case_dict = {}
+        for case in self.cases:
+            self.case_dict[case.name] = case
+
+    def test_pairs_various_zrot0_and_yrot0(self):
+        self.makes_cases(0, 0)
+        for case_tuple in self.case_generator():
+            yield case_tuple
+
+
 class TestCubicVertical_Bisect(_TestCubic):
 
     def setup_method(self):

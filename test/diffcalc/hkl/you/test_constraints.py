@@ -358,7 +358,7 @@ class TestConstraintManager:
 
     def test_is_implemented_2_samp_ref_mu_phi(self):
         self._constrain('beta', 'mu', 'phi')
-        eq_(self.cm.is_current_mode_implemented(), False)
+        eq_(self.cm.is_current_mode_implemented(), True)
 
     def test_is_implemented_2_samp_ref_eta_chi(self):
         self._constrain('beta', 'eta', 'chi')
@@ -366,7 +366,7 @@ class TestConstraintManager:
 
     def test_is_implemented_2_samp_ref_eta_phi(self):
         self._constrain('beta', 'eta', 'phi')
-        eq_(self.cm.is_current_mode_implemented(), False)
+        eq_(self.cm.is_current_mode_implemented(), True)
 
     def test_is_implemented_2_samp_ref_chi_phi(self):
         self._constrain('beta', 'chi', 'phi')
