@@ -298,14 +298,16 @@ class Scan(object):
             ranges = zip([limit1], [limit2], [increment])
         counts = []
         for l1, l2, incr in ranges:
+            step = abs(incr) if l2 >= l1 else -abs(incr) 
             if l2 == l1 or incr == 0:
                 counts.append(1)
             else:
-                counts.append(int(math.ceil(((l2 - l1) + incr / 100.) / incr)))
+                counts.append(int(math.ceil(((l2 - l1) + step / 100.) / step)))
         max_count = max(counts)
         result = []
-        for (l1, _, incr), count in zip(ranges, counts):
-            result.append([l1 + min(n, count) * incr  for n in range(max_count)])
+        for (l1, l2, incr), count in zip(ranges, counts):
+            step = abs(incr) if l2 >= l1 else -abs(incr) 
+            result.append([l1 + min(n, count) * step  for n in range(max_count)])
         if len(result) == 1:
             result = result[0]
         else:
