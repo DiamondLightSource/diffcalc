@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 
-JYTHON_URL='https://central.maven.org/maven2/org/python/jython-installer/2.7.1/jython-installer-2.7.1.jar'
-JAMA_JAR_URL='https://central.maven.org/maven2/gov/nist/math/jama/1.0.3/jama-1.0.3.jar'
-COMMONS_MATH_URL='https://central.maven.org/maven2/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar'
+JYTHON_URL='https://repo1.maven.org/maven2/org/python/jython-installer/2.7.1/jython-installer-2.7.1.jar'
+JAMA_JAR_URL='https://repo1.maven.org/maven2/gov/nist/math/jama/1.0.3/jama-1.0.3.jar'
+COMMONS_MATH_URL='https://repo1.maven.org/maven2/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar'
 
 # Install jars
 wget $JAMA_JAR_URL
