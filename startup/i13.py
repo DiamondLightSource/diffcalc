@@ -30,6 +30,22 @@ class FiveCircleI13(YouGeometry):
         return delta_phys, gam_phys, -eta_phys, -chi_phys, -phi_phys
 
 
+def set_default_limits():
+    ''' set motor limits for diffcalc, these are within the actual motor limits
+    '''
+    print("set_default_limits....")
+    setmax(delta, 90)
+    setmin(delta, -1)
+    setmin(gam, 0)
+    setmax(gam, 90)
+    setmin(eta, -90)
+    setmax(eta, 90)
+    setmin(chi, -10)
+    setmax(chi, 100)
+    setmin(phi, -88)
+    setmax(phi, 88)
+    #setcut(phi, -90)
+    
 if '_fivec' in globals() and 'en' in globals():
     # Assume we are running in a live GDA deployment with a _fivec ScannableGroup
     # with axes named: delta, gam, eta, chi, phi.
@@ -45,8 +61,11 @@ else:
     chi = Dummy('chi')
     phi = Dummy('phi')
     _fivec = ScannableGroup('_fivec', (delta, gam, eta, chi, phi))
-    en = Dummy('en')
-    en.level = 3
+    if not ('en' in globals()):
+        print "Diffcalc creating dummy Scannables as en was not found"
+        en = Dummy('en')
+        en.level = 3
+    #set_default_limits()
 
 
 ### Configure and import diffcalc objects ###
@@ -118,7 +137,9 @@ hardware()
 if not GDA:
     demo = startup._demo.Demo(globals(), 'fivec')
     
-    
+
+
+
 """
 Fivec, no real limits, working out U matrix
 ===========================================
