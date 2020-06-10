@@ -20,7 +20,8 @@ import time
 from math import sqrt, pi, exp
 
 try:
-    from gda.device.scannable import PseudoDevice
+    from gda.device.scannable import ScannableMotionBase \
+        as PseudoDevice
 except ImportError:
     from diffcalc.gdasupport.minigda.scannable import \
         ScannableBase as PseudoDevice
