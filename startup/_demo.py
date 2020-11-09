@@ -4,12 +4,11 @@ Created on 19 Feb 2017
 @author: zrb13439
 '''
 
-import diffcmd.ipython
-
 try:
+    import diffcmd.ipython
     __IPYTHON__  # @UndefinedVariable
     IPYTHON = True
-except NameError:
+except (ImportError, NameError):
     IPYTHON = False
     
 
