@@ -75,10 +75,6 @@ settings.energy_scannable = en
 settings.axes_scannable_group = _sc_difftth
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
 
-from diffcalc.hkl.you.persistence import YouStateEncoder
-settings.ubcalc_persister = UBCalculationJSONPersister(diffcalc.settings.ubcalc_persister.directory,
-                                                                YouStateEncoder)
-
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
 
 if GDA:

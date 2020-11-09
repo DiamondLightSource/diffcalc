@@ -113,6 +113,8 @@ class UBCalculationPersister(object):
                    "database: " + repr(e))
             self.shelf = None
         self.description = 'GDA sql database'
+        self.directory = ""
+        self.encoder = None
 
     def save(self, state, key):
         if self.shelf is not None:
@@ -149,3 +151,5 @@ class UbCalculationNonPersister(UBCalculationPersister):
     def __init__(self):
         self.shelf = dict()
         self.description = 'memory only'
+        self.directory = ""
+        self.encoder = None
