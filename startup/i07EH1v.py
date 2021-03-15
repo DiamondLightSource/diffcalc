@@ -2,7 +2,7 @@ from startup._common_imports import *  # @UnusedWildImport
 from diffcalc.settings import NUNAME
 
 if GDA:    
-    from __main__ import diff1vdelta, diff1valpha, diff1vgamma, diff1vomega, dcm1energy # @UnresolvedImport
+    from __main__ import diff1delta, diff1alpha, diff1gamma, diff1omega, dcm1energy # @UnresolvedImport
 
 from diffcalc.hkl.you.geometry import YouGeometry, YouPosition
 
@@ -28,11 +28,11 @@ class FourCircleI07EH1v(YouGeometry):
 ### Create dummy scannables ###
 if GDA:  
     ###map GDA scannable to diffcalc axis name###
-    _fourc = ScannableGroup('_fourc', (diff1vdelta, diff1vgamma, diff1valpha, diff1vomega))
-    delta=_fourc.diff1vdelta
-    gam=_fourc.diff1vgamma
-    mu=_fourc.diff1valpha
-    phi=_fourc.diff1vomega
+    _fourc = ScannableGroup('_fourc', (diff1delta, diff1gamma, diff1alpha, diff1omega))
+    delta=_fourc.diff1delta
+    gam=_fourc.diff1gamma
+    mu=_fourc.diff1alpha
+    phi=_fourc.diff1omega
     en=dcm1energy
 else:
     #Create dummy axes to run outside GDA in IPython#   

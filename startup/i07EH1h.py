@@ -2,7 +2,7 @@ from startup._common_imports import *  # @UnusedWildImport
 from diffcalc.settings import NUNAME
 
 if GDA:    
-    from __main__ import diff1vdelta, diff1halpha, diff1vgamma, diff1homega, dcm1energy # @UnresolvedImport
+    from __main__ import diff1delta, diff1chi, diff1gamma, diff1theta, dcm1energy # @UnresolvedImport
 
 from diffcalc.hkl.you.geometry import YouRemappedGeometry
 
@@ -34,11 +34,11 @@ class FourCircleI07EH1h(YouRemappedGeometry):
 ### Create dummy scannables ###
 if GDA:  
     ###map GDA scannable to diffcalc axis name###
-    _fourc = ScannableGroup('_fourc', (diff1vdelta, diff1vgamma, diff1halpha, diff1homega))
-    delta=_fourc.diff1vdelta
-    gam=_fourc.diff1vgamma
-    eta=_fourc.diff1halpha
-    phi=_fourc.diff1homega
+    _fourc = ScannableGroup('_fourc', (diff1delta, diff1gamma, diff1chi, diff1theta))
+    delta=_fourc.diff1delta
+    gam=_fourc.diff1gamma
+    eta=_fourc.diff1chi
+    phi=_fourc.diff1theta
     en=dcm1energy
     if float(en.getPosition()) == 0: # no energy value - dummy mode
         en(800)
