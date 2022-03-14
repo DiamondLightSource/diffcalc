@@ -11,7 +11,7 @@ env:
 
 install:
   - if [ "$JYTHON" == "true" ]; then . install-jython-environment.sh; fi
-  - if [ "$JYTHON" == "false" ]; then pip install pytest==3.10.1; pip install pytest-xdist==1.26.1; pip install scipy==1.0.0;fi
+  - if [ "$JYTHON" == "false" ]; then pip install pytest==3.10.1; pip install pytest-xdist==1.26.1; pip install scipy==1.0.0; pip install mock==2.0.0;fi
  
 before_script:
   - if [ "$JYTHON" == "true" ]; then export PYTEST=$HOME/jython/bin/pytest; else export PYTEST="pytest -W ignore::PendingDeprecationWarning"; fi
