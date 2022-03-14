@@ -7,10 +7,10 @@ same task as the fourc, sixc, twoc, kappa, psic and surf macros from SPEC.
 
 There is a `user guide <https://diffcalc.readthedocs.io/en/latest/youmanual.html>`_ and `developer guide <https://diffcalc.readthedocs.io/en/latest/developer/contents.html>`_, both at `diffcalc.readthedocs.io <https://diffcalc.readthedocs.io>`_
 
-|Travis| |Read the docs|
+|GH Actions| |Read the docs|
 
-.. |Travis| image:: https://travis-ci.org/DiamondLightSource/diffcalc.svg?branch=master
-    :target: https://travis-ci.org/DiamondLightSource/diffcalc
+.. |GH Actions| image:: https://github.com/DiamondLightSource/diffcalc/actions/workflows/main.yml/badge.svg?branch=master
+    :target: https://github.com/DiamondLightSource/diffcalc/actions
     :alt: Build Status
 
 .. |Read the docs| image:: https://readthedocs.org/projects/diffcalc/badge/?version=latest
