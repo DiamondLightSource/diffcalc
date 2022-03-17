@@ -21,6 +21,7 @@ from datetime import datetime
 from math import cos, sin, pi
 
 from mock import Mock
+import pytest
 from nose.tools import raises
 from diffcalc import settings
 try:
@@ -221,68 +222,74 @@ class TestUBCalcWithCubicTwoRef(TestUBCalcWithCubic):
         self.addref(hklref2)
         matrixeq_(expectedUMatrix, self.ubcalc.U)
 
-    def test_with_squarely_mounted(self):
-        href = ((1, 0, 0),
-                Pos(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0))
-        lref = ((0, 0, 1),
-                Pos(alpha=0, delta=60, gamma=0, omega=30, chi=90, phi=0))
-        pairs = (("hl", href, lref, I),
-                 ("lh", lref, href, I))
-        for testname, ref1, ref2, u in pairs:
-            yield self.check, testname, ref1, ref2, u
+    squarely_mounted_href = ((1, 0, 0),
+            Pos(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0))
 
-    def test_with_x_mismount(self):
-        U = x_rotation(ROT)
-        href = ((1, 0, 0),
-                Pos(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0))
-        kref = ((0, 1, 0),
-                Pos(alpha=0, delta=60, gamma=0, omega=30 - ROT + 90, chi=90,
+    squarely_mounted_lref = ((0, 0, 1),
+            Pos(alpha=0, delta=60, gamma=0, omega=30, chi=90, phi=0))
+
+    @pytest.mark.parametrize("testname, ref1, ref2, u", [("hl", squarely_mounted_href, squarely_mounted_lref, I),
+                 ("lh", squarely_mounted_lref, squarely_mounted_href, I)])
+    def test_with_squarely_mounted(self, testname, ref1, ref2, u):
+        self.check(testname, ref1, ref2, u)
+
+
+    U_x_mismount = x_rotation(ROT)
+    href_x_mismount = ((1, 0, 0),
+            Pos(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0))
+    kref_x_mismount = ((0, 1, 0),
+            Pos(alpha=0, delta=60, gamma=0, omega=30 - ROT + 90, chi=90,
                     phi=0))
-        lref = ((0, 0, 1),
-                Pos(alpha=0, delta=60, gamma=0, omega=30 - ROT, chi=90, phi=0))
-        pairs = (("hk", href, kref, U),
-                 ("hl", href, lref, U),
-                 ("kh", kref, href, U),
-                 ("kl", kref, lref, U),
-                 ("lk", lref, kref, U),
-                 ("lh", lref, href, U))
-        for testname, ref1, ref2, u in pairs:
-            yield self.check, testname, ref1, ref2, u
+    lref_x_mismount = ((0, 0, 1),
+            Pos(alpha=0, delta=60, gamma=0, omega=30 - ROT, chi=90, phi=0))
 
-    def test_with_y_mismount(self):
-        U = y_rotation(ROT)
-        href = ((1, 0, 0),
-                Pos(alpha=0, delta=60, gamma=0, omega=30, chi=0 - ROT, phi=0))
-        lref = ((0, 0, 1),
-                Pos(alpha=0, delta=60, gamma=0, omega=30, chi=90 - ROT, phi=0))
-        pairs = (("hl", href, lref, U),
-                 ("lh", lref, href, U))
-        for testname, ref1, ref2, u in pairs:
-            yield self.check, testname, ref1, ref2, u
+    @pytest.mark.parametrize("testname, ref1, ref2, u", (("hk", href_x_mismount, kref_x_mismount, U_x_mismount),
+                 ("hl", href_x_mismount, lref_x_mismount, U_x_mismount),
+                 ("kh", kref_x_mismount, href_x_mismount, U_x_mismount),
+                 ("kl", kref_x_mismount, lref_x_mismount, U_x_mismount),
+                 ("lk", lref_x_mismount, kref_x_mismount, U_x_mismount),
+                 ("lh", lref_x_mismount, href_x_mismount, U_x_mismount)))
+    def test_with_x_mismount(self, testname, ref1, ref2, u):
+        self.check(testname, ref1, ref2, u)
 
-    def test_with_z_mismount(self):
-        U = z_rotation(ROT)
-        href = ((1, 0, 0),
-                Pos(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0 + ROT))
-        lref = ((0, 0, 1),  # phi degenerate
-                Pos(alpha=0, delta=60, gamma=0, omega=30, chi=90, phi=67))
-        pairs = (("hl", href, lref, U),
-                 ("lh", lref, href, U))
-        for testname, ref1, ref2, u in pairs:
-            yield self.check, testname, ref1, ref2, u
 
-    def test_with_zy_mismount(self):
-        U = z_rotation(ROT) * y_rotation(ROT)
-        href = ((1, 0, 0),
-                Pos(alpha=0, delta=60, gamma=0, omega=30, chi=0 - ROT,
-                    phi=0 + ROT))
-        lref = ((0, 0, 1),
-                Pos(alpha=0, delta=60, gamma=0, omega=30, chi=90 - ROT,
-                    phi=ROT))  # chi degenerate
-        pairs = (("hl", href, lref, U),
-                 ("lh", lref, href, U))
-        for testname, ref1, ref2, u in pairs:
-            yield self.check, testname, ref1, ref2, u
+
+    U_y_mismount = y_rotation(ROT)
+    href_y_mismount = ((1, 0, 0),
+            Pos(alpha=0, delta=60, gamma=0, omega=30, chi=0 - ROT, phi=0))
+    lref_y_mismounr = ((0, 0, 1),
+            Pos(alpha=0, delta=60, gamma=0, omega=30, chi=90 - ROT, phi=0))
+
+    @pytest.mark.parametrize("testname, ref1, ref2, u", (("hl", href_y_mismount, lref_y_mismounr, U_y_mismount),
+                 ("lh", lref_y_mismounr, href_y_mismount, U_y_mismount)))
+    def test_with_y_mismount(self, testname, ref1, ref2, u):
+        self.check(testname, ref1, ref2, u)
+
+
+    U_z_mismount = z_rotation(ROT)
+    href_z_mismount = ((1, 0, 0),
+            Pos(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0 + ROT))
+    lref_z_mismount = ((0, 0, 1),  # phi degenerate
+            Pos(alpha=0, delta=60, gamma=0, omega=30, chi=90, phi=67))
+
+    @pytest.mark.parametrize("testname, ref1, ref2, u", (("hl", href_z_mismount, lref_z_mismount, U_z_mismount),
+                 ("lh", lref_z_mismount, href_z_mismount, U_z_mismount)))
+    def test_with_z_mismount(self,testname, ref1, ref2, u):
+        self.check(testname, ref1, ref2, u)
+
+
+    U_zy_mismount = z_rotation(ROT) * y_rotation(ROT)
+    href_zy_mismount = ((1, 0, 0),
+            Pos(alpha=0, delta=60, gamma=0, omega=30, chi=0 - ROT,
+                phi=0 + ROT))
+    lref_zy_mismount = ((0, 0, 1),
+            Pos(alpha=0, delta=60, gamma=0, omega=30, chi=90 - ROT,
+                phi=ROT))  # chi degenerate
+
+    @pytest.mark.parametrize("testname, ref1, ref2, u", (("hl", href_zy_mismount, lref_zy_mismount, U_zy_mismount),
+                 ("lh", lref_zy_mismount, href_zy_mismount, U_zy_mismount)))
+    def test_with_zy_mismount(self, testname, ref1, ref2, u):
+        self.check(testname, ref1, ref2, u)
 
 
 class TestUBCalcWithcubicOneRef(TestUBCalcWithCubic):
@@ -293,19 +300,20 @@ class TestUBCalcWithcubicOneRef(TestUBCalcWithCubic):
         self.ubcalc.calculate_UB_from_primary_only()
         matrixeq_(expectedUMatrix, self.ubcalc.U)
 
-    def test_with_squarely_mounted(self):
-        href = ((1, 0, 0),
-                Pos(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0))
-        href_b = ((1, 0, 0),
-                  Pos(alpha=0, delta=60, gamma=0, omega=30 + 90, chi=90,
+
+    href_sq = ((1, 0, 0),
+        Pos(alpha=0, delta=60, gamma=0, omega=30, chi=0, phi=0))
+    href_b_sq = ((1, 0, 0),
+        Pos(alpha=0, delta=60, gamma=0, omega=30 + 90, chi=90,
                       phi=-90))
-        lref = ((0, 0, 1),  # degenerate in phi
-                Pos(alpha=0, delta=60, gamma=0, omega=30, chi=90, phi=67))
-        pairs = (("h", href, I),
-                 ("hb", href_b, I),
-                 ("l", lref, I))
-        for testname, ref, u in pairs:
-            yield self.check, testname, ref, u
+    lref_sq = ((0, 0, 1),  # degenerate in phi
+        Pos(alpha=0, delta=60, gamma=0, omega=30, chi=90, phi=67))
+
+    @pytest.mark.parametrize("testname, ref, u",(("h", href_sq, I),
+                 ("hb", href_b_sq, I),
+                 ("l", lref_sq, I)))
+    def test_with_squarely_mounted(self, testname, ref, u):
+        self.check(testname, ref, u)
 
     def test_with_x_mismount_h(self):
         U = x_rotation(ROT)

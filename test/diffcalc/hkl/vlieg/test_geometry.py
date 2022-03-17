@@ -19,6 +19,7 @@
 import random
 import unittest
 from math import pi
+import pytest
 
 try:
     from numpy import matrix
@@ -120,7 +121,15 @@ def baseAnglesToLabVector(delta, gamma):
     return GAMMA * DELTA * y_vector
 
 
-def checkGammaOnArmToBase(alpha, deltaA, gammaA):
+alpha_params = [angle * TORAD for angle in [-89.9, -45, -1, 0, 1, 45, 89.9]]
+delta_params = [angle * TORAD for angle in [-179.9, -135, -91, -89.9, -89, -46, -45, -44, -1, 0,
+                          1, 44, 45, 46, 89, 89.9, 91, 135, 179.9]]
+gamma_params = [angle * TORAD for angle in [-89.9, -46, -45, -44, -1, 0, 1, 44, 45, 46, 89.9]]
+
+@pytest.mark.parametrize("alpha", alpha_params)
+@pytest.mark.parametrize("deltaA", delta_params)
+@pytest.mark.parametrize("gammaA", gamma_params)
+def testCheckGammaOnArmToBase(alpha, deltaA, gammaA):
         deltaB, gammaB = gammaOnArmToBase(deltaA, gammaA, alpha)
 
         labA = armAnglesToLabVector(alpha, deltaA, gammaA)
@@ -156,7 +165,10 @@ def checkBaseArmBaseReciprocity(alpha, delta_orig, gamma_orig):
             raise AssertionError(s)
 
 
-def checkArmBaseArmReciprocity(alpha, delta_orig, gamma_orig):
+@pytest.mark.parametrize("alpha", alpha_params)
+@pytest.mark.parametrize("delta_orig", delta_params)
+@pytest.mark.parametrize("gamma_orig", gamma_params)
+def testcheckArmBaseArmReciprocity(alpha, delta_orig, gamma_orig):
     (deltaA, gammaA) = (delta_orig, gamma_orig)
     (deltaB, gammaB) = gammaOnArmToBase(deltaA, gammaA, alpha)
     (deltaA, gammaA) = gammaOnBaseToArm(deltaB, gammaB, alpha)
@@ -171,17 +183,6 @@ def checkArmBaseArmReciprocity(alpha, delta_orig, gamma_orig):
         s += (" ->(deltaA, gammaA) = (%f, %f)\n" %
               (deltaA * TODEG, gammaA * TODEG))
         raise AssertionError(s)
-
-
-def test_generator_for_cases():
-    for alpha in [-89.9, -45, -1, 0, 1, 45, 89.9]:
-        for gamma in [-89.9, -46, -45, -44, -1, 0, 1, 44, 45, 46, 89.9]:
-            for delta in [-179.9, -135, -91, -89.9, -89, -46, -45, -44, -1, 0,
-                          1, 44, 45, 46, 89, 89.9, 91, 135, 179.9]:
-                yield (checkGammaOnArmToBase, alpha * TORAD, delta * TORAD,
-                       gamma * TORAD)
-                yield (checkArmBaseArmReciprocity, alpha * TORAD,
-                       delta * TORAD, gamma * TORAD)
 
 
 class TestFiveCirclePlugin(object):
