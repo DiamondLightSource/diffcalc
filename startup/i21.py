@@ -203,9 +203,12 @@ def usem5tth(tp=None):
     # Custom scannables
     import startup.beamlinespecific.conic_scannables as _conic
     reload(_conic)
+    __main__.circ_hkl = _conic.circ_hkl
+    __main__.conic_hkl = _conic.conic_hkl
     __main__.conic_h = _conic.conic_h
     __main__.conic_k = _conic.conic_k
     __main__.conic_l = _conic.conic_l
+    __main__.conic_th = _conic.conic_th
 
 
 def uselowq(tp=None):
@@ -262,9 +265,12 @@ def uselowq(tp=None):
     # Custom scannables
     import startup.beamlinespecific.conic_scannables as _conic
     reload(_conic)
+    __main__.circ_hkl = _conic.circ_hkl
+    __main__.conic_hkl = _conic.conic_hkl
     __main__.conic_h = _conic.conic_h
     __main__.conic_k = _conic.conic_k
     __main__.conic_l = _conic.conic_l
+    __main__.conic_th = _conic.conic_th
 
 
 def usehighq(tp=None):
@@ -321,9 +327,12 @@ def usehighq(tp=None):
     # Custom scannables
     import startup.beamlinespecific.conic_scannables as _conic
     reload(_conic)
+    __main__.circ_hkl = _conic.circ_hkl
+    __main__.conic_hkl = _conic.conic_hkl
     __main__.conic_h = _conic.conic_h
     __main__.conic_k = _conic.conic_k
     __main__.conic_l = _conic.conic_l
+    __main__.conic_th = _conic.conic_th
 
 def usedifftth(tp=None):
     # sample chamber
@@ -381,9 +390,12 @@ def usedifftth(tp=None):
     # Custom scannables
     import startup.beamlinespecific.conic_scannables as _conic
     reload(_conic)
+    __main__.circ_hkl = _conic.circ_hkl
+    __main__.conic_hkl = _conic.conic_hkl
     __main__.conic_h = _conic.conic_h
     __main__.conic_k = _conic.conic_k
     __main__.conic_l = _conic.conic_l
+    __main__.conic_th = _conic.conic_th
 
 def usesim():
     # sample chamber
@@ -420,9 +432,12 @@ def usesim():
     # Custom scannables
     import startup.beamlinespecific.conic_scannables as _conic
     reload(_conic)
+    __main__.circ_hkl = _conic.circ_hkl
+    __main__.conic_hkl = _conic.conic_hkl
     __main__.conic_h = _conic.conic_h
     __main__.conic_k = _conic.conic_k
     __main__.conic_l = _conic.conic_l
+    __main__.conic_th = _conic.conic_th
 
 
 print "Created i21 bespoke commands:      usem5tth,    uselowq,    usehighq,    usedifftth"
