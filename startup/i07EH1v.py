@@ -30,17 +30,19 @@ if GDA:
     ###map GDA scannable to diffcalc axis name###
     _fourc = ScannableGroup('_fourc', (diff1delta, diff1gamma, diff1alpha, diff1omega))
     delta=_fourc.diff1delta
-    gam=_fourc.diff1gamma
-    mu=_fourc.diff1alpha
-    phi=_fourc.diff1omega
+    gamma = _fourc.diff1gamma
+    alpha = _fourc.diff1alpha
+    omega = _fourc.diff1omega
+    chi = diff1chi
+    theta = diff1theta
     en=dcm1energy
 else:
     #Create dummy axes to run outside GDA in IPython#   
     delta = Dummy('delta')
-    gam = Dummy(NUNAME)
-    mu = Dummy('mu')
-    phi = Dummy('phi')
-    _fourc = ScannableGroup('_fourc', (delta, gam, mu, phi))
+    gamma = Dummy('gamma')
+    alpha = Dummy('alpha')
+    omega = Dummy('omega')
+    _fourc = ScannableGroup('_fourc', (delta, gamma, alpha, omega))
     en = Dummy('en')
 
 en.level = 3
@@ -54,12 +56,10 @@ settings.axes_scannable_group= _fourc
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
 settings.include_reference = False
 
-# for aliasing completeness
-eta= settings.geometry.fixed_constraints['eta']
-chi= settings.geometry.fixed_constraints['chi']
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
 
 if GDA:
+    omega = _fourc.diff1omega
     print "Running in GDA --- aliasing commands"
     alias_commands(globals())
  
@@ -75,11 +75,11 @@ def setLimitsAndCuts():
     '''
     setmin(delta, -11.275)
     setmax(delta, 100.0) 
-    setmin(gam, -11.0)
-    setmax(gam, 49.934) 
-    setmin(mu, -6.561)
-    setmax(mu, 29.163)
-    setcut(phi, -180.0)
+    setmin(gamma, -11.0)
+    setmax(gamma, 49.934)
+    setmin(alpha, -6.561)
+    setmax(alpha, 29.163)
+    setcut(omega, -180.0)
     print "Current hardware limits set to:"
     hardware()
 
