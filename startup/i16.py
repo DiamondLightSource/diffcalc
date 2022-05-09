@@ -44,14 +44,13 @@ else: # Assume running in dummy mode outside GDA
     reta = Dummy('reta')
     rchi = Dummy('rchi')
     rphi = Dummy('rphi')
-    reuler = ScannableGroup('reuler', (rphi, rchi, reta, rmu, delta, gam))
     en = simple_energy = Dummy('energy')
     en.level = 3
-
 
 ### Configure and import diffcalc objects ###
 
 ESMTGKeV = 1
+reuler = ScannableGroup('reuler', (rphi, rchi, reta, rmu, delta, gam))
 _hw_euler = ScannableHardwareAdapter(euler, simple_energy, ESMTGKeV)
 _hw_robot = ScannableHardwareAdapter(reuler, simple_energy, ESMTGKeV)
 
@@ -111,10 +110,6 @@ def useeuler(tp=None):
     __main__.sixc = DiffractometerScannableGroup('sixc', _dc, euler)
     from diffcalc.gdasupport.you import _virtual_angles
     __main__.hklverbose = Hkl('hklverbose', __main__.sixc, _dc, _virtual_angles)
-    if GDA:
-        __main__.en = energy
-        __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
-        __main__.ct = SimulatedCrystalCounter('ct', __main__.sixc, settings.geometry, __main__.wl)  # @UndefinedVariable
 
     # Custom scannables
     __main__.sr2 = Sr2('sr2', euler, _dc)
@@ -143,10 +138,6 @@ def userobot(tp=None):
     __main__.sixc = DiffractometerScannableGroup('sixc', _dc, reuler)
     from diffcalc.gdasupport.you import _virtual_angles
     __main__.hklverbose = Hkl('hklverbose', __main__.sixc, _dc, _virtual_angles)
-    if GDA:
-        __main__.en = energy
-        __main__.wl = Wavelength('wl',__main__.en,ESMTGKeV)  # @UndefinedVariable
-        __main__.ct = SimulatedCrystalCounter('ct', __main__.sixc, settings.geometry, __main__.wl)  # @UndefinedVariable
 
     # Custom scannables
     __main__.sr2 = Sr2('sr2', reuler, _dc)
