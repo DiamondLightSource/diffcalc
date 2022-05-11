@@ -3,6 +3,8 @@ from diffcalc.hkl.you.geometry import YouPosition
 import diffcalc.hkl.you.geometry
 if not GDA:
     import startup._demo
+else:
+    from __main__ import euler, delta, gam, mu, eta, chi, phi, rmu, reta, rchi, rphi  # @UnresolvedImport
 
 LOCAL_MANUAL = 'http://confluence.diamond.ac.uk/display/I16/Diffcalc%20(i16)'
 
@@ -27,10 +29,6 @@ if GDA:
     from scannable.extraNameHider import ExtraNameHider
     dummy_energy = Dummy('dummy_energy')
     simple_energy = ExtraNameHider('energy', dummy_energy)  # @UndefinedVariable
-    if 'euler' not in locals():
-        raise Exception('Expecting a device called euler')
-    if 'reuler' not in locals():
-        raise Exception('Expecting a device called reuler')
 
 else: # Assume running in dummy mode outside GDA
     mu = Dummy('mu')
@@ -68,7 +66,7 @@ if GDA:
     print "Running in GDA --- aliasing commands"
     alias_commands(globals())
     
-lastub()  # Load the last ub calculation used
+#lastub()  # Load the last ub calculation used
 
 hkl_euler = Hkl('hkl_euler', euler, DiffractometerYouCalculator(_hw_euler, settings.geometry))
 hkl_robot = Hkl('hkl_robot', reuler, DiffractometerYouCalculator(_hw_robot, settings.geometry))
@@ -86,7 +84,8 @@ def setLimitsAndCuts(delta_angle, gam_angle, eta_angle, chi_angle, phi_angle):
         diffcalc.hardware.setrange(gam_angle, -2, 145)
         setcut(phi_angle, -180)
 
-demo = startup._demo.Demo(globals(), 'i16')
+if not GDA:
+    demo = startup._demo.Demo(globals(), 'i16')
 
 def useeuler(tp=None):
     # sample chamber
@@ -97,7 +96,7 @@ def useeuler(tp=None):
 
     from diffcalc.dc import dcyou as _dc
     reload(_dc)
-    lastub()
+    #lastub()
 
     setLimitsAndCuts(delta, gam, eta, chi, phi)
 
@@ -125,11 +124,12 @@ def userobot(tp=None):
 
     from diffcalc.dc import dcyou as _dc
     reload(_dc)
-    lastub()
+    #lastub()
 
     setLimitsAndCuts(delta, gam, reta, rchi, rphi)
 
     import __main__
+    __main__.reuler = reuler
     __main__.hkl = hkl_robot
     __main__.h   = hkl_robot.h
     __main__.k   = hkl_robot.k
