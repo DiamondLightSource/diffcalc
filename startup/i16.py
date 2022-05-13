@@ -1,6 +1,8 @@
 from startup._common_imports import *
 from diffcalc.hkl.you.geometry import YouPosition
 import diffcalc.hkl.you.geometry
+from startup.beamlinespecific.i21 import DiffractometerTPScannableGroup, TPScannableGroup
+
 if not GDA:
     import startup._demo
 else:
@@ -48,7 +50,7 @@ else: # Assume running in dummy mode outside GDA
 ### Configure and import diffcalc objects ###
 
 ESMTGKeV = 1
-reuler = ScannableGroup('reuler', (rphi, rchi, reta, rmu, delta, gam))
+reuler = TPScannableGroup('reuler', (rphi, rchi, reta, rmu, delta, gam))
 _hw_euler = ScannableHardwareAdapter(euler, simple_energy, ESMTGKeV)
 _hw_robot = ScannableHardwareAdapter(reuler, simple_energy, ESMTGKeV)
 
@@ -106,7 +108,7 @@ def useeuler(tp=None):
     __main__.k   = hkl_euler.k
     __main__.l   = hkl_euler.l
 
-    __main__.sixc = DiffractometerScannableGroup('sixc', _dc, euler)
+    __main__.sixc = DiffractometerTPScannableGroup('sixc', _dc, euler)
     from diffcalc.gdasupport.you import _virtual_angles
     __main__.hklverbose = Hkl('hklverbose', __main__.sixc, _dc, _virtual_angles)
 
