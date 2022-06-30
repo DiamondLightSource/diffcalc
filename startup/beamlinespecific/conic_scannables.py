@@ -89,7 +89,7 @@ def __hkl_to_conic_h(self, hkl):
         raise DiffcalcException("hkl constraint values not set.")
     return (h, a, b, c, d)
 
-conic_h = ParametrisedHKLScannable('conic_h', ('h', 'a', 'b', 'c', 'd'), 4)
+conic_h = ParametrisedHKLScannable('conic_h', ('h', 'a', 'b', 'c', 'd'), 4, [0])
 conic_h.parameter_to_hkl = types.MethodType(__conic_h_to_hkl, conic_h)
 conic_h.hkl_to_parameter = types.MethodType(__hkl_to_conic_h, conic_h)
 
@@ -116,7 +116,7 @@ def __hkl_to_conic_k(self, hkl):
         raise DiffcalcException("hkl constraint values not set.")
     return (k, a, b, c, d)
 
-conic_k = ParametrisedHKLScannable('conic_k', ('k', 'a', 'b', 'c', 'd'), 4)
+conic_k = ParametrisedHKLScannable('conic_k', ('k', 'a', 'b', 'c', 'd'), 4, [0])
 conic_k.parameter_to_hkl = types.MethodType(__conic_k_to_hkl, conic_k)
 conic_k.hkl_to_parameter = types.MethodType(__hkl_to_conic_k, conic_k)
 
@@ -143,7 +143,7 @@ def __hkl_to_conic_l(self, hkl):
         raise DiffcalcException("hkl constraint values not set.")
     return (l, a, b, c, d)
 
-conic_l = ParametrisedHKLScannable('conic_l', ('l', 'a', 'b', 'c', 'd'), 4)
+conic_l = ParametrisedHKLScannable('conic_l', ('l', 'a', 'b', 'c', 'd'), 4, [0])
 conic_l.parameter_to_hkl = types.MethodType(__conic_l_to_hkl, conic_l)
 conic_l.hkl_to_parameter = types.MethodType(__hkl_to_conic_l, conic_l)
 
@@ -193,6 +193,6 @@ def __hkl_to_conic_th(self, hkl):
             th = 0
     return (r, th * TODEG, h0, k0)
 
-conic_th = ParametrisedHKLScannable('conic_th', ('r', 'th', 'h0', 'k0'), 4)
+conic_th = ParametrisedHKLScannable('conic_th', ('r', 'th', 'h0', 'k0'), 4, [0])
 conic_th.parameter_to_hkl = types.MethodType(__conic_th_to_hkl, conic_th)
 conic_th.hkl_to_parameter = types.MethodType(__hkl_to_conic_th, conic_th)

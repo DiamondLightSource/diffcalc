@@ -22,7 +22,7 @@ from diffcalc.util import getMessageFromException
 
 class ParametrisedHKLScannable(Hkl):
 
-    def __init__(self, name, inputNames, num_cached_params=0):
+    def __init__(self, name, inputNames, num_cached_params=0, idx_cached_pos=[], tol=1e-4):
 
         from diffcalc.dc import dcyou as _dc
         Hkl.__init__(self, name, settings.axes_scannable_group, _dc, None)
@@ -35,20 +35,28 @@ class ParametrisedHKLScannable(Hkl):
         self.hkl_to_parameter = self._diffcalc.hkl_to_angles
         self.num_cached_params = num_cached_params
         self.cached_params = None
+        self.idx_cached_pos = idx_cached_pos
+        self.tol = tol
 
         self.completeInstantiation()
         self.setAutoCompletePartialMoveToTargets(True)
-        self.dynamic_class_doc = 'Generic Hkl Scannable'
+        self.dynamic_class_doc = 'Parametrised HKL Scannable'
 
 
-    def rawAsynchronousMoveTo(self, pos):
-        self.cached_params = pos[-self.num_cached_params:]
-        hkl = self.parameter_to_hkl(pos)
+    def rawAsynchronousMoveTo(self, params):
+        self.cached_params = params[-self.num_cached_params:]
+        tmp_pos = self.diffhw.getPosition()  # a tuple
+        cached_pos = {idx: tmp_pos[idx] for idx in self.idx_cached_pos}
+        hkl = self.parameter_to_hkl(params)
         if isinstance(hkl[0], (int, float)):
-            Hkl.rawAsynchronousMoveTo(self, hkl)
+            (pos, _) = self._diffcalc.hkl_to_angles(*hkl)
         elif isinstance(hkl[0], (tuple, list)):
             (pos, _) = self._diffcalc.hkl_list_to_angles(hkl)
-            self.diffhw.asynchronousMoveTo(pos)
+        for idx, val in cached_pos.iteritems():
+            if abs(val - pos[idx]) > self.tol:
+                raise DiffcalcException("Calculated value %f outside accepted tolerance %f" % (val, tol))
+        pos = tuple(cached_pos[idx] if idx in cached_pos else val for idx, val in enumerate(pos))
+        self.diffhw.asynchronousMoveTo(pos)
 
 
     def rawGetPosition(self):
