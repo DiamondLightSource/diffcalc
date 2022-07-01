@@ -23,7 +23,7 @@ from pprint import pformat
 
 class ParametrisedHKLScannable(Hkl):
 
-    def __init__(self, name, inputNames, num_cached_params=0, cached_diffhw=None, idx_cached_pos=[], tol=1e-4):
+    def __init__(self, name, inputNames, num_cached_params=0, idx_cached_pos=[], tol=1e-4):
 
         from diffcalc.dc import dcyou as _dc
         Hkl.__init__(self, name, settings.axes_scannable_group, _dc, None)
