@@ -18,7 +18,6 @@
 import types
 from math import sin, cos, acos, atan2, sqrt, pi
 
-from diffcalc import settings
 from diffcalc.gdasupport.scannable.parametrised_hkl import ParametrisedHKLScannable
 from diffcalc.util import DiffcalcException, TORAD, TODEG, SMALL
 
@@ -91,7 +90,6 @@ def __hkl_to_conic_h(self, hkl):
     return (h, a, b, c, d)
 
 conic_h = ParametrisedHKLScannable('conic_h', ('h', 'a', 'b', 'c', 'd'),
-                                   cached_diffhw=settings.sample_scannable_group,
                                    num_cached_params=4,
                                    idx_cached_pos=[0])
 conic_h.parameter_to_hkl = types.MethodType(__conic_h_to_hkl, conic_h)
@@ -121,7 +119,6 @@ def __hkl_to_conic_k(self, hkl):
     return (k, a, b, c, d)
 
 conic_k = ParametrisedHKLScannable('conic_k', ('k', 'a', 'b', 'c', 'd'),
-                                   cached_diffhw=settings.sample_scannable_group,
                                    num_cached_params=4,
                                    idx_cached_pos=[0])
 conic_k.parameter_to_hkl = types.MethodType(__conic_k_to_hkl, conic_k)
@@ -151,7 +148,6 @@ def __hkl_to_conic_l(self, hkl):
     return (l, a, b, c, d)
 
 conic_l = ParametrisedHKLScannable('conic_l', ('l', 'a', 'b', 'c', 'd'),
-                                   cached_diffhw=settings.sample_scannable_group,
                                    num_cached_params=4,
                                    idx_cached_pos=[0])
 conic_l.parameter_to_hkl = types.MethodType(__conic_l_to_hkl, conic_l)
@@ -204,7 +200,6 @@ def __hkl_to_conic_th(self, hkl):
     return (r, th * TODEG, h0, k0)
 
 conic_th = ParametrisedHKLScannable('conic_th', ('r', 'th', 'h0', 'k0'),
-                                   cached_diffhw=settings.sample_scannable_group,
                                    num_cached_params=4,
                                    idx_cached_pos=[0])
 conic_th.parameter_to_hkl = types.MethodType(__conic_th_to_hkl, conic_th)

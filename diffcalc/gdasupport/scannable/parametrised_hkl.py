@@ -17,7 +17,8 @@
 ###
 from diffcalc.gdasupport.scannable.hkl import Hkl
 from diffcalc import settings
-from diffcalc.util import getMessageFromException
+from diffcalc.util import getMessageFromException, DiffcalcException
+from pprint import pformat
 
 
 class ParametrisedHKLScannable(Hkl):
@@ -37,7 +38,6 @@ class ParametrisedHKLScannable(Hkl):
         self.cached_params = None
         self.idx_cached_pos = idx_cached_pos
         self.tol = tol
-        self.cached_diffhw = cached_diffhw
 
         self.completeInstantiation()
         self.setAutoCompletePartialMoveToTargets(True)
@@ -50,15 +50,16 @@ class ParametrisedHKLScannable(Hkl):
         cached_pos = {idx: tmp_pos[idx] for idx in self.idx_cached_pos}
         hkl = self.parameter_to_hkl(params)
         if isinstance(hkl[0], (int, float)):
-            (pos, _) = self._diffcalc.hkl_to_angles(*hkl)
+            (calc_pos, _) = self._diffcalc.hkl_to_angles(*hkl)
         elif isinstance(hkl[0], (tuple, list)):
-            (pos, _) = self._diffcalc.hkl_list_to_angles(hkl)
-        for idx, val in cached_pos.iteritems():
-            if abs(val - pos[idx]) > self.tol:
-                raise DiffcalcException("Calculated value %f outside accepted tolerance %f" % (val, tol))
-        #pos = tuple(cached_pos[idx] if idx in cached_pos else val for idx, val in enumerate(pos))
-        pos = tuple(val for idx, val in enumerate(pos) if idx not in self.idx_cached_pos)
-        self.cached_diffhw.asynchronousMoveTo(pos)
+            (calc_pos, _) = self._diffcalc.hkl_list_to_angles(hkl)
+        final_pos = tuple(cached_pos[idx] if idx in cached_pos else val for idx, val in enumerate(calc_pos))
+        calc_hkl, _ = self._diffcalc.angles_to_hkl(calc_pos)
+        final_hkl, _ = self._diffcalc.angles_to_hkl(final_pos)
+        if max([abs(i - j) for i,j in zip(calc_hkl, final_hkl)]) > self.tol:
+             raise DiffcalcException("Final hkl position %s exceeds tolerance %f compared to calculated hkl %s"
+                                      % (pformat(final_hkl), self.tol, pformat(calc_hkl)))
+        self.diffhw.asynchronousMoveTo(final_pos)
 
 
     def rawGetPosition(self):
