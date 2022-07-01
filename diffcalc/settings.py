@@ -16,6 +16,7 @@ hardware = None
 ubcalc_persister = UbCalculationNonPersister()
 
 axes_scannable_group = None
+sample_scannable_group = None
 energy_scannable = None
 energy_scannable_multiplier_to_get_KeV=1
 

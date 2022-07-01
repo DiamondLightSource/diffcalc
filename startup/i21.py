@@ -61,6 +61,14 @@ if GDA:
 else:
     _sc_difftth = _sc_m5tth = _sc_sim = ScannableGroup('_fourc', (delta, th, chi, phi))
 
+if GDA:
+    _sc_sample = ScannableGroup('_sample', (th, chi, phi))
+    _sc_sample_tp = ScannableGroup('_sample', (th, ps_chi, ps_phi))
+
+    _sc_sim_sample = ScannableGroup('_sample', (simth, simchi, simphi))
+else:
+    _sc_sample = _sc_sim_sample = ScannableGroup('_sample', (th, chi, phi))
+
 ESMTGKeV = 0.001
 _hw_difftth = ScannableHardwareAdapter(_sc_difftth, en, ESMTGKeV)
 _hw_m5tth = ScannableHardwareAdapter(_sc_m5tth, en, ESMTGKeV)
@@ -73,6 +81,7 @@ settings.hardware = _hw_difftth
 settings.geometry = _tth_geometry
 settings.energy_scannable = en
 settings.axes_scannable_group = _sc_difftth
+settings.sample_scannable_group = _sc_sample
 settings.energy_scannable_multiplier_to_get_KeV = ESMTGKeV
 
 from diffcalc.gdasupport.you import *  # @UnusedWildImport
@@ -159,8 +168,10 @@ def usem5tth(tp=None):
     settings.geometry = _tth_geometry
     if tp:
         settings.axes_scannable_group = _sc_m5tth_tp
+        settings.sample_scannable_group = _sc_sample_tp
     else:
         settings.axes_scannable_group = _sc_m5tth
+        settings.sample_scannable_group = _sc_sample
 
     # Create diffractometer scannable
     _diff_scn_name = _tth_geometry.name
@@ -221,8 +232,10 @@ def uselowq(tp=None):
     settings.geometry = _lowq_geometry
     if tp:
         settings.axes_scannable_group = _sc_m5tth_tp
+        settings.sample_scannable_group = _sc_sample_tp
     else:
         settings.axes_scannable_group = _sc_m5tth
+        settings.sample_scannable_group = _sc_sample
 
     # Create diffractometer scannable
     _diff_scn_name = _lowq_geometry.name
@@ -283,8 +296,10 @@ def usehighq(tp=None):
     settings.geometry = _highq_geometry
     if tp:
         settings.axes_scannable_group = _sc_m5tth_tp
+        settings.sample_scannable_group = _sc_sample_tp
     else:
         settings.axes_scannable_group = _sc_m5tth
+        settings.sample_scannable_group = _sc_sample
 
     # Create diffractometer scannable
     _diff_scn_name = _highq_geometry.name
@@ -345,8 +360,10 @@ def usedifftth(tp=None):
     settings.geometry = _tth_geometry
     if tp:
         settings.axes_scannable_group = _sc_difftth_tp
+        settings.sample_scannable_group = _sc_sample_tp
     else:
         settings.axes_scannable_group = _sc_difftth
+        settings.sample_scannable_group = _sc_sample
 
     # Create diffractometer scannable
     _diff_scn_name = _tth_geometry.name
@@ -405,6 +422,7 @@ def usesim():
     settings.hardware = _hw_sim
     settings.geometry = _tth_geometry
     settings.axes_scannable_group = _sc_sim
+    settings.sample_scannable_group = _sc_sim_sample
 
     setLimitsAndCuts(simdelta, simth, simchi, simphi)
 

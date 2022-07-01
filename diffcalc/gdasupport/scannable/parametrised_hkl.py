@@ -22,7 +22,7 @@ from diffcalc.util import getMessageFromException
 
 class ParametrisedHKLScannable(Hkl):
 
-    def __init__(self, name, inputNames, num_cached_params=0, idx_cached_pos=[], tol=1e-4):
+    def __init__(self, name, inputNames, num_cached_params=0, cached_diffhw=None, idx_cached_pos=[], tol=1e-4):
 
         from diffcalc.dc import dcyou as _dc
         Hkl.__init__(self, name, settings.axes_scannable_group, _dc, None)
@@ -37,6 +37,7 @@ class ParametrisedHKLScannable(Hkl):
         self.cached_params = None
         self.idx_cached_pos = idx_cached_pos
         self.tol = tol
+        self.cached_diffhw = cached_diffhw
 
         self.completeInstantiation()
         self.setAutoCompletePartialMoveToTargets(True)
@@ -55,8 +56,9 @@ class ParametrisedHKLScannable(Hkl):
         for idx, val in cached_pos.iteritems():
             if abs(val - pos[idx]) > self.tol:
                 raise DiffcalcException("Calculated value %f outside accepted tolerance %f" % (val, tol))
-        pos = tuple(cached_pos[idx] if idx in cached_pos else val for idx, val in enumerate(pos))
-        self.diffhw.asynchronousMoveTo(pos)
+        #pos = tuple(cached_pos[idx] if idx in cached_pos else val for idx, val in enumerate(pos))
+        pos = tuple(val for idx, val in enumerate(pos) if idx not in self.idx_cached_pos)
+        self.cached_diffhw.asynchronousMoveTo(pos)
 
 
     def rawGetPosition(self):
