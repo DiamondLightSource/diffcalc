@@ -7,6 +7,8 @@ same task as the fourc, sixc, twoc, kappa, psic and surf macros from SPEC.
 
 There is a `user guide <https://diffcalc.readthedocs.io/en/latest/youmanual.html>`_ and `developer guide <https://diffcalc.readthedocs.io/en/latest/developer/contents.html>`_, both at `diffcalc.readthedocs.io <https://diffcalc.readthedocs.io>`_
 
+**IMPORTANT**: Python 3 version of diffcalc calculator code is available as ``diffcalc-core`` project https://github.com/DiamondLightSource/diffcalc-core/
+
 |GH Actions| |Read the docs|
 
 .. |GH Actions| image:: https://github.com/DiamondLightSource/diffcalc/actions/workflows/main.yml/badge.svg?branch=master
