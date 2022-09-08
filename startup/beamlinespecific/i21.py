@@ -26,6 +26,8 @@ from diffcalc.settings import NUNAME
 from diffcalc.hkl.you.geometry import YouRemappedGeometry
 
 
+TP_TOLL = 1e-4
+
 class FourCircleI21(YouRemappedGeometry):
     """For a diffractometer with angles:
           delta, eta, chi, phi
@@ -48,14 +50,16 @@ class TPScannableGroup(ScannableGroup):
 
     def asynchronousMoveTo(self, position):
         # if input has any Nones, then replace these with the current positions
+        current = self.getPosition()
         if None in position:
             position = list(position)
-            current = self.getPosition()
             for idx, val in enumerate(position):
                 if val is None:
                     position[idx] = current[idx]
 
-        for scn, pos in zip(self.getGroupMembers(), position):
+        for scn, pos, cur in zip(self.getGroupMembers(), position, current):
+            if abs(pos - cur) < TP_TOLL:
+                continue
             scn.asynchronousMoveTo(pos)
             scn.waitWhileBusy()
 
@@ -63,14 +67,16 @@ class DiffractometerTPScannableGroup(DiffractometerScannableGroup):
 
     def asynchronousMoveTo(self, position):
         # if input has any Nones, then replace these with the current positions
+        current = self.getPosition()
         if None in position:
             position = list(position)
-            current = self.getPosition()
             for idx, val in enumerate(position):
                 if val is None:
                     position[idx] = current[idx]
 
-        for scn, pos in zip(self.__motors, position):
+        for scn, pos, cur in zip(self.__motors, position, current):
+            if abs(pos - cur) < TP_TOLL:
+                continue
             scn.asynchronousMoveTo(pos)
             scn.waitWhileBusy()
 

@@ -18,7 +18,7 @@ setup(
     install_requires=[         
         'numpy',
         'ipython',
-        'pytest',
+        'pytest==3.10.1',
         'pytest-xdist',
         'nose',
         'mock'

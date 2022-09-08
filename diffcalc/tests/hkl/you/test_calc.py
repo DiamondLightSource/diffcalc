@@ -1917,7 +1917,7 @@ class Test_I21ExamplesUB(_BaseTest):
         for case_tuple in self.case_generator():
             yield case_tuple
 
-class SkipTest_FixedAlphaMuChiSurfaceNormalHorizontal(_BaseTest):
+class Test_FixedAlphaMuChiSurfaceNormalHorizontal(_BaseTest):
     '''NOTE: copied from test.diffcalc.scenarios.session3'''
     def setup_method(self):
         _BaseTest.setup_method(self)
@@ -1932,23 +1932,23 @@ class SkipTest_FixedAlphaMuChiSurfaceNormalHorizontal(_BaseTest):
 
         self.UB = U * B
 
-        self.constraints._constrained = {'alpha': 12., 'mu': 0, 'chi': 0}
+        self.constraints._constrained = {'alpha': 12. * TORAD, 'mu': 0, 'chi': 90 * TORAD}
         self.wavelength = 1.
-        self.places = 5
+        self.places = 4
 
     def _configure_ub(self):
         self.mock_ubcalc.UB = self.UB
-        self.mock_ubcalc.n_phi = matrix([[0.], [0.], [1.]])
+        self.mock_ubcalc.n_phi = matrix([[0.01071], [0.81725], [0.576180]])
 
     def makes_cases(self, zrot, yrot):
         del zrot, yrot  # not used
         self.cases = (
-            Pair('0_0_0.25', (2.0, 2.0,  0.),
-                 Pos(mu=0, delta=79.85393, nu=0, eta=39.92540,
-                     chi=90.0, phi=0.0, unit='DEG')),
-            #Pair('0.25_0.25_0', (0.25, 0.25, 0.0),
-            #     Pos(mu=0, delta=27.352179, nu=0, eta=13.676090,
-            #         chi=37.774500, phi=53.965500, unit='DEG')),
+            Pair('2_2_2', (2.0, 2.0,  2.0),
+                 Pos(mu=0, delta=35.6825, nu=0.0657, eta=17.9822,
+                     chi=90.0, phi=-92.9648, unit='DEG')),
+            Pair('2_2_0', (2.0, 2.0, 0.0),
+                 Pos(mu=0, delta=22.9143, nu=18.2336, eta=18.7764,
+                     chi=90.0, phi=90.9119, unit='DEG')),
             )
         self.case_dict = {}
         for case in self.cases:
