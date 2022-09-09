@@ -42,7 +42,7 @@ wget https://files.pythonhosted.org/packages/3e/89/7ea760b4daa42653ece2380531c90
 wget https://files.pythonhosted.org/packages/69/cb/f5be453359271714c01b9bd06126eaf2e368f1fddfff30818754b5ac2328/funcsigs-1.0.2-py2.py3-none-any.whl
 wget https://files.pythonhosted.org/packages/a4/a6/42f17d065bda1fac255db13afc94c93dbfb64393eae37c749b4cb0752fc7/more_itertools-5.0.0-py3-none-any.whl
 wget https://files.pythonhosted.org/packages/99/4f/13fb671119e65c4dce97c60e67d3fd9e6f7f809f2b307e2611f4701205cb/nose-1.3.7-py2-none-any.whl
-wget https://files.pythonhosted.org/packages/5c/03/b7e605db4a57c0f6fba744b11ef3ddf4ddebcada35022927a2b5fc623fdf/mock-3.0.0-py3-none-any.whl
+wget https://files.pythonhosted.org/packages/59/83/8fcdcf4babcc55290e50cbd54fcc9fcdd81c2e62eff27c1e6a2f23d79381/mock-3.0.0-py2.py3-none-any.whl
 
 unzip -d $HOME/jython/Lib/site-packages Pygments-2.2.0-py2.py3-none-any.whl
 unzip -d $HOME/jython/Lib/site-packages decorator-4.1.2-py2.py3-none-any.whl
