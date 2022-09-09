@@ -62,5 +62,5 @@ unzip -d $HOME/jython/Lib/site-packages packaging-20.9-py2.py3-none-any.whl
 unzip -d $HOME/jython/Lib/site-packages funcsigs-1.0.2-py2.py3-none-any.whl
 unzip -d $HOME/jython/Lib/site-packages more_itertools-5.0.0-py3-none-any.whl
 unzip -d $HOME/jython/Lib/site-packages nose-1.3.7-py2-none-any.whl
-unzip -d $HOME/jython/Lib/site-packages mock-3.0.0-py3-none-any.whl
+unzip -d $HOME/jython/Lib/site-packages mock-3.0.0-py2.py3-none-any.whl
 
