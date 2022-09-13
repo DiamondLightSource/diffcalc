@@ -2,7 +2,7 @@ from startup._common_imports import *  # @UnusedWildImport
 from diffcalc.settings import NUNAME
 
 if GDA:    
-    from __main__ import diff1delta, diff1alpha, diff1gamma, diff1omega, dcm1energy # @UnresolvedImport
+    from __main__ import diff1delta, diff1theta, diff1gamma, diff1omega, dcm1energy # @UnresolvedImport
 
 from diffcalc.hkl.you.geometry import YouGeometry, YouPosition
 
@@ -28,10 +28,9 @@ class FourCircleI07EH1v(YouGeometry):
 ### Create dummy scannables ###
 if GDA:  
     ###map GDA scannable to diffcalc axis name###
-    _fourc = ScannableGroup('_fourc', (diff1delta, diff1gamma, diff1alpha, diff1omega))
+    _fourc = ScannableGroup('_fourc', (diff1delta, diff1gamma, diff1theta, diff1omega))
     delta=_fourc.diff1delta
     gamma = _fourc.diff1gamma
-    alpha = _fourc.diff1alpha
     omega = _fourc.diff1omega
     chi = diff1chi
     theta = diff1theta
@@ -40,9 +39,9 @@ else:
     #Create dummy axes to run outside GDA in IPython#   
     delta = Dummy('delta')
     gamma = Dummy('gamma')
-    alpha = Dummy('alpha')
+    theta = Dummy('theta')
     omega = Dummy('omega')
-    _fourc = ScannableGroup('_fourc', (delta, gamma, alpha, omega))
+    _fourc = ScannableGroup('_fourc', (delta, gamma, theta, omega))
     en = Dummy('en')
 
 en.level = 3
@@ -65,7 +64,7 @@ if GDA:
  
 # Load the last ub calculation used
 lastub()
-# Set reference vector direction returning betain and betaout angles as alpha and beta
+# Set reference vector direction returning betain and betaout angles as theta and beta
 if ubcalc.name:
     surfnphi('0; 0; 1')
 
@@ -77,8 +76,8 @@ def setLimitsAndCuts():
     setmax(delta, 100.0) 
     setmin(gamma, -11.0)
     setmax(gamma, 49.934)
-    setmin(alpha, -6.561)
-    setmax(alpha, 29.163)
+    setmin(theta, -6.561)
+    setmax(theta, 29.163)
     setcut(omega, -180.0)
     print "Current hardware limits set to:"
     hardware()
