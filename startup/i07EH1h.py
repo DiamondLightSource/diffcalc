@@ -73,7 +73,7 @@ if GDA:
  
 # Load the last ub calculation used
 lastub()
-# Set reference vector direction returning betain and betaout angles as alpha and beta
+# Set reference vector direction returning betain and betaout angles as theta and beta
 if ubcalc.name:
     surfnphi('0; 0; 1')
 
