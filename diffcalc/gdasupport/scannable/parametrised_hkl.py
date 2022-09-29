@@ -57,7 +57,7 @@ class ParametrisedHKLScannable(Hkl):
         calc_hkl, _ = self._diffcalc.angles_to_hkl(calc_pos)
         final_hkl, _ = self._diffcalc.angles_to_hkl(final_pos)
         if max([abs(i - j) for i,j in zip(calc_hkl, final_hkl)]) > self.tol:
-		print("Warning: Final hkl position %s exceeds tolerance %f compared to calculated hkl %s"
+            print("Warning: Final hkl position %s exceeds tolerance %f compared to calculated hkl %s"
                                       % (pformat(final_hkl), self.tol, pformat(calc_hkl)))
         self.diffhw.asynchronousMoveTo(final_pos)
 
