@@ -1255,8 +1255,9 @@ class TestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
                     Pos(mu=120, delta=0, nu=60, eta=0, chi=90, phi=0, unit='DEG'))
 
     def testHkl011(self):
+        self.mock_hardware.set_lower_limit('eta', 0.0)
         self._check((0, 1, 1),  # betaout=30
-                    Pos(mu=135, delta=0, nu=90, eta=-45, chi=90, phi=0, unit='DEG'))
+                    Pos(mu=-45, delta=0, nu=90, eta=135, chi=90, phi=0, unit='DEG'))
 
     def testHkl100(self):
         self._check((1, 0, 0),  # betaout=0
