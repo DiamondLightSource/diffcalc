@@ -39,7 +39,6 @@ if GDA:
     gamma=_fourc.diff1gamma
     chi=_fourc.diff1chi
     theta=_fourc.diff1theta
-    alpha = diff1alpha
     omega = diff1omega
     en=dcm1energy
     if float(en.getPosition()) == 0: # no energy value - dummy mode
@@ -50,7 +49,6 @@ else:
     gamma = Dummy('gamma')
     chi = Dummy('chi')
     theta = Dummy('theta')
-    alpha = Dummy('alpha')
     _fourc = ScannableGroup('_fourc', (delta, gamma, chi, theta))
     en = Dummy('en')
     en(800)
@@ -75,7 +73,7 @@ if GDA:
  
 # Load the last ub calculation used
 lastub()
-# Set reference vector direction returning betain and betaout angles as alpha and beta
+# Set reference vector direction returning betain and betaout angles as theta and beta
 if ubcalc.name:
     surfnphi('0; 0; 1')
 

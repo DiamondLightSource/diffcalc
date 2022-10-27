@@ -1218,7 +1218,7 @@ class TestFixedChiPhiPsiMode_DiamondI07SurfaceNormalHorizontal(_TestCubic):
                       phi=0, unit='DEG'))
 
 
-class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
+class TestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
 
     def setup_method(self):
         _TestCubic.setup_method(self)
@@ -1255,52 +1255,53 @@ class SkipTestFixedChiPhiPsiModeSurfaceNormalVertical(_TestCubic):
                     Pos(mu=120, delta=0, nu=60, eta=0, chi=90, phi=0, unit='DEG'))
 
     def testHkl011(self):
+        self.mock_hardware.set_lower_limit('eta', 0.0)
         self._check((0, 1, 1),  # betaout=30
-                    Pos(mu=30, delta=54.7356, nu=90, eta=125.2644, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=-45, delta=0, nu=90, eta=135, chi=90, phi=0, unit='DEG'))
 
     def testHkl100(self):
         self._check((1, 0, 0),  # betaout=0
-                    Pos(mu=0, delta=60, nu=0, eta=30, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=-150, delta=0, nu=60, eta=0, chi=90, phi=0, unit='DEG'))
 
     def testHkl101(self):
         self._check((1, 0, 1),  # betaout=30
-                    Pos(mu=30, delta=54.7356, nu=90, eta=35.2644, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=-30, delta=125.2644, nu=90, eta=35.2644, chi=90, phi=0, unit='DEG'))
 
     def testHkl110(self):
         self._check((1, 1, 0),  # betaout=0
-                    Pos(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=0, delta=90, nu=0, eta=90, chi=0, phi=0, unit='DEG'), fails=True)
 
     def testHkl11nearly0(self):
         self.places = 3
         self._check((1, 1, .0001),  # betaout=0
-                    Pos(mu=0.0029, delta=89.9971, nu=90.0058, eta=90, chi=0,
+                    Pos(mu=-180, delta=0.003, nu=90, eta=-0.003, chi=90,
                       phi=0, unit='DEG'))
 
     def testHkl111(self):
         self._check((1, 1, 1),  # betaout=30
-                    Pos(mu=30, delta=54.7356, nu=150, eta=99.7356, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=-58.6003, delta=42.7342, nu=132.9004, eta=106.3249, chi=90, phi=0, unit='DEG'))
 
     def testHklover100(self):
         self._check((1.1, 0, 0),  # betaout=0
-                    Pos(mu=0, delta=66.7340, nu=0, eta=33.3670, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=-146.6330, delta=0, nu=66.7340, eta=0, chi=90, phi=0, unit='DEG'))
 
     def testHklunder100(self):
         self._check((.9, 0, 0),  # betaout=0
-                    Pos(mu=0, delta=53.4874, nu=0, eta=26.7437, chi=0, phi=0, unit='DEG'))
+                    Pos(mu=-153.2563, delta=0, nu=53.4874, eta=0, chi=90, phi=0, unit='DEG'))
 
     def testHkl788(self):
         self._check((.7, .8, .8),  # betaout=23.5782
-                    Pos(mu=23.5782, delta=59.9980, nu=76.7037, eta=84.2591,
-                      chi=0, phi=0, unit='DEG'))
+                    Pos(mu=-65.7718, delta=73.4364, nu=66.2094, eta=77.0910,
+                      chi=90, phi=0, unit='DEG'))
 
     def testHkl789(self):
         self._check((.7, .8, .9),  # betaout=26.7437
-                    Pos(mu=26.74368, delta=58.6754, nu=86.6919, eta=85.3391,
-                      chi=0, phi=0, unit='DEG'))
+                    Pos(mu=-62.8827, delta=68.9198, nu=85.2155, eta=80.8395,
+                      chi=90, phi=0, unit='DEG'))
 
     def testHkl7810(self):
         self._check((.7, .8, 1),  # betaout=30
-                    Pos(mu=30, delta=57.0626, nu=96.86590, eta=86.6739, chi=0,
+                    Pos(mu=-59.8333, delta=63.6344, nu=98.4163, eta=84.2615, chi=90,
                       phi=0, unit='DEG'))
 
 class SkipTestFixedChiPhiPsiModeSurfaceNormalVerticalI16(_TestCubic):

@@ -61,8 +61,8 @@ class _TestNumpyMatrix():
 
     def test_2dslice(self):
         m = self.m('0 1; 10 11')
-        eq_(m[0, 0], 00)
-        eq_(m[0, 1], 01)
+        eq_(m[0, 0], 0)
+        eq_(m[0, 1], 1)
         eq_(m[1, 0], 10)
         eq_(m[1, 1], 11)
 
