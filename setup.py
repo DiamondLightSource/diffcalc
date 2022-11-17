@@ -20,7 +20,8 @@ setup(
         'ipython',
         'pytest==3.10.1',
         'pytest-xdist',
-        'nose'
+        'nose',
+        'mock'
     ],
 
     entry_points={
