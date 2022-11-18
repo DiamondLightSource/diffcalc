@@ -25,7 +25,8 @@ except ImportError:
 logger = logging.getLogger("diffcalc.ub.calcstate")
 
 TODEG = 180 / pi
-
+inf = float('inf')
+nan = float('nan')
 
 class UBCalcState():
     
