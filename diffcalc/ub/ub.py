@@ -102,16 +102,10 @@ def newub(name=None):
 def loadub(name_or_num):
     """loadub 'name' | num -- load an existing ub calculation
     """
-    try:
-        if isinstance(name_or_num, basestring):
-            ubcalc.load(name_or_num)
-        else:
-            ubcalc.load(ubcalc.listub()[int(name_or_num)])
-    except Exception as e:
-        msg = "ERROR: Error encoluntered while loading UB calculation %s: %s" % (str(name_or_num), e)
-        print("*" * len(msg))
-        print(msg)
-        print("*" * len(msg))
+    if isinstance(name_or_num, basestring):
+        ubcalc.load(name_or_num)
+    else:
+        ubcalc.load(ubcalc.listub()[int(name_or_num)])
 
 @command
 def lastub():
@@ -121,8 +115,11 @@ def lastub():
         lastub_name = ubcalc.listub()[0]
         print "Loading ub calculation: '%s'" % lastub_name
         loadub(0)
-    except IndexError:
-        print "WARNING: There is no record of the last ub calculation used"
+    except Exception as e:
+        msg = "ERROR: Error encoluntered while loading UB calculation %s: %s" % (lastub_name, e)
+        print("*" * len(msg))
+        print(msg)
+        print("*" * len(msg))
 
 @command
 def rmub(name_or_num):
