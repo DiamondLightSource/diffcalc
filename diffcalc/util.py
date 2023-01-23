@@ -16,16 +16,13 @@
 # along with Diffcalc.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+import os
 from math import pi, acos, cos, sin, sqrt
 from functools import wraps
 import textwrap
 
-try:
-    from gda.jython.commands.InputCommands import requestInput as raw_input
-    GDA = True
-except ImportError:
-    GDA = False
-    pass  # raw_input unavailable in gda
+GDA = os.name == 'java'
+
 try:
     from numpy import matrix
     from numpy.linalg import norm
