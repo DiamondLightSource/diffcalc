@@ -424,3 +424,4 @@ class YouConstraintManager(object):
 
     def get_constraint(self, name):
         value = self.all[name]
+        return None if value is None else value * TODEG
