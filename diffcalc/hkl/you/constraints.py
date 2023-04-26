@@ -423,6 +423,9 @@ class YouConstraintManager(object):
         return "%s : %s --> %s" % (name, old_str, new_str)
 
     def get_constraint(self, name):
-        value = self.all[name]
+        try:
+            value = self.all[name]
+        except KeyError:
+            return None
         return None if value is None else value * TODEG
     
